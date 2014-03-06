@@ -7,6 +7,8 @@
  * of the GNU General Public License version 2.
  */
 
+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+
 #include <linux/slab.h>
 #include <linux/spinlock.h>
 #include <linux/completion.h>
@@ -98,13 +100,12 @@ static inline void gfs2_setbit(const struct gfs2_rbm *rbm, bool do_clone,
 	cur_state = (*byte1 >> bit) & GFS2_BIT_MASK;
 
 	if (unlikely(!valid_change[new_state * 4 + cur_state])) {
-		printk(KERN_WARNING "GFS2: buf_blk = 0x%x old_state=%d, "
-		       "new_state=%d\n", rbm->offset, cur_state, new_state);
-		printk(KERN_WARNING "GFS2: rgrp=0x%llx bi_start=0x%x\n",
-		       (unsigned long long)rbm->rgd->rd_addr,
-		       rbm->bi->bi_start);
-		printk(KERN_WARNING "GFS2: bi_offset=0x%x bi_len=0x%x\n",
-		       rbm->bi->bi_offset, rbm->bi->bi_len);
+		pr_warn("buf_blk = 0x%x old_state=%d, new_state=%d\n",
+			rbm->offset, cur_state, new_state);
+		pr_warn("rgrp=0x%llx bi_start=0x%x\n",
+			(unsigned long long)rbm->rgd->rd_addr, rbm->bi->bi_start);
+		pr_warn("bi_offset=0x%x bi_len=0x%x\n",
+			rbm->bi->bi_offset, rbm->bi->bi_len);
 		dump_stack();
 		gfs2_consist_rgrpd(rbm->rgd);
 		return;
@@ -690,11 +691,11 @@ void gfs2_clear_rgrpd(struct gfs2_sbd *sdp)
 
 static void gfs2_rindex_print(const struct gfs2_rgrpd *rgd)
 {
-	printk(KERN_INFO "  ri_addr = %llu\n", (unsigned long long)rgd->rd_addr);
-	printk(KERN_INFO "  ri_length = %u\n", rgd->rd_length);
-	printk(KERN_INFO "  ri_data0 = %llu\n", (unsigned long long)rgd->rd_data0);
-	printk(KERN_INFO "  ri_data = %u\n", rgd->rd_data);
-	printk(KERN_INFO "  ri_bitbytes = %u\n", rgd->rd_bitbytes);
+	pr_info("ri_addr = %llu\n", (unsigned long long)rgd->rd_addr);
+	pr_info("ri_length = %u\n", rgd->rd_length);
+	pr_info("ri_data0 = %llu\n", (unsigned long long)rgd->rd_data0);
+	pr_info("ri_data = %u\n", rgd->rd_data);
+	pr_info("ri_bitbytes = %u\n", rgd->rd_bitbytes);
 }
 
 /**

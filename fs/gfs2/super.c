@@ -7,6 +7,8 @@
  * of the GNU General Public License version 2.
  */
 
+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+
 #include <linux/bio.h>
 #include <linux/sched.h>
 #include <linux/slab.h>
@@ -180,8 +182,7 @@ int gfs2_mount_args(struct gfs2_args *args, char *options)
 			break;
 		case Opt_debug:
 			if (args->ar_errors == GFS2_ERRORS_PANIC) {
-				printk(KERN_WARNING "GFS2: -o debug and -o errors=panic "
-				       "are mutually exclusive.\n");
+				pr_warn("-o debug and -o errors=panic are mutually exclusive\n");
 				return -EINVAL;
 			}
 			args->ar_debug = 1;
@@ -233,21 +234,21 @@ int gfs2_mount_args(struct gfs2_args *args, char *options)
 		case Opt_commit:
 			rv = match_int(&tmp[0], &args->ar_commit);
 			if (rv || args->ar_commit <= 0) {
-				printk(KERN_WARNING "GFS2: commit mount option requires a positive numeric argument\n");
+				pr_warn("commit mount option requires a positive numeric argument\n");
 				return rv ? rv : -EINVAL;
 			}
 			break;
 		case Opt_statfs_quantum:
 			rv = match_int(&tmp[0], &args->ar_statfs_quantum);
 			if (rv || args->ar_statfs_quantum < 0) {
-				printk(KERN_WARNING "GFS2: statfs_quantum mount option requires a non-negative numeric argument\n");
+				pr_warn("statfs_quantum mount option requires a non-negative numeric argument\n");
 				return rv ? rv : -EINVAL;
 			}
 			break;
 		case Opt_quota_quantum:
 			rv = match_int(&tmp[0], &args->ar_quota_quantum);
 			if (rv || args->ar_quota_quantum <= 0) {
-				printk(KERN_WARNING "GFS2: quota_quantum mount option requires a positive numeric argument\n");
+				pr_warn("quota_quantum mount option requires a positive numeric argument\n");
 				return rv ? rv : -EINVAL;
 			}
 			break;
@@ -264,8 +265,7 @@ int gfs2_mount_args(struct gfs2_args *args, char *options)
 			break;
 		case Opt_err_panic:
 			if (args->ar_debug) {
-				printk(KERN_WARNING "GFS2: -o debug and -o errors=panic "
-					"are mutually exclusive.\n");
+				pr_warn("-o debug and -o errors=panic are mutually exclusive\n");
 				return -EINVAL;
 			}
 			args->ar_errors = GFS2_ERRORS_PANIC;
@@ -290,7 +290,7 @@ int gfs2_mount_args(struct gfs2_args *args, char *options)
 			break;
 		case Opt_error:
 		default:
-			printk(KERN_WARNING "GFS2: invalid mount option: %s\n", o);
+			pr_warn("invalid mount option: %s\n", o);
 			return -EINVAL;
 		}
 	}

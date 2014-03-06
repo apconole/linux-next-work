@@ -53,6 +53,8 @@
  * but never before the maximum hash table size has been reached.
  */
 
+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+
 #include <linux/slab.h>
 #include <linux/spinlock.h>
 #include <linux/buffer_head.h>
@@ -533,8 +535,8 @@ static int gfs2_check_dirent(struct gfs2_dirent *dent, unsigned int offset,
 		goto error;
 	return 0;
 error:
-	printk(KERN_WARNING "gfs2_check_dirent: %s (%s)\n", msg,
-	       first ? "first in block" : "not first in block");
+	pr_warn("%s: %s (%s)\n",
+		__func__, msg, first ? "first in block" : "not first in block");
 	return -EIO;
 }
 
@@ -557,8 +559,7 @@ static int gfs2_dirent_offset(const void *buf)
 	}
 	return offset;
 wrong_type:
-	printk(KERN_WARNING "gfs2_scan_dirent: wrong block type %u\n",
-	       be32_to_cpu(h->mh_type));
+	pr_warn("%s: wrong block type %u\n", __func__, be32_to_cpu(h->mh_type));
 	return -1;
 }
 
@@ -769,7 +770,7 @@ static int get_leaf(struct gfs2_inode *dip, u64 leaf_no,
 
 	error = gfs2_meta_read(dip->i_gl, leaf_no, DIO_WAIT, 0, bhp);
 	if (!error && gfs2_metatype_check(GFS2_SB(&dip->i_inode), *bhp, GFS2_METATYPE_LF)) {
-		/* printk(KERN_INFO "block num=%llu\n", leaf_no); */
+		/* pr_info("block num=%llu\n", leaf_no); */
 		error = -EIO;
 	}
 
@@ -1050,7 +1051,8 @@ static int dir_split_leaf(struct inode *inode, const struct qstr *name)
 	len = 1 << (dip->i_depth - be16_to_cpu(oleaf->lf_depth));
 	half_len = len >> 1;
 	if (!half_len) {
-		printk(KERN_WARNING "i_depth %u lf_depth %u index %u\n", dip->i_depth, be16_to_cpu(oleaf->lf_depth), index);
+		pr_warn("i_depth %u lf_depth %u index %u\n",
+			dip->i_depth, be16_to_cpu(oleaf->lf_depth), index);
 		gfs2_consist_inode(dip);
 		error = -EIO;
 		goto fail_brelse;
