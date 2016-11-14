@@ -80,6 +80,21 @@ struct nf_hook_entry {
 	const struct nf_hook_ops	*orig_ops;
 };
 
+struct nf_hook_entries {
+	size_t				num_hook_entries;
+	const struct nf_hook_entry	*hooks;
+};
+
+#define NF_HOOK_ENTRIES_INIT { .num_hook_entries = 0, .hooks = NULL }
+
+int nf_hook_entries_grow(struct nf_hook_entries *new,
+			 const struct nf_hook_entries *old,
+			 struct nf_hook_entry *insert);
+
+int nf_hook_entries_shrink(struct nf_hook_entries *new,
+			   const struct nf_hook_entries *old,
+			   struct nf_hook_entry *remove);
+
 static inline void
 nf_hook_entry_init(struct nf_hook_entry *entry,	const struct nf_hook_ops *ops)
 {

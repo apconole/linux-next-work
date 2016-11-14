@@ -65,6 +65,93 @@ static DEFINE_MUTEX(nf_hook_mutex);
 #define nf_entry_dereference(e) \
 	rcu_dereference_protected(e, lockdep_is_held(&nf_hook_mutex))
 
+static struct nf_hook_entry *allocate_hook_entries(size_t num)
+{
+	return kmalloc(sizeof(struct nf_hook_entry) * num, GFP_KERNEL);
+}
+
+int
+nf_hook_entries_grow(struct nf_hook_entries *new,
+		     const struct nf_hook_entries *old,
+		     struct nf_hook_entry *insert)
+{
+	struct nf_hook_entry *hooks;
+	size_t hook_entries = 1;
+	size_t i, j;
+
+	if (old)
+		hook_entries += old->num_hook_entries;
+
+	hooks = allocate_hook_entries(hook_entries);
+	if (!hooks)
+		return -ENOMEM;
+
+	for (i = 0, j = 0; i < hook_entries; i++) {
+		if (!old) {
+			hooks[i] = *insert;
+		} else {
+			if (nf_hook_entry_priority(insert) <
+			    nf_hook_entry_priority(&old->hooks[j]))
+				hooks[i] = *insert;
+			else
+				hooks[i] = old->hooks[j++];
+		}
+	}
+	new->num_hook_entries = hook_entries;
+	new->hooks = hooks;
+
+	return 0;
+}
+
+int
+nf_hook_entries_shrink(struct nf_hook_entries *new,
+		       const struct nf_hook_entries *old,
+		       struct nf_hook_entry *remove)
+{
+	struct nf_hook_entry *hooks;
+	size_t hook_entries = 0;
+	size_t i, j;
+
+	if (old) {
+		hook_entries = old->num_hook_entries - 1;
+
+		/* there's a strange problem we could get - remove is not
+		 * in the old->hooks array.  So need to make sure we check
+		 * that it's valid */
+		for (i = 0; i < old->num_hook_entries; ++i) {
+			if (nf_hook_entry_ops(&old->hooks[i]) ==
+			    nf_hook_entry_ops(remove))
+				break;
+		}
+
+		/* below should only happen in the case described above */
+		if (i < old->num_hook_entries)
+			return -ENOENT;
+	}
+
+	if (!hook_entries) {
+		new->num_hook_entries = 0;
+		new->hooks = NULL;
+		return 0;
+	}
+
+	hooks = allocate_hook_entries(hook_entries);
+	if (!hooks)
+		return -ENOMEM;
+
+	for (i = 0, j = 0; i < hook_entries + 1; i++) {
+		if (nf_hook_entry_ops(&old->hooks[i]) ==
+		    nf_hook_entry_ops(remove))
+			continue;
+
+		hooks[j++] = old->hooks[i];
+	}
+
+	new->num_hook_entries = hook_entries;
+	new->hooks = hooks;
+	return 0;
+}
+
 static struct nf_hook_entry __rcu **nf_hook_entry_head(struct net *net, const struct nf_hook_ops *reg)
 {
 	if (reg->pf != NFPROTO_NETDEV)
