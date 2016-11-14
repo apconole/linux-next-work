@@ -80,6 +80,16 @@ struct nf_hook_entry {
 	const struct nf_hook_ops	*orig_ops;
 };
 
+struct nf_hook_entries {
+	size_t				num_hook_entries;
+	struct rcu_head rcu;
+	const struct nf_hook_entry	hooks[];
+};
+
+#define for_each_nf_hook_entry(idx, entry, entries) \
+	for (; (entries) && idx < (entries)->num_hook_entries && \
+		     ((entry) = &((entries)->hooks[idx])) != NULL; ++idx)
+
 static inline void
 nf_hook_entry_init(struct nf_hook_entry *entry,	const struct nf_hook_ops *ops)
 {

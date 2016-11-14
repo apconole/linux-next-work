@@ -65,6 +65,113 @@ static DEFINE_MUTEX(nf_hook_mutex);
 #define nf_entry_dereference(e) \
 	rcu_dereference_protected(e, lockdep_is_held(&nf_hook_mutex))
 
+static struct nf_hook_entries *allocate_hook_entries_size(size_t num)
+{
+	return kmalloc(sizeof(struct nf_hook_entries) +
+		       sizeof(struct nf_hook_entry) * num, GFP_KERNEL);
+}
+
+static int nf_hook_entries_grow(struct nf_hook_entries **new, const struct nf_hook_entries *old, const struct nf_hook_entry *insert)
+{
+	size_t hook_entries = 1;
+	size_t i, j;
+
+	if (old)
+		hook_entries += old->num_hook_entries;
+
+	WARN_ON(!insert);
+
+	*new = allocate_hook_entries_size(hook_entries);
+	if (!*new)
+		return -ENOMEM;
+
+	(*new)->num_hook_entries = hook_entries;
+	for (i = 0, j = 0; i < hook_entries; i++) {
+		struct nf_hook_entry *assigned;
+		const struct nf_hook_entry *hook_entry = insert;
+
+		if (likely(old)) {
+			WARN_ON(!(insert->orig_ops));
+			if (j < old->num_hook_entries &&
+			    nf_hook_entry_priority(hook_entry) >
+			    nf_hook_entry_priority(&(old->hooks[j]))) {
+				WARN_ON(!(old->hooks[j].orig_ops));
+				hook_entry = &(old->hooks[j++]);
+			}
+		}
+		assigned = (struct nf_hook_entry *)&((*new)->hooks[i]);
+		*assigned = *hook_entry;
+	}
+	init_rcu_head(&((*new)->rcu));
+	return 0;
+}
+
+static int nf_hook_entries_shrink(struct nf_hook_entries **new, const struct nf_hook_entries *old, const struct nf_hook_entry *remove)
+{
+	const struct nf_hook_entry *hook_entry;
+	size_t hook_entries = 0;
+	size_t i = 0, j;
+
+	if (old) {
+		hook_entries = old->num_hook_entries - 1;
+
+		/* there's a strange problem we could get - remove is not
+		 * in the old->hooks array.  So need to make sure we check
+		 * that it's valid */
+		for_each_nf_hook_entry(i, hook_entry, old) {
+			printk(KERN_CRIT "%lu/%lu | %p: %p %p vs.  %p: %p %p\n",
+			       i, old->num_hook_entries,
+			       hook_entry, hook_entry->orig_ops,
+			       hook_entry->hook,
+			       remove, remove->orig_ops, remove->hook);
+
+			if (nf_hook_entry_ops(hook_entry) ==
+			    nf_hook_entry_ops(remove)) {
+				printk(KERN_CRIT "YEP - remove on ops\n");
+				break;
+			}
+
+			if (hook_entry->hook == remove->hook) {
+				printk(KERN_CRIT "YEP - remove on hook\n");
+				break;
+			}
+		}
+
+		/* below should only happen in the case described above */
+		if (i >= old->num_hook_entries) {
+			printk(KERN_CRIT "NO NO: %lu / %lu",
+			       i, old->num_hook_entries);
+			WARN(1, "Completely missing!?  probably broken");
+			return -ENOENT;
+		}
+	}
+
+	if (!hook_entries) {
+		*new = NULL;
+		return 0;
+	}
+
+	*new = allocate_hook_entries_size(hook_entries);
+	if (!*new)
+		return -ENOMEM;
+
+	i = 0; j = 0;
+	for_each_nf_hook_entry(i, hook_entry, old) {
+		struct nf_hook_entry *assigned;
+
+		if (nf_hook_entry_ops(hook_entry) ==
+		    nf_hook_entry_ops(remove))
+			continue;
+
+		assigned = (struct nf_hook_entry *)&((*new)->hooks[j++]);
+		*assigned = *hook_entry;
+	}
+
+	(*new)->num_hook_entries = hook_entries;
+	init_rcu_head(&((*new)->rcu));
+	return 0;
+}
+
 static struct nf_hook_entry __rcu **nf_hook_entry_head(struct net *net, const struct nf_hook_ops *reg)
 {
 	if (reg->pf != NFPROTO_NETDEV)
@@ -77,6 +184,14 @@ static struct nf_hook_entry __rcu **nf_hook_entry_head(struct net *net, const st
 	}
 #endif
 	return NULL;
+}
+
+static void release_nf_hook_entries(struct rcu_head *head)
+{
+	struct nf_hook_entries *entries = container_of(head,
+						       struct nf_hook_entries,
+						       rcu);
+	kfree(entries);
 }
 
 int nf_register_net_hook(struct net *net, const struct nf_hook_ops *reg)

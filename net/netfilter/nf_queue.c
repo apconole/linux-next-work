@@ -197,6 +197,16 @@ repeat:
 	return NF_ACCEPT;
 }
 
+static size_t find_hook_entry(struct nf_hook_entries *entries, const struct nf_hook_entry **entry, const struct nf_hook_entry *needle)
+{
+	size_t idx = 0;
+	for_each_nf_hook_entry(idx, *entry, entries) {
+		if (nf_hook_entry_ops(*entry) == nf_hook_entry_ops(needle))
+			break;
+	}
+	return idx;
+}
+
 void nf_reinject(struct nf_queue_entry *entry, unsigned int verdict)
 {
 	struct nf_hook_entry *hook_entry = entry->hook;
