@@ -192,7 +192,7 @@ extern struct static_key nf_hooks_needed[NFPROTO_NUMPROTO][NF_MAX_HOOKS];
 #endif
 
 int nf_hook_slow(struct sk_buff *skb, struct nf_hook_state *state,
-		 struct nf_hook_entry *entry);
+		 struct nf_hook_entries *entries, size_t idx);
 
 /**
  *	nf_hook - call a netfilter hook
@@ -206,7 +206,7 @@ static inline int nf_hook(u_int8_t pf, unsigned int hook, struct net *net,
 			  struct net_device *indev, struct net_device *outdev,
 			  int (*okfn)(struct net *, struct sock *, struct sk_buff *))
 {
-	struct nf_hook_entry *hook_head;
+	struct nf_hook_entries *hooks;
 	int ret = 1;
 
 #ifdef HAVE_JUMP_LABEL
@@ -217,14 +217,14 @@ static inline int nf_hook(u_int8_t pf, unsigned int hook, struct net *net,
 #endif
 
 	rcu_read_lock();
-	hook_head = rcu_dereference(net->nf.hooks[pf][hook]);
-	if (hook_head) {
+	hooks = rcu_dereference(net->nf.hooks[pf][hook]);
+	if (hooks) {
 		struct nf_hook_state state;
 
 		nf_hook_state_init(&state, hook, pf, indev, outdev,
 				   sk, net, okfn);
 
-		ret = nf_hook_slow(skb, &state, hook_head);
+		ret = nf_hook_slow(skb, &state, hooks, 0);
 	}
 	rcu_read_unlock();
 
