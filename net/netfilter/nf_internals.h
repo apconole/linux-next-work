@@ -13,7 +13,8 @@
 
 /* nf_queue.c */
 int nf_queue(struct sk_buff *skb, struct nf_hook_state *state,
-	     struct nf_hook_entry **entryp, unsigned int verdict);
+	     struct nf_hook_entries **entries, size_t *entry,
+	     unsigned int verdict);
 void nf_queue_nf_hook_drop(struct net *net, const struct nf_hook_entry *entry);
 int __init netfilter_queue_init(void);
 

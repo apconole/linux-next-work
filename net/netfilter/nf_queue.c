@@ -108,10 +108,12 @@ void nf_queue_nf_hook_drop(struct net *net, const struct nf_hook_entry *entry)
 }
 
 static int __nf_queue(struct sk_buff *skb, const struct nf_hook_state *state,
-		      struct nf_hook_entry *hook_entry, unsigned int queuenum)
+		      struct nf_hook_entries **entries,
+		      const struct nf_hook_entry *hook_entry,
+		      unsigned int queuenum)
 {
 	int status = -ENOENT;
-	struct nf_queue_entry *entry = NULL;
+	struct nf_queue_entry *queue_entry = NULL;
 	const struct nf_afinfo *afinfo;
 	const struct nf_queue_handler *qh;
 	struct net *net = state->net;
@@ -127,48 +129,53 @@ static int __nf_queue(struct sk_buff *skb, const struct nf_hook_state *state,
 	if (!afinfo)
 		goto err;
 
-	entry = kmalloc(sizeof(*entry) + afinfo->route_key_size, GFP_ATOMIC);
-	if (!entry) {
+	queue_entry = kmalloc(sizeof(*queue_entry) + afinfo->route_key_size,
+			     GFP_ATOMIC);
+	if (!queue_entry) {
 		status = -ENOMEM;
 		goto err;
 	}
 
-	*entry = (struct nf_queue_entry) {
+	*queue_entry = (struct nf_queue_entry) {
 		.skb	= skb,
 		.state	= *state,
+		.entries	= entries,
 		.hook	= hook_entry,
-		.size	= sizeof(*entry) + afinfo->route_key_size,
+		.size	= sizeof(*queue_entry) + afinfo->route_key_size,
 	};
 
-	nf_queue_entry_get_refs(entry);
+	nf_queue_entry_get_refs(queue_entry);
 	skb_dst_force(skb);
-	afinfo->saveroute(skb, entry);
-	status = qh->outfn(entry, queuenum);
+	afinfo->saveroute(skb, queue_entry);
+	status = qh->outfn(queue_entry, queuenum);
 
 	if (status < 0) {
-		nf_queue_entry_release_refs(entry);
+		nf_queue_entry_release_refs(queue_entry);
 		goto err;
 	}
 
 	return 0;
 
 err:
-	kfree(entry);
+	kfree(queue_entry);
 	return status;
 }
 
 /* Packets leaving via this function must come back through nf_reinject(). */
 int nf_queue(struct sk_buff *skb, struct nf_hook_state *state,
-	     struct nf_hook_entry **entryp, unsigned int verdict)
+	     struct nf_hook_entries **entries, size_t *entry,
+	     unsigned int verdict)
 {
-	struct nf_hook_entry *entry = *entryp;
+	const struct nf_hook_entry *hook;
 	int ret;
 
-	ret = __nf_queue(skb, state, entry, verdict >> NF_VERDICT_QBITS);
+	hook = &(rcu_dereference(*entries)->hooks[*entry]);
+	ret = __nf_queue(skb, state, entries, hook,
+			 verdict >> NF_VERDICT_QBITS);
 	if (ret < 0) {
 		if (ret == -ESRCH &&
 		    (verdict & NF_VERDICT_FLAG_QUEUE_BYPASS)) {
-			*entryp = rcu_dereference(entry->next);
+			*entry += 1;
 			return 1;
 		}
 		kfree_skb(skb);
@@ -179,7 +186,7 @@ int nf_queue(struct sk_buff *skb, struct nf_hook_state *state,
 
 static unsigned int nf_iterate(struct sk_buff *skb,
 			       struct nf_hook_state *state,
-			       struct nf_hook_entry **entryp)
+			       const struct nf_hook_entry **entryp)
 {
 	unsigned int verdict;
 
@@ -209,12 +216,22 @@ static size_t find_hook_entry(struct nf_hook_entries *entries, const struct nf_h
 
 void nf_reinject(struct nf_queue_entry *entry, unsigned int verdict)
 {
-	struct nf_hook_entry *hook_entry = entry->hook;
+	struct nf_hook_entries **hook_entries = entry->entries;
+	struct nf_hook_entries *entries = rcu_dereference(*hook_entries);
+	const struct nf_hook_entry *hook_entry = NULL;
 	struct sk_buff *skb = entry->skb;
 	const struct nf_afinfo *afinfo;
+	size_t idx;
 	int err;
 
+	idx = find_hook_entry(entries, &hook_entry, entry->hook);
 	nf_queue_entry_release_refs(entry);
+
+	if (idx > entries->num_hook_entries) {
+		kfree_skb(skb);
+		kfree(entry);
+		return;
+	}
 
 	/* Continue traversal iff userspace said ok... */
 	if (verdict == NF_REPEAT)
@@ -242,7 +259,8 @@ okfn:
 		local_bh_enable();
 		break;
 	case NF_QUEUE:
-		err = nf_queue(skb, &entry->state, &hook_entry, verdict);
+		err = nf_queue(skb, &entry->state, hook_entries, &idx,
+			       verdict);
 		if (err == 1) {
 			if (hook_entry)
 				goto next_hook;
