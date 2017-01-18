@@ -196,9 +196,14 @@ repeat:
 	return NF_ACCEPT;
 }
 
+static struct nf_hook_entry *queue_hook_entry(struct nf_queue_entry *entry)
+{
+	return entry->hook;
+}
+
 void nf_reinject(struct nf_queue_entry *entry, unsigned int verdict)
 {
-	struct nf_hook_entry *hook_entry = entry->hook;
+	struct nf_hook_entry *hook_entry = queue_hook_entry(entry);
 	struct sk_buff *skb = entry->skb;
 	const struct nf_afinfo *afinfo;
 	int err;
