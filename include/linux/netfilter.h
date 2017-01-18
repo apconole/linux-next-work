@@ -80,6 +80,10 @@ struct nf_hook_entry {
 	const struct nf_hook_ops	*orig_ops;
 };
 
+#define for_each_nf_hook_entry(hook_start, hook_ptr)		\
+	for ((hook_ptr) = (hook_start); (hook_ptr);		\
+	     (hook_ptr) = rcu_dereference((hook_ptr)->next))
+
 static inline void
 nf_hook_entry_init(struct nf_hook_entry *entry,	const struct nf_hook_ops *ops)
 {

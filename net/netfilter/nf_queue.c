@@ -168,7 +168,6 @@ int nf_queue(struct sk_buff *skb, struct nf_hook_state *state,
 	if (ret < 0) {
 		if (ret == -ESRCH &&
 		    (verdict & NF_VERDICT_FLAG_QUEUE_BYPASS)) {
-			*entryp = rcu_dereference(entry->next);
 			return 1;
 		}
 		kfree_skb(skb);
@@ -181,19 +180,19 @@ static unsigned int nf_iterate(struct sk_buff *skb,
 			       struct nf_hook_state *state,
 			       struct nf_hook_entry **entryp)
 {
+	struct nf_hook_entry *hook;
 	unsigned int verdict;
 
-	do {
+	for_each_nf_hook_entry(*entryp, hook) {
+		*entryp = hook;
 repeat:
-		verdict = nf_hook_entry_hookfn((*entryp), skb, state);
+		verdict = nf_hook_entry_hookfn(hook, skb, state);
 		if (verdict != NF_ACCEPT) {
 			if (verdict != NF_REPEAT)
 				return verdict;
 			goto repeat;
 		}
-		*entryp = rcu_dereference((*entryp)->next);
-	} while (*entryp);
-
+	}
 	return NF_ACCEPT;
 }
 
@@ -217,9 +216,9 @@ void nf_reinject(struct nf_queue_entry *entry, unsigned int verdict)
 	}
 
 	if (verdict == NF_ACCEPT) {
+next_hook:
 		hook_entry = rcu_dereference(hook_entry->next);
 		if (hook_entry)
-next_hook:
 			verdict = nf_iterate(skb, &entry->state, &hook_entry);
 	}
 
@@ -234,7 +233,7 @@ okfn:
 	case NF_QUEUE:
 		err = nf_queue(skb, &entry->state, &hook_entry, verdict);
 		if (err == 1) {
-			if (hook_entry)
+			if (rcu_dereference(hook_entry->next))
 				goto next_hook;
 			goto okfn;
 		}

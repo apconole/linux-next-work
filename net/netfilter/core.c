@@ -303,14 +303,14 @@ EXPORT_SYMBOL(_nf_unregister_hooks);
 int nf_hook_slow(struct sk_buff *skb, struct nf_hook_state *state,
 		 struct nf_hook_entry *entry)
 {
+	struct nf_hook_entry *hook;
 	unsigned int verdict;
 	int ret;
 
-	do {
-		verdict = nf_hook_entry_hookfn(entry, skb, state);
+	for_each_nf_hook_entry(entry, hook) {
+		verdict = nf_hook_entry_hookfn(hook, skb, state);
 		switch (verdict & NF_VERDICT_MASK) {
 		case NF_ACCEPT:
-			entry = rcu_dereference(entry->next);
 			break;
 		case NF_DROP:
 			kfree_skb(skb);
@@ -329,7 +329,7 @@ int nf_hook_slow(struct sk_buff *skb, struct nf_hook_state *state,
 			 */
 			return 0;
 		}
-	} while (entry);
+	}
 
 	return 1;
 }
