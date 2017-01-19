@@ -80,6 +80,12 @@ struct nf_hook_entry {
 	const struct nf_hook_ops	*orig_ops;
 };
 
+struct nf_hook_entries {
+	size_t				num_hook_entries;
+	struct rcu_head			rcu;
+	const struct nf_hook_entry	hooks[];
+};
+
 #define for_each_nf_hook_entry(hook_start, hook_ptr)		\
 	for ((hook_ptr) = (hook_start); (hook_ptr);		\
 	     (hook_ptr) = rcu_dereference((hook_ptr)->next))
@@ -195,7 +201,7 @@ static inline int nf_hook(u_int8_t pf, unsigned int hook, struct net *net,
 			  struct net_device *indev, struct net_device *outdev,
 			  int (*okfn)(struct net *, struct sock *, struct sk_buff *))
 {
-	struct nf_hook_entry *hook_head;
+	struct nf_hook_entries *hook_head;
 	int ret = 1;
 
 #ifdef HAVE_JUMP_LABEL
@@ -208,12 +214,14 @@ static inline int nf_hook(u_int8_t pf, unsigned int hook, struct net *net,
 	rcu_read_lock();
 	hook_head = rcu_dereference(net->nf.hooks[pf][hook]);
 	if (hook_head) {
+		struct nf_hook_entry *hook_entry =
+			(struct nf_hook_entry *)hook_head->hooks;
 		struct nf_hook_state state;
 
 		nf_hook_state_init(&state, hook, pf, indev, outdev,
 				   sk, net, okfn);
 
-		ret = nf_hook_slow(skb, &state, hook_head);
+		ret = nf_hook_slow(skb, &state, hook_entry);
 	}
 	rcu_read_unlock();
 

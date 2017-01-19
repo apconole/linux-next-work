@@ -1004,12 +1004,13 @@ int br_nf_hook_thresh(unsigned int hook, struct net *net,
 		      int (*okfn)(struct net *, struct sock *,
 				  struct sk_buff *))
 {
-	struct nf_hook_entry *elem;
+	const struct nf_hook_entry *elem;
 	struct nf_hook_state state;
 	int ret;
 
-	for_each_nf_hook_entry(rcu_dereference(net->nf.hooks[NFPROTO_BRIDGE][hook]),
-			       elem)
+	for_each_nf_hook_entry(
+		rcu_dereference(net->nf.hooks[NFPROTO_BRIDGE][hook])->hooks,
+		elem)
 		if (nf_hook_entry_priority(elem) <= NF_BR_PRI_BRNF)
 			break;
 
@@ -1021,7 +1022,7 @@ int br_nf_hook_thresh(unsigned int hook, struct net *net,
 	nf_hook_state_init(&state, hook, NFPROTO_BRIDGE, indev, outdev,
 			   sk, net, okfn);
 
-	ret = nf_hook_slow(skb, &state, elem);
+	ret = nf_hook_slow(skb, &state, (struct nf_hook_entry *)elem);
 	rcu_read_unlock();
 	if (ret == 1)
 		ret = okfn(net, sk, skb);
