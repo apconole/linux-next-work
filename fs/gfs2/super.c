@@ -1633,8 +1633,10 @@ out_unlock:
 	if (gfs2_rs_active(&ip->i_res))
 		gfs2_rs_deltree(&ip->i_res);
 
-	if (gfs2_holder_initialized(&gh))
+	if (gfs2_holder_initialized(&gh)) {
+		glock_clear_object(ip->i_gl, ip);
 		gfs2_glock_dq_uninit(&gh);
+	}
 	if (error && error != GLR_TRYFAILED && error != -EROFS)
 		fs_warn(sdp, "gfs2_evict_inode: %d\n", error);
 out:
