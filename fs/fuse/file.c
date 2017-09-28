@@ -1753,9 +1753,6 @@ static int fuse_setlk(struct file *file, struct file_lock *fl, int flock)
 	if ((fl->fl_flags & FL_CLOSE_POSIX) == FL_CLOSE_POSIX)
 		return 0;
 
-	if (pid && pid_nr == 0)
-		return -EOVERFLOW;
-
 	req = fuse_get_req_nopages(fc);
 	if (IS_ERR(req))
 		return PTR_ERR(req);
