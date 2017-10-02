@@ -156,7 +156,7 @@ int chcr_handle_resp(struct crypto_async_request *req, unsigned char *input,
 	case CRYPTO_ALG_TYPE_AEAD:
 		ctx_req.req.aead_req = (struct aead_request *)req;
 		ctx_req.ctx.reqctx = aead_request_ctx(ctx_req.req.aead_req);
-		dma_unmap_sg(&u_ctx->lldi.pdev->dev, ctx_req.req.aead_req->dst,
+		dma_unmap_sg(&u_ctx->lldi.pdev->dev, ctx_req.ctx.reqctx->dst,
 			     ctx_req.ctx.reqctx->dst_nents, DMA_FROM_DEVICE);
 		if (ctx_req.ctx.reqctx->skb) {
 			kfree_skb(ctx_req.ctx.reqctx->skb);
@@ -1378,7 +1378,7 @@ static struct sk_buff *create_authenc_wr(struct aead_request *req,
 		null = 1;
 		assoclen = 0;
 	}
-	reqctx->dst_nents = sg_nents_for_len(req->dst, req->cryptlen +
+	reqctx->dst_nents = sg_nents_for_len(reqctx->dst, req->cryptlen +
 					     (op_type ? -authsize : authsize));
 	if (reqctx->dst_nents <= 0) {
 		pr_err("AUTHENC:Invalid Destination sg entries\n");
@@ -1443,7 +1443,7 @@ static struct sk_buff *create_authenc_wr(struct aead_request *req,
 	sg_param.obsize = req->cryptlen + (op_type ? -authsize : authsize);
 	sg_param.qid = qid;
 	sg_param.align = 0;
-	if (map_writesg_phys_cpl(&u_ctx->lldi.pdev->dev, phys_cpl, req->dst,
+	if (map_writesg_phys_cpl(&u_ctx->lldi.pdev->dev, phys_cpl, reqctx->dst,
 				  &sg_param))
 		goto dstmap_fail;
 
@@ -1691,7 +1691,7 @@ static struct sk_buff *create_aead_ccm_wr(struct aead_request *req,
 	if (sg_nents_for_len(req->src, req->cryptlen) < 0)
 		goto err;
 	sub_type = get_aead_subtype(tfm);
-	reqctx->dst_nents = sg_nents_for_len(req->dst, req->cryptlen +
+	reqctx->dst_nents = sg_nents_for_len(reqctx->dst, req->cryptlen +
 					     (op_type ? -authsize : authsize));
 	if (reqctx->dst_nents <= 0) {
 		pr_err("CCM:Invalid Destination sg entries\n");
@@ -1730,7 +1730,7 @@ static struct sk_buff *create_aead_ccm_wr(struct aead_request *req,
 	sg_param.obsize = req->cryptlen + (op_type ? -authsize : authsize);
 	sg_param.qid = qid;
 	sg_param.align = 0;
-	if (map_writesg_phys_cpl(&u_ctx->lldi.pdev->dev, phys_cpl, req->dst,
+	if (map_writesg_phys_cpl(&u_ctx->lldi.pdev->dev, phys_cpl, reqctx->dst,
 				  &sg_param))
 		goto dstmap_fail;
 
@@ -1789,7 +1789,7 @@ static struct sk_buff *create_gcm_wr(struct aead_request *req,
 		crypt_len = AES_BLOCK_SIZE;
 	else
 		crypt_len = req->cryptlen;
-	reqctx->dst_nents = sg_nents_for_len(req->dst, req->cryptlen +
+	reqctx->dst_nents = sg_nents_for_len(reqctx->dst, req->cryptlen +
 					     (op_type ? -authsize : authsize));
 	if (reqctx->dst_nents <= 0) {
 		pr_err("GCM:Invalid Destination sg entries\n");
@@ -1861,7 +1861,7 @@ static struct sk_buff *create_gcm_wr(struct aead_request *req,
 	sg_param.obsize = req->cryptlen + (op_type ? -authsize : authsize);
 	sg_param.qid = qid;
 	sg_param.align = 0;
-	if (map_writesg_phys_cpl(&u_ctx->lldi.pdev->dev, phys_cpl, req->dst,
+	if (map_writesg_phys_cpl(&u_ctx->lldi.pdev->dev, phys_cpl, reqctx->dst,
 				  &sg_param))
 		goto dstmap_fail;
 
@@ -1875,7 +1875,8 @@ static struct sk_buff *create_gcm_wr(struct aead_request *req,
 		write_sg_to_skb(skb, &frags, req->src, req->cryptlen);
 	} else {
 		aes_gcm_empty_pld_pad(req->dst, authsize - 1);
-		write_sg_to_skb(skb, &frags, req->dst, crypt_len);
+		write_sg_to_skb(skb, &frags, reqctx->dst, crypt_len);
+
 	}
 
 	create_wreq(ctx, chcr_req, req, skb, kctx_len, size, 1,

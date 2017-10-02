@@ -158,6 +158,7 @@ struct ablk_ctx {
 };
 struct chcr_aead_reqctx {
 	struct	sk_buff	*skb;
+	struct scatterlist *dst;
 	short int dst_nents;
 	u16 verify;
 	u8 iv[CHCR_MAX_CRYPTO_IV_LEN];
