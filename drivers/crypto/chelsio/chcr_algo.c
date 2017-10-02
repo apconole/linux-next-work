@@ -1382,7 +1382,7 @@ static struct sk_buff *create_authenc_wr(struct aead_request *req,
 	unsigned short stop_offset = 0;
 	unsigned int  assoclen = req->assoclen;
 	unsigned int  authsize = crypto_aead_authsize(tfm);
-	int src_nent;
+	int error = -EINVAL, src_nent;
 	int null = 0;
 	gfp_t flags = req->base.flags & CRYPTO_TFM_REQ_MAY_SLEEP ? GFP_KERNEL :
 		GFP_ATOMIC;
@@ -1403,6 +1403,7 @@ static struct sk_buff *create_authenc_wr(struct aead_request *req,
 					     (op_type ? -authsize : authsize));
 	if (reqctx->dst_nents < 0) {
 		pr_err("AUTHENC:Invalid Destination sg entries\n");
+		error = -EINVAL;
 		goto err;
 	}
 	dst_size = get_space_for_phys_dsgl(reqctx->dst_nents);
@@ -1416,8 +1417,10 @@ static struct sk_buff *create_authenc_wr(struct aead_request *req,
 		return ERR_PTR(chcr_aead_fallback(req, op_type));
 	}
 	skb = alloc_skb((transhdr_len + sizeof(struct sge_opaque_hdr)), flags);
-	if (!skb)
+	if (!skb) {
+		error = -ENOMEM;
 		goto err;
+	}
 
 	/* LLD is going to write the sge hdr. */
 	skb_reserve(skb, sizeof(struct sge_opaque_hdr));
@@ -1469,9 +1472,9 @@ static struct sk_buff *create_authenc_wr(struct aead_request *req,
 	sg_param.nents = reqctx->dst_nents;
 	sg_param.obsize = req->cryptlen + (op_type ? -authsize : authsize);
 	sg_param.qid = qid;
-	sg_param.align = 0;
-	if (map_writesg_phys_cpl(&u_ctx->lldi.pdev->dev, phys_cpl, reqctx->dst,
-				  &sg_param))
+	error = map_writesg_phys_cpl(&u_ctx->lldi.pdev->dev, phys_cpl,
+					reqctx->dst, &sg_param);
+	if (error)
 		goto dstmap_fail;
 
 	skb_set_transport_header(skb, transhdr_len);
@@ -1494,7 +1497,7 @@ dstmap_fail:
 	/* ivmap_fail: */
 	kfree_skb(skb);
 err:
-	return ERR_PTR(-EINVAL);
+	return ERR_PTR(error);
 }
 
 static int set_msg_len(u8 *block, unsigned int msglen, int csize)
@@ -1685,7 +1688,7 @@ static struct sk_buff *create_aead_ccm_wr(struct aead_request *req,
 	unsigned int dst_size = 0, kctx_len;
 	unsigned int sub_type;
 	unsigned int authsize = crypto_aead_authsize(tfm);
-	int src_nent;
+	int error = -EINVAL, src_nent;
 	gfp_t flags = req->base.flags & CRYPTO_TFM_REQ_MAY_SLEEP ? GFP_KERNEL :
 		GFP_ATOMIC;
 
@@ -1701,11 +1704,11 @@ static struct sk_buff *create_aead_ccm_wr(struct aead_request *req,
 					     (op_type ? -authsize : authsize));
 	if (reqctx->dst_nents < 0) {
 		pr_err("CCM:Invalid Destination sg entries\n");
+		error = -EINVAL;
 		goto err;
 	}
-
-
-	if (aead_ccm_validate_input(op_type, req, aeadctx, sub_type))
+	error = aead_ccm_validate_input(op_type, req, aeadctx, sub_type);
+	if (error)
 		goto err;
 
 	dst_size = get_space_for_phys_dsgl(reqctx->dst_nents);
@@ -1720,8 +1723,10 @@ static struct sk_buff *create_aead_ccm_wr(struct aead_request *req,
 
 	skb = alloc_skb((transhdr_len + sizeof(struct sge_opaque_hdr)),  flags);
 
-	if (!skb)
+	if (!skb) {
+		error = -ENOMEM;
 		goto err;
+	}
 
 	skb_reserve(skb, sizeof(struct sge_opaque_hdr));
 
@@ -1736,15 +1741,16 @@ static struct sk_buff *create_aead_ccm_wr(struct aead_request *req,
 					16), aeadctx->key, aeadctx->enckey_len);
 
 	phys_cpl = (struct cpl_rx_phys_dsgl *)((u8 *)(chcr_req + 1) + kctx_len);
-	if (ccm_format_packet(req, aeadctx, sub_type, op_type))
+	error = ccm_format_packet(req, aeadctx, sub_type, op_type);
+	if (error)
 		goto dstmap_fail;
 
 	sg_param.nents = reqctx->dst_nents;
 	sg_param.obsize = req->cryptlen + (op_type ? -authsize : authsize);
 	sg_param.qid = qid;
-	sg_param.align = 0;
-	if (map_writesg_phys_cpl(&u_ctx->lldi.pdev->dev, phys_cpl, reqctx->dst,
-				  &sg_param))
+	error = map_writesg_phys_cpl(&u_ctx->lldi.pdev->dev, phys_cpl,
+				 reqctx->dst, &sg_param);
+	if (error)
 		goto dstmap_fail;
 
 	skb_set_transport_header(skb, transhdr_len);
@@ -1756,9 +1762,8 @@ static struct sk_buff *create_aead_ccm_wr(struct aead_request *req,
 	return skb;
 dstmap_fail:
 	kfree_skb(skb);
-	skb = NULL;
 err:
-	return ERR_PTR(-EINVAL);
+	return ERR_PTR(error);
 }
 
 static struct sk_buff *create_gcm_wr(struct aead_request *req,
@@ -1781,7 +1786,7 @@ static struct sk_buff *create_gcm_wr(struct aead_request *req,
 	unsigned char tag_offset = 0;
 	unsigned int crypt_len = 0;
 	unsigned int authsize = crypto_aead_authsize(tfm);
-	int src_nent;
+	int error = -EINVAL, src_nent;
 	gfp_t flags = req->base.flags & CRYPTO_TFM_REQ_MAY_SLEEP ? GFP_KERNEL :
 		GFP_ATOMIC;
 
@@ -1806,6 +1811,7 @@ static struct sk_buff *create_gcm_wr(struct aead_request *req,
 					     (op_type ? -authsize : authsize));
 	if (reqctx->dst_nents < 0) {
 		pr_err("GCM:Invalid Destination sg entries\n");
+		error = -EINVAL;
 		goto err;
 	}
 
@@ -1821,8 +1827,10 @@ static struct sk_buff *create_gcm_wr(struct aead_request *req,
 		return ERR_PTR(chcr_aead_fallback(req, op_type));
 	}
 	skb = alloc_skb((transhdr_len + sizeof(struct sge_opaque_hdr)), flags);
-	if (!skb)
+	if (!skb) {
+		error = -ENOMEM;
 		goto err;
+	}
 
 	/* NIC driver is going to write the sge hdr. */
 	skb_reserve(skb, sizeof(struct sge_opaque_hdr));
@@ -1870,9 +1878,9 @@ static struct sk_buff *create_gcm_wr(struct aead_request *req,
 	sg_param.nents = reqctx->dst_nents;
 	sg_param.obsize = req->cryptlen + (op_type ? -authsize : authsize);
 	sg_param.qid = qid;
-	sg_param.align = 0;
-	if (map_writesg_phys_cpl(&u_ctx->lldi.pdev->dev, phys_cpl, reqctx->dst,
-				  &sg_param))
+	error = map_writesg_phys_cpl(&u_ctx->lldi.pdev->dev, phys_cpl,
+					  reqctx->dst, &sg_param);
+	if (error)
 		goto dstmap_fail;
 
 	skb_set_transport_header(skb, transhdr_len);
@@ -1891,9 +1899,8 @@ static struct sk_buff *create_gcm_wr(struct aead_request *req,
 dstmap_fail:
 	/* ivmap_fail: */
 	kfree_skb(skb);
-	skb = NULL;
 err:
-	return skb;
+	return ERR_PTR(error);
 }
 
 static int chcr_aead_cra_init(struct crypto_tfm *tfm)
@@ -1903,7 +1910,8 @@ static int chcr_aead_cra_init(struct crypto_tfm *tfm)
 	struct crypto_alg *alg = tfm->__crt_alg;
 
 	aeadctx->sw_cipher = crypto_alloc_aead(alg->cra_name, 0,
-					       CRYPTO_ALG_NEED_FALLBACK);
+					       CRYPTO_ALG_NEED_FALLBACK |
+					       CRYPTO_ALG_ASYNC);
 	if  (IS_ERR(aeadctx->sw_cipher))
 		return PTR_ERR(aeadctx->sw_cipher);
 	tfm->crt_aead.reqsize =	max(sizeof(struct chcr_aead_reqctx),
