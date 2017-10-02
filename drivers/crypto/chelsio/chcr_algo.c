@@ -152,6 +152,7 @@ int chcr_handle_resp(struct crypto_async_request *req, unsigned char *input,
 	struct uld_ctx *u_ctx = ULD_CTX(ctx);
 	struct chcr_req_ctx ctx_req;
 	unsigned int digestsize, updated_digestsize;
+	struct adapter *adap = padap(ctx->dev);
 
 	switch (tfm->__crt_alg->cra_flags & CRYPTO_ALG_TYPE_MASK) {
 	case CRYPTO_ALG_TYPE_AEAD:
@@ -205,6 +206,7 @@ int chcr_handle_resp(struct crypto_async_request *req, unsigned char *input,
 		ctx_req.req.ahash_req->base.complete(req, err);
 		break;
 	}
+	atomic_inc(&adap->chcr_stats.complete);
 	return err;
 }
 
@@ -637,6 +639,7 @@ static struct sk_buff *create_cipher_wr(struct cipher_wr_param *wrparam)
 	unsigned int ivsize = AES_BLOCK_SIZE, kctx_len;
 	gfp_t flags = wrparam->req->base.flags & CRYPTO_TFM_REQ_MAY_SLEEP ?
 			GFP_KERNEL : GFP_ATOMIC;
+	struct adapter *adap = padap(ctx->dev);
 
 	phys_dsgl = get_space_for_phys_dsgl(reqctx->dst_nents);
 
@@ -699,6 +702,7 @@ static struct sk_buff *create_cipher_wr(struct cipher_wr_param *wrparam)
 	skb_set_transport_header(skb, transhdr_len);
 	write_buffer_to_skb(skb, &frags, reqctx->iv, ivsize);
 	write_sg_to_skb(skb, &frags, wrparam->srcsg, wrparam->bytes);
+	atomic_inc(&adap->chcr_stats.cipher_rqst);
 	create_wreq(ctx, chcr_req, &(wrparam->req->base), skb, kctx_len, 0, 1,
 			sizeof(struct cpl_rx_phys_dsgl) + phys_dsgl,
 			ablkctx->ciph_mode == CHCR_SCMD_CIPHER_MODE_AES_CBC);
@@ -1335,6 +1339,7 @@ static struct sk_buff *create_hash_wr(struct ahash_request *req,
 	u8 hash_size_in_response = 0;
 	gfp_t flags = req->base.flags & CRYPTO_TFM_REQ_MAY_SLEEP ? GFP_KERNEL :
 		GFP_ATOMIC;
+	struct adapter *adap = padap(ctx->dev);
 
 	iopad_alignment = KEYCTX_ALIGN_PAD(digestsize);
 	kctx_len = param->alg_prm.result_size + iopad_alignment;
@@ -1391,7 +1396,7 @@ static struct sk_buff *create_hash_wr(struct ahash_request *req,
 				    param->bfr_len);
 	if (param->sg_len != 0)
 		write_sg_to_skb(skb, &frags, req->src, param->sg_len);
-
+	atomic_inc(&adap->chcr_stats.digest_rqst);
 	create_wreq(ctx, chcr_req, &req->base, skb, kctx_len,
 		    hash_size_in_response, 0, DUMMY_BYTES, 0);
 	req_ctx->skb = skb;
@@ -1857,6 +1862,7 @@ static struct sk_buff *create_authenc_wr(struct aead_request *req,
 	int null = 0;
 	gfp_t flags = req->base.flags & CRYPTO_TFM_REQ_MAY_SLEEP ? GFP_KERNEL :
 		GFP_ATOMIC;
+	struct adapter *adap = padap(ctx->dev);
 
 	if (aeadctx->enckey_len == 0 || (req->cryptlen == 0))
 		goto err;
@@ -1885,6 +1891,7 @@ static struct sk_buff *create_authenc_wr(struct aead_request *req,
 			T6_MAX_AAD_SIZE,
 			transhdr_len + (sgl_len(src_nent + MIN_AUTH_SG) * 8),
 				op_type)) {
+		atomic_inc(&adap->chcr_stats.fallback);
 		return ERR_PTR(chcr_aead_fallback(req, op_type));
 	}
 	skb = alloc_skb((transhdr_len + sizeof(struct sge_opaque_hdr)), flags);
@@ -1958,6 +1965,7 @@ static struct sk_buff *create_authenc_wr(struct aead_request *req,
 	memcpy(reqctx->iv, req->iv, ivsize);
 	write_buffer_to_skb(skb, &frags, reqctx->iv, ivsize);
 	write_sg_to_skb(skb, &frags, req->src, req->cryptlen);
+	atomic_inc(&adap->chcr_stats.cipher_rqst);
 	create_wreq(ctx, chcr_req, &req->base, skb, kctx_len, size, 1,
 		   sizeof(struct cpl_rx_phys_dsgl) + dst_size, 0);
 	reqctx->skb = skb;
@@ -2162,6 +2170,7 @@ static struct sk_buff *create_aead_ccm_wr(struct aead_request *req,
 	int error = -EINVAL, src_nent;
 	gfp_t flags = req->base.flags & CRYPTO_TFM_REQ_MAY_SLEEP ? GFP_KERNEL :
 		GFP_ATOMIC;
+	struct adapter *adap = padap(ctx->dev);
 
 
 	if (op_type && req->cryptlen < crypto_aead_authsize(tfm))
@@ -2189,6 +2198,7 @@ static struct sk_buff *create_aead_ccm_wr(struct aead_request *req,
 			    T6_MAX_AAD_SIZE - 18,
 			    transhdr_len + (sgl_len(src_nent + MIN_CCM_SG) * 8),
 			    op_type)) {
+		atomic_inc(&adap->chcr_stats.fallback);
 		return ERR_PTR(chcr_aead_fallback(req, op_type));
 	}
 
@@ -2226,6 +2236,7 @@ static struct sk_buff *create_aead_ccm_wr(struct aead_request *req,
 
 	skb_set_transport_header(skb, transhdr_len);
 	frags = fill_aead_req_fields(skb, req, req->src, ivsize, aeadctx);
+	atomic_inc(&adap->chcr_stats.aead_rqst);
 	create_wreq(ctx, chcr_req, &req->base, skb, kctx_len, 0, 1,
 		    sizeof(struct cpl_rx_phys_dsgl) + dst_size, 0);
 	reqctx->skb = skb;
@@ -2259,6 +2270,7 @@ static struct sk_buff *create_gcm_wr(struct aead_request *req,
 	int error = -EINVAL, src_nent;
 	gfp_t flags = req->base.flags & CRYPTO_TFM_REQ_MAY_SLEEP ? GFP_KERNEL :
 		GFP_ATOMIC;
+	struct adapter *adap = padap(ctx->dev);
 
 	/* validate key size */
 	if (aeadctx->enckey_len == 0)
@@ -2294,6 +2306,7 @@ static struct sk_buff *create_gcm_wr(struct aead_request *req,
 			    T6_MAX_AAD_SIZE,
 			    transhdr_len + (sgl_len(src_nent + MIN_GCM_SG) * 8),
 			    op_type)) {
+		atomic_inc(&adap->chcr_stats.fallback);
 		return ERR_PTR(chcr_aead_fallback(req, op_type));
 	}
 	skb = alloc_skb((transhdr_len + sizeof(struct sge_opaque_hdr)), flags);
@@ -2357,6 +2370,7 @@ static struct sk_buff *create_gcm_wr(struct aead_request *req,
 	write_sg_to_skb(skb, &frags, req->assoc, assoclen);
 	write_buffer_to_skb(skb, &frags, reqctx->iv, ivsize);
 	write_sg_to_skb(skb, &frags, req->src, req->cryptlen);
+	atomic_inc(&adap->chcr_stats.aead_rqst);
 	create_wreq(ctx, chcr_req, &req->base, skb, kctx_len, size, 1,
 			sizeof(struct cpl_rx_phys_dsgl) + dst_size,
 			reqctx->verify);
