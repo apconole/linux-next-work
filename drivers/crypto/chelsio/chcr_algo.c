@@ -125,12 +125,12 @@ static void chcr_verify_tag(struct aead_request *req, u8 *input, int *err)
 	fw6_pld = (struct cpl_fw6_pld *)input;
 	if ((get_aead_subtype(tfm) == CRYPTO_ALG_SUB_TYPE_AEAD_RFC4106) ||
 	    (get_aead_subtype(tfm) == CRYPTO_ALG_SUB_TYPE_AEAD_GCM)) {
-		cmp = memcmp(&fw6_pld->data[2], (fw6_pld + 1), authsize);
+		cmp = crypto_memneq(&fw6_pld->data[2], (fw6_pld + 1), authsize);
 	} else {
 
 		sg_pcopy_to_buffer(req->src, sg_nents(req->src), temp,
 				authsize, req->cryptlen - authsize);
-		cmp = memcmp(temp, (fw6_pld + 1), authsize);
+		cmp = crypto_memneq(temp, (fw6_pld + 1), authsize);
 	}
 	if (cmp)
 		*err = -EBADMSG;
@@ -1782,9 +1782,8 @@ static struct sk_buff *create_gcm_wr(struct aead_request *req,
 	struct phys_sge_parm sg_param;
 	unsigned int frags = 0, transhdr_len;
 	unsigned int ivsize = AES_BLOCK_SIZE;
-	unsigned int dst_size = 0, kctx_len;
+	unsigned int dst_size = 0, kctx_len, assoclen = req->assoclen;
 	unsigned char tag_offset = 0;
-	unsigned int crypt_len = 0;
 	unsigned int authsize = crypto_aead_authsize(tfm);
 	int error = -EINVAL, src_nent;
 	gfp_t flags = req->base.flags & CRYPTO_TFM_REQ_MAY_SLEEP ? GFP_KERNEL :
@@ -1841,14 +1840,14 @@ static struct sk_buff *create_gcm_wr(struct aead_request *req,
 	tag_offset = (op_type == CHCR_ENCRYPT_OP) ? 0 : authsize;
 	chcr_req->sec_cpl.op_ivinsrtofst = FILL_SEC_CPL_OP_IVINSR(
 					ctx->dev->rx_channel_id, 2, (ivsize ?
-					(req->assoclen + 1) : 0));
+					(assoclen + 1) : 0));
 	chcr_req->sec_cpl.pldlen =
-		htonl(req->assoclen + ivsize + req->cryptlen);
+		htonl(assoclen + ivsize + req->cryptlen);
 	chcr_req->sec_cpl.aadstart_cipherstop_hi = FILL_SEC_CPL_CIPHERSTOP_HI(
-					req->assoclen ? 1 : 0, req->assoclen,
-					req->assoclen + ivsize + 1, 0);
+					assoclen ? 1 : 0, assoclen,
+					assoclen + ivsize + 1, 0);
 		chcr_req->sec_cpl.cipherstop_lo_authinsert =
-			FILL_SEC_CPL_AUTHINSERT(0, req->assoclen + ivsize + 1,
+			FILL_SEC_CPL_AUTHINSERT(0, assoclen + ivsize + 1,
 						tag_offset, tag_offset);
 		chcr_req->sec_cpl.seqno_numivs =
 			FILL_SEC_CPL_SCMD0_SEQNO(op_type, (op_type ==
@@ -1884,9 +1883,7 @@ static struct sk_buff *create_gcm_wr(struct aead_request *req,
 		goto dstmap_fail;
 
 	skb_set_transport_header(skb, transhdr_len);
-
-	write_sg_to_skb(skb, &frags, req->assoc, req->assoclen);
-
+	write_sg_to_skb(skb, &frags, req->assoc, assoclen);
 	write_buffer_to_skb(skb, &frags, reqctx->iv, ivsize);
 	write_sg_to_skb(skb, &frags, req->src, req->cryptlen);
 	create_wreq(ctx, chcr_req, req, skb, kctx_len, size, 1,
