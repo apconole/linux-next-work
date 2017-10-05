@@ -821,9 +821,9 @@ static int ovl_rmdir(struct inode *dir, struct dentry *dentry)
 	return ovl_do_remove(dentry, true);
 }
 
-static int ovl_rename2(struct inode *olddir, struct dentry *old,
-		       struct inode *newdir, struct dentry *new,
-		       unsigned int flags)
+static int ovl_rename(struct inode *olddir, struct dentry *old,
+		      struct inode *newdir, struct dentry *new,
+		      unsigned int flags)
 {
 	int err;
 	enum ovl_path_type old_type;
@@ -1047,10 +1047,10 @@ out:
 	return err;
 }
 
-static int ovl_rename(struct inode *olddir, struct dentry *old,
+static int ovl_rename_old(struct inode *olddir, struct dentry *old,
 		      struct inode *newdir, struct dentry *new)
 {
-	return ovl_rename2(olddir, old, newdir, new, 0);
+	return ovl_rename(olddir, old, newdir, new, 0);
 }
 
 const struct inode_operations_wrapper ovl_dir_inode_operations = {
@@ -1060,7 +1060,7 @@ const struct inode_operations_wrapper ovl_dir_inode_operations = {
 	.symlink	= ovl_symlink,
 	.unlink		= ovl_unlink,
 	.rmdir		= ovl_rmdir,
-	.rename		= ovl_rename,
+	.rename		= ovl_rename_old,
 	.link		= ovl_link,
 	.setattr	= ovl_setattr,
 	.create		= ovl_create,
@@ -1074,5 +1074,5 @@ const struct inode_operations_wrapper ovl_dir_inode_operations = {
 	.get_acl	= ovl_get_acl,
 	.update_time	= ovl_update_time,
 	},
-	.rename2	= ovl_rename2,
+	.rename2	= ovl_rename,
 };
