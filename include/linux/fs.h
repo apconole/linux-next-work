@@ -666,7 +666,8 @@ struct inode {
 
 #ifdef CONFIG_FSNOTIFY
 	__u32			i_fsnotify_mask; /* all events this inode cares about */
-	struct fsnotify_mark_connector __rcu	*i_fsnotify_marks;
+	RH_KABI_REPLACE(struct hlist_head i_fsnotify_marks,
+			struct fsnotify_mark_connector __rcu *i_fsnotify_marks)
 #endif
 
 #ifdef CONFIG_IMA
