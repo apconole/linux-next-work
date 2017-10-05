@@ -576,6 +576,8 @@ struct posix_acl;
 #define IOP_LOOKUP	0x0002
 #define IOP_NOFOLLOW	0x0004
 
+struct fsnotify_mark_connector;
+
 /*
  * Keep mostly read-only and often accessed (especially for
  * the RCU path lookup and 'stat' data) fields at the beginning
@@ -664,7 +666,7 @@ struct inode {
 
 #ifdef CONFIG_FSNOTIFY
 	__u32			i_fsnotify_mask; /* all events this inode cares about */
-	struct hlist_head	i_fsnotify_marks;
+	struct fsnotify_mark_connector	*i_fsnotify_marks;
 #endif
 
 #ifdef CONFIG_IMA
