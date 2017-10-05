@@ -1587,7 +1587,7 @@ static void __d_instantiate(struct dentry *dentry, struct inode *inode)
 	dentry->d_inode = inode;
 	dentry_rcuwalk_barrier(dentry);
 	if (inode)
-		__fsnotify_d_instantiate(dentry);
+		fsnotify_update_flags(dentry);
 	spin_unlock(&dentry->d_lock);
 }
 
@@ -2520,9 +2520,9 @@ static void __d_move(struct dentry *dentry, struct dentry *target,
 
 	dentry_unlock_parents_for_move(dentry, target);
 	if (exchange)
-		fsnotify_d_move(target);
+		fsnotify_update_flags(target);
 	spin_unlock(&target->d_lock);
-	fsnotify_d_move(dentry);
+	fsnotify_update_flags(dentry);
 	spin_unlock(&dentry->d_lock);
 }
 
