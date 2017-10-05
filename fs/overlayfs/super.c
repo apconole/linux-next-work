@@ -708,7 +708,7 @@ ovl_posix_acl_xattr_get(struct dentry *dentry,
 			const char *name, void *buffer, size_t size,
 			int handler_flags)
 {
-	return ovl_xattr_get(dentry, handler_flags == ACL_TYPE_DEFAULT ? XATTR_NAME_POSIX_ACL_DEFAULT : XATTR_NAME_POSIX_ACL_ACCESS,
+	return ovl_xattr_get(dentry, dentry->d_inode, handler_flags == ACL_TYPE_DEFAULT ? XATTR_NAME_POSIX_ACL_DEFAULT : XATTR_NAME_POSIX_ACL_ACCESS,
 			     buffer, size);
 }
 
@@ -756,7 +756,7 @@ ovl_posix_acl_xattr_set(struct dentry *dentry,
 			return err;
 	}
 
-	err = ovl_xattr_set(dentry, handler_flags == ACL_TYPE_DEFAULT ? XATTR_NAME_POSIX_ACL_DEFAULT : XATTR_NAME_POSIX_ACL_ACCESS,
+	err = ovl_xattr_set(dentry, dentry->d_inode, handler_flags == ACL_TYPE_DEFAULT ? XATTR_NAME_POSIX_ACL_DEFAULT : XATTR_NAME_POSIX_ACL_ACCESS,
 			     value, size, flags);
 	if (!err)
 		ovl_copyattr(ovl_inode_real(inode), inode);
@@ -786,14 +786,14 @@ static int ovl_other_xattr_get(struct dentry *dentry,
 			       const char *name, void *buffer, size_t size,
 			       int handler_flags)
 {
-	return ovl_xattr_get(dentry, name, buffer, size);
+	return ovl_xattr_get(dentry, dentry->d_inode, name, buffer, size);
 }
 
 static int ovl_other_xattr_set(struct dentry *dentry,
 			       const char *name, const void *value,
 			       size_t size, int flags, int handler_flags)
 {
-	return ovl_xattr_set(dentry, name, value, size, flags);
+	return ovl_xattr_set(dentry, dentry->d_inode, name, value, size, flags);
 }
 
 static const struct xattr_handler __maybe_unused
