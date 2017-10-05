@@ -4214,11 +4214,7 @@ int vfs_rename(struct inode *old_dir, struct dentry *old_dentry,
 	struct name_snapshot old_name;
 	iop_rename2_t rename2;
 
-	/*
-	 * Check source == target.
-	 * On overlayfs need to look at underlying inodes.
-	 */
-	if (d_real_inode(old_dentry) == d_real_inode(new_dentry))
+	if (source == target)
 		return 0;
 
 	error = may_delete(old_dir, old_dentry, is_dir);
