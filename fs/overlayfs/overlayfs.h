@@ -127,6 +127,12 @@ static inline int ovl_do_whiteout(struct inode *dir, struct dentry *dentry)
 	return err;
 }
 
+static inline struct dentry *ovl_do_tmpfile(struct dentry *dentry, umode_t mode)
+{
+	/* No tmpfile in rhel7 yet */
+	return ERR_PTR(-EOPNOTSUPP);
+}
+
 static inline struct inode *ovl_inode_real(struct inode *inode, bool *is_upper)
 {
 	unsigned long x = (unsigned long) READ_ONCE(inode->i_private);
