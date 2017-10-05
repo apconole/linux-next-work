@@ -2,6 +2,7 @@
 #include <linux/seq_file.h>
 #include <linux/poll.h>
 #include <linux/fs_pin.h>
+#include <linux/rh_kabi.h>
 
 struct mnt_namespace {
 	atomic_t		count;
@@ -56,7 +57,8 @@ struct mount {
 	struct mountpoint *mnt_mp;	/* where is it mounted */
 	struct hlist_node mnt_mp_list;	/* list mounts with the same mountpoint */
 #ifdef CONFIG_FSNOTIFY
-	struct fsnotify_mark_connector __rcu *mnt_fsnotify_marks;
+	RH_KABI_REPLACE(struct hlist_head mnt_fsnotify_marks,
+		     struct fsnotify_mark_connector __rcu *mnt_fsnotify_marks)
 	__u32 mnt_fsnotify_mask;
 #endif
 	int mnt_id;			/* mount identifier */
