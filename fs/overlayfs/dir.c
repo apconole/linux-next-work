@@ -634,6 +634,7 @@ static int ovl_link(struct dentry *old, struct inode *newdir,
 		    struct dentry *new)
 {
 	int err;
+	bool locked = false;
 	struct inode *inode;
 
 	err = ovl_want_write(old);
@@ -644,6 +645,10 @@ static int ovl_link(struct dentry *old, struct inode *newdir,
 	if (err)
 		goto out_drop_write;
 
+	err = ovl_nlink_start(old, &locked);
+	if (err)
+		goto out_drop_write;
+
 	inode = d_inode(old);
 	ihold(inode);
 
@@ -651,6 +656,7 @@ static int ovl_link(struct dentry *old, struct inode *newdir,
 	if (err)
 		iput(inode);
 
+	ovl_nlink_end(old, locked);
 out_drop_write:
 	ovl_drop_write(old);
 out:
@@ -786,8 +792,8 @@ out:
 
 static int ovl_do_remove(struct dentry *dentry, bool is_dir)
 {
-	enum ovl_path_type type;
 	int err;
+	bool locked = false;
 	const struct cred *old_cred;
 
 	err = ovl_want_write(dentry);
@@ -798,7 +804,9 @@ static int ovl_do_remove(struct dentry *dentry, bool is_dir)
 	if (err)
 		goto out_drop_write;
 
-	type = ovl_path_type(dentry);
+	err = ovl_nlink_start(dentry, &locked);
+	if (err)
+		goto out_drop_write;
 
 	old_cred = ovl_override_creds(dentry->d_sb);
 	if (!ovl_lower_positive(dentry))
@@ -812,6 +820,7 @@ static int ovl_do_remove(struct dentry *dentry, bool is_dir)
 		else
 			drop_nlink(dentry->d_inode);
 	}
+	ovl_nlink_end(dentry, locked);
 out_drop_write:
 	ovl_drop_write(dentry);
 out:
@@ -934,6 +943,7 @@ static int ovl_rename(struct inode *olddir, struct dentry *old,
 		      unsigned int flags)
 {
 	int err;
+	bool locked = false;
 	struct dentry *old_upperdir;
 	struct dentry *new_upperdir;
 	struct dentry *olddentry;
@@ -975,6 +985,10 @@ static int ovl_rename(struct inode *olddir, struct dentry *old,
 		goto out_drop_write;
 	if (!overwrite) {
 		err = ovl_copy_up(new);
+		if (err)
+			goto out_drop_write;
+	} else {
+		err = ovl_nlink_start(new, &locked);
 		if (err)
 			goto out_drop_write;
 	}
@@ -1115,6 +1129,7 @@ out_unlock:
 	unlock_rename(new_upperdir, old_upperdir);
 out_revert_creds:
 	revert_creds(old_cred);
+	ovl_nlink_end(new, locked);
 out_drop_write:
 	ovl_drop_write(old);
 out:
