@@ -234,6 +234,8 @@ enum {
 	OPT_UPPERDIR,
 	OPT_WORKDIR,
 	OPT_DEFAULT_PERMISSIONS,
+	OPT_REDIRECT_DIR_ON,
+	OPT_REDIRECT_DIR_OFF,
 	OPT_ERR,
 };
 
@@ -242,6 +244,8 @@ static const match_table_t ovl_tokens = {
 	{OPT_UPPERDIR,			"upperdir=%s"},
 	{OPT_WORKDIR,			"workdir=%s"},
 	{OPT_DEFAULT_PERMISSIONS,	"default_permissions"},
+	{OPT_REDIRECT_DIR_ON,		"redirect_dir=on"},
+	{OPT_REDIRECT_DIR_OFF,		"redirect_dir=off"},
 	{OPT_ERR,			NULL}
 };
 
@@ -304,6 +308,14 @@ static int ovl_parse_opt(char *opt, struct ovl_config *config)
 
 		case OPT_DEFAULT_PERMISSIONS:
 			config->default_permissions = true;
+			break;
+
+		case OPT_REDIRECT_DIR_ON:
+			config->redirect_dir = true;
+			break;
+
+		case OPT_REDIRECT_DIR_OFF:
+			config->redirect_dir = false;
 			break;
 
 		default:
