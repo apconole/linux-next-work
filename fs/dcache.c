@@ -1586,8 +1586,9 @@ static void __d_instantiate(struct dentry *dentry, struct inode *inode)
 		hlist_add_head(&dentry->d_alias, &inode->i_dentry);
 	dentry->d_inode = inode;
 	dentry_rcuwalk_barrier(dentry);
+	if (inode)
+		__fsnotify_d_instantiate(dentry);
 	spin_unlock(&dentry->d_lock);
-	fsnotify_d_instantiate(dentry, inode);
 }
 
 /**
