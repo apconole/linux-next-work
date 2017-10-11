@@ -273,6 +273,11 @@ struct vm_fault {
 					 * VM_FAULT_DAX_LOCKED and fill in
 					 * entry here.
 					 */
+	RH_KABI_EXTEND(pte_t orig_pte)	/* Value of PTE at the time of fault */
+	RH_KABI_EXTEND(pmd_t *pmd)	/* Pointer to pmd entry matching
+					 * the 'virtual_address'
+					 */
+	RH_KABI_EXTEND(struct vm_area_struct *vma)	/* Target VMA */
 };
 
 /*
