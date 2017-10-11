@@ -2279,6 +2279,44 @@ oom:
 	return VM_FAULT_OOM;
 }
 
+/**
+ * finish_mkwrite_fault - finish page fault for a shared mapping, making PTE
+ *			  writeable once the page is prepared
+ *
+ * @vmf: structure describing the fault
+ *
+ * This function handles all that is needed to finish a write page fault in a
+ * shared mapping due to PTE being read-only once the mapped page is prepared.
+ * It handles locking of PTE and modifying it. The function returns
+ * VM_FAULT_WRITE on success, 0 when PTE got changed before we acquired PTE
+ * lock.
+ *
+ * The function expects the page to be locked or other protection against
+ * concurrent faults / writeback (such as DAX radix tree locks).
+ *
+ * RHEL: This version only implements the wp_pfn_shared() case used by DAX.
+ */
+int finish_mkwrite_fault(struct vm_fault *vmf)
+{
+	unsigned long address = (unsigned long)vmf->virtual_address;
+	spinlock_t *ptl;
+	pte_t *pte;
+
+	WARN_ON_ONCE(!(vmf->vma->vm_flags & VM_SHARED));
+	pte = pte_offset_map_lock(vmf->vma->vm_mm, vmf->pmd, address, &ptl);
+
+	/*
+	 * We might have raced with another page fault while we
+	 * released the pte_offset_map_lock.
+	 */
+	if (unlikely(!pte_same(*pte, vmf->orig_pte))) {
+		pte_unmap_unlock(pte, ptl);
+		return 0;
+	}
+	return wp_page_reuse(vmf->vma->vm_mm, vmf->vma, address, pte, ptl,
+			vmf->orig_pte, NULL, 0, 0);
+}
+
 /*
  * Handle write page faults for VM_MIXEDMAP or VM_PFNMAP for a VM_SHARED
  * mapping
