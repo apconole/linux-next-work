@@ -2311,10 +2311,11 @@ int finish_mkwrite_fault(struct vm_fault *vmf)
 	 */
 	if (unlikely(!pte_same(*pte, vmf->orig_pte))) {
 		pte_unmap_unlock(pte, ptl);
-		return 0;
+		return VM_FAULT_NOPAGE;
 	}
-	return wp_page_reuse(vmf->vma->vm_mm, vmf->vma, address, pte, ptl,
+	wp_page_reuse(vmf->vma->vm_mm, vmf->vma, address, pte, ptl,
 			vmf->orig_pte, NULL, 0, 0);
+	return 0;
 }
 
 /*
