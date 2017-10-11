@@ -2828,7 +2828,7 @@ oom:
 static int __do_fault(struct vm_area_struct *vma, unsigned long address,
 			pgoff_t pgoff, unsigned int flags,
 			struct page *cow_page, struct page **page,
-			void **entry)
+			void **entry, pmd_t *pmd, pte_t orig_pte)
 {
 	struct vm_fault vmf;
 	int ret;
@@ -2838,10 +2838,13 @@ static int __do_fault(struct vm_area_struct *vma, unsigned long address,
 	vmf.flags = flags;
 	vmf.page = NULL;
 	vmf.cow_page = cow_page;
+	vmf.orig_pte = orig_pte;
+	vmf.pmd = pmd;
+	vmf.vma = vma;
 
 	ret = vma->vm_ops->fault(vma, &vmf);
 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RETRY |
-			    VM_FAULT_DAX_LOCKED | VM_FAULT_DONE_COW)))
+			    VM_FAULT_DONE_COW)))
 		return ret;
 
 	if (unlikely(PageHWPoison(vmf.page))) {
@@ -2933,7 +2936,8 @@ static int do_read_fault(struct mm_struct *mm, struct vm_area_struct *vma,
 	pte_t *pte;
 	int ret;
 
-	ret = __do_fault(vma, address, pgoff, flags, NULL, &fault_page, NULL);
+	ret = __do_fault(vma, address, pgoff, flags, NULL, &fault_page, NULL,
+			pmd, orig_pte);
 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RETRY)))
 		return ret;
 
@@ -2973,36 +2977,26 @@ static int do_cow_fault(struct mm_struct *mm, struct vm_area_struct *vma,
 	}
 
 	ret = __do_fault(vma, address, pgoff, flags, new_page, &fault_page,
-			 &fault_entry);
+			 &fault_entry, pmd, orig_pte);
 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RETRY)))
 		goto uncharge_out;
 	if (ret & VM_FAULT_DONE_COW)
 		return ret;
 
-	if (!(ret & VM_FAULT_DAX_LOCKED))
-		copy_user_highpage(new_page, fault_page, address, vma);
+	copy_user_highpage(new_page, fault_page, address, vma);
 	__SetPageUptodate(new_page);
 
 	pte = pte_offset_map_lock(mm, pmd, address, &ptl);
 	if (unlikely(!pte_same(*pte, orig_pte))) {
 		pte_unmap_unlock(pte, ptl);
-		if (!(ret & VM_FAULT_DAX_LOCKED)) {
-			unlock_page(fault_page);
-			page_cache_release(fault_page);
-		} else {
-			dax_unlock_mapping_entry(vma->vm_file->f_mapping,
-						 pgoff);
-		}
+		unlock_page(fault_page);
+		page_cache_release(fault_page);
 		goto uncharge_out;
 	}
 	do_set_pte(vma, address, new_page, pte, true, true);
 	pte_unmap_unlock(pte, ptl);
-	if (!(ret & VM_FAULT_DAX_LOCKED)) {
-		unlock_page(fault_page);
-		page_cache_release(fault_page);
-	} else {
-		dax_unlock_mapping_entry(vma->vm_file->f_mapping, pgoff);
-	}
+	unlock_page(fault_page);
+	page_cache_release(fault_page);
 	return ret;
 uncharge_out:
 	mem_cgroup_uncharge_page(new_page);
@@ -3021,7 +3015,8 @@ static int do_shared_fault(struct mm_struct *mm, struct vm_area_struct *vma,
 	int dirtied = 0;
 	int ret, tmp;
 
-	ret = __do_fault(vma, address, pgoff, flags, NULL, &fault_page, NULL);
+	ret = __do_fault(vma, address, pgoff, flags, NULL, &fault_page, NULL,
+			pmd, orig_pte);
 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RETRY)))
 		return ret;
 
