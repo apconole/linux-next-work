@@ -2333,12 +2333,15 @@ static int wp_pfn_shared(struct mm_struct *mm,
 			.pgoff = linear_page_index(vma, address),
 			.virtual_address = (void __user *)(address & PAGE_MASK),
 			.flags = FAULT_FLAG_WRITE | FAULT_FLAG_MKWRITE,
+			.orig_pte = orig_pte,
+			.pmd = pmd,
+			.vma = vma,
 		};
 		int ret;
 
 		pte_unmap_unlock(page_table, ptl);
 		ret = vma->vm_ops->pfn_mkwrite(vma, &vmf);
-		if (ret & VM_FAULT_ERROR)
+		if (ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE))
 			return ret;
 		page_table = pte_offset_map_lock(mm, pmd, address, &ptl);
 		/*
