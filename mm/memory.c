@@ -2887,6 +2887,46 @@ static void do_set_pte(struct vm_area_struct *vma, unsigned long address,
 	update_mmu_cache(vma, address, pte);
 }
 
+/**
+ * finish_fault - finish page fault once we have prepared the page to fault
+ *
+ * @vmf: structure describing the fault
+ *
+ * This function handles all that is needed to finish a page fault once the
+ * page to fault in is prepared. It handles locking of PTEs, inserts PTE for
+ * given page, adds reverse page mapping, and handles LRU addition. The
+ * function returns 0 on success, VM_FAULT_ code in case of error.
+ *
+ * The function expects the page to be locked and on success it consumes a
+ * reference of a page being mapped (for the PTE which maps it).
+ */
+int finish_fault(struct vm_fault *vmf)
+{
+	unsigned long address = (unsigned long)vmf->virtual_address;
+	struct page *page;
+	spinlock_t *ptl;
+	pte_t *pte;
+	bool write = vmf->flags & FAULT_FLAG_WRITE;
+	bool anon = false;
+
+	/* Did we COW the page? */
+	if (write && !(vmf->vma->vm_flags & VM_SHARED)) {
+		page = vmf->cow_page;
+		anon = true;
+	}
+	else
+		page = vmf->page;
+
+	pte = pte_offset_map_lock(vmf->vma->vm_mm, vmf->pmd, address, &ptl);
+	if (unlikely(!pte_same(*pte, vmf->orig_pte))) {
+		pte_unmap_unlock(pte, ptl);
+		return VM_FAULT_NOPAGE;
+	}
+	do_set_pte(vmf->vma, address, page, pte, write, anon);
+	pte_unmap_unlock(pte, ptl);
+	return 0;
+}
+
 static int do_read_fault(struct mm_struct *mm, struct vm_area_struct *vma,
 		unsigned long address, pmd_t *pmd,
 		pgoff_t pgoff, unsigned int flags, pte_t orig_pte)

@@ -626,6 +626,7 @@ static inline pte_t maybe_mkwrite(pte_t pte, struct vm_area_struct *vma)
 		pte = pte_mkwrite(pte);
 	return pte;
 }
+int finish_fault(struct vm_fault *vmf);
 #endif
 
 /*
