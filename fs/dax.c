@@ -1372,7 +1372,7 @@ static int dax_pmd_load_hole(struct vm_area_struct *vma, pmd_t *pmd,
 	spinlock_t *ptl;
 	pmd_t pmd_entry;
 
-	zero_page = mm_get_huge_zero_page(vma->vm_mm);
+	zero_page = get_huge_zero_page();
 
 	if (unlikely(!zero_page))
 		goto fallback;
@@ -1509,7 +1509,7 @@ int dax_iomap_pmd_fault(struct vm_area_struct *vma, unsigned long address,
 	}
  fallback:
 	if (result == VM_FAULT_FALLBACK) {
-		split_huge_pmd(vma, pmd, address);
+		split_huge_page_pmd(vma, address, pmd);
 		count_vm_event(THP_FAULT_FALLBACK);
 	}
 out:
