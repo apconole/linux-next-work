@@ -737,6 +737,7 @@ static void shrink_dentry_list(struct list_head *list)
 
 	rcu_read_lock();
 	for (;;) {
+		struct inode *inode;
 		dentry = list_entry_rcu(list->prev, struct dentry, d_lru);
 		if (&dentry->d_lru == list)
 			break; /* empty */
@@ -759,24 +760,28 @@ static void shrink_dentry_list(struct list_head *list)
 
 		rcu_read_unlock();
 
-		parent = dentry_kill(dentry);
-		/*
-		 * If dentry_kill returns NULL, we have nothing more to do; just
-		 * loop again.
-		 */
-		if (!parent) {
-			rcu_read_lock();
-			continue;
-		}
-		/*
-		 * If it returns the same dentry, trylocks failed; just loop
-		 * again
-		 */
-		if (parent == dentry) {
+		inode = dentry->d_inode;
+		if (inode && unlikely(!spin_trylock(&inode->i_lock))) {
+			spin_unlock(&dentry->d_lock);
+			cpu_relax();
 			rcu_read_lock();
 			continue;
 		}
 
+		parent = NULL;
+		if (!IS_ROOT(dentry)) {
+			parent = dentry->d_parent;
+			if (unlikely(!spin_trylock(&parent->d_lock))) {
+				if (inode)
+					spin_unlock(&inode->i_lock);
+				spin_unlock(&dentry->d_lock);
+				cpu_relax();
+				rcu_read_lock();
+				continue;
+			}
+		}
+
+		__dentry_kill(dentry);
 		/*
 		 * We need to prune ancestors too. This is necessary to prevent
 		 * quadratic behavior of shrink_dcache_parent(), but is also
