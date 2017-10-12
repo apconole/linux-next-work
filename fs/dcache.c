@@ -739,46 +739,10 @@ restart:
 }
 EXPORT_SYMBOL(d_prune_aliases);
 
-/*
- * Try to throw away a dentry - free the inode, dput the parent.
- * Requires dentry->d_lock is held, and dentry->d_count == 0.
- * Releases dentry->d_lock.
- *
- * This may fail if locks cannot be acquired no problem, just try again.
- */
-static void try_prune_one_dentry(struct dentry *dentry)
-	__releases(dentry->d_lock)
-{
-	struct dentry *parent;
-
-	parent = dentry_kill(dentry);
-	/*
-	 * If dentry_kill returns NULL, we have nothing more to do.
-	 * if it returns the same dentry, trylocks failed. In either
-	 * case, just loop again.
-	 *
-	 * Otherwise, we need to prune ancestors too. This is necessary
-	 * to prevent quadratic behavior of shrink_dcache_parent(), but
-	 * is also expected to be beneficial in reducing dentry cache
-	 * fragmentation.
-	 */
-	if (!parent)
-		return;
-	if (parent == dentry)
-		return;
-
-	/* Prune ancestors. */
-	dentry = parent;
-	while (dentry) {
-		if (lockref_put_or_lock(&dentry->d_lockref))
-			return;
-		dentry = dentry_kill(dentry);
-	}
-}
 
 static void shrink_dentry_list(struct list_head *list)
 {
-	struct dentry *dentry;
+	struct dentry *dentry, *parent;
 
 	rcu_read_lock();
 	for (;;) {
@@ -804,8 +768,33 @@ static void shrink_dentry_list(struct list_head *list)
 
 		rcu_read_unlock();
 
-		try_prune_one_dentry(dentry);
+		parent = dentry_kill(dentry);
+		/*
+		 * If dentry_kill returns NULL, we have nothing more to do; just
+		 * loop again.
+		 */
+		if (!parent) {
+			rcu_read_lock();
+			continue;
+		}
+		/*
+		 * If it returns the same dentry, trylocks failed; just loop
+		 * again
+		 */
+		if (parent == dentry) {
+			rcu_read_lock();
+			continue;
+		}
 
+		/*
+		 * We need to prune ancestors too. This is necessary to prevent
+		 * quadratic behavior of shrink_dcache_parent(), but is also
+		 * expected to be beneficial in reducing dentry cache
+		 * fragmentation.
+		 */
+		dentry = parent;
+		while (dentry && !lockref_put_or_lock(&dentry->d_lockref))
+			dentry = dentry_kill(dentry);
 		rcu_read_lock();
 	}
 	rcu_read_unlock();
