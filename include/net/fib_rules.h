@@ -116,4 +116,5 @@ extern int			fib_rules_lookup(struct fib_rules_ops *,
 extern int			fib_default_rule_add(struct fib_rules_ops *,
 						     u32 pref, u32 table,
 						     u32 flags);
+bool fib_rule_matchall(const struct fib_rule *rule);
 #endif

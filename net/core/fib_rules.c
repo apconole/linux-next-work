@@ -18,6 +18,22 @@
 #include <net/fib_rules.h>
 #include <net/ip_tunnels.h>
 
+bool fib_rule_matchall(const struct fib_rule *rule)
+{
+	if (rule->iifindex || rule->oifindex || rule->mark || rule->tun_id ||
+	    rule->flags)
+		return false;
+#if 0 /* Not in RHEL */
+	if (rule->suppress_ifgroup != -1 || rule->suppress_prefixlen != -1)
+		return false;
+	if (!uid_eq(rule->uid_range.start, fib_kuid_range_unset.start) ||
+	    !uid_eq(rule->uid_range.end, fib_kuid_range_unset.end))
+		return false;
+#endif
+	return true;
+}
+EXPORT_SYMBOL_GPL(fib_rule_matchall);
+
 int fib_default_rule_add(struct fib_rules_ops *ops,
 			 u32 pref, u32 table, u32 flags)
 {
