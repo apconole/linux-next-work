@@ -151,12 +151,13 @@ static void node_free(struct fib6_node *fn)
 	kmem_cache_free(fib6_node_kmem, fn);
 }
 
-static void rt6_rcu_free(struct rt6_info *rt)
+void rt6_rcu_free(struct rt6_info *rt)
 {
 	call_rcu(&rt->dst.rcu_head, dst_rcu_free);
 }
+EXPORT_SYMBOL(rt6_rcu_free);
 
-static void rt6_free_pcpu(struct rt6_info *non_pcpu_rt)
+void rt6_free_pcpu(struct rt6_info *non_pcpu_rt)
 {
 	int cpu;
 
@@ -178,14 +179,7 @@ static void rt6_free_pcpu(struct rt6_info *non_pcpu_rt)
 	free_percpu(non_pcpu_rt->rt6i_pcpu);
 	non_pcpu_rt->rt6i_pcpu = NULL;
 }
-
-static void rt6_release(struct rt6_info *rt)
-{
-	if (atomic_dec_and_test(&rt->rt6i_ref)) {
-		rt6_free_pcpu(rt);
-		rt6_rcu_free(rt);
-	}
-}
+EXPORT_SYMBOL_GPL(rt6_free_pcpu);
 
 static void fib6_link_table(struct net *net, struct fib6_table *tb)
 {
