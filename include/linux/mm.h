@@ -358,6 +358,13 @@ static inline int get_freepage_migratetype(struct page *page)
 	return page->index;
 }
 
+#if !defined(__HAVE_ARCH_PTE_DEVMAP) || !defined(CONFIG_TRANSPARENT_HUGEPAGE)
+static inline int pmd_devmap(pmd_t pmd)
+{
+	return 0;
+}
+#endif
+
 /*
  * FIXME: take this include out, include page-flags.h in
  * files which need it (119 of them)

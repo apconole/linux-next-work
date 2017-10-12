@@ -110,7 +110,8 @@ extern void __split_huge_page_pmd(struct vm_area_struct *vma,
 #define split_huge_page_pmd(__vma, __address, __pmd)			\
 	do {								\
 		pmd_t *____pmd = (__pmd);				\
-		if (unlikely(pmd_trans_huge(*____pmd)))			\
+		if (unlikely(pmd_trans_huge(*____pmd)			\
+					|| pmd_devmap(*____pmd)))	\
 			__split_huge_page_pmd(__vma, __address,		\
 					____pmd);			\
 	}  while (0)
@@ -120,7 +121,8 @@ extern void __split_huge_page_pmd(struct vm_area_struct *vma,
 		anon_vma_lock_write(__anon_vma);			\
 		anon_vma_unlock_write(__anon_vma);			\
 		BUG_ON(pmd_trans_splitting(*____pmd) ||			\
-		       pmd_trans_huge(*____pmd));			\
+		       pmd_trans_huge(*____pmd) ||			\
+		       pmd_devmap(*____pmd));				\
 	} while (0)
 extern void split_huge_page_pmd_mm(struct mm_struct *mm, unsigned long address,
 		pmd_t *pmd);
@@ -140,7 +142,7 @@ static inline int pmd_trans_huge_lock(pmd_t *pmd, struct vm_area_struct *vma,
 		spinlock_t **ptl)
 {
 	VM_BUG_ON(!rwsem_is_locked(&vma->vm_mm->mmap_sem));
-	if (pmd_trans_huge(*pmd))
+	if (pmd_trans_huge(*pmd) || pmd_devmap(*pmd))
 		return __pmd_trans_huge_lock(pmd, vma, ptl);
 	else
 		return 0;
