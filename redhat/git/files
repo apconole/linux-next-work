@@ -30,3 +30,4 @@ kernel-3.10.0-s390x-debug.config
 kernel-3.10.0-s390x-kdump.config
 kernel-3.10.0-x86_64.config
 kernel-3.10.0-x86_64-debug.config
+modprobe-dccp-blacklist.conf
