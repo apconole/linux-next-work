@@ -1367,7 +1367,7 @@ static const struct net_device_ops mlxsw_sp_port_netdev_ops = {
 	.extended.ndo_setup_tc_rh = mlxsw_sp_setup_tc,
 	.ndo_set_rx_mode	= mlxsw_sp_set_rx_mode,
 	.ndo_set_mac_address	= mlxsw_sp_port_set_mac_address,
-	.ndo_change_mtu_rh74	= mlxsw_sp_port_change_mtu,
+	.extended.ndo_change_mtu = mlxsw_sp_port_change_mtu,
 	.ndo_get_stats64	= mlxsw_sp_port_get_stats64,
 	.extended.ndo_has_offload_stats	= mlxsw_sp_port_has_offload_stats,
 	.extended.ndo_get_offload_stats	= mlxsw_sp_port_get_offload_stats,
@@ -2336,6 +2336,9 @@ static int __mlxsw_sp_port_create(struct mlxsw_sp *mlxsw_sp, u8 local_port,
 	dev->features |= NETIF_F_NETNS_LOCAL | NETIF_F_LLTX | NETIF_F_SG |
 			 NETIF_F_HW_VLAN_CTAG_FILTER | NETIF_F_HW_TC;
 	dev->hw_features |= NETIF_F_HW_TC;
+
+	dev->extended->min_mtu = 0;
+	dev->extended->max_mtu = ETH_MAX_MTU;
 
 	/* Each packet needs to have a Tx header (metadata) on top all other
 	 * headers.
