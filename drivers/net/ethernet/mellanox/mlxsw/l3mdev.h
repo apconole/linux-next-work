@@ -5,7 +5,12 @@
 
 static inline u32 l3mdev_fib_table(const struct net_device *dev)
 {
-       return 0;
+	return 0;
+}
+
+static inline bool netif_is_l3_slave(const struct net_device *dev)
+{
+	return false;
 }
 
 #endif
