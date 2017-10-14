@@ -46,6 +46,7 @@
 #include <linux/dcbnl.h>
 #include <linux/in6.h>
 #include <linux/notifier.h>
+#include <net/psample.h>
 #include <net/pkt_cls.h>
 
 #include "port.h"
@@ -234,6 +235,7 @@ struct mlxsw_sp_span_entry {
 
 enum mlxsw_sp_port_mall_action_type {
 	MLXSW_SP_PORT_MALL_MIRROR,
+	MLXSW_SP_PORT_MALL_SAMPLE,
 };
 
 struct mlxsw_sp_port_mall_mirror_tc_entry {
@@ -324,6 +326,13 @@ struct mlxsw_sp_port_pcpu_stats {
 	u32			tx_dropped;
 };
 
+struct mlxsw_sp_port_sample {
+	struct psample_group __rcu *psample_group;
+	u32 trunc_size;
+	u32 rate;
+	bool truncate;
+};
+
 struct mlxsw_sp_port {
 	struct net_device *dev;
 	struct mlxsw_sp_port_pcpu_stats __percpu *pcpu_stats;
@@ -370,6 +379,7 @@ struct mlxsw_sp_port {
 		struct rtnl_link_stats64 *cache;
 		struct delayed_work update_dw;
 	} hw_stats;
+	struct mlxsw_sp_port_sample *sample;
 };
 
 bool mlxsw_sp_port_dev_check(const struct net_device *dev);
