@@ -74,5 +74,8 @@ void mlxsw_sp_rif_counter_free(struct mlxsw_sp *mlxsw_sp,
 int mlxsw_sp_rif_counter_alloc(struct mlxsw_sp *mlxsw_sp,
 			       struct mlxsw_sp_rif *rif,
 			       enum mlxsw_sp_rif_counter_dir dir);
+union mlxsw_sp_l3addr
+mlxsw_sp_ipip_netdev_saddr(enum mlxsw_sp_l3proto proto,
+			   const struct net_device *ol_dev);
 
 #endif /* _MLXSW_ROUTER_H_*/
