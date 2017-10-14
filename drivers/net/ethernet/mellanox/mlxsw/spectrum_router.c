@@ -61,6 +61,7 @@
 #include "reg.h"
 #include "spectrum_cnt.h"
 #include "spectrum_dpipe.h"
+#include "spectrum_ipip.h"
 #include "spectrum_router.h"
 
 struct mlxsw_sp_vr;
@@ -88,6 +89,7 @@ struct mlxsw_sp_router {
 	bool aborted;
 	struct notifier_block fib_nb;
 	const struct mlxsw_sp_rif_ops **rif_ops_arr;
+	const struct mlxsw_sp_ipip_ops **ipip_ops_arr;
 };
 
 struct mlxsw_sp_rif {
@@ -5026,6 +5028,16 @@ static void mlxsw_sp_rifs_fini(struct mlxsw_sp *mlxsw_sp)
 	kfree(mlxsw_sp->router->rifs);
 }
 
+static int mlxsw_sp_ipips_init(struct mlxsw_sp *mlxsw_sp)
+{
+	mlxsw_sp->router->ipip_ops_arr = mlxsw_sp_ipip_ops_arr;
+	return 0;
+}
+
+static void mlxsw_sp_ipips_fini(struct mlxsw_sp *mlxsw_sp)
+{
+}
+
 static void mlxsw_sp_router_fib_dump_flush(struct notifier_block *nb)
 {
 	struct mlxsw_sp_router *router;
@@ -5085,6 +5097,10 @@ int mlxsw_sp_router_init(struct mlxsw_sp *mlxsw_sp)
 	if (err)
 		goto err_rifs_init;
 
+	err = mlxsw_sp_ipips_init(mlxsw_sp);
+	if (err)
+		goto err_ipips_init;
+
 	err = rhashtable_init(&mlxsw_sp->router->nexthop_ht,
 			      &mlxsw_sp_nexthop_ht_params);
 	if (err)
@@ -5126,6 +5142,8 @@ err_lpm_init:
 err_nexthop_group_ht_init:
 	rhashtable_destroy(&mlxsw_sp->router->nexthop_ht);
 err_nexthop_ht_init:
+	mlxsw_sp_ipips_fini(mlxsw_sp);
+err_ipips_init:
 	mlxsw_sp_rifs_fini(mlxsw_sp);
 err_rifs_init:
 	__mlxsw_sp_router_fini(mlxsw_sp);
@@ -5142,6 +5160,7 @@ void mlxsw_sp_router_fini(struct mlxsw_sp *mlxsw_sp)
 	mlxsw_sp_lpm_fini(mlxsw_sp);
 	rhashtable_destroy(&mlxsw_sp->router->nexthop_group_ht);
 	rhashtable_destroy(&mlxsw_sp->router->nexthop_ht);
+	mlxsw_sp_ipips_fini(mlxsw_sp);
 	mlxsw_sp_rifs_fini(mlxsw_sp);
 	__mlxsw_sp_router_fini(mlxsw_sp);
 	kfree(mlxsw_sp->router);
