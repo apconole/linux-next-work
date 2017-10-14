@@ -3400,6 +3400,12 @@ static void mlxsw_sp_nexthop6_fini(struct mlxsw_sp *mlxsw_sp,
 	mlxsw_sp_nexthop_rif_fini(nh);
 }
 
+static bool mlxsw_sp_rt6_is_gateway(const struct mlxsw_sp *mlxsw_sp,
+				    const struct rt6_info *rt)
+{
+	return rt->rt6i_flags & RTF_GATEWAY;
+}
+
 static struct mlxsw_sp_nexthop_group *
 mlxsw_sp_nexthop6_group_create(struct mlxsw_sp *mlxsw_sp,
 			       struct mlxsw_sp_fib6_entry *fib6_entry)
@@ -3422,7 +3428,7 @@ mlxsw_sp_nexthop6_group_create(struct mlxsw_sp *mlxsw_sp,
 #endif
 	mlxsw_sp_rt6 = list_first_entry(&fib6_entry->rt6_list,
 					struct mlxsw_sp_rt6, list);
-	nh_grp->gateway = !!(mlxsw_sp_rt6->rt->rt6i_flags & RTF_GATEWAY);
+	nh_grp->gateway = mlxsw_sp_rt6_is_gateway(mlxsw_sp, mlxsw_sp_rt6->rt);
 	nh_grp->count = fib6_entry->nrt6;
 	for (i = 0; i < nh_grp->count; i++) {
 		struct rt6_info *rt = mlxsw_sp_rt6->rt;
@@ -3579,7 +3585,8 @@ mlxsw_sp_fib6_entry_nexthop_del(struct mlxsw_sp *mlxsw_sp,
 	mlxsw_sp_rt6_destroy(mlxsw_sp_rt6);
 }
 
-static void mlxsw_sp_fib6_entry_type_set(struct mlxsw_sp_fib_entry *fib_entry,
+static void mlxsw_sp_fib6_entry_type_set(struct mlxsw_sp *mlxsw_sp,
+					 struct mlxsw_sp_fib_entry *fib_entry,
 					 const struct rt6_info *rt)
 {
 	/* Packets hitting RTF_REJECT routes need to be discarded by the
@@ -3592,7 +3599,7 @@ static void mlxsw_sp_fib6_entry_type_set(struct mlxsw_sp_fib_entry *fib_entry,
 		fib_entry->type = MLXSW_SP_FIB_ENTRY_TYPE_TRAP;
 	else if (rt->rt6i_flags & RTF_REJECT)
 		fib_entry->type = MLXSW_SP_FIB_ENTRY_TYPE_LOCAL;
-	else if (rt->rt6i_flags & RTF_GATEWAY)
+	else if (mlxsw_sp_rt6_is_gateway(mlxsw_sp, rt))
 		fib_entry->type = MLXSW_SP_FIB_ENTRY_TYPE_REMOTE;
 	else
 		fib_entry->type = MLXSW_SP_FIB_ENTRY_TYPE_LOCAL;
@@ -3632,7 +3639,7 @@ mlxsw_sp_fib6_entry_create(struct mlxsw_sp *mlxsw_sp,
 		goto err_rt6_create;
 	}
 
-	mlxsw_sp_fib6_entry_type_set(fib_entry, mlxsw_sp_rt6->rt);
+	mlxsw_sp_fib6_entry_type_set(mlxsw_sp, fib_entry, mlxsw_sp_rt6->rt);
 
 	INIT_LIST_HEAD(&fib6_entry->rt6_list);
 	list_add_tail(&mlxsw_sp_rt6->list, &fib6_entry->rt6_list);
