@@ -3356,10 +3356,6 @@ static int mlxsw_sp_rif_bridge_create(struct mlxsw_sp *mlxsw_sp,
 	if (IS_ERR(vr))
 		return PTR_ERR(vr);
 
-	err = mlxsw_sp_router_port_flood_set(mlxsw_sp, f->fid, true);
-	if (err)
-		goto err_port_flood_set;
-
 	rif = mlxsw_sp_rif_alloc(rif_index, vr->id, l3_dev, f, false);
 	if (!rif) {
 		err = -ENOMEM;
@@ -3369,6 +3365,10 @@ static int mlxsw_sp_rif_bridge_create(struct mlxsw_sp *mlxsw_sp,
 	err = mlxsw_sp_rif_bridge_op(mlxsw_sp, rif, true);
 	if (err)
 		goto err_rif_bridge_op;
+
+	err = mlxsw_sp_router_port_flood_set(mlxsw_sp, f->fid, true);
+	if (err)
+		goto err_port_flood_set;
 
 	err = mlxsw_sp_rif_fdb_op(mlxsw_sp, l3_dev->dev_addr, f->fid, true);
 	if (err)
@@ -3383,12 +3383,12 @@ static int mlxsw_sp_rif_bridge_create(struct mlxsw_sp *mlxsw_sp,
 	return 0;
 
 err_rif_fdb_op:
+	mlxsw_sp_router_port_flood_set(mlxsw_sp, f->fid, false);
+err_port_flood_set:
 	mlxsw_sp_rif_bridge_op(mlxsw_sp, rif, false);
 err_rif_bridge_op:
 	kfree(rif);
 err_rif_alloc:
-	mlxsw_sp_router_port_flood_set(mlxsw_sp, f->fid, false);
-err_port_flood_set:
 	mlxsw_sp_vr_put(vr);
 	return err;
 }
@@ -3409,11 +3409,11 @@ void mlxsw_sp_rif_bridge_destroy(struct mlxsw_sp *mlxsw_sp,
 
 	mlxsw_sp_rif_fdb_op(mlxsw_sp, l3_dev->dev_addr, f->fid, false);
 
+	mlxsw_sp_router_port_flood_set(mlxsw_sp, f->fid, false);
+
 	mlxsw_sp_rif_bridge_op(mlxsw_sp, rif, false);
 
 	kfree(rif);
-
-	mlxsw_sp_router_port_flood_set(mlxsw_sp, f->fid, false);
 
 	mlxsw_sp_vr_put(vr);
 
