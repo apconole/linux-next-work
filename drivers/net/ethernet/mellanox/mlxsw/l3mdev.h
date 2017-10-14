@@ -13,4 +13,9 @@ static inline bool netif_is_l3_slave(const struct net_device *dev)
 	return false;
 }
 
+static inline bool netif_is_l3_master(const struct net_device *dev)
+{
+	return false;
+}
+
 #endif
