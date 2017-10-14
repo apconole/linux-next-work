@@ -4257,7 +4257,7 @@ static int mlxsw_sp_port_lag_index_get(struct mlxsw_sp *mlxsw_sp,
 
 static void
 mlxsw_sp_port_pvid_vport_lag_join(struct mlxsw_sp_port *mlxsw_sp_port,
-				  u16 lag_id)
+				  struct net_device *lag_dev, u16 lag_id)
 {
 	struct mlxsw_sp_port *mlxsw_sp_vport;
 	struct mlxsw_sp_fid *f;
@@ -4275,6 +4275,7 @@ mlxsw_sp_port_pvid_vport_lag_join(struct mlxsw_sp_port *mlxsw_sp_port,
 
 	mlxsw_sp_vport->lag_id = lag_id;
 	mlxsw_sp_vport->lagged = 1;
+	mlxsw_sp_vport->dev = lag_dev;
 }
 
 static void
@@ -4291,6 +4292,7 @@ mlxsw_sp_port_pvid_vport_lag_leave(struct mlxsw_sp_port *mlxsw_sp_port)
 	if (f)
 		f->leave(mlxsw_sp_vport);
 
+	mlxsw_sp_vport->dev = mlxsw_sp_port->dev;
 	mlxsw_sp_vport->lagged = 0;
 }
 
@@ -4330,7 +4332,7 @@ static int mlxsw_sp_port_lag_join(struct mlxsw_sp_port *mlxsw_sp_port,
 	mlxsw_sp_port->lagged = 1;
 	lag->ref_count++;
 
-	mlxsw_sp_port_pvid_vport_lag_join(mlxsw_sp_port, lag_id);
+	mlxsw_sp_port_pvid_vport_lag_join(mlxsw_sp_port, lag_dev, lag_id);
 
 	return 0;
 
