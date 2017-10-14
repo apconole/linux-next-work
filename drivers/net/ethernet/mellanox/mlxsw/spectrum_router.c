@@ -3114,6 +3114,7 @@ static int mlxsw_sp_vport_rif_sp_join(struct mlxsw_sp_port *mlxsw_sp_vport,
 {
 	struct mlxsw_sp *mlxsw_sp = mlxsw_sp_vport->mlxsw_sp;
 	u16 vid = mlxsw_sp_vport_vid_get(mlxsw_sp_vport);
+	struct mlxsw_sp_port *mlxsw_sp_port;
 	struct mlxsw_sp_rif *rif;
 	int err;
 
@@ -3133,6 +3134,13 @@ static int mlxsw_sp_vport_rif_sp_join(struct mlxsw_sp_port *mlxsw_sp_vport,
 	if (err)
 		goto err_port_vid_stp_set;
 
+	mlxsw_sp_port = mlxsw_sp_vport_port(mlxsw_sp_vport);
+	if (mlxsw_sp_port->nr_port_vid_map++ == 0) {
+		err = mlxsw_sp_port_vp_mode_trans(mlxsw_sp_port);
+		if (err)
+			goto err_port_vp_mode_trans;
+	}
+
 	mlxsw_sp_vport_fid_set(mlxsw_sp_vport, rif->f);
 	rif->f->ref_count++;
 
@@ -3140,6 +3148,9 @@ static int mlxsw_sp_vport_rif_sp_join(struct mlxsw_sp_port *mlxsw_sp_vport,
 
 	return 0;
 
+err_port_vp_mode_trans:
+	mlxsw_sp_port->nr_port_vid_map--;
+	mlxsw_sp_port_vid_stp_set(mlxsw_sp_vport, vid, BR_STATE_BLOCKING);
 err_port_vid_stp_set:
 	mlxsw_sp_port_vid_learning_set(mlxsw_sp_vport, vid, true);
 err_port_vid_learning_set:
@@ -3152,13 +3163,21 @@ static void mlxsw_sp_vport_rif_sp_leave(struct mlxsw_sp_port *mlxsw_sp_vport)
 {
 	struct mlxsw_sp_fid *f = mlxsw_sp_vport_fid_get(mlxsw_sp_vport);
 	u16 vid = mlxsw_sp_vport_vid_get(mlxsw_sp_vport);
+	struct mlxsw_sp_port *mlxsw_sp_port;
 
 	netdev_dbg(mlxsw_sp_vport->dev, "Left FID=%d\n", f->fid);
 
+	f->ref_count--;
+	mlxsw_sp_vport_fid_set(mlxsw_sp_vport, NULL);
+
+	mlxsw_sp_port = mlxsw_sp_vport_port(mlxsw_sp_vport);
+	if (mlxsw_sp_port->nr_port_vid_map == 1)
+		mlxsw_sp_port_vlan_mode_trans(mlxsw_sp_port);
+	mlxsw_sp_port->nr_port_vid_map--;
 	mlxsw_sp_port_vid_stp_set(mlxsw_sp_vport, vid, BR_STATE_BLOCKING);
 	mlxsw_sp_port_vid_learning_set(mlxsw_sp_vport, vid, true);
-	mlxsw_sp_vport_fid_set(mlxsw_sp_vport, NULL);
-	if (--f->ref_count == 0)
+
+	if (f->ref_count == 0)
 		mlxsw_sp_vport_rif_sp_destroy(mlxsw_sp_vport, f->rif);
 }
 
