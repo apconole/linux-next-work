@@ -80,5 +80,9 @@ int mlxsw_sp_rif_counter_alloc(struct mlxsw_sp *mlxsw_sp,
 union mlxsw_sp_l3addr
 mlxsw_sp_ipip_netdev_saddr(enum mlxsw_sp_l3proto proto,
 			   const struct net_device *ol_dev);
+union mlxsw_sp_l3addr
+mlxsw_sp_ipip_netdev_daddr(enum mlxsw_sp_l3proto proto,
+			   const struct net_device *ol_dev);
+__be32 mlxsw_sp_ipip_netdev_daddr4(const struct net_device *ol_dev);
 
 #endif /* _MLXSW_ROUTER_H_*/
