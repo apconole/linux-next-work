@@ -1453,10 +1453,8 @@ mlxsw_sp_setup_tc_cls_flower(struct mlxsw_sp_port *mlxsw_sp_port,
 	case TC_CLSFLOWER_DESTROY:
 		mlxsw_sp_flower_destroy(mlxsw_sp_port, ingress, f);
 		return 0;
-#if 0 /* Not in RHEL yet */
 	case TC_CLSFLOWER_STATS:
 		return mlxsw_sp_flower_stats(mlxsw_sp_port, ingress, f);
-#endif
 	default:
 		return -EOPNOTSUPP;
 	}
