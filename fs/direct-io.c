@@ -46,6 +46,12 @@
 #define DIO_PAGES	64
 
 /*
+ * Flags for dio_complete()
+ */
+#define DIO_COMPLETE_ASYNC		0x01	/* This is async IO */
+#define DIO_COMPLETE_INVALIDATE		0x02	/* Can invalidate pages */
+
+/*
  * This code generally works in units of "dio_blocks".  A dio_block is
  * somewhere between the hard sector size and the filesystem block size.  it
  * is determined on a per-invocation basis.   When talking to the filesystem
@@ -272,10 +278,11 @@ static void dio_iodone2_helper(struct dio *dio, loff_t offset,
  * dio_complete.
  */
 static ssize_t dio_complete(struct dio *dio, loff_t offset, ssize_t ret,
-		bool is_async)
+		unsigned int flags)
 {
 	ssize_t transferred = 0;
 	int err;
+	bool is_async = false;
 
 	/*
 	 * AIO submission can race with bio completion to get here while
@@ -308,7 +315,8 @@ static ssize_t dio_complete(struct dio *dio, loff_t offset, ssize_t ret,
 	 * one is a pretty crazy thing to do, so we don't support it 100%.  If
 	 * this invalidation fails, tough, the write still worked...
 	 */
-	if (ret > 0 && dio->rw & WRITE &&
+	if (flags & DIO_COMPLETE_INVALIDATE &&
+	    ret > 0 && dio->rw & WRITE &&
 	    dio->inode->i_mapping->nrpages) {
 		err = invalidate_inode_pages2_range(dio->inode->i_mapping,
 					offset >> PAGE_SHIFT,
@@ -325,6 +333,8 @@ static ssize_t dio_complete(struct dio *dio, loff_t offset, ssize_t ret,
 	 * Differentiate between the two cases using an inode flag that
 	 * gets populated for all in-tree file systems.
 	 */
+	if (flags & DIO_COMPLETE_ASYNC)
+		is_async = true;
 	if (dio->inode->i_sb->s_type->fs_flags & FS_HAS_DIO_IODONE2)
 		dio_iodone2_helper(dio, offset, transferred, ret, is_async);
 	else
@@ -338,7 +348,8 @@ static void dio_aio_complete_work(struct work_struct *work)
 {
 	struct dio *dio = container_of(work, struct dio, complete_work);
 
-	dio_complete(dio, dio->iocb->ki_pos, 0, true);
+	dio_complete(dio, dio->iocb->ki_pos, 0,
+		     DIO_COMPLETE_ASYNC | DIO_COMPLETE_INVALIDATE);
 }
 
 static int dio_bio_complete(struct dio *dio, struct bio *bio);
@@ -380,7 +391,8 @@ static void dio_bio_end_aio(struct bio *bio, int error)
 			queue_work(dio->inode->i_sb->s_dio_done_wq,
 				   &dio->complete_work);
 		} else {
-			dio_complete(dio, dio->iocb->ki_pos, 0, true);
+			dio_complete(dio, dio->iocb->ki_pos, 0,
+				     DIO_COMPLETE_ASYNC);
 		}
 	}
 }
@@ -1444,7 +1456,8 @@ do_blockdev_direct_IO(int rw, struct kiocb *iocb, struct inode *inode,
 		dio_await_completion(dio);
 
 	if (drop_refcount(dio) == 0) {
-		retval = dio_complete(dio, offset, retval, false);
+		retval = dio_complete(dio, offset, retval,
+				      DIO_COMPLETE_INVALIDATE);
 	} else
 		BUG_ON(retval != -EIOCBQUEUED);
 
