@@ -275,6 +275,7 @@ static ssize_t dio_complete(struct dio *dio, loff_t offset, ssize_t ret,
 		bool is_async)
 {
 	ssize_t transferred = 0;
+	int err;
 
 	/*
 	 * AIO submission can race with bio completion to get here while
@@ -299,6 +300,21 @@ static ssize_t dio_complete(struct dio *dio, loff_t offset, ssize_t ret,
 		ret = dio->io_error;
 	if (ret == 0)
 		ret = transferred;
+
+	/*
+	 * Try again to invalidate clean pages which might have been cached by
+	 * non-direct readahead, or faulted in by get_user_pages() if the source
+	 * of the write was an mmap'ed region of the file we're writing.  Either
+	 * one is a pretty crazy thing to do, so we don't support it 100%.  If
+	 * this invalidation fails, tough, the write still worked...
+	 */
+	if (ret > 0 && dio->rw & WRITE &&
+	    dio->inode->i_mapping->nrpages) {
+		err = invalidate_inode_pages2_range(dio->inode->i_mapping,
+					offset >> PAGE_SHIFT,
+					(offset + ret - 1) >> PAGE_SHIFT);
+		WARN_ON_ONCE(err);
+	}
 
 	/*
 	 * Red Hat only: we have to support two calling conventions for
@@ -335,6 +351,7 @@ static void dio_bio_end_aio(struct bio *bio, int error)
 	struct dio *dio = bio->bi_private;
 	unsigned long remaining;
 	unsigned long flags;
+	bool defer_completion = false;
 
 	/* cleanup the bio */
 	dio_bio_complete(dio, bio);
@@ -346,7 +363,19 @@ static void dio_bio_end_aio(struct bio *bio, int error)
 	spin_unlock_irqrestore(&dio->bio_lock, flags);
 
 	if (remaining == 0) {
-		if (dio->result && dio->defer_completion) {
+		/*
+		 * Defer completion when defer_completion is set or
+		 * when the inode has pages mapped and this is AIO write.
+		 * We need to invalidate those pages because there is a
+		 * chance they contain stale data in the case buffered IO
+		 * went in between AIO submission and completion into the
+		 * same region.
+		 */
+		if (dio->result)
+			defer_completion = dio->defer_completion ||
+					   (dio->rw & WRITE &&
+					    dio->inode->i_mapping->nrpages);
+		if (defer_completion) {
 			INIT_WORK(&dio->complete_work, dio_aio_complete_work);
 			queue_work(dio->inode->i_sb->s_dio_done_wq,
 				   &dio->complete_work);
@@ -1264,10 +1293,19 @@ do_blockdev_direct_IO(int rw, struct kiocb *iocb, struct inode *inode,
 	 * so that we can call ->fsync.
 	 */
 	if ((dio->inode->i_sb->s_type->fs_flags & FS_HAS_DIO_IODONE2) &&
-	    dio->is_async && (rw & WRITE) &&
-	    ((iocb->ki_filp->f_flags & O_DSYNC) ||
-	     IS_SYNC(iocb->ki_filp->f_mapping->host))) {
-		retval = dio_set_defer_completion(dio);
+	    dio->is_async && (rw & WRITE)) {
+		retval = 0;
+		if ((iocb->ki_filp->f_flags & O_DSYNC) ||
+		    IS_SYNC(iocb->ki_filp->f_mapping->host))
+			retval = dio_set_defer_completion(dio);
+		else if (!dio->inode->i_sb->s_dio_done_wq) {
+			/*
+			 * In case of AIO write racing with buffered read we
+			 * need to defer completion. We can't decide this now,
+			 * however the workqueue needs to be initialized here.
+			 */
+			retval = sb_init_dio_done_wq(dio->inode->i_sb);
+		}
 		if (retval) {
 			/*
 			 * We grab i_mutex only for reads so we don't have
