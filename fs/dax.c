@@ -1422,7 +1422,7 @@ fallback:
 }
 
 int dax_iomap_pmd_fault(struct vm_area_struct *vma, unsigned long address,
-		pmd_t *pmd, unsigned int flags, struct iomap_ops *ops)
+		pmd_t *pmd, unsigned int flags, const struct iomap_ops *ops)
 {
 	struct address_space *mapping = vma->vm_file->f_mapping;
 	unsigned long pmd_addr = address & PMD_MASK;
