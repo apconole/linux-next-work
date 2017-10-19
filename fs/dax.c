@@ -1419,6 +1419,16 @@ int dax_iomap_pmd_fault(struct vm_area_struct *vma, unsigned long address,
 
 	trace_dax_pmd_fault(inode, vma, address, flags, pgoff, max_pgoff, 0);
 
+	/*
+	 * Make sure that the faulting address's PMD offset (color) matches
+	 * the PMD offset from the start of the file.  This is necessary so
+	 * that a PMD range in the page table overlaps exactly with a PMD
+	 * range in the radix tree.
+	 */
+	if ((pgoff & PG_PMD_COLOUR) !=
+	    ((address >> PAGE_SHIFT) & PG_PMD_COLOUR))
+		goto fallback;
+
 	/* Fall back to PTEs if we're going to COW */
 	if (write && !(vma->vm_flags & VM_SHARED))
 		goto fallback;
