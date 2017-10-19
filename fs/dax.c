@@ -1427,19 +1427,6 @@ int dax_iomap_pmd_fault(struct vm_area_struct *vma, unsigned long address,
 		goto fallback;
 
 	/*
-	 * Note that we don't use iomap_apply here.  We aren't doing I/O, only
-	 * setting up a mapping, so really we're using iomap_begin() as a way
-	 * to look up our filesystem block.
-	 */
-	pos = (loff_t)pgoff << PAGE_SHIFT;
-	error = ops->iomap_begin(inode, pos, PMD_SIZE, iomap_flags, &iomap);
-	if (error)
-		goto fallback;
-
-	if (iomap.offset + iomap.length < pos + PMD_SIZE)
-		goto finish_iomap;
-
-	/*
 	 * grab_mapping_entry() will make sure we get a 2M empty entry, a DAX
 	 * PMD or a HZP entry.  If it can't (because a 4k page is already in
 	 * the tree, for instance), it will return -EEXIST and we just fall
@@ -1447,6 +1434,19 @@ int dax_iomap_pmd_fault(struct vm_area_struct *vma, unsigned long address,
 	 */
 	entry = grab_mapping_entry(mapping, pgoff, RADIX_DAX_PMD);
 	if (IS_ERR(entry))
+		goto fallback;
+
+	/*
+	 * Note that we don't use iomap_apply here.  We aren't doing I/O, only
+	 * setting up a mapping, so really we're using iomap_begin() as a way
+	 * to look up our filesystem block.
+	 */
+	pos = (loff_t)pgoff << PAGE_SHIFT;
+	error = ops->iomap_begin(inode, pos, PMD_SIZE, iomap_flags, &iomap);
+	if (error)
+		goto unlock_entry;
+
+	if (iomap.offset + iomap.length < pos + PMD_SIZE)
 		goto finish_iomap;
 
 	vmf.pgoff = pgoff;
@@ -1461,7 +1461,7 @@ int dax_iomap_pmd_fault(struct vm_area_struct *vma, unsigned long address,
 	case IOMAP_UNWRITTEN:
 	case IOMAP_HOLE:
 		if (WARN_ON_ONCE(write))
-			goto unlock_entry;
+			break;
 		result = dax_pmd_load_hole(vma, pmd, &vmf, address, &iomap,
 				&entry);
 		break;
@@ -1470,8 +1470,6 @@ int dax_iomap_pmd_fault(struct vm_area_struct *vma, unsigned long address,
 		break;
 	}
 
- unlock_entry:
-	put_locked_mapping_entry(mapping, pgoff, entry);
  finish_iomap:
 	if (ops->iomap_end) {
 		int copied = PMD_SIZE;
@@ -1487,6 +1485,8 @@ int dax_iomap_pmd_fault(struct vm_area_struct *vma, unsigned long address,
 		ops->iomap_end(inode, pos, PMD_SIZE, copied, iomap_flags,
 				&iomap);
 	}
+ unlock_entry:
+	put_locked_mapping_entry(mapping, pgoff, entry);
  fallback:
 	if (result == VM_FAULT_FALLBACK) {
 		split_huge_page_pmd(vma, address, pmd);
