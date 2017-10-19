@@ -890,6 +890,7 @@ int dax_writeback_mapping_range(struct address_space *mapping,
 			if (ret < 0)
 				goto out;
 		}
+		start_index = indices[pvec.nr - 1] + 1;
 	}
 out:
 	trace_dax_writeback_range_done(inode, start_index, end_index);
