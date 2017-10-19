@@ -1154,7 +1154,7 @@ dax_iomap_actor_write(struct inode *inode, loff_t pos, loff_t length, void *data
 ssize_t
 dax_iomap_rw(int rw, struct kiocb *iocb, const struct iovec *iov,
                 unsigned long nr_segs, loff_t pos,
-                size_t count, struct iomap_ops *ops)
+                size_t count, const struct iomap_ops *ops)
 {
 	struct address_space *mapping = iocb->ki_filp->f_mapping;
 	struct inode *inode = mapping->host;
@@ -1204,7 +1204,7 @@ static int dax_fault_return(int error)
  * necessary locking for the page fault to proceed successfully.
  */
 int dax_iomap_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
-			struct iomap_ops *ops)
+			const struct iomap_ops *ops)
 {
 	struct address_space *mapping = vma->vm_file->f_mapping;
 	struct inode *inode = mapping->host;

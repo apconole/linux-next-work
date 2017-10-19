@@ -38,9 +38,9 @@ struct iomap_ops;
 
 ssize_t dax_iomap_rw(int rw, struct kiocb *iocb, const struct iovec *iov,
 		unsigned long nr_segs, loff_t pos,
-		size_t count, struct iomap_ops *ops);
+		size_t count, const struct iomap_ops *ops);
 int dax_iomap_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
-			struct iomap_ops *ops);
+			const struct iomap_ops *ops);
 int dax_fault(struct vm_area_struct *, struct vm_fault *, get_block_t);
 int dax_delete_mapping_entry(struct address_space *mapping, pgoff_t index);
 int dax_invalidate_mapping_entry(struct address_space *mapping, pgoff_t index);
@@ -74,7 +74,7 @@ static inline unsigned int dax_radix_order(void *entry)
 	return 0;
 }
 int dax_iomap_pmd_fault(struct vm_area_struct *vma, unsigned long address,
-		pmd_t *pmd, unsigned int flags, struct iomap_ops *ops);
+		pmd_t *pmd, unsigned int flags, const struct iomap_ops *ops);
 #else
 static inline unsigned int dax_radix_order(void *entry)
 {
@@ -82,7 +82,7 @@ static inline unsigned int dax_radix_order(void *entry)
 }
 static inline int dax_iomap_pmd_fault(struct vm_area_struct *vma,
 		unsigned long address, pmd_t *pmd, unsigned int flags,
-		struct iomap_ops *ops)
+		const struct iomap_ops *ops)
 {
 	return VM_FAULT_FALLBACK;
 }
