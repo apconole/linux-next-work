@@ -2436,14 +2436,8 @@ static int cxlflash_eh_device_reset_handler(struct scsi_cmnd *scp)
 	struct device *dev = &cfg->dev->dev;
 	int rcr = 0;
 
-	dev_dbg(dev, "%s: (scp=%p) %d/%d/%d/%d "
-		"cdb=(%08x-%08x-%08x-%08x)\n", __func__, scp, host->host_no,
-		sdev->channel, sdev->id, sdev->lun,
-		get_unaligned_be32(&((u32 *)scp->cmnd)[0]),
-		get_unaligned_be32(&((u32 *)scp->cmnd)[1]),
-		get_unaligned_be32(&((u32 *)scp->cmnd)[2]),
-		get_unaligned_be32(&((u32 *)scp->cmnd)[3]));
-
+	dev_dbg(dev, "%s: %d/%d/%d/%d\n", __func__,
+		host->host_no, sdev->channel, sdev->id, sdev->lun);
 retry:
 	switch (cfg->state) {
 	case STATE_NORMAL:
@@ -2484,13 +2478,7 @@ static int cxlflash_eh_host_reset_handler(struct scsi_cmnd *scp)
 	struct cxlflash_cfg *cfg = shost_priv(host);
 	struct device *dev = &cfg->dev->dev;
 
-	dev_dbg(dev, "%s: (scp=%p) %d/%d/%d/%d "
-		"cdb=(%08x-%08x-%08x-%08x)\n", __func__, scp, host->host_no,
-		scp->device->channel, scp->device->id, scp->device->lun,
-		get_unaligned_be32(&((u32 *)scp->cmnd)[0]),
-		get_unaligned_be32(&((u32 *)scp->cmnd)[1]),
-		get_unaligned_be32(&((u32 *)scp->cmnd)[2]),
-		get_unaligned_be32(&((u32 *)scp->cmnd)[3]));
+	dev_dbg(dev, "%s: %d\n", __func__, host->host_no);
 
 	switch (cfg->state) {
 	case STATE_NORMAL:
