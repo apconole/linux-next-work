@@ -258,6 +258,7 @@ struct fib6_table {
 	rwlock_t		tb6_lock;
 	struct fib6_node	tb6_root;
 	struct inet_peer_base	tb6_peers;
+	RH_KABI_EXTEND(unsigned int fib_seq)
 };
 
 #define RT6_TABLE_UNSPEC	RT_TABLE_UNSPEC
@@ -329,6 +330,9 @@ int call_fib6_notifiers(struct net *net, enum fib_event_type event_type,
 
 int __net_init fib6_notifier_init(struct net *net);
 void __net_exit fib6_notifier_exit(struct net *net);
+
+unsigned int fib6_tables_seq_read(struct net *net);
+int fib6_tables_dump(struct net *net, struct notifier_block *nb);
 
 #ifdef CONFIG_IPV6_MULTIPLE_TABLES
 int fib6_rules_init(void);
