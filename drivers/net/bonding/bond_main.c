@@ -1232,13 +1232,10 @@ static int bond_master_upper_dev_link(struct bonding *bond, struct slave *slave)
 	sprintf(linkname, "slave_%s", slave->dev->name);
 	err = sysfs_create_link(&(bond->dev->dev.kobj), &(slave->dev->dev.kobj),
 				linkname);
-	if (err) {
+	if (err)
 		netdev_upper_dev_unlink(slave->dev, bond->dev);
-		return err;
-	}
 
-	rtmsg_ifinfo(RTM_NEWLINK, slave->dev, IFF_SLAVE, GFP_KERNEL);
-	return 0;
+	return err;
 }
 
 static void bond_upper_dev_unlink(struct bonding *bond, struct slave *slave)
@@ -1248,7 +1245,6 @@ static void bond_upper_dev_unlink(struct bonding *bond, struct slave *slave)
 	sysfs_remove_link(&(bond->dev->dev.kobj), linkname);
 	netdev_upper_dev_unlink(slave->dev, bond->dev);
 	slave->dev->flags &= ~IFF_SLAVE;
-	rtmsg_ifinfo(RTM_NEWLINK, slave->dev, IFF_SLAVE, GFP_KERNEL);
 }
 
 static struct slave *bond_alloc_slave(struct bonding *bond)
