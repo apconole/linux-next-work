@@ -123,6 +123,8 @@ int user_update(struct key *key, struct key_preparsed_payload *prep)
 		/* attach the new data, displacing the old */
 		if (!test_bit(KEY_FLAG_NEGATIVE, &key->flags))
 			zap = dereference_key_locked(key);
+		else
+			zap = NULL;
 		rcu_assign_keypointer(key, upayload);
 		key->expiry = 0;
 	}
