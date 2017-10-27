@@ -30,6 +30,7 @@
 #include <linux/scatterlist.h>
 #include <linux/crypto.h>
 #include <linux/ctype.h>
+#include <crypto/algapi.h>
 #include <crypto/hash.h>
 #include <crypto/sha.h>
 #include <crypto/aes.h>
@@ -523,8 +524,8 @@ static int datablob_hmac_verify(struct encrypted_key_payload *epayload,
 	ret = calc_hmac(digest, derived_key, sizeof derived_key, p, len);
 	if (ret < 0)
 		goto out;
-	ret = memcmp(digest, epayload->format + epayload->datablob_len,
-		     sizeof digest);
+	ret = crypto_memneq(digest, epayload->format + epayload->datablob_len,
+			    sizeof(digest));
 	if (ret) {
 		ret = -EINVAL;
 		dump_hmac("datablob",
