@@ -13,6 +13,7 @@
 #include <linux/init.h>
 #include <linux/seq_file.h>
 #include <linux/file.h>
+#include <linux/mount.h>
 #include <linux/shmem_fs.h>
 #include <linux/err.h>
 #include <keys/user-type.h>
@@ -34,6 +35,8 @@ MODULE_LICENSE("GPL");
 struct key_type key_type_big_key = {
 	.name			= "big_key",
 	.def_lookup_type	= KEYRING_SEARCH_LOOKUP_DIRECT,
+	.preparse		= big_key_preparse,
+	.free_preparse		= big_key_free_preparse,
 	.instantiate		= big_key_instantiate,
 	.match			= user_match,
 	.revoke			= big_key_revoke,
@@ -43,11 +46,10 @@ struct key_type key_type_big_key = {
 };
 
 /*
- * Instantiate a big key
+ * Preparse a big key
  */
-int big_key_instantiate(struct key *key, struct key_preparsed_payload *prep)
+int big_key_preparse(struct key_preparsed_payload *prep)
 {
-	struct path *path = (struct path *)&key->payload.data2;
 	struct file *file;
 	ssize_t written;
 	size_t datalen = prep->datalen;
@@ -58,11 +60,9 @@ int big_key_instantiate(struct key *key, struct key_preparsed_payload *prep)
 		goto error;
 
 	/* Set an arbitrary quota */
-	ret = key_payload_reserve(key, 16);
-	if (ret < 0)
-		goto error;
+	prep->quotalen = 16;
 
-	key->type_data.x[1] = datalen;
+	prep->type_data[1] = (void *)(unsigned long)datalen;
 
 	if (datalen > BIG_KEY_FILE_THRESHOLD) {
 		/* Create a shmem file to store the data in.  This will permit the data
@@ -73,7 +73,7 @@ int big_key_instantiate(struct key *key, struct key_preparsed_payload *prep)
 		file = shmem_kernel_file_setup("", datalen, 0);
 		if (IS_ERR(file)) {
 			ret = PTR_ERR(file);
-			goto err_quota;
+			goto error;
 		}
 
 		written = kernel_write(file, prep->data, prep->datalen, 0);
@@ -87,26 +87,58 @@ int big_key_instantiate(struct key *key, struct key_preparsed_payload *prep)
 		/* Pin the mount and dentry to the key so that we can open it again
 		 * later
 		 */
-		*path = file->f_path;
-		path_get(path);
+		prep->payload = file->f_path.mnt;
+		prep->type_data[0] = file->f_path.dentry;
+		path_get(&file->f_path);
 		fput(file);
 	} else {
 		/* Just store the data in a buffer */
 		void *data = kmalloc(datalen, GFP_KERNEL);
-		if (!data) {
-			ret = -ENOMEM;
-			goto err_quota;
-		}
+		if (!data)
+			return -ENOMEM;
 
-		key->payload.data = memcpy(data, prep->data, prep->datalen);
+		prep->payload = memcpy(data, prep->data, prep->datalen);
 	}
 	return 0;
 
 err_fput:
 	fput(file);
-err_quota:
-	key_payload_reserve(key, 0);
 error:
+	return ret;
+}
+
+/*
+ * Clear preparsement.
+ */
+void big_key_free_preparse(struct key_preparsed_payload *prep)
+{
+	if (prep->datalen > BIG_KEY_FILE_THRESHOLD) {
+		if (prep->type_data[0])
+			dput(prep->type_data[0]);
+		if (prep->payload)
+			mntput(prep->payload);
+	} else {
+		kfree(prep->payload);
+	}
+}
+
+/*
+ * Instantiate a big_key (derived from generic_key_instantiate() upstream).
+ */
+int big_key_instantiate(struct key *key, struct key_preparsed_payload *prep)
+{
+	int ret;
+
+	ret = key_payload_reserve(key, prep->quotalen);
+	if (ret == 0) {
+		key->payload.data2[0] = prep->payload;
+		key->payload.data2[1] = prep->type_data[0];
+		key->type_data.p[1] = prep->type_data[1];
+		prep->payload = NULL;
+		prep->type_data[0] = NULL;
+		prep->type_data[1] = NULL;
+	}
+
 	return ret;
 }
 
@@ -116,12 +148,15 @@ error:
  */
 void big_key_revoke(struct key *key)
 {
-	struct path *path = (struct path *)&key->payload.data2;
+	struct path path = {
+		.mnt	= key->payload.data2[0],
+		.dentry	= key->payload.data2[1],
+	};
 
 	/* clear the quota */
 	key_payload_reserve(key, 0);
 	if (key_is_instantiated(key) && key->type_data.x[1] > BIG_KEY_FILE_THRESHOLD)
-		vfs_truncate(path, 0);
+		vfs_truncate(&path, 0);
 }
 
 /*
@@ -130,10 +165,13 @@ void big_key_revoke(struct key *key)
 void big_key_destroy(struct key *key)
 {
 	if (key->type_data.x[1] > BIG_KEY_FILE_THRESHOLD) {
-		struct path *path = (struct path *)&key->payload.data2;
-		path_put(path);
-		path->mnt = NULL;
-		path->dentry = NULL;
+		struct path path = {
+			.mnt	= key->payload.data2[0],
+			.dentry	= key->payload.data2[1],
+		};
+		path_put(&path);
+		key->payload.data2[0] = NULL;
+		key->payload.data2[1] = NULL;
 	} else {
 		kzfree(key->payload.data);
 		key->payload.data = NULL;
@@ -168,11 +206,14 @@ long big_key_read(const struct key *key, char __user *buffer, size_t buflen)
 		return datalen;
 
 	if (datalen > BIG_KEY_FILE_THRESHOLD) {
-		struct path *path = (struct path *)&key->payload.data2;
+		struct path path = {
+			.mnt	= key->payload.data2[0],
+			.dentry	= key->payload.data2[1],
+		};
 		struct file *file;
 		loff_t pos;
 
-		file = dentry_open(path, O_RDONLY, current_cred());
+		file = dentry_open(&path, O_RDONLY, current_cred());
 		if (IS_ERR(file))
 			return PTR_ERR(file);
 
