@@ -660,10 +660,9 @@ tcmu_queue_cmd_ring(struct tcmu_cmd *tcmu_cmd)
 	}
 
 	entry = (void *) mb + CMDR_OFF + cmd_head;
+	memset(entry, 0, command_size);
 	tcmu_hdr_set_op(&entry->hdr.len_op, TCMU_OP_CMD);
 	entry->hdr.cmd_id = tcmu_cmd->cmd_id;
-	entry->hdr.kflags = 0;
-	entry->hdr.uflags = 0;
 
 	bitmap_copy(old_bitmap, udev->data_bitmap, DATA_BLOCK_BITS);
 
