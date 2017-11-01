@@ -1286,18 +1286,6 @@ static void tcmu_destroy_device(struct se_device *dev)
 
 	del_timer_sync(&udev->timeout);
 
-	vfree(udev->mb_addr);
-
-	/* Upper layer should drain all requests before calling this */
-	spin_lock_irq(&udev->commands_lock);
-	idr_for_each_entry(&udev->commands, cmd, i) {
-		if (tcmu_check_and_free_pending_cmd(cmd) != 0)
-			all_expired = false;
-	}
-	idr_destroy(&udev->commands);
-	spin_unlock_irq(&udev->commands_lock);
-	WARN_ON(!all_expired);
-
 	if (tcmu_dev_configured(udev)) {
 		tcmu_netlink_event(udev, TCMU_CMD_REMOVED_DEVICE);
 
@@ -1309,6 +1297,18 @@ static void tcmu_destroy_device(struct se_device *dev)
 		idr_remove(&devices_idr, udev->dev_index);
 		mutex_unlock(&device_mutex);
 	}
+
+	vfree(udev->mb_addr);
+
+	/* Upper layer should drain all requests before calling this */
+	spin_lock_irq(&udev->commands_lock);
+	idr_for_each_entry(&udev->commands, cmd, i) {
+		if (tcmu_check_and_free_pending_cmd(cmd) != 0)
+			all_expired = false;
+	}
+	idr_destroy(&udev->commands);
+	spin_unlock_irq(&udev->commands_lock);
+	WARN_ON(!all_expired);
 }
 
 enum {
