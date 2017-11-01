@@ -122,6 +122,7 @@ struct tcmu_dev {
 
 	struct timer_list timeout;
 	unsigned int cmd_time_out;
+	int qfull_time_out;
 
 	spinlock_t nl_cmd_lock;
 	struct tcmu_nl_cmd curr_nl_cmd;
@@ -619,19 +620,32 @@ tcmu_queue_cmd_ring(struct tcmu_cmd *tcmu_cmd)
 		int ret;
 		DEFINE_WAIT(__wait);
 
+		if (!udev->qfull_time_out) {
+			spin_unlock_irq(&udev->cmdr_lock);
+			return TCM_OUT_OF_RESOURCES;
+		}
+
 		prepare_to_wait(&udev->wait_cmdr, &__wait, TASK_INTERRUPTIBLE);
 
 		pr_debug("sleeping for ring space\n");
+		/*
+		 * For backwards compat if qfull_time_out is not set
+		 * use cmd_time_out and if that's not set use the default
+		 * time out.
+		 */
 		spin_unlock_irq(&udev->cmdr_lock);
-		if (udev->cmd_time_out)
+		if (udev->qfull_time_out > 0)
+			ret = schedule_timeout(
+					msecs_to_jiffies(udev->qfull_time_out));
+		else if (udev->cmd_time_out)
 			ret = schedule_timeout(
 					msecs_to_jiffies(udev->cmd_time_out));
 		else
 			ret = schedule_timeout(msecs_to_jiffies(TCMU_TIME_OUT));
 		finish_wait(&udev->wait_cmdr, &__wait);
 		if (!ret) {
-			pr_warn("tcmu: command timed out\n");
-			return TCM_LOGICAL_UNIT_COMMUNICATION_FAILURE;
+			pr_debug("tcmu: command timed out waiting for ring space.\n");
+			return TCM_OUT_OF_RESOURCES;
 		}
 
 		spin_lock_irq(&udev->cmdr_lock);
@@ -731,7 +745,6 @@ tcmu_queue_cmd(struct se_cmd *se_cmd)
 
 	ret = tcmu_queue_cmd_ring(tcmu_cmd);
 	if (ret != TCM_NO_SENSE) {
-		pr_err("TCMU: Could not queue command\n");
 		spin_lock_irq(&udev->commands_lock);
 		idr_remove(&udev->commands, tcmu_cmd->cmd_id);
 		spin_unlock_irq(&udev->commands_lock);
@@ -929,6 +942,7 @@ static struct se_device *tcmu_alloc_device(struct se_hba *hba, const char *name)
 
 	udev->hba = hba;
 	udev->cmd_time_out = TCMU_TIME_OUT;
+	udev->qfull_time_out = -1;
 
 	init_waitqueue_head(&udev->wait_cmdr);
 	spin_lock_init(&udev->cmdr_lock);
@@ -1453,8 +1467,43 @@ static ssize_t tcmu_cmd_time_out_store(struct config_item *item, const char *pag
 }
 CONFIGFS_ATTR(tcmu_, cmd_time_out);
 
+static ssize_t tcmu_qfull_time_out_show(struct config_item *item, char *page)
+{
+	struct se_dev_attrib *da = container_of(to_config_group(item),
+						struct se_dev_attrib, da_group);
+	struct tcmu_dev *udev = TCMU_DEV(da->da_dev);
+
+	return snprintf(page, PAGE_SIZE, "%ld\n", udev->qfull_time_out <= 0 ?
+			udev->qfull_time_out :
+			udev->qfull_time_out / MSEC_PER_SEC);
+}
+
+static ssize_t tcmu_qfull_time_out_store(struct config_item *item,
+					 const char *page, size_t count)
+{
+	struct se_dev_attrib *da = container_of(to_config_group(item),
+						struct se_dev_attrib, da_group);
+	struct tcmu_dev *udev = TCMU_DEV(da->da_dev);
+	s32 val;
+	int ret;
+
+	ret = kstrtos32(page, 0, &val);
+	if (ret < 0)
+		return ret;
+
+	if (val >= 0) {
+		udev->qfull_time_out = val * MSEC_PER_SEC;
+	} else {
+		printk(KERN_ERR "Invalid qfull timeout value %d\n", val);
+		return -EINVAL;
+	}
+	return count;
+}
+CONFIGFS_ATTR(tcmu_, qfull_time_out);
+
 struct configfs_attribute *tcmu_attrib_attrs[] = {
 	&tcmu_attr_cmd_time_out,
+	&tcmu_attr_qfull_time_out,
 	NULL,
 };
 
