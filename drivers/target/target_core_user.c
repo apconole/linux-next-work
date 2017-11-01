@@ -730,7 +730,7 @@ tcmu_queue_cmd(struct se_cmd *se_cmd)
 		return TCM_LOGICAL_UNIT_COMMUNICATION_FAILURE;
 
 	ret = tcmu_queue_cmd_ring(tcmu_cmd);
-	if (ret < 0) {
+	if (ret != TCM_NO_SENSE) {
 		pr_err("TCMU: Could not queue command\n");
 		spin_lock_irq(&udev->commands_lock);
 		idr_remove(&udev->commands, tcmu_cmd->cmd_id);
