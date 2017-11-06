@@ -46,6 +46,9 @@
  * uniformity).
  * NOTE NOTE NOTE
  *
+ * RH_KABI_CONST - adds a new const modifier to a function parameter
+ *		   preserving the old checksum
+ *
  * This macro does the opposite: it changes the symbol checksum without
  * actually changing anything about the exported symbol. It is useful for
  * symbols that are not whitelisted, we're changing them in an incompatible
@@ -68,6 +71,8 @@
 # define RH_KABI_EXTEND(_new)
 # define RH_KABI_FILL_HOLE(_new)
 # define RH_KABI_RENAME(_orig, _new)		_orig
+
+# define RH_KABI_CONST
 
 # define RH_KABI_FORCE_CHANGE(ver)		__attribute__((rh_kabi_change ## ver))
 
@@ -107,6 +112,8 @@
 /* Warning, only use if a hole exists for _all_ arches. Use pahole to verify */
 # define RH_KABI_FILL_HOLE(_new)       	_new;
 # define RH_KABI_RENAME(_orig, _new)		_new
+
+# define RH_KABI_CONST				const
 
 # define RH_KABI_FORCE_CHANGE(ver)
 
