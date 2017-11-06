@@ -513,8 +513,6 @@ enum {
 
 	SKB_GSO_UDP_TUNNEL = 1 << 9,
 
-	SKB_GSO_MPLS = 1 << 10,
-
 	/* GSO_MASK2, see netdev_features.h */
 	SKB_GSO_GRE_CSUM = 1 << 11,
 
