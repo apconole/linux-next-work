@@ -1489,7 +1489,7 @@ error:
 	return -EMSGSIZE;
 }
 
-static struct sk_buff *ovs_dp_cmd_alloc_info(struct genl_info *info)
+static struct sk_buff *ovs_dp_cmd_alloc_info(void)
 {
 	return genlmsg_new(ovs_dp_cmd_msg_size(), GFP_KERNEL);
 }
@@ -1544,7 +1544,7 @@ static int ovs_dp_cmd_new(struct sk_buff *skb, struct genl_info *info)
 	if (!a[OVS_DP_ATTR_NAME] || !a[OVS_DP_ATTR_UPCALL_PID])
 		goto err;
 
-	reply = ovs_dp_cmd_alloc_info(info);
+	reply = ovs_dp_cmd_alloc_info();
 	if (!reply)
 		return -ENOMEM;
 
@@ -1665,7 +1665,7 @@ static int ovs_dp_cmd_del(struct sk_buff *skb, struct genl_info *info)
 	struct datapath *dp;
 	int err;
 
-	reply = ovs_dp_cmd_alloc_info(info);
+	reply = ovs_dp_cmd_alloc_info();
 	if (!reply)
 		return -ENOMEM;
 
@@ -1698,7 +1698,7 @@ static int ovs_dp_cmd_set(struct sk_buff *skb, struct genl_info *info)
 	struct datapath *dp;
 	int err;
 
-	reply = ovs_dp_cmd_alloc_info(info);
+	reply = ovs_dp_cmd_alloc_info();
 	if (!reply)
 		return -ENOMEM;
 
@@ -1731,7 +1731,7 @@ static int ovs_dp_cmd_get(struct sk_buff *skb, struct genl_info *info)
 	struct datapath *dp;
 	int err;
 
-	reply = ovs_dp_cmd_alloc_info(info);
+	reply = ovs_dp_cmd_alloc_info();
 	if (!reply)
 		return -ENOMEM;
 
