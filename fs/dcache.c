@@ -889,9 +889,11 @@ EXPORT_SYMBOL(shrink_dcache_sb);
  * - see the comments on shrink_dcache_for_umount() for a description of the
  *   locking
  */
+#define RESCHED_CHECK_BATCH 1024
 static void shrink_dcache_for_umount_subtree(struct dentry *dentry)
 {
 	struct dentry *parent;
+	int batch = RESCHED_CHECK_BATCH;
 
 	BUG_ON(!IS_ROOT(dentry));
 
@@ -959,6 +961,10 @@ static void shrink_dcache_for_umount_subtree(struct dentry *dentry)
 			if (!parent)
 				return;
 			dentry = parent;
+			if (!--batch) {
+				cond_resched();
+				batch = RESCHED_CHECK_BATCH;
+			}
 		} while (list_empty(&dentry->d_subdirs));
 
 		dentry = list_entry(dentry->d_subdirs.next,
