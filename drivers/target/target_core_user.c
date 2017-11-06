@@ -276,6 +276,7 @@ static const struct genl_ops tcmu_genl_ops[] = {
 
 /* Our generic netlink family */
 static struct genl_family tcmu_genl_family = {
+	.module = THIS_MODULE,
 	.hdrsize = 0,
 	.name = "TCM-USER",
 	.version = 2,

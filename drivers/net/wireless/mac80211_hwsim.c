@@ -382,13 +382,8 @@ struct hwsim_radiotap_hdr {
 	__le16 rt_chbitmask;
 } __packed;
 
-/* MAC80211_HWSIM netlinf family */
-static struct genl_family hwsim_genl_family = {
-	.hdrsize = 0,
-	.name = "MAC80211_HWSIM",
-	.version = 1,
-	.maxattr = HWSIM_ATTR_MAX,
-};
+/* MAC80211_HWSIM netlink family */
+static struct genl_family hwsim_genl_family;
 
 /* MAC80211_HWSIM netlink policy */
 
@@ -2093,6 +2088,15 @@ static struct genl_ops hwsim_ops[] = {
 	},
 };
 
+static struct genl_family hwsim_genl_family = {
+	.name = "MAC80211_HWSIM",
+	.version = 1,
+	.maxattr = HWSIM_ATTR_MAX,
+	.module = THIS_MODULE,
+	.ops = hwsim_ops,
+	.n_ops = ARRAY_SIZE(hwsim_ops),
+};
+
 static int mac80211_hwsim_netlink_notify(struct notifier_block *nb,
 					 unsigned long state,
 					 void *_notify)
@@ -2125,8 +2129,7 @@ static int hwsim_init_netlink(void)
 
 	printk(KERN_INFO "mac80211_hwsim: initializing netlink\n");
 
-	rc = genl_register_family_with_ops(&hwsim_genl_family,
-		hwsim_ops, ARRAY_SIZE(hwsim_ops));
+	rc = genl_register_family(&hwsim_genl_family);
 	if (rc)
 		goto failure;
 
