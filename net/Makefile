@@ -71,7 +71,7 @@ obj-$(CONFIG_PSAMPLE)		+= psample/
 obj-$(CONFIG_NET_IFE)		+= ife/
 obj-$(CONFIG_OPENVSWITCH)	+= openvswitch/
 obj-$(CONFIG_VSOCKETS)	+= vmw_vsock/
-obj-$(CONFIG_NET_MPLS_GSO)	+= mpls/
+obj-$(CONFIG_MPLS)		+= mpls/
 ifneq ($(CONFIG_NET_SWITCHDEV),)
 obj-y				+= switchdev/
 endif
