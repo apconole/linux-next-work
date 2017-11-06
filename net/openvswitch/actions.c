@@ -43,7 +43,6 @@
 #include "flow.h"
 #include "conntrack.h"
 #include "vport.h"
-#include "vport-netdev.h"
 
 static int do_execute_actions(struct datapath *dp, struct sk_buff *skb,
 			      struct sw_flow_key *key,
