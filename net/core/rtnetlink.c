@@ -1603,8 +1603,6 @@ static int rtnl_dump_ifinfo(struct sk_buff *skb, struct netlink_callback *cb)
 	s_h = cb->args[0];
 	s_idx = cb->args[1];
 
-	cb->seq = net->dev_base_seq;
-
 	/* A hack to preserve kernel<->userspace interface.
 	 * The correct header is ifinfomsg. It is consistent with rtnl_getlink.
 	 * However, before Linux v3.9 the code here assumed rtgenmsg and that's
@@ -1639,8 +1637,6 @@ static int rtnl_dump_ifinfo(struct sk_buff *skb, struct netlink_callback *cb)
 
 				goto out_err;
 			}
-
-			nl_dump_check_consistent(cb, nlmsg_hdr(skb));
 cont:
 			idx++;
 		}
@@ -1650,6 +1646,8 @@ out:
 out_err:
 	cb->args[1] = idx;
 	cb->args[0] = h;
+	cb->seq = net->dev_base_seq;
+	nl_dump_check_consistent(cb, nlmsg_hdr(skb));
 
 	return err;
 }
