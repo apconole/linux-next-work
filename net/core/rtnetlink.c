@@ -1021,7 +1021,7 @@ static noinline size_t if_nlmsg_size(const struct net_device *dev,
 	       + nla_total_size(IFNAMSIZ) /* IFLA_PHYS_PORT_NAME */
 	       + nla_total_size(4)  /* IFLA_EVENT */
 	       + nla_total_size(4)  /* IFLA_NEW_NETNSID */
-	       + nla_total_size(1); /* IFLA_PROTO_DOWN */
+	       + nla_total_size(1)  /* IFLA_PROTO_DOWN */
 	       + nla_total_size(4)  /* IFLA_IF_NETNSID */
 	       + 0;
 }
