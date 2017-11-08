@@ -138,15 +138,15 @@ xfs_cleanup_inode(
 	xfs_dentry_to_name(&teardown, dentry);
 
 	xfs_remove(XFS_I(dir), &teardown, XFS_I(inode));
-	iput(inode);
 }
 
 STATIC int
-xfs_vn_mknod(
+xfs_generic_create(
 	struct inode	*dir,
 	struct dentry	*dentry,
 	umode_t		mode,
-	dev_t		rdev)
+	dev_t		rdev,
+	bool		tmpfile)	/* unnamed file */
 {
 	struct inode	*inode;
 	struct xfs_inode *ip = NULL;
@@ -180,7 +180,11 @@ xfs_vn_mknod(
 	if (unlikely(error))
 		goto out_free_acl;
 
-	error = xfs_create(XFS_I(dir), &name, mode, rdev, &ip);
+	if (!tmpfile) {
+		error = xfs_create(XFS_I(dir), &name, mode, rdev, &ip);
+	} else {
+		error = xfs_create_tmpfile(XFS_I(dir), dentry, mode, &ip);
+	}
 	if (unlikely(error))
 		goto out_free_acl;
 
@@ -199,16 +203,31 @@ xfs_vn_mknod(
 
 	xfs_setup_iops(ip);
 
-	d_instantiate(dentry, inode);
+	if (tmpfile)
+		d_tmpfile(dentry, inode);
+	else
+		d_instantiate(dentry, inode);
 	xfs_finish_inode_setup(ip);
 	return error;
 
  out_cleanup_inode:
 	xfs_finish_inode_setup(ip);
-	xfs_cleanup_inode(dir, inode, dentry);
+	if (!tmpfile)
+		xfs_cleanup_inode(dir, inode, dentry);
+	iput(inode);
  out_free_acl:
 	posix_acl_release(default_acl);
 	return error;
+}
+
+STATIC int
+xfs_vn_mknod(
+	struct inode	*dir,
+	struct dentry	*dentry,
+	umode_t		mode,
+	dev_t		rdev)
+{
+	return xfs_generic_create(dir, dentry, mode, rdev, false);
 }
 
 STATIC int
@@ -379,6 +398,7 @@ xfs_vn_symlink(
  out_cleanup_inode:
 	xfs_finish_inode_setup(cip);
 	xfs_cleanup_inode(dir, inode, dentry);
+	iput(inode);
  out:
 	return error;
 }
@@ -1075,25 +1095,7 @@ xfs_vn_tmpfile(
 	struct dentry	*dentry,
 	umode_t		mode)
 {
-	int			error;
-	struct xfs_inode	*ip;
-	struct inode		*inode;
-
-	error = xfs_create_tmpfile(XFS_I(dir), dentry, mode, &ip);
-	if (unlikely(error))
-		return -error;
-
-	inode = VFS_I(ip);
-
-	error = xfs_init_security(inode, dir, &dentry->d_name);
-	if (unlikely(error)) {
-		iput(inode);
-		return -error;
-	}
-
-	d_tmpfile(dentry, inode);
-
-	return 0;
+	return xfs_generic_create(dir, dentry, mode, 0, true);
 }
 
 static const struct inode_operations xfs_inode_operations = {
