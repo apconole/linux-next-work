@@ -1862,7 +1862,8 @@ static struct genl_family dp_datapath_genl_family = {
 
 /* Called with ovs_mutex or RCU read lock. */
 static int ovs_vport_cmd_fill_info(struct vport *vport, struct sk_buff *skb,
-				   u32 portid, u32 seq, u32 flags, u8 cmd)
+				   struct net *net, u32 portid, u32 seq,
+				   u32 flags, u8 cmd)
 {
 	struct ovs_header *ovs_header;
 	struct ovs_vport_stats vport_stats;
@@ -1878,8 +1879,16 @@ static int ovs_vport_cmd_fill_info(struct vport *vport, struct sk_buff *skb,
 	if (nla_put_u32(skb, OVS_VPORT_ATTR_PORT_NO, vport->port_no) ||
 	    nla_put_u32(skb, OVS_VPORT_ATTR_TYPE, vport->ops->type) ||
 	    nla_put_string(skb, OVS_VPORT_ATTR_NAME,
-			   ovs_vport_name(vport)))
+			   ovs_vport_name(vport)) ||
+	    nla_put_u32(skb, OVS_VPORT_ATTR_IFINDEX, vport->dev->ifindex))
 		goto nla_put_failure;
+
+	if (!net_eq(net, dev_net(vport->dev))) {
+		int id = peernet2id_alloc(net, dev_net(vport->dev));
+
+		if (nla_put_s32(skb, OVS_VPORT_ATTR_NETNSID, id))
+			goto nla_put_failure;
+	}
 
 	ovs_vport_get_stats(vport, &vport_stats);
 	if (nla_put_64bit(skb, OVS_VPORT_ATTR_STATS,
@@ -1910,8 +1919,8 @@ static struct sk_buff *ovs_vport_cmd_alloc_info(void)
 }
 
 /* Called with ovs_mutex, only via ovs_dp_notify_wq(). */
-struct sk_buff *ovs_vport_cmd_build_info(struct vport *vport, u32 portid,
-					 u32 seq, u8 cmd)
+struct sk_buff *ovs_vport_cmd_build_info(struct vport *vport, struct net *net,
+					 u32 portid, u32 seq, u8 cmd)
 {
 	struct sk_buff *skb;
 	int retval;
@@ -1920,7 +1929,7 @@ struct sk_buff *ovs_vport_cmd_build_info(struct vport *vport, u32 portid,
 	if (!skb)
 		return ERR_PTR(-ENOMEM);
 
-	retval = ovs_vport_cmd_fill_info(vport, skb, portid, seq, 0, cmd);
+	retval = ovs_vport_cmd_fill_info(vport, skb, net, portid, seq, 0, cmd);
 	BUG_ON(retval < 0);
 
 	return skb;
@@ -1934,6 +1943,8 @@ static struct vport *lookup_vport(struct net *net,
 	struct datapath *dp;
 	struct vport *vport;
 
+	if (a[OVS_VPORT_ATTR_IFINDEX])
+		return ERR_PTR(-EOPNOTSUPP);
 	if (a[OVS_VPORT_ATTR_NAME]) {
 		vport = ovs_vport_locate(net, nla_data(a[OVS_VPORT_ATTR_NAME]));
 		if (!vport)
@@ -1958,6 +1969,7 @@ static struct vport *lookup_vport(struct net *net,
 		return vport;
 	} else
 		return ERR_PTR(-EINVAL);
+
 }
 
 /* Called with ovs_mutex */
@@ -1997,6 +2009,8 @@ static int ovs_vport_cmd_new(struct sk_buff *skb, struct genl_info *info)
 	if (!a[OVS_VPORT_ATTR_NAME] || !a[OVS_VPORT_ATTR_TYPE] ||
 	    !a[OVS_VPORT_ATTR_UPCALL_PID])
 		return -EINVAL;
+	if (a[OVS_VPORT_ATTR_IFINDEX])
+		return -EOPNOTSUPP;
 
 	port_no = a[OVS_VPORT_ATTR_PORT_NO]
 		? nla_get_u32(a[OVS_VPORT_ATTR_PORT_NO]) : 0;
@@ -2046,8 +2060,9 @@ restart:
 		goto exit_unlock_free;
 	}
 
-	err = ovs_vport_cmd_fill_info(vport, reply, info->snd_portid,
-				      info->snd_seq, 0, OVS_VPORT_CMD_NEW);
+	err = ovs_vport_cmd_fill_info(vport, reply, genl_info_net(info),
+				      info->snd_portid, info->snd_seq, 0,
+				      OVS_VPORT_CMD_NEW);
 
 	if (netdev_get_fwd_headroom(vport->dev) > dp->max_headroom)
 		update_headroom(dp);
@@ -2104,8 +2119,9 @@ static int ovs_vport_cmd_set(struct sk_buff *skb, struct genl_info *info)
 			goto exit_unlock_free;
 	}
 
-	err = ovs_vport_cmd_fill_info(vport, reply, info->snd_portid,
-				      info->snd_seq, 0, OVS_VPORT_CMD_NEW);
+	err = ovs_vport_cmd_fill_info(vport, reply, genl_info_net(info),
+				      info->snd_portid, info->snd_seq, 0,
+				      OVS_VPORT_CMD_NEW);
 	BUG_ON(err < 0);
 
 	ovs_unlock();
@@ -2142,8 +2158,9 @@ static int ovs_vport_cmd_del(struct sk_buff *skb, struct genl_info *info)
 		goto exit_unlock_free;
 	}
 
-	err = ovs_vport_cmd_fill_info(vport, reply, info->snd_portid,
-				      info->snd_seq, 0, OVS_VPORT_CMD_DEL);
+	err = ovs_vport_cmd_fill_info(vport, reply, genl_info_net(info),
+				      info->snd_portid, info->snd_seq, 0,
+				      OVS_VPORT_CMD_DEL);
 	BUG_ON(err < 0);
 
 	/* the vport deletion may trigger dp headroom update */
@@ -2183,8 +2200,9 @@ static int ovs_vport_cmd_get(struct sk_buff *skb, struct genl_info *info)
 	err = PTR_ERR(vport);
 	if (IS_ERR(vport))
 		goto exit_unlock_free;
-	err = ovs_vport_cmd_fill_info(vport, reply, info->snd_portid,
-				      info->snd_seq, 0, OVS_VPORT_CMD_NEW);
+	err = ovs_vport_cmd_fill_info(vport, reply, genl_info_net(info),
+				      info->snd_portid, info->snd_seq, 0,
+				      OVS_VPORT_CMD_NEW);
 	BUG_ON(err < 0);
 	rcu_read_unlock();
 
@@ -2216,6 +2234,7 @@ static int ovs_vport_cmd_dump(struct sk_buff *skb, struct netlink_callback *cb)
 		hlist_for_each_entry_rcu(vport, &dp->ports[i], dp_hash_node) {
 			if (j >= skip &&
 			    ovs_vport_cmd_fill_info(vport, skb,
+						    sock_net(skb->sk),
 						    NETLINK_CB(cb->skb).portid,
 						    cb->nlh->nlmsg_seq,
 						    NLM_F_MULTI,
@@ -2242,6 +2261,8 @@ static const struct nla_policy vport_policy[OVS_VPORT_ATTR_MAX + 1] = {
 	[OVS_VPORT_ATTR_TYPE] = { .type = NLA_U32 },
 	[OVS_VPORT_ATTR_UPCALL_PID] = { .type = NLA_U32 },
 	[OVS_VPORT_ATTR_OPTIONS] = { .type = NLA_NESTED },
+	[OVS_VPORT_ATTR_IFINDEX] = { .type = NLA_U32 },
+	[OVS_VPORT_ATTR_NETNSID] = { .type = NLA_S32 },
 };
 
 static const struct genl_ops dp_vport_genl_ops[] = {
