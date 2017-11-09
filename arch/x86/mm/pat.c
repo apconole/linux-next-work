@@ -112,10 +112,11 @@ void pat_init(void)
 	 *      001 WC		_PAGE_CACHE_WC
 	 *      010 UC-		_PAGE_CACHE_UC_MINUS
 	 *      011 UC		_PAGE_CACHE_UC
+	 *      101 WP		_PAGE_CACHE_MODE_WP
 	 * PAT bit unused
 	 */
 	pat = PAT(0, WB) | PAT(1, WC) | PAT(2, UC_MINUS) | PAT(3, UC) |
-	      PAT(4, WB) | PAT(5, WC) | PAT(6, UC_MINUS) | PAT(7, UC);
+	      PAT(4, WB) | PAT(5, WP) | PAT(6, UC_MINUS) | PAT(7, UC);
 
 	/* Boot CPU check */
 	if (!boot_pat_state)
