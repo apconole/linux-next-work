@@ -173,7 +173,7 @@ static void __iomem *ghes_ioremap_pfn_nmi(u64 pfn)
 
 	vaddr = (unsigned long)GHES_IOREMAP_NMI_PAGE(ghes_ioremap_area->addr);
 	ioremap_page_range(vaddr, vaddr + PAGE_SIZE,
-			   pfn << PAGE_SHIFT, PAGE_KERNEL);
+			   pfn << PAGE_SHIFT, PAGE_KERNEL_NOENC);
 
 	return (void __iomem *)vaddr;
 }
@@ -184,7 +184,7 @@ static void __iomem *ghes_ioremap_pfn_irq(u64 pfn)
 
 	vaddr = (unsigned long)GHES_IOREMAP_IRQ_PAGE(ghes_ioremap_area->addr);
 	ioremap_page_range(vaddr, vaddr + PAGE_SIZE,
-			   pfn << PAGE_SHIFT, PAGE_KERNEL);
+			   pfn << PAGE_SHIFT, PAGE_KERNEL_NOENC);
 
 	return (void __iomem *)vaddr;
 }
