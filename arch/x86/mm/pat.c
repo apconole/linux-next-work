@@ -395,12 +395,12 @@ int free_memtype(u64 start, u64 end)
  *
  * Only to be called when PAT is enabled
  *
- * Returns _PAGE_CACHE_WB, _PAGE_CACHE_WC, _PAGE_CACHE_UC_MINUS or
- * _PAGE_CACHE_UC
+ * Returns _PAGE_CACHE_MODE_WB, _PAGE_CACHE_MODE_WC, _PAGE_CACHE_MODE_UC_MINUS
+ * or _PAGE_CACHE_MODE_UC
  */
-static unsigned long lookup_memtype(u64 paddr)
+static enum page_cache_mode lookup_memtype(u64 paddr)
 {
-	int rettype = _PAGE_CACHE_WB;
+	enum page_cache_mode rettype = _PAGE_CACHE_MODE_WB;
 	struct memtype *entry;
 
 	if (x86_platform.is_untracked_pat_range(paddr, paddr + PAGE_SIZE))
@@ -409,13 +409,13 @@ static unsigned long lookup_memtype(u64 paddr)
 	if (pat_pagerange_is_ram(paddr, paddr + PAGE_SIZE)) {
 		struct page *page;
 		page = pfn_to_page(paddr >> PAGE_SHIFT);
-		rettype = get_page_memtype(page);
+		rettype = pgprot2cachemode(__pgprot(get_page_memtype(page)));
 		/*
 		 * -1 from get_page_memtype() implies RAM page is in its
 		 * default state and not reserved, and hence of type WB
 		 */
 		if (rettype == -1)
-			rettype = _PAGE_CACHE_WB;
+			rettype = _PAGE_CACHE_MODE_WB;
 
 		return rettype;
 	}
@@ -424,9 +424,9 @@ static unsigned long lookup_memtype(u64 paddr)
 
 	entry = rbt_memtype_lookup(paddr);
 	if (entry != NULL)
-		rettype = entry->type;
+		rettype = pgprot2cachemode(__pgprot(entry->type));
 	else
-		rettype = _PAGE_CACHE_UC_MINUS;
+		rettype = _PAGE_CACHE_MODE_UC_MINUS;
 
 	spin_unlock(&memtype_lock);
 	return rettype;
@@ -615,7 +615,7 @@ static int reserve_pfn_range(u64 paddr, unsigned long size, pgprot_t *vma_prot,
 		if (!pat_enabled)
 			return 0;
 
-		flags = lookup_memtype(paddr);
+		flags = cachemode2protval(lookup_memtype(paddr));
 		if (want_flags != flags) {
 			printk(KERN_WARNING "%s:%d map pfn RAM range req %s for [mem %#010Lx-%#010Lx], got %s\n",
 				current->comm, current->pid,
@@ -719,7 +719,7 @@ int track_pfn_remap(struct vm_area_struct *vma, pgprot_t *prot,
 		    unsigned long pfn, unsigned long addr, unsigned long size)
 {
 	resource_size_t paddr = (resource_size_t)pfn << PAGE_SHIFT;
-	unsigned long flags;
+	enum page_cache_mode pcm;
 
 	/* reserve the whole chunk starting from paddr */
 	if (!vma || (addr == vma->vm_start
@@ -739,18 +739,18 @@ int track_pfn_remap(struct vm_area_struct *vma, pgprot_t *prot,
 	 * For anything smaller than the vma size we set prot based on the
 	 * lookup.
 	 */
-	flags = lookup_memtype(paddr);
+	pcm = lookup_memtype(paddr);
 
 	/* Check memtype for the remaining pages */
 	while (size > PAGE_SIZE) {
 		size -= PAGE_SIZE;
 		paddr += PAGE_SIZE;
-		if (flags != lookup_memtype(paddr))
+		if (pcm != lookup_memtype(paddr))
 			return -EINVAL;
 	}
 
 	*prot = __pgprot((pgprot_val(*prot) & (~_PAGE_CACHE_MASK)) |
-			 flags);
+			 cachemode2protval(pcm));
 
 	return 0;
 }
@@ -758,15 +758,15 @@ int track_pfn_remap(struct vm_area_struct *vma, pgprot_t *prot,
 int track_pfn_insert(struct vm_area_struct *vma, pgprot_t *prot,
 		     pfn_t pfn)
 {
-	unsigned long flags;
+	enum page_cache_mode pcm;
 
 	if (!pat_enabled)
 		return 0;
 
 	/* Set prot based on lookup */
-	flags = lookup_memtype(pfn_t_to_phys(pfn));
+	pcm = lookup_memtype(pfn_t_to_phys(pfn));
 	*prot = __pgprot((pgprot_val(*prot) & (~_PAGE_CACHE_MASK)) |
-			 flags);
+			 cachemode2protval(pcm));
 
 	return 0;
 }
