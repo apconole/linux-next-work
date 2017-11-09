@@ -183,6 +183,8 @@ void __init efi_free_boot_services(void)
 		    md->type != EFI_BOOT_SERVICES_DATA)
 			continue;
 
+		set_memory_encrypted((unsigned long)__va(start), md->num_pages);
+
 		/* Could not reserve boot area */
 		if (!size)
 			continue;
