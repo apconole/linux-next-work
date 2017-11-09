@@ -989,6 +989,8 @@ static inline bool efi_enabled(int feature)
 {
 	return test_bit(feature, &efi.flags) != 0;
 }
+
+extern bool efi_is_table_address(unsigned long phys_addr);
 # else
 static inline bool efi_enabled(int feature)
 {
@@ -997,6 +999,11 @@ static inline bool efi_enabled(int feature)
 # endif
 #else
 static inline bool efi_enabled(int feature)
+{
+	return false;
+}
+
+static inline bool efi_is_table_address(unsigned long phys_addr)
 {
 	return false;
 }
