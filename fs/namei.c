@@ -3248,6 +3248,7 @@ static int do_tmpfile(int dfd, struct filename *pathname,
 	static const struct qstr name = QSTR_INIT("/", 1);
 	struct dentry *dentry, *child;
 	struct inode *dir;
+	iop_tmpfile_t tmpfile;
 	int error = path_lookupat(dfd, pathname->name,
 				  flags | LOOKUP_DIRECTORY, nd);
 	if (unlikely(error))
@@ -3261,7 +3262,10 @@ static int do_tmpfile(int dfd, struct filename *pathname,
 		goto out2;
 	dentry = nd->path.dentry;
 	dir = dentry->d_inode;
-	if (!dir->i_op->tmpfile) {
+
+	tmpfile = get_tmpfile_iop(dir);
+
+	if (!tmpfile) {
 		error = -EOPNOTSUPP;
 		goto out2;
 	}
@@ -3274,7 +3278,7 @@ static int do_tmpfile(int dfd, struct filename *pathname,
 	nd->flags |= op->intent;
 	dput(nd->path.dentry);
 	nd->path.dentry = child;
-	error = dir->i_op->tmpfile(dir, nd->path.dentry, op->mode);
+	error = tmpfile(dir, nd->path.dentry, op->mode);
 	if (error)
 		goto out2;
 	audit_inode(pathname, nd->path.dentry, 0);

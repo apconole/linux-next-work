@@ -3424,7 +3424,6 @@ static const struct inode_operations_wrapper shmem_dir_inode_operations = {
 	.rmdir		= shmem_rmdir,
 	.mknod		= shmem_mknod,
 	.rename		= shmem_rename,
-	.tmpfile	= shmem_tmpfile,
 #endif
 #ifdef CONFIG_TMPFS_XATTR
 	.setxattr	= shmem_setxattr,
@@ -3438,6 +3437,7 @@ static const struct inode_operations_wrapper shmem_dir_inode_operations = {
 	},
 #ifdef CONFIG_TMPFS
 	.rename2	= shmem_rename2,
+	.tmpfile	= shmem_tmpfile,
 #endif
 };
 

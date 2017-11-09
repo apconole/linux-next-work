@@ -242,7 +242,7 @@ static int ext2_mkdir(struct inode * dir, struct dentry * dentry, umode_t mode)
 	if (IS_ERR(inode))
 		goto out_dir;
 
-	inode->i_op = &ext2_dir_inode_operations;
+	inode->i_op = &ext2_dir_inode_operations.ops;
 	inode->i_fop = &ext2_dir_operations;
 	if (test_opt(inode->i_sb, NOBH))
 		inode->i_mapping->a_ops = &ext2_nobh_aops;
@@ -397,7 +397,8 @@ out:
 	return err;
 }
 
-const struct inode_operations ext2_dir_inode_operations = {
+const struct inode_operations_wrapper ext2_dir_inode_operations = {
+	.ops = {
 	.create		= ext2_create,
 	.lookup		= ext2_lookup,
 	.link		= ext2_link,
@@ -415,6 +416,7 @@ const struct inode_operations ext2_dir_inode_operations = {
 #endif
 	.setattr	= ext2_setattr,
 	.get_acl	= ext2_get_acl,
+	},
 	.tmpfile	= ext2_tmpfile,
 };
 

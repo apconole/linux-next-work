@@ -1831,7 +1831,6 @@ struct inode_operations {
 	int (*atomic_open)(struct inode *, struct dentry *,
 			   struct file *, unsigned open_flag,
 			   umode_t create_mode, int *opened);
-	int (*tmpfile) (struct inode *, struct dentry *, umode_t);
 } ____cacheline_aligned;
 
 
@@ -1840,6 +1839,7 @@ struct inode_operations {
  */
 typedef int (*iop_rename2_t) (struct inode *, struct dentry *,
 			      struct inode *, struct dentry *, unsigned int);
+typedef int (*iop_tmpfile_t) (struct inode *, struct dentry *, umode_t);
 
 typedef int (*iop_dentry_open_t) (struct dentry *, struct file *, const struct cred *);
 
@@ -1849,6 +1849,7 @@ struct inode_operations_wrapper {
 	/* -- Wrapper version 0 -- */
 	int (*rename2) (struct inode *, struct dentry *,
 			struct inode *, struct dentry *, unsigned int);
+	int (*tmpfile) (struct inode *, struct dentry *, umode_t);
 
 	/* WARNING: probably going away soon, do not use! */
 	int (*dentry_open)(struct dentry *, struct file *, const struct cred *);
@@ -3253,7 +3254,7 @@ static inline const struct inode_operations_wrapper *get_iop_wrapper(struct inod
 								     unsigned version)
 {
 	const struct inode_operations_wrapper *wrapper;
-		
+
 	if (!IS_IOPS_WRAPPER(inode))
 		return NULL;
 	wrapper = container_of(inode->i_op, const struct inode_operations_wrapper, ops);
@@ -3266,6 +3267,12 @@ static inline iop_rename2_t get_rename2_iop(struct inode *inode)
 {
 	const struct inode_operations_wrapper *wrapper = get_iop_wrapper(inode, 0);
 	return wrapper ? wrapper->rename2 : NULL;
+}
+
+static inline iop_tmpfile_t get_tmpfile_iop(struct inode *inode)
+{
+	const struct inode_operations_wrapper *wrapper = get_iop_wrapper(inode, 0);
+	return wrapper ? wrapper->tmpfile : NULL;
 }
 
 static inline iop_dentry_open_t get_dentry_open_iop(struct inode *inode)

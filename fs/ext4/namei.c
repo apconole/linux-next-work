@@ -3562,7 +3562,6 @@ const struct inode_operations_wrapper ext4_dir_inode_operations = {
 	.mkdir		= ext4_mkdir,
 	.rmdir		= ext4_rmdir,
 	.mknod		= ext4_mknod,
-	.tmpfile	= ext4_tmpfile,
 	.rename		= ext4_rename_old,
 	.setattr	= ext4_setattr,
 	.setxattr	= generic_setxattr,
@@ -3573,6 +3572,7 @@ const struct inode_operations_wrapper ext4_dir_inode_operations = {
 	.fiemap         = ext4_fiemap,
 	},
 	.rename2	= ext4_rename2,
+	.tmpfile	= ext4_tmpfile,
 };
 
 const struct inode_operations ext4_special_inode_operations = {

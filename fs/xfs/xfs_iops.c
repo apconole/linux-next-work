@@ -1135,9 +1135,9 @@ static const struct inode_operations_wrapper xfs_dir_inode_operations = {
 	.removexattr		= generic_removexattr,
 	.listxattr		= xfs_vn_listxattr,
 	.update_time		= xfs_vn_update_time,
-	.tmpfile		= xfs_vn_tmpfile,
 	},
 	.rename2		= xfs_vn_rename,
+	.tmpfile		= xfs_vn_tmpfile,
 };
 
 static const struct inode_operations_wrapper xfs_dir_ci_inode_operations = {
@@ -1165,9 +1165,9 @@ static const struct inode_operations_wrapper xfs_dir_ci_inode_operations = {
 	.removexattr		= generic_removexattr,
 	.listxattr		= xfs_vn_listxattr,
 	.update_time		= xfs_vn_update_time,
-	.tmpfile		= xfs_vn_tmpfile,
 	},
 	.rename2		= xfs_vn_rename,
+	.tmpfile		= xfs_vn_tmpfile,
 };
 
 static const struct inode_operations xfs_symlink_inode_operations = {
