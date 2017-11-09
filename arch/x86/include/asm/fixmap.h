@@ -207,6 +207,12 @@ void __init *early_memremap_decrypted_wp(resource_size_t phys_addr,
 #define set_fixmap_nocache(idx, phys)			\
 	__set_fixmap(idx, phys, PAGE_KERNEL_NOCACHE)
 
+/*
+ * Some fixmaps are for IO
+ */
+#define set_fixmap_io(idx, phys)			\
+	__set_fixmap(idx, phys, PAGE_KERNEL_IO)
+
 #define clear_fixmap(idx)			\
 	__set_fixmap(idx, 0, __pgprot(0))
 
