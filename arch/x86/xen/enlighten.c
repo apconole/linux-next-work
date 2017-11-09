@@ -1548,6 +1548,8 @@ asmlinkage void __init xen_start_kernel(void)
 	xen_init_irq_ops();
 	xen_init_cpuid_mask();
 
+	setup_clear_cpu_cap(X86_FEATURE_SME);
+
 #ifdef CONFIG_X86_LOCAL_APIC
 	/*
 	 * set up the basic apic ops.
