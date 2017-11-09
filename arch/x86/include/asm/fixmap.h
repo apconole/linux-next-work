@@ -205,7 +205,7 @@ void __init *early_memremap_decrypted_wp(resource_size_t phys_addr,
  * Some hardware wants to get fixmapped without caching.
  */
 #define set_fixmap_nocache(idx, phys)			\
-	__set_fixmap(idx, phys, PAGE_KERNEL_NOCACHE)
+	__set_fixmap(idx, phys, FIXMAP_PAGE_NOCACHE)
 
 /*
  * Some fixmaps are for IO
