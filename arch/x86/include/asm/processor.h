@@ -28,6 +28,7 @@ struct mm_struct;
 #include <linux/math64.h>
 #include <linux/err.h>
 #include <linux/irqflags.h>
+#include <linux/mem_encrypt.h>
 
 #include <linux/rh_kabi.h>
 
@@ -236,7 +237,7 @@ static inline unsigned long read_cr3_pa(void)
 
 static inline void load_cr3(pgd_t *pgdir)
 {
-	write_cr3(__pa(pgdir));
+	write_cr3(__sme_pa(pgdir));
 }
 
 #ifdef CONFIG_X86_32

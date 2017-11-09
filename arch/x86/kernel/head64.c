@@ -94,7 +94,7 @@ unsigned long __head __startup_64(unsigned long physaddr)
 
 	pud = fixup_pointer(early_dynamic_pgts[next_early_pgt++], physaddr);
 	pmd = fixup_pointer(early_dynamic_pgts[next_early_pgt++], physaddr);
-	pgtable_flags = _KERNPG_TABLE + sme_get_me_mask();
+	pgtable_flags = _KERNPG_TABLE_NOENC + sme_get_me_mask();
 
 	i = (physaddr >> PGDIR_SHIFT) % PTRS_PER_PGD;
 	pgd[i + 0] = (pgdval_t)pud + pgtable_flags;
@@ -158,7 +158,7 @@ static void __init reset_early_page_tables(void)
 	memset(early_level4_pgt, 0, sizeof(pgd_t)*(PTRS_PER_PGD-1));
 	next_early_pgt = 0;
 
-	write_cr3(__pa(early_level4_pgt));
+	write_cr3(__sme_pa(early_level4_pgt));
 }
 
 /* Create a new PMD entry */
@@ -272,6 +272,13 @@ void __init x86_64_start_kernel(char * real_mode_data)
 	clear_bss();
 
 	clear_page(init_level4_pgt);
+
+	/*
+	 * SME support may update early_pmd_flags to include the memory
+	 * encryption mask, so it needs to be called before anything
+	 * that may generate a page fault.
+	 */
+	sme_early_init();
 
 	for (i = 0; i < NUM_EXCEPTION_VECTORS; i++)
 		set_intr_gate(i, early_idt_handler_array[i]);
