@@ -38,6 +38,7 @@
 #include "xfs_dir2.h"
 #include "xfs_pnfs.h"
 #include "xfs_iomap.h"
+#include "xfs_trans_space.h"
 
 #include <linux/capability.h>
 #include <linux/xattr.h>
@@ -1068,6 +1069,33 @@ xfs_vn_fiemap(
 	return error;
 }
 
+STATIC int
+xfs_vn_tmpfile(
+	struct inode	*dir,
+	struct dentry	*dentry,
+	umode_t		mode)
+{
+	int			error;
+	struct xfs_inode	*ip;
+	struct inode		*inode;
+
+	error = xfs_create_tmpfile(XFS_I(dir), dentry, mode, &ip);
+	if (unlikely(error))
+		return -error;
+
+	inode = VFS_I(ip);
+
+	error = xfs_init_security(inode, dir, &dentry->d_name);
+	if (unlikely(error)) {
+		iput(inode);
+		return -error;
+	}
+
+	d_tmpfile(dentry, inode);
+
+	return 0;
+}
+
 static const struct inode_operations xfs_inode_operations = {
 	.get_acl		= xfs_get_acl,
 	.getattr		= xfs_vn_getattr,
@@ -1105,6 +1133,7 @@ static const struct inode_operations_wrapper xfs_dir_inode_operations = {
 	.removexattr		= generic_removexattr,
 	.listxattr		= xfs_vn_listxattr,
 	.update_time		= xfs_vn_update_time,
+	.tmpfile		= xfs_vn_tmpfile,
 	},
 	.rename2		= xfs_vn_rename,
 };
@@ -1134,6 +1163,7 @@ static const struct inode_operations_wrapper xfs_dir_ci_inode_operations = {
 	.removexattr		= generic_removexattr,
 	.listxattr		= xfs_vn_listxattr,
 	.update_time		= xfs_vn_update_time,
+	.tmpfile		= xfs_vn_tmpfile,
 	},
 	.rename2		= xfs_vn_rename,
 };
