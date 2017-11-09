@@ -1301,12 +1301,6 @@ static int __change_page_attr_set_clr(struct cpa_data *cpa, int checkalias)
 	return 0;
 }
 
-static inline int cache_attr(pgprot_t attr)
-{
-	return pgprot_val(attr) &
-		(_PAGE_PAT | _PAGE_PAT_LARGE | _PAGE_PWT | _PAGE_PCD);
-}
-
 static int change_page_attr_set_clr(unsigned long *addr, int numpages,
 				    pgprot_t mask_set, pgprot_t mask_clr,
 				    int force_split, int in_flag,
@@ -1387,7 +1381,7 @@ static int change_page_attr_set_clr(unsigned long *addr, int numpages,
 	 * No need to flush, when we did not set any of the caching
 	 * attributes:
 	 */
-	cache = cache_attr(mask_set);
+	cache = !!pgprot2cachemode(mask_set);
 
 	/*
 	 * On success we use clflush, when the CPU supports it to
@@ -1442,7 +1436,8 @@ int _set_memory_uc(unsigned long addr, int numpages)
 	 * for now UC MINUS. see comments in ioremap_nocache()
 	 */
 	return change_page_attr_set(&addr, numpages,
-				    __pgprot(_PAGE_CACHE_UC_MINUS), 0);
+				    cachemode2pgprot(_PAGE_CACHE_MODE_UC_MINUS),
+				    0);
 }
 
 int set_memory_uc(unsigned long addr, int numpages)
@@ -1471,7 +1466,7 @@ out_err:
 EXPORT_SYMBOL(set_memory_uc);
 
 static int _set_memory_array(unsigned long *addr, int addrinarray,
-		unsigned long new_type)
+		enum page_cache_mode new_type)
 {
 	int i, j;
 	int ret;
@@ -1481,17 +1476,19 @@ static int _set_memory_array(unsigned long *addr, int addrinarray,
 	 */
 	for (i = 0; i < addrinarray; i++) {
 		ret = reserve_memtype(__pa(addr[i]), __pa(addr[i]) + PAGE_SIZE,
-					new_type, NULL);
+					cachemode2protval(new_type), NULL);
 		if (ret)
 			goto out_free;
 	}
 
 	ret = change_page_attr_set(addr, addrinarray,
-				    __pgprot(_PAGE_CACHE_UC_MINUS), 1);
+				   cachemode2pgprot(_PAGE_CACHE_MODE_UC_MINUS),
+				   1);
 
-	if (!ret && new_type == _PAGE_CACHE_WC)
+	if (!ret && new_type == _PAGE_CACHE_MODE_WC)
 		ret = change_page_attr_set_clr(addr, addrinarray,
-					       __pgprot(_PAGE_CACHE_WC),
+					       cachemode2pgprot(
+						_PAGE_CACHE_MODE_WC),
 					       __pgprot(_PAGE_CACHE_MASK),
 					       0, CPA_ARRAY, NULL);
 	if (ret)
@@ -1508,13 +1505,13 @@ out_free:
 
 int set_memory_array_uc(unsigned long *addr, int addrinarray)
 {
-	return _set_memory_array(addr, addrinarray, _PAGE_CACHE_UC_MINUS);
+	return _set_memory_array(addr, addrinarray, _PAGE_CACHE_MODE_UC_MINUS);
 }
 EXPORT_SYMBOL(set_memory_array_uc);
 
 int set_memory_array_wc(unsigned long *addr, int addrinarray)
 {
-	return _set_memory_array(addr, addrinarray, _PAGE_CACHE_WC);
+	return _set_memory_array(addr, addrinarray, _PAGE_CACHE_MODE_WC);
 }
 EXPORT_SYMBOL(set_memory_array_wc);
 
@@ -1524,10 +1521,12 @@ int _set_memory_wc(unsigned long addr, int numpages)
 	unsigned long addr_copy = addr;
 
 	ret = change_page_attr_set(&addr, numpages,
-				    __pgprot(_PAGE_CACHE_UC_MINUS), 0);
+				   cachemode2pgprot(_PAGE_CACHE_MODE_UC_MINUS),
+				   0);
 	if (!ret) {
 		ret = change_page_attr_set_clr(&addr_copy, numpages,
-					       __pgprot(_PAGE_CACHE_WC),
+					       cachemode2pgprot(
+						_PAGE_CACHE_MODE_WC),
 					       __pgprot(_PAGE_CACHE_MASK),
 					       0, 0, NULL);
 	}
@@ -1561,6 +1560,7 @@ EXPORT_SYMBOL(set_memory_wc);
 
 int _set_memory_wb(unsigned long addr, int numpages)
 {
+	/* WB cache mode is hard wired to all cache attribute bits being 0 */
 	return change_page_attr_clear(&addr, numpages,
 				      __pgprot(_PAGE_CACHE_MASK), 0);
 }
@@ -1583,6 +1583,7 @@ int set_memory_array_wb(unsigned long *addr, int addrinarray)
 	int i;
 	int ret;
 
+	/* WB cache mode is hard wired to all cache attribute bits being 0 */
 	ret = change_page_attr_clear(addr, addrinarray,
 				      __pgprot(_PAGE_CACHE_MASK), 1);
 	if (ret)
@@ -1645,7 +1646,7 @@ int set_pages_uc(struct page *page, int numpages)
 EXPORT_SYMBOL(set_pages_uc);
 
 static int _set_pages_array(struct page **pages, int addrinarray,
-		unsigned long new_type)
+		enum page_cache_mode new_type)
 {
 	unsigned long start;
 	unsigned long end;
@@ -1658,15 +1659,17 @@ static int _set_pages_array(struct page **pages, int addrinarray,
 			continue;
 		start = page_to_pfn(pages[i]) << PAGE_SHIFT;
 		end = start + PAGE_SIZE;
-		if (reserve_memtype(start, end, new_type, NULL))
+		if (reserve_memtype(start, end, cachemode2protval(new_type),
+				    NULL))
 			goto err_out;
 	}
 
 	ret = cpa_set_pages_array(pages, addrinarray,
-			__pgprot(_PAGE_CACHE_UC_MINUS));
-	if (!ret && new_type == _PAGE_CACHE_WC)
+			cachemode2pgprot(_PAGE_CACHE_MODE_UC_MINUS));
+	if (!ret && new_type == _PAGE_CACHE_MODE_WC)
 		ret = change_page_attr_set_clr(NULL, addrinarray,
-					       __pgprot(_PAGE_CACHE_WC),
+					       cachemode2pgprot(
+						_PAGE_CACHE_MODE_WC),
 					       __pgprot(_PAGE_CACHE_MASK),
 					       0, CPA_PAGES_ARRAY, pages);
 	if (ret)
@@ -1686,13 +1689,13 @@ err_out:
 
 int set_pages_array_uc(struct page **pages, int addrinarray)
 {
-	return _set_pages_array(pages, addrinarray, _PAGE_CACHE_UC_MINUS);
+	return _set_pages_array(pages, addrinarray, _PAGE_CACHE_MODE_UC_MINUS);
 }
 EXPORT_SYMBOL(set_pages_array_uc);
 
 int set_pages_array_wc(struct page **pages, int addrinarray)
 {
-	return _set_pages_array(pages, addrinarray, _PAGE_CACHE_WC);
+	return _set_pages_array(pages, addrinarray, _PAGE_CACHE_MODE_WC);
 }
 EXPORT_SYMBOL(set_pages_array_wc);
 
@@ -1711,6 +1714,7 @@ int set_pages_array_wb(struct page **pages, int addrinarray)
 	unsigned long end;
 	int i;
 
+	/* WB cache mode is hard wired to all cache attribute bits being 0 */
 	retval = cpa_clear_pages_array(pages, addrinarray,
 			__pgprot(_PAGE_CACHE_MASK));
 	if (retval)
