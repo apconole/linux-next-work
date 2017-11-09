@@ -226,6 +226,14 @@ static inline void native_cpuid(unsigned int *eax, unsigned int *ebx,
 	    : "memory");
 }
 
+/*
+ * Friendlier CR3 helpers.
+ */
+static inline unsigned long read_cr3_pa(void)
+{
+	return read_cr3() & CR3_ADDR_MASK;
+}
+
 static inline void load_cr3(pgd_t *pgdir)
 {
 	write_cr3(__pa(pgdir));

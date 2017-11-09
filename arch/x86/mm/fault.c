@@ -337,7 +337,7 @@ static noinline __kprobes int vmalloc_fault(unsigned long address)
 	 * Do _not_ use "current" here. We might be inside
 	 * an interrupt in the middle of a task switch..
 	 */
-	pgd_paddr = read_cr3();
+	pgd_paddr = read_cr3_pa();
 	pmd_k = vmalloc_sync_one(__va(pgd_paddr), address);
 	if (!pmd_k)
 		return -1;
@@ -376,7 +376,7 @@ static bool low_pfn(unsigned long pfn)
 
 static void dump_pagetable(unsigned long address)
 {
-	pgd_t *base = __va(read_cr3());
+	pgd_t *base = __va(read_cr3_pa());
 	pgd_t *pgd = &base[pgd_index(address)];
 	pmd_t *pmd;
 	pte_t *pte;
@@ -517,7 +517,7 @@ static int bad_address(void *p)
 
 static void dump_pagetable(unsigned long address)
 {
-	pgd_t *base = __va(read_cr3() & PHYSICAL_PAGE_MASK);
+	pgd_t *base = __va(read_cr3_pa());
 	pgd_t *pgd = base + pgd_index(address);
 	pud_t *pud;
 	pmd_t *pmd;
