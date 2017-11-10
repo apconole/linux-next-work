@@ -12,6 +12,7 @@
 #include <linux/netfilter/nf_conntrack_sctp.h>
 #endif
 #include <linux/seqlock.h>
+#include <linux/rh_kabi.h>
 
 struct ctl_table_header;
 struct nf_conntrack_ecache;
@@ -144,7 +145,7 @@ struct netns_ct {
 	struct nf_ip_net	nf_ct_proto;
 #if defined(CONFIG_NF_CONNTRACK_LABELS)
 	unsigned int		labels_used;
-	u8			label_words;
+	RH_KABI_DEPRECATE(u8,	label_words)
 #endif
 #ifdef CONFIG_NF_NAT_NEEDED
 	struct hlist_head	*nat_bysource;
