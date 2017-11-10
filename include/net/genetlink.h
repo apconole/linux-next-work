@@ -44,7 +44,7 @@ struct genl_info;
  * @n_ops: number of operations supported by this family
  */
 struct genl_family {
-	unsigned int		id;		/* private */
+	RH_KABI_REPLACE(unsigned int id, int id)	/* private */
 	unsigned int		hdrsize;
 	char			name[GENL_NAMSIZ];
 	unsigned int		version;
