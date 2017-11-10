@@ -125,7 +125,6 @@ static u8 netlabel_unlabel_acceptflg = 0;
 
 /* NetLabel Generic NETLINK unlabeled family */
 static struct genl_family netlbl_unlabel_gnl_family = {
-	.id = GENL_ID_GENERATE,
 	.hdrsize = 0,
 	.name = NETLBL_NLTYPE_UNLABELED_NAME,
 	.version = NETLBL_PROTO_VERSION,
