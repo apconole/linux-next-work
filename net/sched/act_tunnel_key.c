@@ -168,7 +168,7 @@ static int tunnel_key_init(struct net *net, struct nlattr *nla,
 			return -EEXIST;
 	}
 
-	t = to_tunnel_key(a);
+	t = to_tunnel_key(*a);
 
 	ASSERT_RTNL();
 	params_new = kzalloc(sizeof(*params_new), GFP_KERNEL);
