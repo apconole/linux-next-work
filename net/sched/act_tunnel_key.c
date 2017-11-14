@@ -314,6 +314,7 @@ static struct tc_action_ops act_tunnel_key_ops = {
 	.cleanup	=	tunnel_key_release,
 	.walk		=	tunnel_key_walker,
 	.lookup		=	tunnel_key_search,
+	.size		=	sizeof(struct tcf_tunnel_key),
 };
 
 static __net_init int tunnel_key_init_net(struct net *net)
