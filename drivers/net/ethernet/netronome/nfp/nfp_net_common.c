@@ -3286,15 +3286,10 @@ static int
 nfp_net_xdp_setup_drv(struct nfp_net *nn, struct bpf_prog *prog,
 		      struct netlink_ext_ack *extack)
 {
-	struct bpf_prog *old_prog = nn->dp.xdp_prog;
 	struct nfp_net_dp *dp;
-	int err;
 
-	if (!prog && !nn->dp.xdp_prog)
-		return 0;
-	if (prog && nn->dp.xdp_prog) {
-		prog = xchg(&nn->dp.xdp_prog, prog);
-		bpf_prog_put(prog);
+	if (!prog == !nn->dp.xdp_prog) {
+		WRITE_ONCE(nn->dp.xdp_prog, prog);
 		return 0;
 	}
 
@@ -3308,14 +3303,7 @@ nfp_net_xdp_setup_drv(struct nfp_net *nn, struct bpf_prog *prog,
 	dp->rx_dma_off = prog ? XDP_PACKET_HEADROOM - nn->dp.rx_offset : 0;
 
 	/* We need RX reconfig to remap the buffers (BIDIR vs FROM_DEV) */
-	err = nfp_net_ring_reconfig(nn, dp, extack);
-	if (err)
-		return err;
-
-	if (old_prog)
-		bpf_prog_put(old_prog);
-
-	return 0;
+	return nfp_net_ring_reconfig(nn, dp, extack);
 }
 
 static int
@@ -3325,7 +3313,7 @@ nfp_net_xdp_setup(struct nfp_net *nn, struct bpf_prog *prog, u32 flags,
 	struct bpf_prog *offload_prog;
 	int err;
 
-	if (nn->dp.xdp_prog && (flags ^ nn->xdp_flags) & XDP_FLAGS_MODES)
+	if (nn->xdp_prog && (flags ^ nn->xdp_flags) & XDP_FLAGS_MODES)
 		return -EBUSY;
 
 	offload_prog = flags & XDP_FLAGS_DRV_MODE ? NULL : prog;
@@ -3335,6 +3323,10 @@ nfp_net_xdp_setup(struct nfp_net *nn, struct bpf_prog *prog, u32 flags,
 		return err;
 
 	nfp_app_xdp_offload(nn->app, nn, offload_prog);
+
+	if (nn->xdp_prog)
+		bpf_prog_put(nn->xdp_prog);
+	nn->xdp_prog = prog;
 	nn->xdp_flags = flags;
 
 	return 0;
@@ -3351,8 +3343,8 @@ static int nfp_net_xdp(struct net_device *netdev, struct netdev_xdp *xdp)
 		return nfp_net_xdp_setup(nn, xdp->prog, xdp->flags,
 					 xdp->extack);
 	case XDP_QUERY_PROG:
-		xdp->prog_attached = !!nn->dp.xdp_prog;
-		xdp->prog_id = nn->dp.xdp_prog ? nn->dp.xdp_prog->aux->id : 0;
+		xdp->prog_attached = !!nn->xdp_prog;
+		xdp->prog_id = nn->xdp_prog ? nn->xdp_prog->aux->id : 0;
 		return 0;
 	default:
 		return -EINVAL;
@@ -3514,6 +3506,9 @@ struct nfp_net *nfp_net_alloc(struct pci_dev *pdev, bool needs_netdev,
  */
 void nfp_net_free(struct nfp_net *nn)
 {
+	if (nn->xdp_prog)
+		bpf_prog_put(nn->xdp_prog);
+
 	if (nn->dp.netdev)
 		free_netdev(nn->dp.netdev);
 	else
