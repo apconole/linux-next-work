@@ -2673,10 +2673,8 @@ nvme_fc_del_nvme_ctrl(struct nvme_ctrl *nctrl)
 		return -EBUSY;
 
 	ret = __nvme_fc_del_ctrl(ctrl);
-
 	if (!ret)
-		flush_workqueue(nvme_wq);
-
+		flush_work(&ctrl->delete_work);
 	nvme_put_ctrl(&ctrl->ctrl);
 
 	return ret;
