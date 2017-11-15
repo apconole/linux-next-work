@@ -174,7 +174,10 @@ struct nfp_net_tx_desc {
  *		on the head's buffer). Equal to skb->len for non-TSO packets.
  */
 struct nfp_net_tx_buf {
-	struct sk_buff *skb;
+	union {
+		struct sk_buff *skb;
+		void *frag;
+	};
 	dma_addr_t dma_addr;
 	short int fidx;
 	u16 pkt_cnt;
@@ -344,6 +347,7 @@ struct nfp_net_rx_ring {
  * @napi:           NAPI structure for this ring vec
  * @tx_ring:        Pointer to TX ring
  * @rx_ring:        Pointer to RX ring
+ * @xdp_ring:	    Pointer to an extra TX ring for XDP
  * @irq_idx:        Index into MSI-X table
  * @irq_entry:      MSI-X table entry (use for talking to the device)
  * @rx_sync:	    Seqlock for atomic updates of RX stats
@@ -388,6 +392,8 @@ struct nfp_net_r_vector {
 	u64 hw_csum_rx_ok;
 	u64 hw_csum_rx_inner_ok;
 	u64 hw_csum_rx_error;
+
+	struct nfp_net_tx_ring *xdp_ring;
 
 	struct u64_stats_sync tx_sync;
 	u64 tx_pkts;
@@ -437,6 +443,7 @@ struct nfp_stat_pair {
  * @ctrl:               Local copy of the control register/word.
  * @fl_bufsz:           Currently configured size of the freelist buffers
  * @rx_offset:		Offset in the RX buffers where packet data starts
+ * @xdp_prog:		Installed XDP program
  * @fw_ver:             Firmware version
  * @cap:                Capabilities advertised by the Firmware
  * @max_mtu:            Maximum support MTU advertised by the Firmware
@@ -451,6 +458,7 @@ struct nfp_stat_pair {
  * @max_tx_rings:       Maximum number of TX rings supported by the Firmware
  * @max_rx_rings:       Maximum number of RX rings supported by the Firmware
  * @num_tx_rings:       Currently configured number of TX rings
+ * @num_stack_tx_rings:	Number of TX rings used by the stack (not XDP)
  * @num_rx_rings:       Currently configured number of RX rings
  * @txd_cnt:            Size of the TX ring in number of descriptors
  * @rxd_cnt:            Size of the RX ring in number of descriptors
@@ -502,6 +510,8 @@ struct nfp_net {
 
 	u32 rx_offset;
 
+	struct bpf_prog *xdp_prog;
+
 	struct nfp_net_tx_ring *tx_rings;
 	struct nfp_net_rx_ring *rx_rings;
 
@@ -522,6 +532,7 @@ struct nfp_net {
 	unsigned int max_rx_rings;
 
 	unsigned int num_tx_rings;
+	unsigned int num_stack_tx_rings;
 	unsigned int num_rx_rings;
 
 	int stride_tx;
@@ -778,8 +789,8 @@ void
 nfp_net_irqs_assign(struct nfp_net *nn, struct msix_entry *irq_entries,
 		    unsigned int n);
 int
-nfp_net_ring_reconfig(struct nfp_net *nn, struct nfp_net_ring_set *rx,
-		      struct nfp_net_ring_set *tx);
+nfp_net_ring_reconfig(struct nfp_net *nn, struct bpf_prog **xdp_prog,
+		      struct nfp_net_ring_set *rx, struct nfp_net_ring_set *tx);
 
 #ifdef CONFIG_NFP_DEBUG
 void nfp_net_debugfs_create(void);

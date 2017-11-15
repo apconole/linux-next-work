@@ -114,6 +114,16 @@ static const struct file_operations nfp_rx_q_fops = {
 	.llseek = seq_lseek
 };
 
+static int nfp_net_debugfs_tx_q_open(struct inode *inode, struct file *f);
+
+static const struct file_operations nfp_tx_q_fops = {
+	.owner = THIS_MODULE,
+	.open = nfp_net_debugfs_tx_q_open,
+	.release = single_release,
+	.read = seq_read,
+	.llseek = seq_lseek
+};
+
 static int nfp_net_debugfs_tx_q_read(struct seq_file *file, void *data)
 {
 	struct nfp_net_r_vector *r_vec = file->private;
@@ -148,9 +158,14 @@ static int nfp_net_debugfs_tx_q_read(struct seq_file *file, void *data)
 			   txd->vals[2], txd->vals[3]);
 
 		skb = READ_ONCE(tx_ring->txbufs[i].skb);
-		if (skb)
-			seq_printf(file, " skb->head=%p skb->data=%p",
-				   skb->head, skb->data);
+		if (skb) {
+			if (tx_ring == r_vec->tx_ring)
+				seq_printf(file, " skb->head=%p skb->data=%p",
+					   skb->head, skb->data);
+			else
+				seq_printf(file, " frag=%p", skb);
+		}
+
 		if (tx_ring->txbufs[i].dma_addr)
 			seq_printf(file, " dma_addr=%pad",
 				   &tx_ring->txbufs[i].dma_addr);
@@ -175,14 +190,6 @@ static int nfp_net_debugfs_tx_q_open(struct inode *inode, struct file *f)
 {
 	return single_open(f, nfp_net_debugfs_tx_q_read, inode->i_private);
 }
-
-static const struct file_operations nfp_tx_q_fops = {
-	.owner = THIS_MODULE,
-	.open = nfp_net_debugfs_tx_q_open,
-	.release = single_release,
-	.read = seq_read,
-	.llseek = seq_lseek
-};
 
 void nfp_net_debugfs_port_add(struct nfp_net *nn, struct dentry *ddir, int id)
 {
