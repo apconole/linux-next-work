@@ -139,8 +139,7 @@ extern const struct devlink_ops nfp_devlink_ops;
 int nfp_net_pci_probe(struct nfp_pf *pf);
 void nfp_net_pci_remove(struct nfp_pf *pf);
 
-void
-nfp_net_get_mac_addr(struct nfp_pf *pf, struct nfp_port *port, unsigned int id);
+void nfp_net_get_mac_addr(struct nfp_pf *pf, struct nfp_port *port);
 
 bool nfp_ctrl_tx(struct nfp_net *nn, struct sk_buff *skb);
 
