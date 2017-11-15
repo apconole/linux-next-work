@@ -34,6 +34,7 @@ nfp-objs += \
 	    flower/cmsg.o \
 	    flower/main.o \
 	    flower/match.o \
+	    flower/metadata.o \
 	    flower/offload.o
 endif
 
