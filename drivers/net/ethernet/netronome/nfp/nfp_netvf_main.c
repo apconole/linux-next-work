@@ -201,7 +201,7 @@ static int nfp_netvf_pci_probe(struct pci_dev *pdev,
 	rx_bar_off = NFP_PCIE_QUEUE(startq);
 
 	/* Allocate and initialise the netdev */
-	nn = nfp_net_netdev_alloc(pdev, max_tx_rings, max_rx_rings);
+	nn = nfp_net_alloc(pdev, max_tx_rings, max_rx_rings);
 	if (IS_ERR(nn)) {
 		err = PTR_ERR(nn);
 		goto err_ctrl_unmap;
@@ -282,7 +282,7 @@ static int nfp_netvf_pci_probe(struct pci_dev *pdev,
 	 */
 	nn->me_freq_mhz = 1200;
 
-	err = nfp_net_netdev_init(nn->dp.netdev);
+	err = nfp_net_init(nn);
 	if (err)
 		goto err_irqs_disable;
 
@@ -303,7 +303,7 @@ err_unmap_tx:
 	else
 		iounmap(vf->q_bar);
 err_netdev_free:
-	nfp_net_netdev_free(nn);
+	nfp_net_free(nn);
 err_ctrl_unmap:
 	iounmap(ctrl_bar);
 err_pci_regions:
@@ -327,7 +327,7 @@ static void nfp_netvf_pci_remove(struct pci_dev *pdev)
 	nfp_net_debugfs_dir_clean(&nn->debugfs_dir);
 	nfp_net_debugfs_dir_clean(&vf->ddir);
 
-	nfp_net_netdev_clean(nn->dp.netdev);
+	nfp_net_clean(nn);
 
 	nfp_net_irqs_disable(pdev);
 
@@ -339,7 +339,7 @@ static void nfp_netvf_pci_remove(struct pci_dev *pdev)
 	}
 	iounmap(nn->dp.ctrl_bar);
 
-	nfp_net_netdev_free(nn);
+	nfp_net_free(nn);
 
 	pci_release_regions(pdev);
 	pci_disable_device(pdev);
