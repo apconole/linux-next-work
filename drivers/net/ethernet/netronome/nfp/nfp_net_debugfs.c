@@ -54,7 +54,7 @@ static int nfp_net_debugfs_rx_q_read(struct seq_file *file, void *data)
 		goto out;
 	nn = r_vec->nfp_net;
 	rx_ring = r_vec->rx_ring;
-	if (!netif_running(nn->dp.netdev))
+	if (!nfp_net_running(nn))
 		goto out;
 
 	rxd_cnt = rx_ring->cnt;
@@ -135,7 +135,7 @@ static int nfp_net_debugfs_tx_q_read(struct seq_file *file, void *data)
 		goto out;
 	nn = r_vec->nfp_net;
 	tx_ring = r_vec->tx_ring;
-	if (!netif_running(nn->dp.netdev))
+	if (!nfp_net_running(nn))
 		goto out;
 
 	txd_cnt = tx_ring->cnt;
@@ -198,7 +198,10 @@ void nfp_net_debugfs_vnic_add(struct nfp_net *nn, struct dentry *ddir, int id)
 	if (IS_ERR_OR_NULL(nfp_dir))
 		return;
 
-	sprintf(name, "vnic%d", id);
+	if (nfp_net_is_data_vnic(nn))
+		sprintf(name, "vnic%d", id);
+	else
+		strcpy(name, "ctrl-vnic");
 	nn->debugfs_dir = debugfs_create_dir(name, ddir);
 	if (IS_ERR_OR_NULL(nn->debugfs_dir))
 		return;
