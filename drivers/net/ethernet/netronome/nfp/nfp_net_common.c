@@ -2602,7 +2602,7 @@ static const struct net_device_ops nfp_net_netdev_ops = {
 	.ndo_get_stats64	= nfp_net_stat64,
 	.ndo_tx_timeout		= nfp_net_tx_timeout,
 	.ndo_set_rx_mode	= nfp_net_set_rx_mode,
-	.ndo_change_mtu_rh74	= nfp_net_change_mtu,
+	.extended.ndo_change_mtu	= nfp_net_change_mtu,
 	.ndo_set_mac_address	= eth_mac_addr,
 	.ndo_set_features	= nfp_net_set_features,
 	.ndo_features_check	= nfp_net_features_check,
@@ -2844,6 +2844,11 @@ int nfp_net_netdev_init(struct net_device *netdev)
 	/* Finalise the netdev setup */
 	netdev->netdev_ops = &nfp_net_netdev_ops;
 	netdev->watchdog_timeo = msecs_to_jiffies(5 * 1000);
+
+	/* MTU range: 68 - hw-specific max */
+	netdev->extended->min_mtu = ETH_MIN_MTU;
+	netdev->extended->max_mtu = nn->max_mtu;
+
 	netif_carrier_off(netdev);
 
 	nfp_net_set_ethtool_ops(netdev);
