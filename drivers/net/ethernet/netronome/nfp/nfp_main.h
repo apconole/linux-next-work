@@ -54,6 +54,7 @@ struct nfp_cpp;
 struct nfp_cpp_area;
 struct nfp_eth_table;
 struct nfp_hwinfo;
+struct nfp_mip;
 struct nfp_net;
 struct nfp_rtsym_table;
 
@@ -70,6 +71,7 @@ struct nfp_rtsym_table;
  * @num_vfs:		Number of SR-IOV VFs enabled
  * @fw_loaded:		Is the firmware loaded?
  * @ctrl_vnic:		Pointer to the control vNIC if available
+ * @mip:		MIP handle
  * @rtbl:		RTsym table
  * @hwinfo:		HWInfo table
  * @eth_tbl:		NSP ETH table
@@ -101,6 +103,7 @@ struct nfp_pf {
 
 	struct nfp_net *ctrl_vnic;
 
+	const struct nfp_mip *mip;
 	struct nfp_rtsym_table *rtbl;
 	struct nfp_hwinfo *hwinfo;
 	struct nfp_eth_table *eth_tbl;
