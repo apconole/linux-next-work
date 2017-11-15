@@ -41,6 +41,7 @@
 
 #include <linux/kernel.h>
 #include <linux/module.h>
+#include <linux/mutex.h>
 #include <linux/pci.h>
 #include <linux/firmware.h>
 #include <linux/vermagic.h>
@@ -341,6 +342,7 @@ static int nfp_pci_probe(struct pci_dev *pdev,
 	}
 	INIT_LIST_HEAD(&pf->vnics);
 	INIT_LIST_HEAD(&pf->ports);
+	mutex_init(&pf->lock);
 	pci_set_drvdata(pdev, pf);
 	pf->pdev = pdev;
 
@@ -379,6 +381,7 @@ err_cpp_free:
 	nfp_cpp_free(pf->cpp);
 err_disable_msix:
 	pci_set_drvdata(pdev, NULL);
+	mutex_destroy(&pf->lock);
 	kfree(pf);
 err_rel_regions:
 	pci_release_regions(pdev);
@@ -403,6 +406,7 @@ static void nfp_pci_remove(struct pci_dev *pdev)
 	nfp_cpp_free(pf->cpp);
 
 	kfree(pf->eth_tbl);
+	mutex_destroy(&pf->lock);
 	kfree(pf);
 	pci_release_regions(pdev);
 	pci_disable_device(pdev);
