@@ -15,6 +15,7 @@ nfp-objs := \
 	    nfpcore/nfp_rtsym.o \
 	    nfpcore/nfp_target.o \
 	    nfp_app.o \
+	    nfp_app_nic.o \
 	    nfp_devlink.o \
 	    nfp_main.o \
 	    nfp_net_common.o \
@@ -22,7 +23,9 @@ nfp-objs := \
 	    nfp_net_main.o \
 	    nfp_net_offload.o \
 	    nfp_netvf_main.o \
-	    nfp_port.o
+	    nfp_port.o \
+	    bpf/main.o \
+	    nic/main.o
 
 ifeq ($(CONFIG_BPF_SYSCALL),y)
 nfp-objs += \

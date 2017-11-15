@@ -53,6 +53,7 @@ struct pci_dev;
 struct nfp_cpp;
 struct nfp_cpp_area;
 struct nfp_eth_table;
+struct nfp_net;
 
 /**
  * struct nfp_pf - NFP PF-specific device structure
@@ -112,5 +113,10 @@ extern const struct devlink_ops nfp_devlink_ops;
 
 int nfp_net_pci_probe(struct nfp_pf *pf);
 void nfp_net_pci_remove(struct nfp_pf *pf);
+
+struct nfp_eth_table_port *
+nfp_net_find_port(struct nfp_eth_table *eth_tbl, unsigned int id);
+void
+nfp_net_get_mac_addr(struct nfp_net *nn, struct nfp_cpp *cpp, unsigned int id);
 
 #endif /* NFP_MAIN_H */
