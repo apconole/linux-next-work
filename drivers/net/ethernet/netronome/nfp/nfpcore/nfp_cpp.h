@@ -43,6 +43,7 @@
 #include <linux/ctype.h>
 #include <linux/types.h>
 #include <linux/err.h>
+#include <linux/sizes.h>
 
 #ifndef NFP_SUBSYS
 #define NFP_SUBSYS "nfp"
@@ -60,6 +61,8 @@
 #define PCI_64BIT_BAR_COUNT             3
 
 #define NFP_CPP_NUM_TARGETS             16
+/* Max size of area it should be safe to request */
+#define NFP_CPP_SAFE_AREA_SIZE		SZ_2M
 
 struct device;
 
