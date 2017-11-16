@@ -1416,7 +1416,7 @@ static int dax_iomap_pmd_fault(struct vm_fault *vmf,
 	 * that a PMD range in the page table overlaps exactly with a PMD
 	 * range in the radix tree.
 	 */
-	if ((pgoff & PG_PMD_COLOUR) !=
+	if ((vmf->pgoff & PG_PMD_COLOUR) !=
 	    ((address >> PAGE_SHIFT) & PG_PMD_COLOUR))
 		goto fallback;
 
