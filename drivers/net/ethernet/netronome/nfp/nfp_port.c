@@ -88,8 +88,8 @@ const struct switchdev_ops nfp_port_switchdev_ops = {
 	.switchdev_port_attr_get	= nfp_port_attr_get,
 };
 
-int nfp_port_setup_tc(struct net_device *netdev, u32 handle,
-		      __be16 proto, struct tc_to_netdev *tc)
+int nfp_port_setup_tc(struct net_device *netdev, enum tc_setup_type type,
+		      void *type_data)
 {
 	struct nfp_port *port;
 
@@ -97,7 +97,7 @@ int nfp_port_setup_tc(struct net_device *netdev, u32 handle,
 	if (!port)
 		return -EOPNOTSUPP;
 
-	return nfp_app_setup_tc(port->app, netdev, handle, proto, tc);
+	return nfp_app_setup_tc(port->app, netdev, type, type_data);
 }
 
 struct nfp_port *

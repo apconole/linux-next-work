@@ -121,8 +121,9 @@ static void nfp_bpf_vnic_clean(struct nfp_app *app, struct nfp_net *nn)
 }
 
 static int nfp_bpf_setup_tc(struct nfp_app *app, struct net_device *netdev,
-			    u32 handle, __be16 proto, struct tc_to_netdev *tc)
+			    enum tc_setup_type type, void *type_data)
 {
+#if 0 /* Not in RHEL7 */
 	struct nfp_net *nn = netdev_priv(netdev);
 
 	if (TC_H_MAJ(handle) != TC_H_MAJ(TC_H_INGRESS))
@@ -136,6 +137,7 @@ static int nfp_bpf_setup_tc(struct nfp_app *app, struct net_device *netdev,
 		else
 			return -EBUSY;
 	}
+#endif
 
 	return -EINVAL;
 }
