@@ -198,4 +198,6 @@ int hid_sensor_write_samp_freq_value(struct hid_sensor_common *st,
 int hid_sensor_read_samp_freq_value(struct hid_sensor_common *st,
 					int *val1, int *val2);
 
+s32 hid_sensor_read_poll_value(struct hid_sensor_common *st);
+
 #endif
