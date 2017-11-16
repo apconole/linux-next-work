@@ -30,6 +30,7 @@ nfp-objs := \
 
 ifeq ($(CONFIG_NFP_APP_FLOWER),y)
 nfp-objs += \
+	    flower/action.o \
 	    flower/cmsg.o \
 	    flower/main.o \
 	    flower/match.o \
