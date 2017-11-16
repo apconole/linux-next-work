@@ -426,6 +426,7 @@ struct kvm {
 	struct list_head devices;
 	struct dentry *debugfs_dentry;
 	struct kvm_stat_data **debugfs_stat_data;
+	pid_t userspace_pid;
 };
 
 #define kvm_err(fmt, ...) \
