@@ -94,6 +94,7 @@
 #include <linux/ethtool.h>
 #include <linux/notifier.h>
 #include <linux/skbuff.h>
+#include <linux/bpf.h>
 #include <net/net_namespace.h>
 #include <net/sock.h>
 #include <net/busy_poll.h>
@@ -7004,6 +7005,22 @@ int dev_change_proto_down(struct net_device *dev, bool proto_down)
 	return get_ndo_ext(ops, ndo_change_proto_down)(dev, proto_down);
 }
 EXPORT_SYMBOL(dev_change_proto_down);
+
+/**
+ *	dev_change_xdp_fd - set or clear a bpf program for a device rx path
+ *	@dev: device
+ *	@fd: new program fd or negative value to clear
+ *
+ *	Set or clear a bpf program for a device
+ */
+int dev_change_xdp_fd(struct net_device *dev, int fd)
+{
+	/* NOTE: RHEL7 does not support XDP.  These symbols are just
+	 * here to allow the backporting of drivers easier
+	 */
+	return -EOPNOTSUPP;
+}
+EXPORT_SYMBOL(dev_change_xdp_fd);
 
 /**
  *	dev_new_index	-	allocate an ifindex

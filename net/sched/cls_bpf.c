@@ -76,6 +76,19 @@ static int cls_bpf_classify(struct sk_buff *skb, const struct tcf_proto *tp,
 	return -1;
 }
 
+
+static void cls_bpf_offload(struct tcf_proto *tp, struct cls_bpf_prog *prog,
+			    struct cls_bpf_prog *oldprog)
+{
+	return;
+}
+
+static void cls_bpf_stop_offload(struct tcf_proto *tp,
+				 struct cls_bpf_prog *prog)
+{
+	return;
+}
+
 static int cls_bpf_init(struct tcf_proto *tp)
 {
 	struct cls_bpf_head *head;
@@ -112,6 +125,7 @@ static int cls_bpf_delete(struct tcf_proto *tp, void *arg, bool *last)
 	struct cls_bpf_head *head = rtnl_dereference(tp->root);
 	struct cls_bpf_prog *prog = (struct cls_bpf_prog *) arg;
 
+	cls_bpf_stop_offload(tp, prog);
 	list_del_rcu(&prog->link);
 	tcf_unbind_filter(tp, &prog->res);
 	call_rcu(&prog->rcu, __cls_bpf_delete_prog);
@@ -125,6 +139,7 @@ static void cls_bpf_destroy(struct tcf_proto *tp)
 	struct cls_bpf_prog *prog, *tmp;
 
 	list_for_each_entry_safe(prog, tmp, &head->plist, link) {
+		cls_bpf_stop_offload(tp, prog);
 		list_del_rcu(&prog->link);
 		tcf_unbind_filter(tp, &prog->res);
 		call_rcu(&prog->rcu, __cls_bpf_delete_prog);
@@ -265,6 +280,8 @@ static int cls_bpf_change(struct net *net, struct sk_buff *in_skb,
 	ret = cls_bpf_set_parms(net, tp, prog, base, tb, tca[TCA_RATE], ovr);
 	if (ret < 0)
 		goto errout;
+
+	cls_bpf_offload(tp, prog, oldprog);
 
 	if (oldprog) {
 		list_replace_rcu(&oldprog->link, &prog->link);

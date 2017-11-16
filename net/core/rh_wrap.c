@@ -147,6 +147,8 @@ int __rh_call_ndo_setup_tc(struct net_device *dev, enum tc_setup_type type,
 			return handle_cls_flower_rh74(dev, type_data);
 		case TC_SETUP_CLSMATCHALL:
 			return handle_cls_matchall_rh74(dev, type_data);
+		case TC_SETUP_CLSBPF:
+			return -EOPNOTSUPP;
 		}
 	} else if (ops->ndo_setup_tc_rh72 && type == TC_SETUP_MQPRIO) {
 		/* Drivers implementing .ndo_setup_tc_rh72()

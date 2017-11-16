@@ -66,7 +66,10 @@ struct wireless_dev;
 struct wpan_dev;
 /* UDP Tunnel offloads */
 struct udp_tunnel_info;
+struct bpf_prog;
+struct xdp_buff;
 
+struct netdev_xdp;
 struct net_device_extended;
 					/* source back-compat hooks */
 #define SET_ETHTOOL_OPS(netdev,ops) \
@@ -810,12 +813,27 @@ enum tc_setup_type {
 	TC_SETUP_CLSU32,
 	TC_SETUP_CLSFLOWER,
 	TC_SETUP_CLSMATCHALL,
+	TC_SETUP_CLSBPF,
 };
 
 /* Forward declaration of tc_to_netdev structure used by __rh_call_ndo_setup_tc
  * wrapper for out-of-tree drivers compiled against RHEL7.4.
  */
 struct tc_to_netdev_rh74;
+
+struct tc_cls_u32_offload;
+
+struct tc_to_netdev {
+	unsigned int type;
+	union {
+		u8 tc;
+		struct tc_cls_u32_offload *cls_u32;
+		struct tc_cls_flower_offload *cls_flower;
+		struct tc_cls_matchall_offload *cls_mall;
+		struct tc_cls_bpf_offload *cls_bpf;
+	};
+	bool egress_dev;
+};
 
 /* This structure defines the management hooks for network devices.
  * It is an extension of net_device_ops. Drivers that want to use any of the
@@ -892,6 +910,15 @@ struct tc_to_netdev_rh74;
  *	management safely.
  *	RHEL: Note that this callback is not part of kABI and its prototype
  *	and semantic can be changed across releases.
+ * int (*ndo_xdp)(struct net_device *dev, struct netdev_xdp *xdp);
+ *	This function is used to set or query state related to XDP on the
+ *	netdevice. See definition of enum xdp_netdev_command for details.
+ * int (*ndo_xdp_xmit)(struct net_device *dev, struct xdp_buff *xdp);
+ *	This function is used to submit a XDP packet for transmit on a
+ *	netdevice.
+ * void (*ndo_xdp_flush)(struct net_device *dev);
+ *	This function is used to inform the driver to flush a paticular
+ *	xpd tx queue. Must be called on same CPU as xdp_xmit.
  */
 struct net_device_ops_extended {
 	int			(*ndo_set_vf_trust)(struct net_device *dev,
@@ -946,6 +973,42 @@ struct net_device_ops_extended {
 	int			(*ndo_setup_tc_rh)(struct net_device *dev,
 						   enum tc_setup_type type,
 						   void *type_data);
+	int			(*ndo_xdp)(struct net_device *dev,
+						  struct netdev_xdp *xdp);
+	int                     (*ndo_xdp_xmit)(struct net_device *dev,
+						struct xdp_buff *xdp);
+	void                    (*ndo_xdp_flush)(struct net_device *dev);
+};
+
+/* These structures hold the attributes of xdp state that are being passed
+ * to the netdevice through the xdp op.
+ */
+enum xdp_netdev_command {
+	/* Set or clear a bpf program used in the earliest stages of packet
+	 * rx. The prog will have been loaded as BPF_PROG_TYPE_XDP. The callee
+	 * is responsible for calling bpf_prog_put on any old progs that are
+	 * stored. In case of error, the callee need not release the new prog
+	 * reference, but on success it takes ownership and must bpf_prog_put
+	 * when it is no longer used.
+	 */
+	XDP_SETUP_PROG,
+	/* Check if a bpf program is set on the device.  The callee should
+	 * return true if a program is currently attached and running.
+	 */
+	XDP_QUERY_PROG,
+};
+
+struct netdev_xdp {
+	enum xdp_netdev_command command;
+	union {
+		/* XDP_SETUP_PROG */
+		struct bpf_prog *prog;
+		/* XDP_QUERY_PROG */
+		struct {
+			bool prog_attached;
+			u32 prog_id;
+		};
+	};
 };
 
 /*
@@ -1207,7 +1270,6 @@ struct net_device_ops_extended {
  *	This function is used to get egress tunnel information for given skb.
  *	This is useful for retrieving outer tunnel header parameters while
  *	sampling packet.
- *
  */
 struct net_device_ops {
 	int			(*ndo_init)(struct net_device *dev);
@@ -3352,6 +3414,7 @@ int dev_get_phys_port_id(struct net_device *dev,
 int dev_get_phys_port_name(struct net_device *dev,
 			   char *name, size_t len);
 int dev_change_proto_down(struct net_device *dev, bool proto_down);
+int dev_change_xdp_fd(struct net_device *dev, int fd);
 struct sk_buff *validate_xmit_skb_list(struct sk_buff *skb, struct net_device *dev);
 struct sk_buff *dev_hard_start_xmit(struct sk_buff *skb, struct net_device *dev,
 				    struct netdev_queue *txq, int *ret);
