@@ -1,1 +1,1 @@
-# CONFIG_IIO is not set
+CONFIG_IIO=y
