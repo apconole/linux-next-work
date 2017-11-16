@@ -109,6 +109,7 @@ static int cls_bpf_init(struct tcf_proto *tp)
 static void cls_bpf_delete_prog(struct tcf_proto *tp, struct cls_bpf_prog *prog)
 {
 	tcf_exts_destroy(&prog->exts);
+	tcf_exts_put_net(&prog->exts);
 
 	sk_unattached_filter_destroy(prog->filter);
 
@@ -141,7 +142,10 @@ static int cls_bpf_delete(struct tcf_proto *tp, void *arg, bool *last)
 	cls_bpf_stop_offload(tp, prog);
 	list_del_rcu(&prog->link);
 	tcf_unbind_filter(tp, &prog->res);
-	call_rcu(&prog->rcu, __cls_bpf_delete_prog);
+	if (tcf_exts_get_net(&prog->exts))
+		call_rcu(&prog->rcu, __cls_bpf_delete_prog);
+	else
+		cls_bpf_delete_prog(prog->tp, prog);
 	*last = list_empty(&head->plist);
 	return 0;
 }
@@ -155,6 +159,7 @@ static void cls_bpf_destroy(struct tcf_proto *tp)
 		cls_bpf_stop_offload(tp, prog);
 		list_del_rcu(&prog->link);
 		tcf_unbind_filter(tp, &prog->res);
+		tcf_exts_get_net(&prog->exts);
 		call_rcu(&prog->rcu, __cls_bpf_delete_prog);
 	}
 
