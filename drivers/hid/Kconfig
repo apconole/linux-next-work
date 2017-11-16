@@ -819,4 +819,6 @@ config HID_SENSOR_CUSTOM_SENSOR
 	  standard sensors.
 	  Select this config option for custom/generic sensor support.
 
+source "drivers/hid/intel-ish-hid/Kconfig"
+
 endmenu
