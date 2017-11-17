@@ -573,8 +573,6 @@ static int __multipath_map(struct dm_target *ti, struct request *clone,
 			bool queue_dying = blk_queue_dying(q);
 
 			clear_request_fn_mpio(m, map_context);
-			DMERR_LIMIT("blk_get_request() returned %ld%s - requeuing",
-				    PTR_ERR(clone), queue_dying ? " (path offline)" : "");
 			if (queue_dying) {
 				atomic_inc(&m->pg_init_in_progress);
 				activate_or_offline_path(pgpath);
