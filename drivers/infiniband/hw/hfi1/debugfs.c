@@ -1,4 +1,3 @@
-#ifdef CONFIG_DEBUG_FS
 /*
  * Copyright(c) 2015-2017 Intel Corporation.
  *
@@ -315,10 +314,10 @@ DEBUGFS_FILE_OPS(ctx_stats);
 static void *_qp_stats_seq_start(struct seq_file *s, loff_t *pos)
 	__acquires(RCU)
 {
-	struct qp_iter *iter;
+	struct rvt_qp_iter *iter;
 	loff_t n = *pos;
 
-	iter = qp_iter_init(s->private);
+	iter = rvt_qp_iter_init(s->private, 0, NULL);
 
 	/* stop calls rcu_read_unlock */
 	rcu_read_lock();
@@ -327,7 +326,7 @@ static void *_qp_stats_seq_start(struct seq_file *s, loff_t *pos)
 		return NULL;
 
 	do {
-		if (qp_iter_next(iter)) {
+		if (rvt_qp_iter_next(iter)) {
 			kfree(iter);
 			return NULL;
 		}
@@ -340,11 +339,11 @@ static void *_qp_stats_seq_next(struct seq_file *s, void *iter_ptr,
 				loff_t *pos)
 	__must_hold(RCU)
 {
-	struct qp_iter *iter = iter_ptr;
+	struct rvt_qp_iter *iter = iter_ptr;
 
 	(*pos)++;
 
-	if (qp_iter_next(iter)) {
+	if (rvt_qp_iter_next(iter)) {
 		kfree(iter);
 		return NULL;
 	}
@@ -360,7 +359,7 @@ static void _qp_stats_seq_stop(struct seq_file *s, void *iter_ptr)
 
 static int _qp_stats_seq_show(struct seq_file *s, void *iter_ptr)
 {
-	struct qp_iter *iter = iter_ptr;
+	struct rvt_qp_iter *iter = iter_ptr;
 
 	if (!iter)
 		return 0;
@@ -1583,5 +1582,3 @@ void hfi1_dbg_exit(void)
 	debugfs_remove_recursive(hfi1_dbg_root);
 	hfi1_dbg_root = NULL;
 }
-
-#endif
