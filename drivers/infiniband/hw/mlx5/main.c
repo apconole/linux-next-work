@@ -3848,11 +3848,13 @@ static int delay_drop_debugfs_init(struct mlx5_ib_dev *dev)
 	if (!dbg)
 		return -ENOMEM;
 
+	dev->delay_drop.dbg = dbg;
+
 	dbg->dir_debugfs =
 		debugfs_create_dir("delay_drop",
 				   dev->mdev->priv.dbg_root);
 	if (!dbg->dir_debugfs)
-		return -ENOMEM;
+		goto out_debugfs;
 
 	dbg->events_cnt_debugfs =
 		debugfs_create_atomic_t("num_timeout_events", 0400,
@@ -3875,8 +3877,6 @@ static int delay_drop_debugfs_init(struct mlx5_ib_dev *dev)
 				    &fops_delay_drop_timeout);
 	if (!dbg->timeout_debugfs)
 		goto out_debugfs;
-
-	dev->delay_drop.dbg = dbg;
 
 	return 0;
 
