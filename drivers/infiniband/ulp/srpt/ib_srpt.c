@@ -2538,8 +2538,7 @@ static void srpt_add_one(struct ib_device *device)
 
 	INIT_IB_EVENT_HANDLER(&sdev->event_handler, sdev->device,
 			      srpt_event_handler);
-	if (ib_register_event_handler(&sdev->event_handler))
-		goto err_cm;
+	ib_register_event_handler(&sdev->event_handler);
 
 	sdev->ioctx_ring = (struct srpt_recv_ioctx **)
 		srpt_alloc_ioctx_ring(sdev, sdev->srq_size,
