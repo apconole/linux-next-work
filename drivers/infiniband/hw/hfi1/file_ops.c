@@ -928,7 +928,7 @@ static int assign_ctxt(struct hfi1_filedata *fd, struct hfi1_user_info *uinfo)
 static int find_sub_ctxt(struct hfi1_filedata *fd,
 			 const struct hfi1_user_info *uinfo)
 {
-	int i;
+	u16 i;
 	struct hfi1_devdata *dd = fd->dd;
 	u16 subctxt;
 
@@ -979,7 +979,7 @@ static int allocate_ctxt(struct hfi1_filedata *fd, struct hfi1_devdata *dd,
 			 struct hfi1_user_info *uinfo)
 {
 	struct hfi1_ctxtdata *uctxt;
-	unsigned int ctxt;
+	u16 ctxt;
 	int ret, numa;
 
 	if (dd->flags & HFI1_FROZEN) {
@@ -1430,7 +1430,7 @@ int hfi1_set_uevent_bits(struct hfi1_pportdata *ppd, const int evtbit)
 {
 	struct hfi1_ctxtdata *uctxt;
 	struct hfi1_devdata *dd = ppd->dd;
-	unsigned ctxt;
+	u16 ctxt;
 	int ret = 0;
 	unsigned long flags;
 
