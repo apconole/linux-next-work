@@ -114,6 +114,7 @@ static void lut_close(struct i915_gem_context *ctx)
 	 * someday.. but I think this shouldn't be perf critical so
 	 * after bigger fires..
 	 */
+	rcu_read_lock();
 restart:
 	radix_tree_for_each_slot(slot, &ctx->handles_vma, &iter, 0) {
 		struct i915_vma *vma = rcu_dereference_raw(*slot);
@@ -127,6 +128,7 @@ restart:
 		__i915_gem_object_release_unless_active(obj);
 		goto restart;
 	}
+	rcu_read_unlock();
 }
 
 static void i915_gem_context_free(struct i915_gem_context *ctx)
