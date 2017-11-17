@@ -2569,6 +2569,18 @@ int has_slv_msrs(unsigned int family, unsigned int model)
 	}
 	return 0;
 }
+int is_dnv(unsigned int family, unsigned int model)
+{
+
+	if (!genuine_intel)
+		return 0;
+
+	switch (model) {
+	case INTEL_FAM6_ATOM_DENVERTON:
+		return 1;
+	}
+	return 0;
+}
 
 int has_nhm_turbo_ratio_limit(unsigned int family, unsigned int model)
 {
@@ -2700,18 +2712,6 @@ dump_cstate_pstate_config_info(unsigned int family, unsigned int model)
 		dump_config_tdp();
 
 	dump_nhm_cst_cfg();
-}
-int is_dnv(unsigned int family, unsigned int model)
-{
-
-	if (!genuine_intel)
-		return 0;
-
-	switch (model) {
-	case INTEL_FAM6_ATOM_DENVERTON:
-		return 1;
-	}
-	return 0;
 }
 
 
@@ -3565,6 +3565,32 @@ guess:
 
 	return 0;
 }
+
+void decode_feature_control_msr(void)
+{
+	unsigned long long msr;
+
+	if (!get_msr(base_cpu, MSR_IA32_FEATURE_CONTROL, &msr))
+		fprintf(outf, "cpu%d: MSR_IA32_FEATURE_CONTROL: 0x%08llx (%sLocked %s)\n",
+			base_cpu, msr,
+			msr & FEATURE_CONTROL_LOCKED ? "" : "UN-",
+			msr & (1 << 18) ? "SGX" : "");
+}
+
+void decode_misc_enable_msr(void)
+{
+	unsigned long long msr;
+
+	if (!get_msr(base_cpu, MSR_IA32_MISC_ENABLE, &msr))
+		fprintf(outf, "cpu%d: MSR_IA32_MISC_ENABLE: 0x%08llx (%sTCC %sEIST %sMWAIT %sPREFETCH %sTURBO)\n",
+			base_cpu, msr,
+			msr & MSR_IA32_MISC_ENABLE_TM1 ? "" : "No-",
+			msr & MSR_IA32_MISC_ENABLE_ENHANCED_SPEEDSTEP ? "" : "No-",
+			msr & MSR_IA32_MISC_ENABLE_MWAIT ? "No-" : "",
+			msr & MSR_IA32_MISC_ENABLE_PREFETCH_DISABLE ? "No-" : "",
+			msr & MSR_IA32_MISC_ENABLE_TURBO_DISABLE ? "No-" : "");
+}
+
 void decode_misc_feature_control(void)
 {
 	unsigned long long msr;
@@ -3605,28 +3631,6 @@ void decode_misc_pwr_mgmt_msr(void)
 			msr & (1 << 8) ? "EN" : "DIS");
 }
 
-void decode_feature_control_msr(void)
-{
-	unsigned long long msr;
-
-	if (!get_msr(base_cpu, MSR_IA32_FEATURE_CONTROL, &msr))
-		fprintf(outf, "cpu%d: MSR_IA32_FEATURE_CONTROL: 0x%08llx (%sLocked %s)\n",
-			base_cpu, msr,
-			msr & FEATURE_CONTROL_LOCKED ? "" : "UN-",
-			msr & (1 << 18) ? "SGX" : "");
-}
-
-void decode_misc_enable_msr(void)
-{
-	unsigned long long msr;
-
-	if (!get_msr(base_cpu, MSR_IA32_MISC_ENABLE, &msr))
-		fprintf(outf, "cpu%d: MSR_IA32_MISC_ENABLE: 0x%08llx (%s %s %s)\n",
-			base_cpu, msr,
-			msr & (1 << 3) ? "TCC" : "",
-			msr & (1 << 16) ? "EIST" : "",
-			msr & (1 << 18) ? "MONITOR" : "");
-}
 /*
  * Decode MSR_CC6_DEMOTION_POLICY_CONFIG, MSR_MC6_DEMOTION_POLICY_CONFIG
  *
