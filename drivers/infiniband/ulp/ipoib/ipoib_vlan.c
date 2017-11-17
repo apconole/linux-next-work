@@ -178,7 +178,10 @@ out:
 	mutex_unlock(&ppriv->sysfs_mutex);
 
 	if (result && priv) {
-		free_netdev(priv->dev);
+		struct rdma_netdev *rn;
+
+		rn = netdev_priv(priv->dev);
+		rn->free_rdma_netdev(priv->dev);
 		kfree(priv);
 	}
 
@@ -231,7 +234,10 @@ int ipoib_vlan_delete(struct net_device *pdev, unsigned short pkey)
 	mutex_unlock(&ppriv->sysfs_mutex);
 
 	if (dev) {
-		free_netdev(dev);
+		struct rdma_netdev *rn;
+
+		rn = netdev_priv(dev);
+		rn->free_rdma_netdev(priv->dev);
 		kfree(priv);
 		return 0;
 	}
