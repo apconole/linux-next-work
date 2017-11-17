@@ -2531,6 +2531,10 @@ static const struct file_operations fops = {
 	.poll		= i915_perf_poll,
 	.read		= i915_perf_read,
 	.unlocked_ioctl	= i915_perf_ioctl,
+	/* Our ioctl have no arguments, so it's safe to use the same function
+	 * to handle 32bits compatibility.
+	 */
+	.compat_ioctl   = i915_perf_ioctl,
 };
 
 
