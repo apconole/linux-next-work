@@ -304,7 +304,7 @@ ENTRY(start_cpu)
 	 *	REX.W + FF /5 JMP m16:64 Jump far, absolute indirect,
 	 *		address given in m16:64.
 	 */
-	call	1f		# put return address on stack for unwinder
+	pushq	$1f		# put return address on stack for unwinder
 	UNWIND_END_OF_STACK
 1:	xorq	%rbp, %rbp	# clear frame pointer
 	movq	initial_code(%rip), %rax
