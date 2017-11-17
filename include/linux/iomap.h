@@ -86,5 +86,9 @@ int iomap_page_mkwrite(struct vm_area_struct *vma, struct vm_fault *vmf,
 		const struct iomap_ops *ops);
 int iomap_fiemap(struct inode *inode, struct fiemap_extent_info *fieinfo,
 		loff_t start, loff_t len, const struct iomap_ops *ops);
+loff_t iomap_seek_hole(struct inode *inode, loff_t offset,
+		const struct iomap_ops *ops);
+loff_t iomap_seek_data(struct inode *inode, loff_t offset,
+		const struct iomap_ops *ops);
 
 #endif /* LINUX_IOMAP_H */
