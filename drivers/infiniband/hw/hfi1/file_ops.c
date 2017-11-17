@@ -431,8 +431,7 @@ static ssize_t hfi1_aio_write(struct kiocb *kiocb, const struct iovec *iovec,
 	if (!dim)
 		return -EINVAL;
 
-	hfi1_cdbg(SDMA, "SDMA request from %u:%u (%lu)",
-		  fd->uctxt->ctxt, fd->subctxt, dim);
+	trace_hfi1_sdma_request(fd->dd, fd->uctxt->ctxt, fd->subctxt, dim);
 
 	if (atomic_read(&pq->n_reqs) == pq->n_max_reqs)
 		return -ENOSPC;
