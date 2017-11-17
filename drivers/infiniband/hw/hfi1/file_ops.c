@@ -95,6 +95,7 @@ static int find_sub_ctxt(struct hfi1_filedata *fd,
 			 const struct hfi1_user_info *uinfo);
 static int allocate_ctxt(struct hfi1_filedata *fd, struct hfi1_devdata *dd,
 			 struct hfi1_user_info *uinfo);
+static void deallocate_ctxt(struct hfi1_ctxtdata *uctxt);
 static unsigned int poll_urgent(struct file *fp, struct poll_table_struct *pt);
 static unsigned int poll_next(struct file *fp, struct poll_table_struct *pt);
 static int user_event_ack(struct hfi1_ctxtdata *uctxt, u16 subctxt,
@@ -814,15 +815,9 @@ static int hfi1_file_close(struct inode *inode, struct file *fp)
 	uctxt->rcvnowait = 0;
 	uctxt->pionowait = 0;
 	uctxt->event_flags = 0;
-
-	hfi1_stats.sps_ctxts--;
-	if (++dd->freectxts == dd->num_user_contexts)
-		aspm_enable_all(dd);
-
-	/* _rcd_put() should be done after releasing mutex */
-	dd->rcd[uctxt->ctxt] = NULL;
 	mutex_unlock(&hfi1_mutex);
-	hfi1_rcd_put(uctxt);  /* dd reference */
+
+	deallocate_ctxt(uctxt);
 done:
 	mmdrop(fdata->mm);
 	kobject_put(&dd->kobj);
@@ -899,10 +894,9 @@ static int assign_ctxt(struct hfi1_filedata *fd, struct hfi1_user_info *uinfo)
 		if (!ret)
 			ret = init_user_ctxt(fd);
 
-		if (ret) {
+		if (ret)
 			clear_bit(fd->subctxt, fd->uctxt->in_use_ctxts);
-			hfi1_rcd_put(fd->uctxt);
-		}
+
 	} else if (!ret) {
 		ret = setup_base_ctxt(fd);
 		if (fd->uctxt->subctxt_cnt) {
@@ -918,6 +912,14 @@ static int assign_ctxt(struct hfi1_filedata *fd, struct hfi1_user_info *uinfo)
 				  &fd->uctxt->event_flags);
 			wake_up(&fd->uctxt->wait);
 		}
+		if (ret)
+			deallocate_ctxt(fd->uctxt);
+	}
+
+	/* If an error occurred, clear the reference */
+	if (ret && fd->uctxt) {
+		hfi1_rcd_put(fd->uctxt);
+		fd->uctxt = NULL;
 	}
 
 	return ret;
@@ -1086,6 +1088,19 @@ ctxdata_free:
 	dd->rcd[ctxt] = NULL;
 	hfi1_rcd_put(uctxt);
 	return ret;
+}
+
+static void deallocate_ctxt(struct hfi1_ctxtdata *uctxt)
+{
+	mutex_lock(&hfi1_mutex);
+	hfi1_stats.sps_ctxts--;
+	if (++uctxt->dd->freectxts == uctxt->dd->num_user_contexts)
+		aspm_enable_all(uctxt->dd);
+
+	/* _rcd_put() should be done after releasing mutex */
+	uctxt->dd->rcd[uctxt->ctxt] = NULL;
+	mutex_unlock(&hfi1_mutex);
+	hfi1_rcd_put(uctxt);  /* dd reference */
 }
 
 static int init_subctxts(struct hfi1_ctxtdata *uctxt,
