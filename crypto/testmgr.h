@@ -28593,8 +28593,10 @@ static struct comp_testvec zlib_deflate_decomp_tv_template[] = {
 			"compression algorithm.  This document defines the application of "
 			"the DEFLATE algorithm to the IP Payload Compression Protocol.",
 	}, {
+#if 0
 		.params = &deflate_decomp_params,
 		.paramsize = sizeof(deflate_decomp_params),
+#endif
 		.inlen	= 44,
 		.outlen	= 70,
 		.input	= "\x78\x9c\xf3\xca\xcf\xcc\x53\x28"
