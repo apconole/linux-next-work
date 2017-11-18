@@ -478,7 +478,7 @@ static int __dax_dev_pmd_fault(struct dax_dev *dax_dev, struct vm_fault *vmf)
 	phys_addr_t phys;
 	pgoff_t pgoff;
 	pfn_t pfn;
-	unsigned int fault_size = PAGE_SIZE;
+	unsigned int fault_size = PMD_SIZE;
 
 	if (check_vma(dax_dev, vmf->vma, __func__))
 		return VM_FAULT_SIGBUS;
@@ -621,6 +621,7 @@ static int dax_mmap(struct file *filp, struct vm_area_struct *vma)
 
 	vma->vm_ops = &dax_dev_vm_ops;
 	vma->vm_flags |= VM_MIXEDMAP | VM_HUGEPAGE;
+	vma->vm_flags2 |= VM_PFN_MKWRITE | VM_HUGE_FAULT;
 	return 0;
 }
 
