@@ -61,11 +61,6 @@ extern struct mm_struct *pgd_page_get_mm(struct page *page);
 #define pmd_clear(pmd)			native_pmd_clear(pmd)
 
 #define pte_update(mm, addr, ptep)              do { } while (0)
-#define pte_update_defer(mm, addr, ptep)        do { } while (0)
-#define pmd_update(mm, addr, pmdp)              do { } while (0)
-#define pmd_update_defer(mm, addr, pmdp)        do { } while (0)
-#define pud_update(mm, addr, pudp)              do { } while (0)
-#define pud_update_defer(mm, addr, pudp)        do { } while (0)
 
 #define pgd_val(x)	native_pgd_val(x)
 #define __pgd(x)	native_make_pgd(x)
@@ -918,14 +913,9 @@ static inline void native_set_pud_at(struct mm_struct *mm, unsigned long addr,
  * updates should either be sets, clears, or set_pte_atomic for P->P
  * transitions, which means this hook should only be called for user PTEs.
  * This hook implies a P->P protection or access change has taken place, which
- * requires a subsequent TLB flush.  The notification can optionally be delayed
- * until the TLB flush event by using the pte_update_defer form of the
- * interface, but care must be taken to assure that the flush happens while
- * still holding the same page table lock so that the shadow and primary pages
- * do not become out of sync on SMP.
+ * requires a subsequent TLB flush.
  */
 #define pte_update(mm, addr, ptep)		do { } while (0)
-#define pte_update_defer(mm, addr, ptep)	do { } while (0)
 #endif
 
 /*
@@ -1031,9 +1021,7 @@ static inline int pud_trans_huge(pud_t pud)
 static inline pmd_t pmdp_get_and_clear(struct mm_struct *mm, unsigned long addr,
 				       pmd_t *pmdp)
 {
-	pmd_t pmd = native_pmdp_get_and_clear(pmdp);
-	pmd_update(mm, addr, pmdp);
-	return pmd;
+	return native_pmdp_get_and_clear(pmdp);
 }
 
 #define __HAVE_ARCH_PUDP_GET_AND_CLEAR
@@ -1048,7 +1036,6 @@ static inline void pmdp_set_wrprotect(struct mm_struct *mm,
 				      unsigned long addr, pmd_t *pmdp)
 {
 	clear_bit(_PAGE_BIT_RW, (unsigned long *)pmdp);
-	pmd_update(mm, addr, pmdp);
 }
 
 #ifdef CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD
@@ -1057,7 +1044,6 @@ static inline void pudp_set_wrprotect(struct mm_struct *mm,
 				      unsigned long addr, pud_t *pudp)
 {
 	clear_bit(_PAGE_BIT_RW, (unsigned long *)pudp);
-	pud_update(mm, addr, pudp);
 }
 #endif
 

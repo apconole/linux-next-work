@@ -337,7 +337,7 @@ int ptep_set_access_flags(struct vm_area_struct *vma,
 
 	if (changed && dirty) {
 		*ptep = entry;
-		pte_update_defer(vma->vm_mm, address, ptep);
+		pte_update(vma->vm_mm, address, ptep);
 	}
 
 	return changed;
@@ -354,7 +354,6 @@ int pmdp_set_access_flags(struct vm_area_struct *vma,
 
 	if (changed && dirty) {
 		*pmdp = entry;
-		pmd_update_defer(vma->vm_mm, address, pmdp);
 		/*
 		 * We had a write-protection fault here and changed the pmd
 		 * to to more permissive. No need to flush the TLB for that,
@@ -375,7 +374,6 @@ int pudp_set_access_flags(struct vm_area_struct *vma, unsigned long address,
 
 	if (changed && dirty) {
 		*pudp = entry;
-		pud_update_defer(vma->vm_mm, address, pudp);
 		/*
 		 * We had a write-protection fault here and changed the pud
 		 * to to more permissive. No need to flush the TLB for that,
@@ -413,9 +411,6 @@ int pmdp_test_and_clear_young(struct vm_area_struct *vma,
 		ret = test_and_clear_bit(_PAGE_BIT_ACCESSED,
 					 (unsigned long *)pmdp);
 
-	if (ret)
-		pmd_update(vma->vm_mm, addr, pmdp);
-
 	return ret;
 }
 
@@ -427,9 +422,6 @@ int pudp_test_and_clear_young(struct vm_area_struct *vma,
 	if (pud_young(*pudp))
 		ret = test_and_clear_bit(_PAGE_BIT_ACCESSED,
 					 (unsigned long *)pudp);
-
-	if (ret)
-		pud_update(vma->vm_mm, addr, pudp);
 
 	return ret;
 }
@@ -470,7 +462,6 @@ void pmdp_splitting_flush(struct vm_area_struct *vma,
 	set = !test_and_set_bit(_PAGE_BIT_SPLITTING,
 				(unsigned long *)pmdp);
 	if (set) {
-		pmd_update(vma->vm_mm, address, pmdp);
 		/* need tlb flush only to serialize against gup-fast */
 		flush_tlb_range(vma, address, address + HPAGE_PMD_SIZE);
 	}

@@ -282,12 +282,13 @@ struct pv_mmu_ops {
 			   pmd_t *pmdp, pmd_t pmdval);
 	void (*pte_update)(struct mm_struct *mm, unsigned long addr,
 			   pte_t *ptep);
-	void (*pte_update_defer)(struct mm_struct *mm,
-				 unsigned long addr, pte_t *ptep);
-	void (*pmd_update)(struct mm_struct *mm, unsigned long addr,
-			   pmd_t *pmdp);
-	void (*pmd_update_defer)(struct mm_struct *mm,
-				 unsigned long addr, pmd_t *pmdp);
+	RH_KABI_DEPRECATE_FN(void, pte_update_defer, struct mm_struct *mm,
+			   unsigned long addr, pte_t *ptep)
+	RH_KABI_DEPRECATE_FN(void, pmd_update, struct mm_struct *mm,
+			   unsigned long addr, pmd_t *pmdp)
+	RH_KABI_DEPRECATE_FN(void, pmd_update_defer, struct mm_struct *mm,
+			   unsigned long addr, pmd_t *pmdp)
+
 	pte_t (*ptep_modify_prot_start)(struct mm_struct *mm, unsigned long addr,
 					pte_t *ptep);
 	void (*ptep_modify_prot_commit)(struct mm_struct *mm, unsigned long addr,
@@ -331,10 +332,6 @@ struct pv_mmu_ops {
 			   phys_addr_t phys, pgprot_t flags);
 	RH_KABI_EXTEND(void (*set_pud_at)(struct mm_struct *mm, unsigned long addr,
 				pud_t *pudp, pud_t pudval))
-	RH_KABI_EXTEND(void (*pud_update)(struct mm_struct *mm, unsigned long addr,
-				pud_t *pudp))
-	RH_KABI_EXTEND(void (*pud_update_defer)(struct mm_struct *mm,
-				unsigned long addr, pud_t *pudp))
 };
 
 struct arch_spinlock;
