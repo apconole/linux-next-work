@@ -3833,6 +3833,23 @@ static const struct alg_test_desc alg_test_descs[] = {
 				}
 			}
 		}
+	}, {
+
+		.alg = "zlib-deflate",
+		.test = alg_test_comp,
+		.fips_allowed = 1,
+		.suite = {
+			.comp = {
+				.comp = {
+					.vecs = zlib_deflate_comp_tv_template,
+					.count = ZLIB_COMP_TEST_VECTORS
+				},
+				.decomp = {
+					.vecs = zlib_deflate_decomp_tv_template,
+					.count = ZLIB_DECOMP_TEST_VECTORS
+				}
+			}
+		}
 	}
 };
 
