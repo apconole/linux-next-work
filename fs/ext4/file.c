@@ -268,7 +268,8 @@ ext4_file_write(struct kiocb *iocb, const struct iovec *iov,
 }
 
 #ifdef CONFIG_FS_DAX
-static int ext4_dax_huge_fault(struct vm_fault *vmf)
+static int ext4_dax_huge_fault(struct vm_fault *vmf,
+		enum page_entry_size pe_size)
 {
 	int result;
 	handle_t *handle = NULL;
@@ -286,7 +287,7 @@ static int ext4_dax_huge_fault(struct vm_fault *vmf)
 		down_read(&EXT4_I(inode)->i_mmap_sem);
 	}
 	if (!IS_ERR(handle))
-		result = dax_iomap_fault(vmf, &ext4_iomap_ops);
+		result = dax_iomap_fault(vmf, pe_size, &ext4_iomap_ops);
 	else
 		result = VM_FAULT_SIGBUS;
 	if (write) {
@@ -304,7 +305,7 @@ static int ext4_dax_huge_fault(struct vm_fault *vmf)
 static inline int ext4_dax_fault(struct vm_area_struct *vma,
 		struct vm_fault *vmf)
 {
-	return ext4_dax_huge_fault(vmf);
+	return ext4_dax_huge_fault(vmf, PE_SIZE_PTE);
 }
 
 /*
