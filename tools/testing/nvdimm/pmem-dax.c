@@ -16,16 +16,12 @@
 #include <nd.h>
 
 long pmem_direct_access(struct block_device *bdev, sector_t sector,
-		void **kaddr, pfn_t *pfn)
+		void **kaddr, pfn_t *pfn, long size)
 {
 	struct pmem_device *pmem = bdev->bd_queue->queuedata;
 	resource_size_t offset = sector * 512 + pmem->data_offset;
-	long max_len = pmem->size - pmem->pfn_pad - offset;
-	sector_t first_bad;
-	int num_bad;
 
-	/* If we can't even map the first page, return error */
-	if (unlikely(is_bad_pmem(&pmem->bb, sector, PAGE_SIZE)))
+	if (unlikely(is_bad_pmem(&pmem->bb, sector, size)))
 		return -EIO;
 
 	/*
@@ -49,14 +45,10 @@ long pmem_direct_access(struct block_device *bdev, sector_t sector,
 	*pfn = phys_to_pfn_t(pmem->phys_addr + offset, pmem->pfn_flags);
 
 	/*
-	 * If badblocks are present, limit range to the first known
-	 * bad block.
+	 * If badblocks are present, limit known good range to the
+	 * requested range.
 	 */
-	if (unlikely(pmem->bb.count) &&
-	    badblocks_check(&pmem->bb, sector, max_len / 512,
-			    &first_bad, &num_bad)) {
-		return ((first_bad - sector) * 512) & ~(PAGE_SIZE-1);
-	}
-
-	return max_len;
+	if (unlikely(pmem->bb.count))
+		return size;
+	return pmem->size - pmem->pfn_pad - offset;
 }
