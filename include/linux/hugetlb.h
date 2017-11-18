@@ -205,6 +205,14 @@ static inline void __unmap_hugepage_range(struct mmu_gather *tlb,
 
 #endif /* !CONFIG_HUGETLB_PAGE */
 
+#ifndef pud_write
+static inline int pud_write(pud_t pud)
+{
+	BUG();
+	return 0;
+}
+#endif
+
 #define HUGETLB_ANON_FILE "anon_hugepage"
 
 enum {

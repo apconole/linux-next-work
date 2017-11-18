@@ -108,6 +108,13 @@ struct page *follow_page_mask(struct vm_area_struct *vma,
 			return page;
 		goto no_page_table;
 	}
+	if (pud_devmap(*pud)) {
+		ptl = pud_lock(mm, pud);
+		page = follow_devmap_pud(vma, address, pud, flags);
+		spin_unlock(ptl);
+		if (page)
+			return page;
+	}
 	if (unlikely(pud_bad(*pud)))
 		goto no_page_table;
 

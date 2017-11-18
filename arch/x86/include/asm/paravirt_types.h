@@ -288,7 +288,6 @@ struct pv_mmu_ops {
 			   pmd_t *pmdp);
 	void (*pmd_update_defer)(struct mm_struct *mm,
 				 unsigned long addr, pmd_t *pmdp);
-
 	pte_t (*ptep_modify_prot_start)(struct mm_struct *mm, unsigned long addr,
 					pte_t *ptep);
 	void (*ptep_modify_prot_commit)(struct mm_struct *mm, unsigned long addr,
@@ -330,6 +329,12 @@ struct pv_mmu_ops {
 	   an mfn.  We can tell which is which from the index. */
 	void (*set_fixmap)(unsigned /* enum fixed_addresses */ idx,
 			   phys_addr_t phys, pgprot_t flags);
+	RH_KABI_EXTEND(void (*set_pud_at)(struct mm_struct *mm, unsigned long addr,
+				pud_t *pudp, pud_t pudval))
+	RH_KABI_EXTEND(void (*pud_update)(struct mm_struct *mm, unsigned long addr,
+				pud_t *pudp))
+	RH_KABI_EXTEND(void (*pud_update_defer)(struct mm_struct *mm,
+				unsigned long addr, pud_t *pudp))
 };
 
 struct arch_spinlock;

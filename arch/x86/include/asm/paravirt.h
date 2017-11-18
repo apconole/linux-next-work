@@ -377,6 +377,11 @@ static inline void pmd_update(struct mm_struct *mm, unsigned long addr,
 {
 	PVOP_VCALL3(pv_mmu_ops.pmd_update, mm, addr, pmdp);
 }
+static inline void pud_update(struct mm_struct *mm, unsigned long addr,
+			      pud_t *pudp)
+{
+	PVOP_VCALL3(pv_mmu_ops.pud_update, mm, addr, pudp);
+}
 
 static inline void pte_update_defer(struct mm_struct *mm, unsigned long addr,
 				    pte_t *ptep)
@@ -388,6 +393,11 @@ static inline void pmd_update_defer(struct mm_struct *mm, unsigned long addr,
 				    pmd_t *pmdp)
 {
 	PVOP_VCALL3(pv_mmu_ops.pmd_update_defer, mm, addr, pmdp);
+}
+static inline void pud_update_defer(struct mm_struct *mm, unsigned long addr,
+				    pud_t *pudp)
+{
+	PVOP_VCALL3(pv_mmu_ops.pud_update_defer, mm, addr, pudp);
 }
 
 static inline pte_t __pte(pteval_t val)
@@ -500,6 +510,17 @@ static inline void set_pmd_at(struct mm_struct *mm, unsigned long addr,
 	else
 		PVOP_VCALL4(pv_mmu_ops.set_pmd_at, mm, addr, pmdp,
 			    native_pmd_val(pmd));
+}
+
+static inline void set_pud_at(struct mm_struct *mm, unsigned long addr,
+			      pud_t *pudp, pud_t pud)
+{
+	if (sizeof(pudval_t) > sizeof(long))
+		/* 5 arg words */
+		pv_mmu_ops.set_pud_at(mm, addr, pudp, pud);
+	else
+		PVOP_VCALL4(pv_mmu_ops.set_pud_at, mm, addr, pudp,
+			    native_pud_val(pud));
 }
 
 static inline void set_pmd(pmd_t *pmdp, pmd_t pmd)
