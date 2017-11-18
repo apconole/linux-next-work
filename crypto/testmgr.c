@@ -3741,7 +3741,7 @@ static const struct alg_test_desc alg_test_descs[] = {
 	}, {
 		.alg = "rsa",
 		.test = alg_test_akcipher,
-		.fips_allowed = 1,
+		.fips_allowed = 0,
 		.suite = {
 			.akcipher = {
 				.vecs = rsa_tv_template,
