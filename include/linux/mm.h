@@ -287,6 +287,7 @@ struct vm_fault {
 					 */
 	RH_KABI_EXTEND(struct vm_area_struct *vma)	/* Target VMA */
 	RH_KABI_EXTEND(gfp_t gfp_mask)	/* gfp mask to be used for allocations */
+	RH_KABI_EXTEND(pte_t *pte)
 };
 
 /*

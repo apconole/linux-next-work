@@ -1250,10 +1250,7 @@ repeat:
 
 	} else {
 		if (vma && userfaultfd_missing(vma)) {
-			*fault_type = handle_userfault(vma,
-						       (unsigned long)
-						       vmf->virtual_address,
-						       vmf->flags,
+			*fault_type = handle_userfault(vmf,
 						       VM_UFFD_MISSING);
 			return 0;
 		}

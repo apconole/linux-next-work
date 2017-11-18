@@ -3765,6 +3765,11 @@ retry:
 		 * Check for page in userfault range
 		 */
 		if (userfaultfd_missing(vma)) {
+			struct vm_fault vmf = {
+				.vma = vma,
+				.virtual_address = (void *)address,
+				.flags = flags,
+			};
 			u32 hash;
 			/*
 			 * hugetlb_fault_mutex must be dropped before
@@ -3774,8 +3779,7 @@ retry:
 			hash = hugetlb_fault_mutex_hash(h, mm, vma, mapping,
 							idx, address);
 			mutex_unlock(&hugetlb_fault_mutex_table[hash]);
-			ret = handle_userfault(vma, address, flags,
-					       VM_UFFD_MISSING);
+			ret = handle_userfault(&vmf, VM_UFFD_MISSING);
 			mutex_lock(&hugetlb_fault_mutex_table[hash]);
 			goto out;
 		}
