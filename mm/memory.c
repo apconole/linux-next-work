@@ -3275,26 +3275,22 @@ out:
 static int create_huge_pmd(struct vm_fault *vmf)
 {
 	struct vm_area_struct *vma = vmf->vma;
-	unsigned long address = (unsigned long)vmf->virtual_address;
 
 	if (!vma->vm_ops)
 		return do_huge_pmd_anonymous_page(vmf);
 	if ((vma->vm_flags2 & VM_PMD_FAULT) && vma->vm_ops->pmd_fault)
-		return vma->vm_ops->pmd_fault(vma, address, vmf->pmd,
-				vmf->flags);
+		return vma->vm_ops->pmd_fault(vma, vmf);
 	return VM_FAULT_FALLBACK;
 }
 
 static int wp_huge_pmd(struct vm_fault *vmf, pmd_t orig_pmd)
 {
 	struct vm_area_struct *vma = vmf->vma;
-	unsigned long address = (unsigned long)vmf->virtual_address;
 
 	if (!vma->vm_ops)
 		return do_huge_pmd_wp_page(vmf, orig_pmd);
 	if ((vma->vm_flags2 & VM_PMD_FAULT) && vma->vm_ops->pmd_fault)
-		return vma->vm_ops->pmd_fault(vma, address, vmf->pmd,
-				vmf->flags);
+		return vma->vm_ops->pmd_fault(vma, vmf);
 	return VM_FAULT_FALLBACK;
 }
 

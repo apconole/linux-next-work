@@ -1393,18 +1393,18 @@ fallback:
 	return VM_FAULT_FALLBACK;
 }
 
-int dax_iomap_pmd_fault(struct vm_area_struct *vma, unsigned long address,
-		pmd_t *pmd, unsigned int flags, const struct iomap_ops *ops)
+int dax_iomap_pmd_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
+		const struct iomap_ops *ops)
 {
 	struct address_space *mapping = vma->vm_file->f_mapping;
+	unsigned long address = (unsigned long)vmf->virtual_address;
 	unsigned long pmd_addr = address & PMD_MASK;
-	bool write = flags & FAULT_FLAG_WRITE;
+	bool write = vmf->flags & FAULT_FLAG_WRITE;
 	unsigned int iomap_flags = (write ? IOMAP_WRITE : 0) | IOMAP_FAULT;
 	struct inode *inode = mapping->host;
 	int result = VM_FAULT_FALLBACK;
 	struct iomap iomap = { 0 };
 	pgoff_t max_pgoff, pgoff;
-	struct vm_fault vmf;
 	void *entry;
 	loff_t pos;
 	int error;
@@ -1417,7 +1417,7 @@ int dax_iomap_pmd_fault(struct vm_area_struct *vma, unsigned long address,
 	pgoff = linear_page_index(vma, pmd_addr);
 	max_pgoff = (i_size_read(inode) - 1) >> PAGE_SHIFT;
 
-	trace_dax_pmd_fault(inode, vma, address, flags, pgoff, max_pgoff, 0);
+	trace_dax_pmd_fault(inode, vma, vmf, max_pgoff, 0);
 
 	/*
 	 * Make sure that the faulting address's PMD offset (color) matches
@@ -1464,8 +1464,8 @@ int dax_iomap_pmd_fault(struct vm_area_struct *vma, unsigned long address,
 	 * the PMD we need to set up.  If so just return and the fault will be
 	 * retried.
 	 */
-	if (!pmd_none(*pmd) && !pmd_trans_huge(*pmd) &&
-			!pmd_devmap(*pmd)) {
+	if (!pmd_none(*vmf->pmd) && !pmd_trans_huge(*vmf->pmd) &&
+			!pmd_devmap(*vmf->pmd)) {
 		result = 0;
 		goto unlock_entry;
 	}
@@ -1483,21 +1483,17 @@ int dax_iomap_pmd_fault(struct vm_area_struct *vma, unsigned long address,
 	if (iomap.offset + iomap.length < pos + PMD_SIZE)
 		goto finish_iomap;
 
-	vmf.pgoff = pgoff;
-	vmf.flags = flags;
-	vmf.gfp_mask = mapping_gfp_mask(mapping) | __GFP_IO;
-
 	switch (iomap.type) {
 	case IOMAP_MAPPED:
-		result = dax_pmd_insert_mapping(vma, pmd, &vmf, address,
+		result = dax_pmd_insert_mapping(vma, vmf->pmd, vmf, address,
 				&iomap, pos, write, &entry);
 		break;
 	case IOMAP_UNWRITTEN:
 	case IOMAP_HOLE:
 		if (WARN_ON_ONCE(write))
 			break;
-		result = dax_pmd_load_hole(vma, pmd, &vmf, address, &iomap,
-				&entry);
+		result = dax_pmd_load_hole(vma, vmf->pmd, vmf, address,
+				&iomap, &entry);
 		break;
 	default:
 		WARN_ON_ONCE(1);
@@ -1523,12 +1519,11 @@ int dax_iomap_pmd_fault(struct vm_area_struct *vma, unsigned long address,
 	put_locked_mapping_entry(mapping, pgoff, entry);
  fallback:
 	if (result == VM_FAULT_FALLBACK) {
-		split_huge_page_pmd(vma, address, pmd);
+		split_huge_page_pmd(vma, address, vmf->pmd);
 		count_vm_event(THP_FAULT_FALLBACK);
 	}
 out:
-	trace_dax_pmd_fault_done(inode, vma, address, flags, pgoff, max_pgoff,
-			result);
+	trace_dax_pmd_fault_done(inode, vma, vmf, max_pgoff, result);
 	return result;
 }
 EXPORT_SYMBOL_GPL(dax_iomap_pmd_fault);

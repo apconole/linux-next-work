@@ -301,14 +301,14 @@ static int ext4_dax_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
 	return result;
 }
 
-static int ext4_dax_pmd_fault(struct vm_area_struct *vma, unsigned long addr,
-						pmd_t *pmd, unsigned int flags)
+static int
+ext4_dax_pmd_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
 {
 	int result;
 	handle_t *handle = NULL;
 	struct inode *inode = file_inode(vma->vm_file);
 	struct super_block *sb = inode->i_sb;
-	bool write = flags & FAULT_FLAG_WRITE;
+	bool write = vmf->flags & FAULT_FLAG_WRITE;
 
 	if (write) {
 		sb_start_pagefault(sb);
@@ -320,8 +320,7 @@ static int ext4_dax_pmd_fault(struct vm_area_struct *vma, unsigned long addr,
 		down_read(&EXT4_I(inode)->i_mmap_sem);
 	}
 	if (!IS_ERR(handle))
-		result = dax_iomap_pmd_fault(vma, addr, pmd, flags,
-					     &ext4_iomap_ops);
+		result = dax_iomap_pmd_fault(vma, vmf, &ext4_iomap_ops);
 	else
 		result = VM_FAULT_SIGBUS;
 	if (write) {

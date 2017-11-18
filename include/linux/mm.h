@@ -341,7 +341,7 @@ struct vm_operations_struct {
 	/* same as page_mkwrite when using VM_PFNMAP|VM_MIXEDMAP */
 	RH_KABI_EXTEND(int (*pfn_mkwrite)(struct vm_area_struct *vma, struct vm_fault *vmf))
 	RH_KABI_EXTEND(int (*pmd_fault)(struct vm_area_struct *,
-			unsigned long address, pmd_t *, unsigned int flags))
+				struct vm_fault *vmf))
 
 };
 
