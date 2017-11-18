@@ -28528,6 +28528,21 @@ static struct pcomp_testvec zlib_decomp_tv_template[] = {
 			  "\xfe\x8a\x87\x83\xa3\x4f\x56\x8a"
 			  "\xb8\x9e\x8e\x5c\x57\xd3\xa0\x79"
 			  "\xfa\x02",
+		.output = "This document describes a compression method based on the DEFLATE"
+			"compression algorithm.  This document defines the application of "
+			"the DEFLATE algorithm to the IP Payload Compression Protocol.",
+	}, {
+		.params = &deflate_decomp_params,
+		.paramsize = sizeof(deflate_decomp_params),
+		.inlen  = 38,
+		.outlen = 70,
+		.input  = "\xf3\xca\xcf\xcc\x53\x28\x2d\x56"
+			  "\xc8\xcb\x2f\x57\x48\xcc\x4b\x51"
+			  "\x28\xce\x48\x2c\x4a\x55\x28\xc9"
+			  "\x48\x55\x28\xce\x4f\x2b\x29\x07"
+			  "\x71\xbc\x08\x2b\x01\x00",
+		.output = "Join us now and share the software "
+			"Join us now and share the software ",
 	},
 };
 
