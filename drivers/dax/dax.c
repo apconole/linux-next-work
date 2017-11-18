@@ -24,6 +24,7 @@
 #include <linux/mm.h>
 #include <linux/idr.h>
 #include <linux/magic.h>
+#include <linux/backing-dev.h>
 #include "dax.h"
 
 static dev_t dax_devt;
@@ -207,6 +208,7 @@ static struct inode *dax_inode_get(struct cdev *cdev, dev_t devt)
 		inode->i_mode = S_IFCHR;
 		inode->i_flags = S_DAX;
 		inode->i_rdev = devt;
+		inode->i_mapping->backing_dev_info = &noop_backing_dev_info;
 		mapping_set_gfp_mask(&inode->i_data, GFP_USER);
 		unlock_new_inode(inode);
 	}
