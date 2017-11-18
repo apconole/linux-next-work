@@ -6646,9 +6646,6 @@ static int bnxt_change_mtu(struct net_device *dev, int new_mtu)
 {
 	struct bnxt *bp = netdev_priv(dev);
 
-	if (new_mtu < 60 || new_mtu > 9500)
-		return -EINVAL;
-
 	if (netif_running(dev))
 		bnxt_close_nic(bp, false, false);
 
@@ -6976,7 +6973,7 @@ static const struct net_device_ops bnxt_netdev_ops = {
 	.ndo_do_ioctl		= bnxt_ioctl,
 	.ndo_validate_addr	= eth_validate_addr,
 	.ndo_set_mac_address	= bnxt_change_mac_addr,
-	.ndo_change_mtu_rh74	= bnxt_change_mtu,
+	.extended.ndo_change_mtu	= bnxt_change_mtu,
 	.ndo_fix_features	= bnxt_fix_features,
 	.ndo_set_features	= bnxt_set_features,
 	.ndo_tx_timeout		= bnxt_tx_timeout,
@@ -7293,6 +7290,10 @@ static int bnxt_init_one(struct pci_dev *pdev, const struct pci_device_id *ent)
 			    NETIF_F_HW_VLAN_STAG_RX | NETIF_F_HW_VLAN_STAG_TX;
 	dev->features |= dev->hw_features | NETIF_F_HIGHDMA;
 	dev->priv_flags |= IFF_UNICAST_FLT;
+
+	/* MTU range: 60 - 9500 */
+	dev->extended->min_mtu = ETH_ZLEN;
+	dev->extended->max_mtu = 9500;
 
 #ifdef CONFIG_BNXT_SRIOV
 	init_waitqueue_head(&bp->sriov_cfg_wait);

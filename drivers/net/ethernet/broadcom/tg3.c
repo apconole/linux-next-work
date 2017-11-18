@@ -124,7 +124,7 @@ static inline void _tg3_flag_clear(enum TG3_FLAGS flag, unsigned long *bits)
 #define TG3_TX_TIMEOUT			(5 * HZ)
 
 /* hardware minimum and maximum for a single frame's data payload */
-#define TG3_MIN_MTU			60
+#define TG3_MIN_MTU			ETH_ZLEN
 #define TG3_MAX_MTU(tp)	\
 	(tg3_flag(tp, JUMBO_CAPABLE) ? 9000 : 1500)
 
@@ -14190,9 +14190,6 @@ static int tg3_change_mtu(struct net_device *dev, int new_mtu)
 	int err;
 	bool reset_phy = false;
 
-	if (new_mtu < TG3_MIN_MTU || new_mtu > TG3_MAX_MTU(tp))
-		return -EINVAL;
-
 	if (!netif_running(dev)) {
 		/* We'll just catch it later when the
 		 * device is up'd.
@@ -14231,6 +14228,7 @@ static int tg3_change_mtu(struct net_device *dev, int new_mtu)
 }
 
 static const struct net_device_ops tg3_netdev_ops = {
+	.ndo_size		= sizeof(struct net_device_ops),
 	.ndo_open		= tg3_open,
 	.ndo_stop		= tg3_close,
 	.ndo_start_xmit		= tg3_start_xmit,
@@ -14240,7 +14238,7 @@ static const struct net_device_ops tg3_netdev_ops = {
 	.ndo_set_mac_address	= tg3_set_mac_addr,
 	.ndo_do_ioctl		= tg3_ioctl,
 	.ndo_tx_timeout		= tg3_tx_timeout,
-	.ndo_change_mtu_rh74	= tg3_change_mtu,
+	.extended.ndo_change_mtu	= tg3_change_mtu,
 	.ndo_fix_features	= tg3_fix_features,
 	.ndo_set_features	= tg3_set_features,
 #ifdef CONFIG_NET_POLL_CONTROLLER
@@ -17789,6 +17787,10 @@ static int tg3_init_one(struct pci_dev *pdev,
 
 	dev->hw_features |= features;
 	dev->priv_flags |= IFF_UNICAST_FLT;
+
+	/* MTU range: 60 - 9000 or 1500, depending on hardware */
+	dev->extended->min_mtu = TG3_MIN_MTU;
+	dev->extended->max_mtu = TG3_MAX_MTU(tp);
 
 	if (tg3_chip_rev_id(tp) == CHIPREV_ID_5705_A1 &&
 	    !tg3_flag(tp, TSO_CAPABLE) &&
