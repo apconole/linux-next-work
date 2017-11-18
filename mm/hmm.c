@@ -264,7 +264,7 @@ static int hmm_vma_do_fault(struct mm_walk *walk,
 
 	flags |= hmm_vma_walk->block ? 0 : FAULT_FLAG_ALLOW_RETRY;
 	flags |= hmm_vma_walk->write ? FAULT_FLAG_WRITE : 0;
-	r = handle_mm_fault(vma->vm_mm, vma, addr, flags);
+	r = handle_mm_fault(vma, addr, flags);
 	if (r & VM_FAULT_RETRY)
 		return -EBUSY;
 	if (r & VM_FAULT_ERROR) {

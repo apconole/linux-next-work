@@ -470,7 +470,7 @@ long __get_user_pages(struct task_struct *tsk, struct mm_struct *mm,
 					fault_flags |= FAULT_FLAG_TRIED;
 				}
 
-				ret = handle_mm_fault(mm, vma, start,
+				ret = handle_mm_fault(vma, start,
 							fault_flags);
 
 				if (ret & VM_FAULT_ERROR) {
@@ -616,7 +616,7 @@ int fixup_user_fault(struct task_struct *tsk, struct mm_struct *mm,
 	if (!vma_permits_fault(vma, fault_flags))
 		return -EFAULT;
 
-	ret = handle_mm_fault(mm, vma, address, fault_flags);
+	ret = handle_mm_fault(vma, address, fault_flags);
 	if (ret & VM_FAULT_ERROR) {
 		if (ret & VM_FAULT_OOM)
 			return -ENOMEM;
