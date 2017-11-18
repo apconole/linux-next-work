@@ -268,41 +268,7 @@ ext4_file_write(struct kiocb *iocb, const struct iovec *iov,
 }
 
 #ifdef CONFIG_FS_DAX
-static int ext4_dax_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
-{
-	int result;
-	handle_t *handle = NULL;
-	struct inode *inode = file_inode(vma->vm_file);
-	struct super_block *sb = inode->i_sb;
-	bool write = vmf->flags & FAULT_FLAG_WRITE;
-
-	if (write) {
-		sb_start_pagefault(sb);
-		file_update_time(vma->vm_file);
-		down_read(&EXT4_I(inode)->i_mmap_sem);
-		handle = ext4_journal_start_sb(sb, EXT4_HT_WRITE_PAGE,
-					       EXT4_DATA_TRANS_BLOCKS(sb));
-	} else {
-		down_read(&EXT4_I(inode)->i_mmap_sem);
-	}
-	if (!IS_ERR(handle))
-		result = dax_iomap_fault(vma, vmf, &ext4_iomap_ops);
-	else
-		result = VM_FAULT_SIGBUS;
-	if (write) {
-		if (!IS_ERR(handle))
-			ext4_journal_stop(handle);
-		up_read(&EXT4_I(inode)->i_mmap_sem);
-		sb_end_pagefault(sb);
-	} else {
-		up_read(&EXT4_I(inode)->i_mmap_sem);
-	}
-
-	return result;
-}
-
-static int
-ext4_dax_pmd_fault(struct vm_fault *vmf)
+static int ext4_dax_huge_fault(struct vm_fault *vmf)
 {
 	int result;
 	handle_t *handle = NULL;
@@ -320,7 +286,7 @@ ext4_dax_pmd_fault(struct vm_fault *vmf)
 		down_read(&EXT4_I(inode)->i_mmap_sem);
 	}
 	if (!IS_ERR(handle))
-		result = dax_iomap_pmd_fault(vmf, &ext4_iomap_ops);
+		result = dax_iomap_fault(vmf, &ext4_iomap_ops);
 	else
 		result = VM_FAULT_SIGBUS;
 	if (write) {
@@ -333,6 +299,12 @@ ext4_dax_pmd_fault(struct vm_fault *vmf)
 	}
 
 	return result;
+}
+
+static inline int ext4_dax_fault(struct vm_area_struct *vma,
+		struct vm_fault *vmf)
+{
+	return ext4_dax_huge_fault(vmf);
 }
 
 /*
@@ -368,7 +340,7 @@ static int ext4_dax_pfn_mkwrite(struct vm_area_struct *vma,
 
 static const struct vm_operations_struct ext4_dax_vm_ops = {
 	.fault		= ext4_dax_fault,
-	.pmd_fault	= ext4_dax_pmd_fault,
+	.huge_fault	= ext4_dax_huge_fault,
 	.page_mkwrite	= ext4_dax_fault,
 	.pfn_mkwrite	= ext4_dax_pfn_mkwrite,
 	.remap_pages	= generic_file_remap_pages,
@@ -389,7 +361,7 @@ static int ext4_file_mmap(struct file *file, struct vm_area_struct *vma)
 	if (IS_DAX(file_inode(file))) {
 		vma->vm_ops = &ext4_dax_vm_ops;
 		vma->vm_flags |= VM_MIXEDMAP | VM_HUGEPAGE;
-		vma->vm_flags2 |= VM_PFN_MKWRITE | VM_PMD_FAULT;
+		vma->vm_flags2 |= VM_PFN_MKWRITE | VM_HUGE_FAULT;
 	} else {
 		vma->vm_ops = &ext4_file_vm_ops;
 	}

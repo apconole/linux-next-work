@@ -1154,20 +1154,10 @@ static int dax_fault_return(int error)
 	return VM_FAULT_SIGBUS;
 }
 
-/**
- * dax_iomap_fault - handle a page fault on a DAX file
- * @vma: The virtual memory area where the fault occurred
- * @vmf: The description of the fault
- * @ops: iomap ops passed from the file system
- *
- * When a page fault occurs, filesystems may call this helper in their fault
- * or mkwrite handler for DAX files. Assumes the caller has done all the
- * necessary locking for the page fault to proceed successfully.
- */
-int dax_iomap_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
+static int dax_iomap_pte_fault(struct vm_fault *vmf,
 			const struct iomap_ops *ops)
 {
-	struct address_space *mapping = vma->vm_file->f_mapping;
+	struct address_space *mapping = vmf->vma->vm_file->f_mapping;
 	struct inode *inode = mapping->host;
 	unsigned long vaddr = (unsigned long)vmf->virtual_address;
 	loff_t pos = (loff_t)vmf->pgoff << PAGE_SHIFT;
@@ -1256,11 +1246,12 @@ int dax_iomap_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
 	case IOMAP_MAPPED:
 		if (iomap.flags & IOMAP_F_NEW) {
 			count_vm_event(PGMAJFAULT);
-			mem_cgroup_count_vm_event(vma->vm_mm, PGMAJFAULT);
+			mem_cgroup_count_vm_event(vmf->vma->vm_mm,
+					PGMAJFAULT);
 			major = VM_FAULT_MAJOR;
 		}
 		error = dax_insert_mapping(mapping, iomap.bdev, sector,
-				PAGE_SIZE, &entry, vma, vmf);
+				PAGE_SIZE, &entry, vmf->vma, vmf);
 		/* -EBUSY is fine, somebody else faulted on the same PTE */
 		if (error == -EBUSY)
 			error = 0;
@@ -1300,7 +1291,6 @@ int dax_iomap_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
 	trace_dax_pte_fault_done(inode, vmf, vmf_ret);
 	return vmf_ret;
 }
-EXPORT_SYMBOL_GPL(dax_iomap_fault);
 
 #ifdef CONFIG_FS_DAX_PMD
 /*
@@ -1393,7 +1383,8 @@ fallback:
 	return VM_FAULT_FALLBACK;
 }
 
-int dax_iomap_pmd_fault(struct vm_fault *vmf, const struct iomap_ops *ops)
+static int dax_iomap_pmd_fault(struct vm_fault *vmf,
+		const struct iomap_ops *ops)
 {
 	struct vm_area_struct *vma = vmf->vma;
 	struct address_space *mapping = vma->vm_file->f_mapping;
@@ -1524,5 +1515,33 @@ out:
 	trace_dax_pmd_fault_done(inode, vmf, max_pgoff, result);
 	return result;
 }
-EXPORT_SYMBOL_GPL(dax_iomap_pmd_fault);
+#else
+static int dax_iomap_pmd_fault(struct vm_fault *vmf,
+		const struct iomap_ops *ops)
+{
+	return VM_FAULT_FALLBACK;
+}
 #endif /* CONFIG_FS_DAX_PMD */
+
+/**
+ * dax_iomap_fault - handle a page fault on a DAX file
+ * @vmf: The description of the fault
+ * @ops: iomap ops passed from the file system
+ *
+ * When a page fault occurs, filesystems may call this helper in
+ * their fault handler for DAX files. dax_iomap_fault() assumes the caller
+ * has done all the necessary locking for page fault to proceed
+ * successfully.
+ */
+int dax_iomap_fault(struct vm_fault *vmf, const struct iomap_ops *ops)
+{
+	switch (vmf->flags & FAULT_FLAG_SIZE_MASK) {
+	case FAULT_FLAG_SIZE_PTE:
+		return dax_iomap_pte_fault(vmf, ops);
+	case FAULT_FLAG_SIZE_PMD:
+		return dax_iomap_pmd_fault(vmf, ops);
+	default:
+		return VM_FAULT_FALLBACK;
+	}
+}
+EXPORT_SYMBOL_GPL(dax_iomap_fault);

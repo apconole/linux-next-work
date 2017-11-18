@@ -3278,8 +3278,8 @@ static int create_huge_pmd(struct vm_fault *vmf)
 
 	if (!vma->vm_ops)
 		return do_huge_pmd_anonymous_page(vmf);
-	if ((vma->vm_flags2 & VM_PMD_FAULT) && vma->vm_ops->pmd_fault)
-		return vma->vm_ops->pmd_fault(vmf);
+	if ((vma->vm_flags2 & VM_HUGE_FAULT) && vma->vm_ops->huge_fault)
+		return vma->vm_ops->huge_fault(vmf);
 	return VM_FAULT_FALLBACK;
 }
 
@@ -3289,8 +3289,8 @@ static int wp_huge_pmd(struct vm_fault *vmf, pmd_t orig_pmd)
 
 	if (!vma->vm_ops)
 		return do_huge_pmd_wp_page(vmf, orig_pmd);
-	if ((vma->vm_flags2 & VM_PMD_FAULT) && vma->vm_ops->pmd_fault)
-		return vma->vm_ops->pmd_fault(vmf);
+	if ((vma->vm_flags2 & VM_HUGE_FAULT) && vma->vm_ops->huge_fault)
+		return vma->vm_ops->huge_fault(vmf);
 	return VM_FAULT_FALLBACK;
 }
 
@@ -3382,6 +3382,7 @@ static int __handle_mm_fault(struct vm_area_struct *vma,
 	struct mm_struct *mm = vma->vm_mm;
 	pgd_t *pgd;
 	pud_t *pud;
+	int ret;
 
 	if (!arch_vma_access_permitted(vma, flags & FAULT_FLAG_WRITE,
 					    flags & FAULT_FLAG_INSTRUCTION,
@@ -3399,9 +3400,12 @@ static int __handle_mm_fault(struct vm_area_struct *vma,
 	if (!vmf.pmd)
 		return VM_FAULT_OOM;
 	if (pmd_none(*vmf.pmd) && transparent_hugepage_enabled(vma)) {
-		int ret = create_huge_pmd(&vmf);
+		vmf.flags |= FAULT_FLAG_SIZE_PMD;
+		ret = create_huge_pmd(&vmf);
 		if (!(ret & VM_FAULT_FALLBACK))
 			return ret;
+		/* fall through path, remove PMD flag */
+		vmf.flags &= ~FAULT_FLAG_SIZE_PMD;
 	} else {
 		pmd_t orig_pmd = *vmf.pmd;
 		int ret;
@@ -3409,6 +3413,8 @@ static int __handle_mm_fault(struct vm_area_struct *vma,
 		barrier();
 		if (pmd_trans_huge(orig_pmd) || pmd_devmap(orig_pmd)) {
 			unsigned int dirty = flags & FAULT_FLAG_WRITE;
+
+			vmf.flags |= FAULT_FLAG_SIZE_PMD;
 
 			/*
 			 * If the pmd is splitting, return and retry the
@@ -3425,6 +3431,8 @@ static int __handle_mm_fault(struct vm_area_struct *vma,
 				ret = wp_huge_pmd(&vmf, orig_pmd);
 				if (!(ret & VM_FAULT_FALLBACK))
 					return ret;
+				/* fall through path, remove PMD flag */
+				vmf.flags &= ~FAULT_FLAG_SIZE_PMD;
 			} else {
 				huge_pmd_set_accessed(&vmf, orig_pmd);
 				return 0;

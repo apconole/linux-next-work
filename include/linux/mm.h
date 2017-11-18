@@ -171,7 +171,7 @@ extern unsigned int kobjsize(const void *objp);
  * vm_flags2 in vm_area_struct, see mm_types.h.
  */
 #define VM_PFN_MKWRITE	0x00000001	/* vm_operations_struct includes pfn_mkwrite */
-#define VM_PMD_FAULT	0x00000002	/* vm_operations_struct includes pmd_fault */
+#define VM_HUGE_FAULT	0x00000002	/* vm_operations_struct includes huge_fault */
 
 #if defined(CONFIG_X86)
 # define VM_PAT		VM_ARCH_1	/* PAT reserves whole VMA at once (x86) */
@@ -248,6 +248,11 @@ extern pgprot_t protection_map[16];
 #define FAULT_FLAG_REMOTE	0x100	/* faulting for non current tsk/mm */
 #define FAULT_FLAG_INSTRUCTION  0x200	/* The fault was during an instruction fetch */
 
+#define FAULT_FLAG_SIZE_MASK	0x7000	/* Support up to 8-level page tables */
+#define FAULT_FLAG_SIZE_PTE	0x0000	/* First level (eg 4k) */
+#define FAULT_FLAG_SIZE_PMD	0x1000	/* Second level (eg 2MB) */
+#define FAULT_FLAG_SIZE_PUD	0x2000	/* Third level (eg 1GB) */
+
 #define FAULT_FLAG_TRACE \
 	{ FAULT_FLAG_WRITE,		"WRITE" }, \
 	{ FAULT_FLAG_MKWRITE,		"MKWRITE" }, \
@@ -288,6 +293,9 @@ struct vm_fault {
 	RH_KABI_EXTEND(struct vm_area_struct *vma)	/* Target VMA */
 	RH_KABI_EXTEND(gfp_t gfp_mask)	/* gfp mask to be used for allocations */
 	RH_KABI_EXTEND(pte_t *pte)
+	RH_KABI_EXTEND(pud_t *pud)		/* Pointer to pud entry matching
+						 * the address
+						 */
 };
 
 /*
@@ -340,7 +348,7 @@ struct vm_operations_struct {
 
 	/* same as page_mkwrite when using VM_PFNMAP|VM_MIXEDMAP */
 	RH_KABI_EXTEND(int (*pfn_mkwrite)(struct vm_area_struct *vma, struct vm_fault *vmf))
-	RH_KABI_EXTEND(int (*pmd_fault)(struct vm_fault *vmf))
+	RH_KABI_EXTEND(int (*huge_fault)(struct vm_fault *vmf))
 
 };
 
