@@ -647,6 +647,9 @@ int blk_queue_enter(struct request_queue *q, bool nowait)
 		if (ret)
 			return ret;
 	}
+
+	/* Make blk_queue_enter() reexamine the DYING flag. */
+	wake_up_all(&q->mq_freeze_wq);
 }
 
 void blk_queue_exit(struct request_queue *q)
@@ -1266,17 +1269,24 @@ static struct request *blk_old_get_request(struct request_queue *q, int rw,
 		gfp_t gfp_mask)
 {
 	struct request *rq;
+	int ret = 0;
 
 	BUG_ON(rw != READ && rw != WRITE);
 
 	/* create ioc upfront */
 	create_io_context(gfp_mask, q->node);
 
+	ret = blk_queue_enter(q, !(gfp_mask & __GFP_WAIT));
+	if (ret)
+		return ERR_PTR(ret);
+
 	spin_lock_irq(q->queue_lock);
 	rq = get_request(q, rw, NULL, gfp_mask);
-	if (IS_ERR(rq))
+	if (IS_ERR(rq)) {
 		spin_unlock_irq(q->queue_lock);
+		blk_queue_exit(q);
 	/* q->queue_lock is unlocked at this point */
+	}
 
 	return rq;
 }
@@ -1483,6 +1493,7 @@ void __blk_put_request(struct request_queue *q, struct request *req)
 		blk_free_request(rl, req);
 		freed_request(rl, flags);
 		blk_put_rl(rl);
+		blk_queue_exit(q);
 	}
 }
 EXPORT_SYMBOL_GPL(__blk_put_request);
@@ -1771,8 +1782,10 @@ get_rq:
 	 * Grab a free request. This is might sleep but can not fail.
 	 * Returns with the queue unlocked.
 	 */
+	blk_queue_enter_live(q);
 	req = get_request(q, rw_flags, bio, GFP_NOIO);
 	if (IS_ERR(req)) {
+		blk_queue_exit(q);
 		bio_endio(bio, PTR_ERR(req));	/* @q is dead */
 		goto out_unlock;
 	}
