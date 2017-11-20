@@ -2225,7 +2225,7 @@ int blk_insert_cloned_request(struct request_queue *q, struct request *rq)
 		 * bypass a potential scheduler on the bottom device for
 		 * insert.
 		 */
-		blk_mq_request_bypass_insert(rq);
+		blk_mq_request_bypass_insert(rq, true);
 		return 0;
 	}
 
