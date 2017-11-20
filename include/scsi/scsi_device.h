@@ -237,7 +237,8 @@ struct scsi_device {
 	/* Lock on updates to inquiry and VPD attribute data */
 	RH_KABI_REPLACE(spinlock_t vpd_reserved9, spinlock_t inquiry_lock)
 
-	RH_KABI_RESERVE_P(1)
+	RH_KABI_USE_P(1, struct task_struct	*quiesced_by)
+
 	RH_KABI_RESERVE_P(2)
 	RH_KABI_RESERVE_P(3)
 	RH_KABI_RESERVE_P(4)
