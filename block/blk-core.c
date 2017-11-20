@@ -1138,6 +1138,8 @@ static struct request *__get_request(struct request_list *rl, int rw_flags,
 	blk_rq_init(q, rq);
 	blk_rq_set_rl(rq, rl);
 	rq->cmd_flags = rw_flags | REQ_ALLOCED;
+	if (flags & BLK_MQ_REQ_PREEMPT)
+		rq->cmd_flags |= REQ_PREEMPT;
 
 	/* init elvpriv */
 	if (rw_flags & REQ_ELVPRIV) {
@@ -1304,7 +1306,7 @@ static struct request *blk_old_get_request(struct request_queue *q, int rw,
 struct request *blk_get_request_flags(struct request_queue *q, unsigned int rw,
 				      unsigned int flags)
 {
-	WARN_ON_ONCE(flags & ~BLK_MQ_REQ_NOWAIT);
+	WARN_ON_ONCE(flags & ~(BLK_MQ_REQ_NOWAIT | BLK_MQ_REQ_PREEMPT));
 
 	if (q->mq_ops)
 		return blk_mq_alloc_request(q, rw, flags);

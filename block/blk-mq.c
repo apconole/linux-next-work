@@ -250,6 +250,9 @@ struct request *__blk_mq_alloc_request(struct blk_mq_alloc_data *data, int rw)
 		}
 
 		blk_mq_rq_ctx_init(data->q, data->ctx, rq, rw);
+		if (data->flags & BLK_MQ_REQ_PREEMPT)
+			rq->cmd_flags |= REQ_PREEMPT;
+
 		return rq;
 	}
 
