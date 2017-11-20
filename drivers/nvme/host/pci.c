@@ -1247,7 +1247,6 @@ static struct blk_mq_ops nvme_mq_ops = {
 	.complete	= nvme_pci_complete_rq,
 	.init_hctx	= nvme_init_hctx,
 	.init_request	= nvme_init_request,
-	.map_queues	= nvme_pci_map_queues,
 	.timeout	= nvme_timeout,
 };
 
@@ -1787,9 +1786,10 @@ static int nvme_dev_add(struct nvme_dev *dev)
 		dev->tagset.cmd_size = nvme_cmd_size(dev);
 		dev->tagset.flags = BLK_MQ_F_SHOULD_MERGE;
 		dev->tagset.driver_data = dev;
-		
+
 		if (blk_mq_alloc_tag_set(&dev->tagset))
 			return 0;
+		blk_mq_set_aux_func(&dev->tagset, map_queues, nvme_pci_map_queues);
 		dev->ctrl.tagset = &dev->tagset;
 
 		nvme_dbbuf_set(dev);
