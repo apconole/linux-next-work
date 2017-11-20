@@ -161,6 +161,15 @@ typedef void (busy_iter_fn)(struct blk_mq_hw_ctx *, struct request *, void *,
 typedef void (busy_tag_iter_fn)(struct request *, void *, bool);
 typedef int (map_queues_fn)(struct blk_mq_tag_set *set);
 
+struct blk_mq_aux_ops {
+	reinit_request_fn	*reinit_request;
+	map_queues_fn		*map_queues;
+};
+
+#define blk_mq_set_aux_func(set, field, func_ptr) do { \
+	(set)->ops->aux_ops->field = (func_ptr); \
+} while (0)
+
 struct blk_mq_ops {
 	/*
 	 * Queue request
@@ -169,8 +178,10 @@ struct blk_mq_ops {
 
 	/*
 	 * Map to specific hardware queue
+	 *
+	 * Reuse this pointer for aux ops.
 	 */
-	RH_KABI_DEPRECATE(map_queue_fn *, map_queue)
+	RH_KABI_REPLACE(map_queue_fn *map_queue, struct blk_mq_aux_ops *aux_ops)
 
 	/*
 	 * Called on request timeout
