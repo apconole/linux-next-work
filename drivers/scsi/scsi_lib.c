@@ -187,7 +187,8 @@ int scsi_execute(struct scsi_device *sdev, const unsigned char *cmd,
 	int write = (data_direction == DMA_TO_DEVICE);
 	int ret = DRIVER_ERROR << 24;
 
-	req = blk_get_request(sdev->request_queue, write, __GFP_WAIT);
+	req = blk_get_request_flags(sdev->request_queue, write,
+			BLK_MQ_REQ_PREEMPT);
 	if (IS_ERR(req))
 		return ret;
 	blk_rq_set_block_pc(req);
@@ -202,7 +203,7 @@ int scsi_execute(struct scsi_device *sdev, const unsigned char *cmd,
 	req->sense_len = 0;
 	req->retries = retries;
 	req->timeout = timeout;
-	req->cmd_flags |= flags | REQ_QUIET | REQ_PREEMPT;
+	req->cmd_flags |= flags | REQ_QUIET;
 
 	/*
 	 * head injection *required* here otherwise quiesce won't work
