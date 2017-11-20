@@ -81,6 +81,7 @@ struct rh_cpuinfo_x86 {
 	int			x86_cache_occ_scale;
 	/* Logical processor id: */
 	u16			logical_proc_id;
+	unsigned		initialized : 1;
 };
 
 /*
