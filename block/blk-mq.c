@@ -967,7 +967,8 @@ static bool blk_mq_dispatch_wait_add(struct blk_mq_hw_ctx *hctx)
 	return true;
 }
 
-bool blk_mq_dispatch_rq_list(struct request_queue *q, struct list_head *list)
+bool blk_mq_dispatch_rq_list(struct request_queue *q, struct list_head *list,
+		bool got_budget)
 {
 	struct blk_mq_hw_ctx *hctx;
 	struct request *rq;
@@ -977,6 +978,8 @@ bool blk_mq_dispatch_rq_list(struct request_queue *q, struct list_head *list)
 
 	if (list_empty(list))
 		return false;
+
+	WARN_ON(!list_is_singular(list) && got_budget);
 
 	/*
 	 * Start off with dptr being NULL, so we start the first request
@@ -1000,16 +1003,30 @@ bool blk_mq_dispatch_rq_list(struct request_queue *q, struct list_head *list)
 			 * The initial allocation attempt failed, so we need to
 			 * rerun the hardware queue when a tag is freed.
 			 */
-			if (!blk_mq_dispatch_wait_add(hctx))
+			if (!blk_mq_dispatch_wait_add(hctx)) {
+				if (got_budget)
+					blk_mq_put_dispatch_budget(hctx);
 				break;
+			}
 
 			/*
 			 * It's possible that a tag was freed in the window
 			 * between the allocation failure and adding the
 			 * hardware queue to the wait queue.
 			 */
-			if (!blk_mq_get_driver_tag(rq, &hctx, false))
+			if (!blk_mq_get_driver_tag(rq, &hctx, false)) {
+				if (got_budget)
+					blk_mq_put_dispatch_budget(hctx);
 				break;
+			}
+		}
+
+		if (!got_budget) {
+			ret = blk_mq_get_dispatch_budget(hctx);
+			if (ret == BLK_MQ_RQ_QUEUE_BUSY)
+				break;
+			if (ret != BLK_MQ_RQ_QUEUE_OK)
+				goto fail_rq;
 		}
 
 		list_del_init(&rq->queuelist);
@@ -1041,6 +1058,7 @@ bool blk_mq_dispatch_rq_list(struct request_queue *q, struct list_head *list)
 			__blk_mq_requeue_request(rq);
 			break;
 		default:
+ fail_rq:
 			pr_err("blk-mq: bad return on queue: %d\n", ret);
 		case BLK_MQ_RQ_QUEUE_ERROR:
 			errors++;
@@ -1101,21 +1119,25 @@ bool blk_mq_dispatch_rq_list(struct request_queue *q, struct list_head *list)
 static void __blk_mq_run_hw_queue(struct blk_mq_hw_ctx *hctx)
 {
 	int srcu_idx;
+	bool run_queue;
 
 	WARN_ON(!cpumask_test_cpu(raw_smp_processor_id(), hctx->cpumask) &&
 		cpu_online(hctx->next_cpu));
 
 	if (!(hctx->flags & BLK_MQ_F_BLOCKING)) {
 		rcu_read_lock();
-		blk_mq_sched_dispatch_requests(hctx);
+		run_queue = blk_mq_sched_dispatch_requests(hctx);
 		rcu_read_unlock();
 	} else {
 		might_sleep();
 
 		srcu_idx = srcu_read_lock(&hctx->queue_rq_srcu);
-		blk_mq_sched_dispatch_requests(hctx);
+		run_queue = blk_mq_sched_dispatch_requests(hctx);
 		srcu_read_unlock(&hctx->queue_rq_srcu, srcu_idx);
 	}
+
+	if (run_queue)
+		blk_mq_run_hw_queue(hctx, true);
 }
 
 /*
@@ -1459,6 +1481,14 @@ static void __blk_mq_try_issue_directly(struct blk_mq_hw_ctx *hctx,
 	if (!blk_mq_get_driver_tag(rq, NULL, false))
 		goto insert;
 
+	ret = blk_mq_get_dispatch_budget(hctx);
+	if (ret == BLK_MQ_RQ_QUEUE_BUSY) {
+		blk_mq_put_driver_tag(rq);
+		goto insert;
+	} else if (ret != BLK_MQ_RQ_QUEUE_OK)
+		goto fail_rq;
+
+
 	/*
 	 * For OK queue, we are done. For error, kill it. Any other
 	 * error (busy), just add it to our list as we previously
@@ -1469,6 +1499,7 @@ static void __blk_mq_try_issue_directly(struct blk_mq_hw_ctx *hctx,
 		return;
 
 	if (ret == BLK_MQ_RQ_QUEUE_ERROR) {
+ fail_rq:
 		rq->errors = -EIO;
 		blk_mq_end_request(rq, rq->errors);
 		return;

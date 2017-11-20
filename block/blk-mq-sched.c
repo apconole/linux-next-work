@@ -172,30 +172,56 @@ void blk_mq_sched_put_request(struct request *rq)
 		blk_mq_finish_request(rq);
 }
 
-static void blk_mq_do_dispatch_sched(struct blk_mq_hw_ctx *hctx)
+/* return true if hctx need to run again */
+static bool blk_mq_do_dispatch_sched(struct blk_mq_hw_ctx *hctx)
 {
 	struct request_queue *q = hctx->queue;
 	struct elevator_queue *e = q->elevator;
 	LIST_HEAD(rq_list);
 
 	do {
-		struct request *rq = e->aux->ops.mq.dispatch_request(hctx);
+		struct request *rq;
+		int ret;
 
-		if (!rq)
+		if (e->aux->ops.mq.has_work &&
+				!e->aux->ops.mq.has_work(hctx))
 			break;
+
+		ret = blk_mq_get_dispatch_budget(hctx);
+		if (ret == BLK_MQ_RQ_QUEUE_BUSY)
+			return true;
+
+		rq = e->aux->ops.mq.dispatch_request(hctx);
+		if (!rq) {
+			blk_mq_put_dispatch_budget(hctx);
+			break;
+		} else if (ret != BLK_MQ_RQ_QUEUE_OK) {
+			blk_mq_end_request(rq, ret);
+			continue;
+		}
+
+		/*
+		 * Now this rq owns the budget which has to be released
+		 * if this rq won't be queued to driver via .queue_rq()
+		 * in blk_mq_dispatch_rq_list().
+		 */
 		list_add(&rq->queuelist, &rq_list);
-	} while (blk_mq_dispatch_rq_list(q, &rq_list));
+	} while (blk_mq_dispatch_rq_list(q, &rq_list, true));
+
+	return false;
 }
 
-void blk_mq_sched_dispatch_requests(struct blk_mq_hw_ctx *hctx)
+/* return true if hw queue need to be run again */
+bool blk_mq_sched_dispatch_requests(struct blk_mq_hw_ctx *hctx)
 {
 	struct request_queue *q = hctx->queue;
 	struct elevator_queue *e = q->elevator;
 	const bool has_sched_dispatch = e && e->aux->ops.mq.dispatch_request;
 	LIST_HEAD(rq_list);
+	bool run_queue = false;
 
 	if (unlikely(blk_mq_hctx_stopped(hctx)))
-		return;
+		return false;
 
 	hctx->run++;
 
@@ -225,14 +251,23 @@ void blk_mq_sched_dispatch_requests(struct blk_mq_hw_ctx *hctx)
 	 */
 	if (!list_empty(&rq_list)) {
 		blk_mq_sched_mark_restart_hctx(hctx);
-		if (blk_mq_dispatch_rq_list(q, &rq_list) && has_sched_dispatch)
-			blk_mq_do_dispatch_sched(hctx);
+		if (blk_mq_dispatch_rq_list(q, &rq_list, false) &&
+				has_sched_dispatch)
+			run_queue = blk_mq_do_dispatch_sched(hctx);
 	} else if (has_sched_dispatch) {
-		blk_mq_do_dispatch_sched(hctx);
+		run_queue = blk_mq_do_dispatch_sched(hctx);
 	} else {
 		blk_mq_flush_busy_ctxs(hctx, &rq_list);
-		blk_mq_dispatch_rq_list(q, &rq_list);
+		blk_mq_dispatch_rq_list(q, &rq_list, false);
 	}
+
+	if (run_queue && !blk_mq_sched_needs_restart(hctx) &&
+			!test_bit(BLK_MQ_S_TAG_WAITING, &hctx->state)) {
+		blk_mq_sched_mark_restart_hctx(hctx);
+		return true;
+	}
+
+	return false;
 }
 
 void blk_mq_sched_move_to_dispatch(struct blk_mq_hw_ctx *hctx,

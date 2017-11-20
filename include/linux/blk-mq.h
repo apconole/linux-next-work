@@ -142,6 +142,9 @@ typedef int (queue_rq_fn)(struct blk_mq_hw_ctx *, struct request *);
 typedef int (queue_rq_fn)(struct blk_mq_hw_ctx *, const struct blk_mq_queue_data *);
 #endif
 
+typedef int (get_budget_fn)(struct blk_mq_hw_ctx *);
+typedef void (put_budget_fn)(struct blk_mq_hw_ctx *);
+
 typedef struct blk_mq_hw_ctx *(map_queue_fn)(struct request_queue *, const int);
 #ifdef __GENKSYMS__
 typedef struct blk_mq_hw_ctx *(alloc_hctx_fn)(struct blk_mq_reg *,unsigned int);
@@ -164,6 +167,15 @@ typedef int (map_queues_fn)(struct blk_mq_tag_set *set);
 struct blk_mq_aux_ops {
 	reinit_request_fn	*reinit_request;
 	map_queues_fn		*map_queues;
+
+	/*
+	 * Reserve budget before queue request, once .queue_rq is
+	 * run, it is driver's responsibility to release the
+	 * reserved budget. Also we have to handle failure case
+	 * of .get_budget for avoiding I/O deadlock.
+	 */
+	get_budget_fn		*get_budget;
+	put_budget_fn		*put_budget;
 };
 
 #define blk_mq_set_aux_func(set, field, func_ptr) do { \
