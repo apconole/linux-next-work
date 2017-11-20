@@ -1048,7 +1048,7 @@ static bool blk_rq_should_init_elevator(struct bio *bio)
  * Returns request pointer on success, with @q->queue_lock *not held*.
  */
 static struct request *__get_request(struct request_list *rl, int rw_flags,
-				     struct bio *bio, gfp_t gfp_mask)
+				     struct bio *bio, unsigned int flags)
 {
 	struct request_queue *q = rl->q;
 	struct request *rq;
@@ -1057,6 +1057,7 @@ static struct request *__get_request(struct request_list *rl, int rw_flags,
 	struct io_cq *icq = NULL;
 	const bool is_sync = rw_is_sync(rw_flags) != 0;
 	int may_queue;
+	gfp_t gfp_mask = flags & BLK_MQ_REQ_NOWAIT ? GFP_ATOMIC : __GFP_WAIT;
 
 	if (unlikely(blk_queue_dying(q)))
 		return ERR_PTR(-ENODEV);
@@ -1215,7 +1216,7 @@ rq_starved:
  * @q: request_queue to allocate request from
  * @rw_flags: RW and SYNC flags
  * @bio: bio to allocate request for (can be %NULL)
- * @gfp_mask: allocation mask
+ * @flags: BLQ_MQ_REQ_* flags.
  *
  * Get a free request from @q.  If %__GFP_WAIT is set in @gfp_mask, this
  * function keeps retrying under memory pressure and fails iff @q is dead.
@@ -1225,7 +1226,7 @@ rq_starved:
  * Returns request pointer on success, with @q->queue_lock *not held*.
  */
 static struct request *get_request(struct request_queue *q, int rw_flags,
-				   struct bio *bio, gfp_t gfp_mask)
+				   struct bio *bio, unsigned int flags)
 {
 	const bool is_sync = rw_is_sync(rw_flags) != 0;
 	DEFINE_WAIT(wait);
@@ -1234,11 +1235,11 @@ static struct request *get_request(struct request_queue *q, int rw_flags,
 
 	rl = blk_get_rl(q, bio);	/* transferred to @rq on success */
 retry:
-	rq = __get_request(rl, rw_flags, bio, gfp_mask);
+	rq = __get_request(rl, rw_flags, bio, flags);
 	if (!IS_ERR(rq))
 		return rq;
 
-	if (!(gfp_mask & __GFP_WAIT) || unlikely(blk_queue_dying(q))) {
+	if ((flags & BLK_MQ_REQ_NOWAIT) || unlikely(blk_queue_dying(q))) {
 		blk_put_rl(rl);
 		return rq;
 	}
@@ -1265,10 +1266,13 @@ retry:
 	goto retry;
 }
 
+/* flags: BLK_MQ_REQ_PREEMPT and/or BLK_MQ_REQ_NOWAIT. */
 static struct request *blk_old_get_request(struct request_queue *q, int rw,
-		gfp_t gfp_mask)
+					   unsigned int flags)
 {
 	struct request *rq;
+	gfp_t gfp_mask = flags & BLK_MQ_REQ_NOWAIT ? GFP_ATOMIC :
+			 __GFP_WAIT;
 	int ret = 0;
 
 	BUG_ON(rw != READ && rw != WRITE);
@@ -1281,7 +1285,7 @@ static struct request *blk_old_get_request(struct request_queue *q, int rw,
 		return ERR_PTR(ret);
 
 	spin_lock_irq(q->queue_lock);
-	rq = get_request(q, rw, NULL, gfp_mask);
+	rq = get_request(q, rw, NULL, flags);
 	if (IS_ERR(rq)) {
 		spin_unlock_irq(q->queue_lock);
 		blk_queue_exit(q);
@@ -1291,14 +1295,28 @@ static struct request *blk_old_get_request(struct request_queue *q, int rw,
 	return rq;
 }
 
+/**
+ * blk_get_request_flags - allocate a request
+ * @q: request queue to allocate a request for
+ * @rw: operation (REQ_OP_*) and REQ_* flags, e.g. REQ_SYNC.
+ * @flags: BLK_MQ_REQ_* flags, e.g. BLK_MQ_REQ_NOWAIT.
+ */
+struct request *blk_get_request_flags(struct request_queue *q, unsigned int rw,
+				      unsigned int flags)
+{
+	WARN_ON_ONCE(flags & ~BLK_MQ_REQ_NOWAIT);
+
+	if (q->mq_ops)
+		return blk_mq_alloc_request(q, rw, flags);
+	else
+		return blk_old_get_request(q, rw, flags);
+}
+EXPORT_SYMBOL(blk_get_request_flags);
+
 struct request *blk_get_request(struct request_queue *q, int rw, gfp_t gfp_mask)
 {
-	if (q->mq_ops)
-		return blk_mq_alloc_request(q, rw,
-			(gfp_mask & __GFP_WAIT) ?
-				0 : BLK_MQ_REQ_NOWAIT);
-	else
-		return blk_old_get_request(q, rw, gfp_mask);
+	return blk_get_request_flags(q, rw, gfp_mask & __GFP_WAIT ?
+				     0 : BLK_MQ_REQ_NOWAIT);
 }
 EXPORT_SYMBOL(blk_get_request);
 
@@ -1783,7 +1801,7 @@ get_rq:
 	 * Returns with the queue unlocked.
 	 */
 	blk_queue_enter_live(q);
-	req = get_request(q, rw_flags, bio, GFP_NOIO);
+	req = get_request(q, rw_flags, bio, 0);
 	if (IS_ERR(req)) {
 		blk_queue_exit(q);
 		bio_endio(bio, PTR_ERR(req));	/* @q is dead */
