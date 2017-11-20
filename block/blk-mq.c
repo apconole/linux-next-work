@@ -1907,7 +1907,8 @@ static int blk_mq_init_hctx(struct request_queue *q,
 	if (blk_mq_sched_init_hctx(q, hctx, hctx_idx))
 		goto exit_hctx;
 
-	hctx->fq = blk_alloc_flush_queue(q, hctx->numa_node, set->cmd_size);
+	hctx->fq = blk_alloc_flush_queue(q, hctx->numa_node, set->cmd_size +
+			sizeof(struct request_aux));
 	if (!hctx->fq)
 		goto sched_exit_hctx;
 
