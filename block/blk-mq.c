@@ -968,48 +968,63 @@ static bool reorder_tags_to_front(struct list_head *list)
 	return first != NULL;
 }
 
-static int blk_mq_dispatch_wake(wait_queue_t *wait, unsigned mode, int flags,
-				void *key)
+static int blk_mq_dispatch_wake(wait_queue_t *wait, unsigned mode,
+				int flags, void *key)
 {
 	struct blk_mq_hw_ctx *hctx;
 
 	hctx = container_of(wait, struct blk_mq_hw_ctx, dispatch_wait);
 
-	list_del(&wait->task_list);
-	clear_bit_unlock(BLK_MQ_S_TAG_WAITING, &hctx->state);
+	list_del_init(&wait->task_list);
 	blk_mq_run_hw_queue(hctx, true);
 	return 1;
 }
 
-static bool blk_mq_dispatch_wait_add(struct blk_mq_hw_ctx *hctx)
+static bool blk_mq_dispatch_wait_add(struct blk_mq_hw_ctx **hctx,
+				     struct request *rq)
 {
+	struct blk_mq_hw_ctx *this_hctx = *hctx;
+	wait_queue_t *wait = &this_hctx->dispatch_wait;
 	struct sbq_wait_state *ws;
 
-	/*
-	 * The TAG_WAITING bit serves as a lock protecting hctx->dispatch_wait.
-	 * The thread which wins the race to grab this bit adds the hardware
-	 * queue to the wait queue.
-	 */
-	if (test_bit(BLK_MQ_S_TAG_WAITING, &hctx->state) ||
-	    test_and_set_bit_lock(BLK_MQ_S_TAG_WAITING, &hctx->state))
+	if (!list_empty_careful(&wait->task_list))
 		return false;
 
-	init_waitqueue_func_entry(&hctx->dispatch_wait, blk_mq_dispatch_wake);
-	ws = bt_wait_ptr(&hctx->tags->bitmap_tags, hctx);
+	spin_lock(&this_hctx->lock);
+	if (!list_empty(&wait->task_list)) {
+		spin_unlock(&this_hctx->lock);
+		return false;
+	}
+
+	ws = bt_wait_ptr(&this_hctx->tags->bitmap_tags, this_hctx);
+	add_wait_queue(&ws->wait, wait);
 
 	/*
-	 * As soon as this returns, it's no longer safe to fiddle with
-	 * hctx->dispatch_wait, since a completion can wake up the wait queue
-	 * and unlock the bit.
+	 * It's possible that a tag was freed in the window between the
+	 * allocation failure and adding the hardware queue to the wait
+	 * queue.
 	 */
-	add_wait_queue(&ws->wait, &hctx->dispatch_wait);
+	if (!blk_mq_get_driver_tag(rq, hctx, false)) {
+		spin_unlock(&this_hctx->lock);
+		return false;
+	}
+
+	/*
+	 * We got a tag, remove ourselves from the wait queue to ensure
+	 * someone else gets the wakeup.
+	 */
+	spin_lock_irq(&ws->wait.lock);
+	list_del_init(&wait->task_list);
+	spin_unlock_irq(&ws->wait.lock);
+	spin_unlock(&this_hctx->lock);
 	return true;
 }
 
 bool blk_mq_dispatch_rq_list(struct request_queue *q, struct list_head *list,
-		bool got_budget)
+			     bool got_budget)
 {
 	struct blk_mq_hw_ctx *hctx;
+	bool no_tag = false;
 	struct request *rq;
 	LIST_HEAD(driver_list);
 	struct list_head *dptr;
@@ -1040,22 +1055,15 @@ bool blk_mq_dispatch_rq_list(struct request_queue *q, struct list_head *list,
 
 			/*
 			 * The initial allocation attempt failed, so we need to
-			 * rerun the hardware queue when a tag is freed.
+			 * rerun the hardware queue when a tag is freed. The
+			 * waitqueue takes care of that. If the queue is run
+			 * before we add this entry back on the dispatch list,
+			 * we'll re-run it below.
 			 */
-			if (!blk_mq_dispatch_wait_add(hctx)) {
+			if (!blk_mq_dispatch_wait_add(&hctx, rq)) {
 				if (got_budget)
 					blk_mq_put_dispatch_budget(hctx);
-				break;
-			}
-
-			/*
-			 * It's possible that a tag was freed in the window
-			 * between the allocation failure and adding the
-			 * hardware queue to the wait queue.
-			 */
-			if (!blk_mq_get_driver_tag(rq, &hctx, false)) {
-				if (got_budget)
-					blk_mq_put_dispatch_budget(hctx);
+				no_tag = true;
 				break;
 			}
 		}
@@ -1142,9 +1150,14 @@ bool blk_mq_dispatch_rq_list(struct request_queue *q, struct list_head *list,
 		 *
 		 * If RESTART or TAG_WAITING is set, then let completion restart
 		 * the queue instead of potentially looping here.
+		 *
+		 * If 'no_tag' is set, that means that we failed getting
+		 * a driver tag with an I/O scheduler attached. If our dispatch
+		 * waitqueue is no longer active, ensure that we run the queue
+		 * AFTER adding our entries back to the list.
 		 */
-		if (!blk_mq_sched_needs_restart(hctx) &&
-		    !test_bit(BLK_MQ_S_TAG_WAITING, &hctx->state))
+		if (!blk_mq_sched_needs_restart(hctx) ||
+		    (no_tag && list_empty_careful(&hctx->dispatch_wait.task_list)))
 			blk_mq_run_hw_queue(hctx, true);
 	}
 
@@ -1957,6 +1970,9 @@ static int blk_mq_init_hctx(struct request_queue *q,
 		goto free_ctxs;
 
 	hctx->nr_ctx = 0;
+
+	init_waitqueue_func_entry(&hctx->dispatch_wait, blk_mq_dispatch_wake);
+	INIT_LIST_HEAD(&hctx->dispatch_wait.task_list);
 
 	if (set->ops->init_hctx &&
 	    set->ops->init_hctx(hctx, set->driver_data, hctx_idx))
