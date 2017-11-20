@@ -1808,37 +1808,70 @@ static void scsi_mq_done(struct scsi_cmnd *cmd)
 	blk_mq_complete_request(cmd->request, cmd->request->errors);
 }
 
-static int scsi_queue_rq(struct blk_mq_hw_ctx *hctx,
-			 const struct blk_mq_queue_data *bd)
-{
-	struct request *req = bd->rq;
-	struct request_queue *q = req->q;
+static void scsi_mq_put_budget(struct blk_mq_hw_ctx *hctx)
+ {
+	struct request_queue *q = hctx->queue;
 	struct scsi_device *sdev = q->queuedata;
 	struct Scsi_Host *shost = sdev->host;
-	struct scsi_cmnd *cmd = blk_mq_rq_to_pdu(req);
+
+	atomic_dec(&shost->host_busy);
+	if (scsi_target(sdev)->can_queue > 0)
+		atomic_dec(&scsi_target(sdev)->target_busy);
+	atomic_dec(&sdev->device_busy);
+	put_device(&sdev->sdev_gendev);
+}
+
+static int scsi_mq_get_budget(struct blk_mq_hw_ctx *hctx)
+{
+	struct request_queue *q = hctx->queue;
+	struct scsi_device *sdev = q->queuedata;
+	struct Scsi_Host *shost = sdev->host;
 	int ret;
-	int reason;
 
-	ret = prep_to_mq(scsi_prep_state_check(sdev, req));
+	ret = prep_to_mq(scsi_prep_state_check(sdev, NULL));
 	if (ret)
-		goto out;
+		return ret;
 
-	ret = BLK_MQ_RQ_QUEUE_BUSY;
 	if (!get_device(&sdev->sdev_gendev))
 		goto out;
-
 	if (!scsi_dev_queue_ready(q, sdev))
 		goto out_put_device;
 	if (!scsi_target_queue_ready(shost, sdev))
 		goto out_dec_device_busy;
 	if (!scsi_host_queue_ready(q, shost, sdev))
 		goto out_dec_target_busy;
+	return BLK_MQ_RQ_QUEUE_OK;
 
+out_dec_target_busy:
+	if (scsi_target(sdev)->can_queue > 0)
+		atomic_dec(&scsi_target(sdev)->target_busy);
+out_dec_device_busy:
+	atomic_dec(&sdev->device_busy);
+out_put_device:
+	put_device(&sdev->sdev_gendev);
+out:
+	return BLK_MQ_RQ_QUEUE_BUSY;
+}
 
+static int scsi_queue_rq(struct blk_mq_hw_ctx *hctx,
+			 const struct blk_mq_queue_data *bd)
+{
+	struct request *req = bd->rq;
+	struct request_queue *q = req->q;
+	struct scsi_device *sdev = q->queuedata;
+	struct scsi_cmnd *cmd = blk_mq_rq_to_pdu(req);
+	int ret;
+	int reason;
+
+	ret = prep_to_mq(scsi_prep_state_check(sdev, req));
+	if (ret)
+		goto out_put_budget;
+
+	ret = BLK_MQ_RQ_QUEUE_BUSY;
 	if (!(req->cmd_flags & REQ_DONTPREP)) {
 		ret = prep_to_mq(scsi_mq_prep_fn(req));
 		if (ret)
-			goto out_dec_host_busy;
+			goto out_put_budget;
 		req->cmd_flags |= REQ_DONTPREP;
 	} else {
 		blk_mq_start_request(req);
@@ -1856,21 +1889,13 @@ static int scsi_queue_rq(struct blk_mq_hw_ctx *hctx,
 	if (reason) {
 		scsi_set_blocked(cmd, reason);
 		ret = BLK_MQ_RQ_QUEUE_BUSY;
-		goto out_dec_host_busy;
+		goto out_put_budget;
 	}
 
 	return BLK_MQ_RQ_QUEUE_OK;
 
-out_dec_host_busy:
-	atomic_dec(&shost->host_busy);
-out_dec_target_busy:
-	if (scsi_target(sdev)->can_queue > 0)
-		atomic_dec(&scsi_target(sdev)->target_busy);
-out_dec_device_busy:
-	atomic_dec(&sdev->device_busy);
-out_put_device:
-	put_device(&sdev->sdev_gendev);
-out:
+out_put_budget:
+	scsi_mq_put_budget(hctx);
 	switch (ret) {
 	case BLK_MQ_RQ_QUEUE_BUSY:
 		if (atomic_read(&sdev->device_busy) == 0 &&
@@ -2030,6 +2055,7 @@ struct request_queue *scsi_mq_alloc_queue(struct scsi_device *sdev)
 int scsi_mq_setup_tags(struct Scsi_Host *shost)
 {
 	unsigned int cmd_size, sgl_size, tbl_size;
+	int ret;
 
 	tbl_size = shost->sg_tablesize;
 	if (tbl_size > SCSI_MAX_SG_SEGMENTS)
@@ -2053,7 +2079,12 @@ int scsi_mq_setup_tags(struct Scsi_Host *shost)
 		BLK_ALLOC_POLICY_TO_MQ_FLAG(shost->hostt->tag_alloc_policy);
 	shost->tag_set->driver_data = shost;
 
-	return blk_mq_alloc_tag_set(shost->tag_set);
+	ret = blk_mq_alloc_tag_set(shost->tag_set);
+	if (!ret) {
+		blk_mq_set_aux_func(shost->tag_set, get_budget, scsi_mq_get_budget);
+		blk_mq_set_aux_func(shost->tag_set, put_budget, scsi_mq_put_budget);
+	}
+	return ret;
 }
 
 void scsi_mq_destroy_tags(struct Scsi_Host *shost)
