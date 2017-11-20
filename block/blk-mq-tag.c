@@ -302,7 +302,7 @@ int blk_mq_reinit_tagset(struct blk_mq_tag_set *set)
 {
 	int i, j, ret = 0;
 
-	if (!set->ops->reinit_request)
+	if (!set->ops->aux_ops->reinit_request)
 		goto out;
 
 	for (i = 0; i < set->nr_hw_queues; i++) {
@@ -315,7 +315,7 @@ int blk_mq_reinit_tagset(struct blk_mq_tag_set *set)
 			if (!tags->static_rqs[j])
 				continue;
 
-			ret = set->ops->reinit_request(set->driver_data,
+			ret = set->ops->aux_ops->reinit_request(set->driver_data,
 						tags->static_rqs[j]);
 			if (ret)
 				goto out;

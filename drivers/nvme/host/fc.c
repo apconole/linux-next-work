@@ -2502,7 +2502,6 @@ static struct blk_mq_ops nvme_fc_mq_ops = {
 	.complete	= nvme_fc_complete_rq,
 	.init_request	= nvme_fc_init_request,
 	.exit_request	= nvme_fc_exit_request,
-	.reinit_request	= nvme_fc_reinit_request,
 	.init_hctx	= nvme_fc_init_hctx,
 	.timeout	= nvme_fc_timeout,
 };
@@ -2546,6 +2545,8 @@ nvme_fc_create_io_queues(struct nvme_fc_ctrl *ctrl)
 	ret = blk_mq_alloc_tag_set(&ctrl->tag_set);
 	if (ret)
 		return ret;
+
+	blk_mq_set_aux_func(&ctrl->tag_set, reinit_request, nvme_fc_reinit_request);
 
 	ctrl->ctrl.tagset = &ctrl->tag_set;
 
@@ -3074,7 +3075,6 @@ static struct blk_mq_ops nvme_fc_admin_mq_ops = {
 	.complete	= nvme_fc_complete_rq,
 	.init_request	= nvme_fc_init_admin_request,
 	.exit_request	= nvme_fc_exit_request,
-	.reinit_request	= nvme_fc_reinit_request,
 	.init_hctx	= nvme_fc_init_admin_hctx,
 	.timeout	= nvme_fc_timeout,
 };
@@ -3187,6 +3187,9 @@ nvme_fc_init_ctrl(struct device *dev, struct nvmf_ctrl_options *opts,
 	ret = blk_mq_alloc_tag_set(&ctrl->admin_tag_set);
 	if (ret)
 		goto out_free_queues;
+
+	blk_mq_set_aux_func(&ctrl->admin_tag_set, reinit_request,
+			nvme_fc_reinit_request);
 
 	ctrl->ctrl.admin_q = blk_mq_init_queue(&ctrl->admin_tag_set);
 	if (IS_ERR(ctrl->ctrl.admin_q)) {

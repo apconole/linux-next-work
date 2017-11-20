@@ -209,7 +209,6 @@ struct blk_mq_ops {
 	 */
 	init_request_fn		*init_request;
 	exit_request_fn		*exit_request;
-	reinit_request_fn	*reinit_request;
 
 	map_queues_fn		*map_queues;
 #endif
