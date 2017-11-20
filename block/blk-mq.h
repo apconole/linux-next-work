@@ -168,14 +168,13 @@ static inline void blk_mq_put_dispatch_budget(struct blk_mq_hw_ctx *hctx)
 		q->mq_ops->aux_ops->put_budget(hctx);
 }
 
-static inline int blk_mq_get_dispatch_budget(
-		struct blk_mq_hw_ctx *hctx)
+static inline bool blk_mq_get_dispatch_budget(struct blk_mq_hw_ctx *hctx)
 {
 	struct request_queue *q = hctx->queue;
 
 	if (q->mq_ops->aux_ops->get_budget)
 		return q->mq_ops->aux_ops->get_budget(hctx);
-	return BLK_MQ_RQ_QUEUE_OK;
+	return true;
 }
 
 #endif

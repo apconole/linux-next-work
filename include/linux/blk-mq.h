@@ -143,7 +143,7 @@ typedef int (queue_rq_fn)(struct blk_mq_hw_ctx *, struct request *);
 typedef int (queue_rq_fn)(struct blk_mq_hw_ctx *, const struct blk_mq_queue_data *);
 #endif
 
-typedef int (get_budget_fn)(struct blk_mq_hw_ctx *);
+typedef bool (get_budget_fn)(struct blk_mq_hw_ctx *);
 typedef void (put_budget_fn)(struct blk_mq_hw_ctx *);
 
 typedef struct blk_mq_hw_ctx *(map_queue_fn)(struct request_queue *, const int);

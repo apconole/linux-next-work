@@ -1060,13 +1060,8 @@ bool blk_mq_dispatch_rq_list(struct request_queue *q, struct list_head *list,
 			}
 		}
 
-		if (!got_budget) {
-			ret = blk_mq_get_dispatch_budget(hctx);
-			if (ret == BLK_MQ_RQ_QUEUE_BUSY)
-				break;
-			if (ret != BLK_MQ_RQ_QUEUE_OK)
-				goto fail_rq;
-		}
+		if (!got_budget && !blk_mq_get_dispatch_budget(hctx))
+			break;
 
 		list_del_init(&rq->queuelist);
 
@@ -1097,7 +1092,6 @@ bool blk_mq_dispatch_rq_list(struct request_queue *q, struct list_head *list,
 			__blk_mq_requeue_request(rq);
 			break;
 		default:
- fail_rq:
 			pr_err("blk-mq: bad return on queue: %d\n", ret);
 		case BLK_MQ_RQ_QUEUE_ERROR:
 			errors++;
@@ -1516,13 +1510,10 @@ static void __blk_mq_try_issue_directly(struct blk_mq_hw_ctx *hctx,
 	if (!blk_mq_get_driver_tag(rq, NULL, false))
 		goto insert;
 
-	ret = blk_mq_get_dispatch_budget(hctx);
-	if (ret == BLK_MQ_RQ_QUEUE_BUSY) {
+	if (!blk_mq_get_dispatch_budget(hctx)) {
 		blk_mq_put_driver_tag(rq);
 		goto insert;
-	} else if (ret != BLK_MQ_RQ_QUEUE_OK)
-		goto fail_rq;
-
+	}
 
 	/*
 	 * For OK queue, we are done. For error, kill it. Any other
@@ -1534,7 +1525,6 @@ static void __blk_mq_try_issue_directly(struct blk_mq_hw_ctx *hctx,
 		return;
 
 	if (ret == BLK_MQ_RQ_QUEUE_ERROR) {
- fail_rq:
 		rq->errors = -EIO;
 		blk_mq_end_request(rq, rq->errors);
 		return;
