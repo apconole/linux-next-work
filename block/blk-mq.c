@@ -1049,7 +1049,7 @@ bool blk_mq_dispatch_rq_list(struct request_queue *q, struct list_head *list,
 {
 	struct blk_mq_hw_ctx *hctx;
 	bool no_tag = false;
-	struct request *rq;
+	struct request *rq, *nxt;
 	LIST_HEAD(driver_list);
 	struct list_head *dptr;
 	int errors, queued, ret = BLK_MQ_RQ_QUEUE_OK;
@@ -1114,8 +1114,6 @@ bool blk_mq_dispatch_rq_list(struct request_queue *q, struct list_head *list,
 		if (list_empty(list))
 			bd.last = true;
 		else {
-			struct request *nxt;
-
 			nxt = list_first_entry(list, struct request, queuelist);
 			bd.last = !blk_mq_get_driver_tag(nxt, NULL, false);
 		}
@@ -1126,6 +1124,14 @@ bool blk_mq_dispatch_rq_list(struct request_queue *q, struct list_head *list,
 			queued++;
 			break;
 		case BLK_MQ_RQ_QUEUE_BUSY:
+			/*
+			 * If an I/O scheduler has been configured and we got a
+			 * driver tag for the next request already, free it again.
+			 */
+			if (!list_empty(list)) {
+				nxt = list_first_entry(list, struct request, queuelist);
+				blk_mq_put_driver_tag(nxt);
+			}
 			blk_mq_put_driver_tag_hctx(hctx, rq);
 			list_add(&rq->queuelist, list);
 			__blk_mq_requeue_request(rq);
@@ -1157,13 +1163,6 @@ bool blk_mq_dispatch_rq_list(struct request_queue *q, struct list_head *list,
 	 * that is where we will continue on next queue run.
 	 */
 	if (!list_empty(list)) {
-		/*
-		 * If we got a driver tag for the next request already,
-		 * free it again.
-		 */
-		rq = list_first_entry(list, struct request, queuelist);
-		blk_mq_put_driver_tag(rq);
-
 		spin_lock(&hctx->lock);
 		list_splice_init(list, &hctx->dispatch);
 		spin_unlock(&hctx->lock);
