@@ -55,6 +55,8 @@ void put_dax(struct dax_device *dax_dev);
 bool dax_alive(struct dax_device *dax_dev);
 void kill_dax(struct dax_device *dax_dev);
 void *dax_get_private(struct dax_device *dax_dev);
+long dax_direct_access(struct dax_device *dax_dev, pgoff_t pgoff, long nr_pages,
+		void **kaddr, pfn_t *pfn);
 
 ssize_t dax_iomap_rw(int rw, struct kiocb *iocb, const struct iovec *iov,
 		unsigned long nr_segs, loff_t pos,
