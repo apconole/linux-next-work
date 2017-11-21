@@ -17,6 +17,7 @@
 #include <linux/cdev.h>
 #include <linux/hash.h>
 #include <linux/slab.h>
+#include <linux/dax.h>
 #include <linux/fs.h>
 #include <linux/idr.h>
 #include <linux/backing-dev.h>
@@ -64,6 +65,7 @@ struct dax_device {
 	const char *host;
 	void *private;
 	bool alive;
+	const struct dax_operations *ops;
 };
 
 bool dax_alive(struct dax_device *dax_dev)
@@ -212,7 +214,8 @@ static void dax_add_host(struct dax_device *dax_dev, const char *host)
 	spin_unlock(&dax_host_lock);
 }
 
-struct dax_device *alloc_dax(void *private, const char *__host)
+struct dax_device *alloc_dax(void *private, const char *__host,
+		const struct dax_operations *ops)
 {
 	struct dax_device *dax_dev;
 	const char *host;
@@ -233,6 +236,7 @@ struct dax_device *alloc_dax(void *private, const char *__host)
 		goto err_dev;
 
 	dax_add_host(dax_dev, host);
+	dax_dev->ops = ops;
 	dax_dev->private = private;
 	return dax_dev;
 
