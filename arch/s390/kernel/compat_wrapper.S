@@ -1445,6 +1445,12 @@ ENTRY(sys_copy_file_range_wrapper)
 	llgfr   %r7,%r7         # unsigned int
 	jg  sys_copy_file_range
 
+ENTRY(sys_seccomp_wrapper)
+	llgfr	%r2,%r2		# unsigned int
+	llgfr	%r3,%r3		# unsigned int
+	llgtr	%r4,%r4		# const char __user *
+	jg	sys_seccomp
+
 ENTRY(sys_getrandom_wrapper)
 	llgtr	%r2,%r2		# void __user *
 	llgfr	%r3,%r3		# size_t

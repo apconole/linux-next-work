@@ -283,7 +283,7 @@
 #define __NR_sched_setattr 345
 #define __NR_sched_getattr 346
 /* Number 347 is reserved for sys_renameat2 */
-/* Number 348 is reserved for sys_seccomp */
+#define __NR_seccomp		348
 #define __NR_getrandom		349
 #define __NR_memfd_create	350
 /* Number 351 is reserved for sys_bpf */
