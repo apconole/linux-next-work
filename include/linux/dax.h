@@ -38,6 +38,7 @@ struct iomap_ops;
 
 int dax_read_lock(void);
 void dax_read_unlock(int id);
+struct dax_device *dax_get_by_host(const char *host);
 
 ssize_t dax_iomap_rw(int rw, struct kiocb *iocb, const struct iovec *iov,
 		unsigned long nr_segs, loff_t pos,
