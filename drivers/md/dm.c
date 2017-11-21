@@ -956,18 +956,6 @@ static long dm_dax_direct_access(struct dax_device *dax_dev, pgoff_t pgoff,
 	return ret;
 }
 
-static long dm_blk_direct_access(struct block_device *bdev, sector_t sector,
-		void **kaddr, pfn_t *pfn, long size)
-{
-	struct mapped_device *md = bdev->bd_disk->private_data;
-	struct dax_device *dax_dev = md->dax_dev;
-	long nr_pages = size / PAGE_SIZE;
-
-	nr_pages = dm_dax_direct_access(dax_dev, sector / PAGE_SECTORS,
-			nr_pages, kaddr, pfn);
-	return nr_pages < 0 ? nr_pages : nr_pages * PAGE_SIZE;
-}
-
 /*
  * Flush current->bio_list when the target map method blocks.
  * This fixes deadlocks in snapshot and possibly in other targets.
@@ -3080,7 +3068,6 @@ static const struct block_device_operations dm_blk_dops = {
 	.open = dm_blk_open,
 	.release = dm_blk_close,
 	.ioctl = dm_blk_ioctl,
-	.direct_access = dm_blk_direct_access,
 	.getgeo = dm_blk_getgeo,
 	.pr_ops = &dm_pr_ops,
 	.owner = THIS_MODULE
