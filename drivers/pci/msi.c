@@ -344,9 +344,11 @@ static void free_msi_irqs(struct pci_dev *dev)
 	struct msi_desc *entry, *tmp;
 	struct attribute **msi_attrs;
 	struct device_attribute *dev_attr;
-	int i, count = 0;
+	int count = 0;
 
 #ifdef CONFIG_GENERIC_HARDIRQS
+	int i;
+
 	list_for_each_entry(entry, &dev->msi_list, list)
 		if (entry->irq)
 			for (i = 0; i < entry->nvec_used; i++)
