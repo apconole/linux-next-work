@@ -46,6 +46,7 @@
 #include <net/arp.h>
 #include <net/ip_fib.h>
 #include <net/fib_rules.h>
+#include <net/fib_notifier.h>
 
 #include "spectrum.h"
 #include "core.h"

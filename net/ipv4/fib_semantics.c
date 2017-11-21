@@ -43,6 +43,7 @@
 #include <net/netlink.h>
 #include <net/nexthop.h>
 #include <net/lwtunnel.h>
+#include <net/fib_notifier.h>
 
 #include "fib_lookup.h"
 
@@ -1328,8 +1329,8 @@ static int call_fib_nh_notifiers(struct fib_nh *fib_nh,
 		    fib_nh->nh_flags & RTNH_F_LINKDOWN)
 			break;
 #endif
-		return call_fib_notifiers(dev_net(fib_nh->nh_dev), event_type,
-					  &info.info);
+		return call_fib4_notifiers(dev_net(fib_nh->nh_dev), event_type,
+					   &info.info);
 	case FIB_EVENT_NH_DEL:
 #ifdef RTNH_F_LINKDOWN
 #error RTNH_F_LINKDOWN has been backported, fix me please!
@@ -1339,8 +1340,8 @@ static int call_fib_nh_notifiers(struct fib_nh *fib_nh,
 #else
 		if (fib_nh->nh_flags & RTNH_F_DEAD)
 #endif
-			return call_fib_notifiers(dev_net(fib_nh->nh_dev),
-						  event_type, &info.info);
+			return call_fib4_notifiers(dev_net(fib_nh->nh_dev),
+						   event_type, &info.info);
 	default:
 		break;
 	}

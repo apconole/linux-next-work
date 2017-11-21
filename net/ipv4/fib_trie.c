@@ -80,6 +80,7 @@
 #include <net/tcp.h>
 #include <net/sock.h>
 #include <net/ip_fib.h>
+#include <net/fib_notifier.h>
 #include "fib_lookup.h"
 
 static int call_fib_entry_notifier(struct notifier_block *nb, struct net *net,
@@ -95,7 +96,7 @@ static int call_fib_entry_notifier(struct notifier_block *nb, struct net *net,
 		.type = type,
 		.tb_id = tb_id,
 	};
-	return call_fib_notifier(nb, net, event_type, &info.info);
+	return call_fib4_notifier(nb, net, event_type, &info.info);
 }
 
 static int call_fib_entry_notifiers(struct net *net,
@@ -111,7 +112,7 @@ static int call_fib_entry_notifiers(struct net *net,
 		.type = type,
 		.tb_id = tb_id,
 	};
-	return call_fib_notifiers(net, event_type, &info.info);
+	return call_fib4_notifiers(net, event_type, &info.info);
 }
 
 #define MAX_STAT_DEPTH 32
