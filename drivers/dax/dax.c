@@ -25,6 +25,7 @@
 #include <linux/idr.h>
 #include <linux/magic.h>
 #include <linux/backing-dev.h>
+#include "dax-private.h"
 #include "dax.h"
 
 static dev_t dax_devt;
@@ -37,48 +38,6 @@ static struct vfsmount *dax_mnt;
 static struct kmem_cache *dax_cache __read_mostly;
 static struct super_block *dax_superblock __read_mostly;
 MODULE_PARM_DESC(nr_dax, "max number of device-dax instances");
-
-/**
- * struct dax_region - mapping infrastructure for dax devices
- * @id: kernel-wide unique region for a memory range
- * @base: linear address corresponding to @res
- * @kref: to pin while other agents have a need to do lookups
- * @dev: parent device backing this region
- * @align: allocation and mapping alignment for child dax devices
- * @res: physical address range of the region
- * @pfn_flags: identify whether the pfns are paged back or not
- */
-struct dax_region {
-	int id;
-	struct ida ida;
-	void *base;
-	struct kref kref;
-	struct device *dev;
-	unsigned int align;
-	struct resource res;
-	unsigned long pfn_flags;
-};
-
-/**
- * struct dax_dev - subdivision of a dax region
- * @region - parent region
- * @dev - device backing the character device
- * @cdev - core chardev data
- * @alive - !alive + srcu grace period == no new mappings can be established
- * @id - child id in the region
- * @num_resources - number of physical address extents in this device
- * @res - array of physical address ranges
- */
-struct dax_dev {
-	struct dax_region *region;
-	struct inode *inode;
-	struct device dev;
-	struct cdev cdev;
-	bool alive;
-	int id;
-	int num_resources;
-	struct resource res[0];
-};
 
 static ssize_t id_show(struct device *dev,
 		struct device_attribute *attr, char *buf)
@@ -401,7 +360,8 @@ static int check_vma(struct dax_dev *dax_dev, struct vm_area_struct *vma,
 	return 0;
 }
 
-static phys_addr_t pgoff_to_phys(struct dax_dev *dax_dev, pgoff_t pgoff,
+/* see "strong" declaration in tools/testing/nvdimm/dax-dev.c */
+__weak phys_addr_t dax_pgoff_to_phys(struct dax_dev *dax_dev, pgoff_t pgoff,
 		unsigned long size)
 {
 	struct resource *res;
@@ -447,7 +407,7 @@ static int __dax_dev_pte_fault(struct dax_dev *dax_dev, struct vm_fault *vmf)
 	if (fault_size != dax_region->align)
 		return VM_FAULT_SIGBUS;
 
-	phys = pgoff_to_phys(dax_dev, vmf->pgoff, PAGE_SIZE);
+	phys = dax_pgoff_to_phys(dax_dev, vmf->pgoff, PAGE_SIZE);
 	if (phys == -1) {
 		dev_dbg(dev, "%s: pgoff_to_phys(%#lx) failed\n", __func__,
 				vmf->pgoff);
@@ -503,7 +463,7 @@ static int __dax_dev_pmd_fault(struct dax_dev *dax_dev, struct vm_fault *vmf)
 		return VM_FAULT_SIGBUS;
 
 	pgoff = linear_page_index(vmf->vma, pmd_addr);
-	phys = pgoff_to_phys(dax_dev, pgoff, PMD_SIZE);
+	phys = dax_pgoff_to_phys(dax_dev, pgoff, PMD_SIZE);
 	if (phys == -1) {
 		dev_dbg(dev, "%s: pgoff_to_phys(%#lx) failed\n", __func__,
 				pgoff);
@@ -554,7 +514,7 @@ static int __dax_dev_pud_fault(struct dax_dev *dax_dev, struct vm_fault *vmf)
 		return VM_FAULT_SIGBUS;
 
 	pgoff = linear_page_index(vmf->vma, pud_addr);
-	phys = pgoff_to_phys(dax_dev, pgoff, PUD_SIZE);
+	phys = dax_pgoff_to_phys(dax_dev, pgoff, PUD_SIZE);
 	if (phys == -1) {
 		dev_dbg(dev, "%s: pgoff_to_phys(%#lx) failed\n", __func__,
 				pgoff);
