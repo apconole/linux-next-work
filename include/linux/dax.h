@@ -36,6 +36,9 @@ static inline void *dax_radix_locked_entry(sector_t sector, unsigned long flags)
 
 struct iomap_ops;
 
+int dax_read_lock(void);
+void dax_read_unlock(int id);
+
 ssize_t dax_iomap_rw(int rw, struct kiocb *iocb, const struct iovec *iov,
 		unsigned long nr_segs, loff_t pos,
 		size_t count, const struct iomap_ops *ops);

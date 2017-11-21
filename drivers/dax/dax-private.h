@@ -15,6 +15,7 @@
 
 #include <linux/device.h>
 #include <linux/cdev.h>
+#include <linux/idr.h>
 
 /**
  * struct dax_region - mapping infrastructure for dax devices
@@ -50,10 +51,8 @@ struct dax_region {
  */
 struct dev_dax {
 	struct dax_region *region;
-	struct inode *inode;
+	struct dax_device *dax_dev;
 	struct device dev;
-	struct cdev cdev;
-	bool alive;
 	int id;
 	int num_resources;
 	struct resource res[0];
