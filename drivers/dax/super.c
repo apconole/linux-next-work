@@ -47,6 +47,7 @@ void dax_read_unlock(int id)
 }
 EXPORT_SYMBOL_GPL(dax_read_unlock);
 
+#ifdef CONFIG_BLOCK
 int bdev_dax_pgoff(struct block_device *bdev, sector_t sector, size_t size,
 		pgoff_t *pgoff)
 {
@@ -115,6 +116,7 @@ int __bdev_dax_supported(struct super_block *sb, int blocksize)
 	return 0;
 }
 EXPORT_SYMBOL_GPL(__bdev_dax_supported);
+#endif
 
 /**
  * struct dax_device - anchor object for dax services
