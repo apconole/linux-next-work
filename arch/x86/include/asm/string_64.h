@@ -64,8 +64,8 @@ char *strcpy(char *dest, const char *src);
 char *strcat(char *dest, const char *src);
 int strcmp(const char *cs, const char *ct);
 
+#define __HAVE_ARCH_MEMCPY_MCSAFE 1
 extern struct static_key mcsafe_key;
-
 __must_check int memcpy_mcsafe_unrolled(void *dst, const void *src, size_t cnt);
 /**
  * memcpy_mcsafe - copy memory with indication if a machine check happened
