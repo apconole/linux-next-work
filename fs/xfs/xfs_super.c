@@ -48,6 +48,7 @@
 #include "xfs_ondisk.h"
 
 #include <linux/namei.h>
+#include <linux/dax.h>
 #include <linux/init.h>
 #include <linux/slab.h>
 #include <linux/mount.h>
