@@ -397,7 +397,7 @@ KBUILD_CFLAGS   := -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs \
 
 ifneq ($(WITH_GCOV),1)
 ifeq ($(KBUILD_EXTMOD),)
-ifneq (,$(filter $(ARCH), x86 x86_64 powerpc))
+ifneq (,$(filter $(ARCH), x86 x86_64 powerpc s390))
 KBUILD_CFLAGS   += $(call cc-ifversion, -eq, 0408, -Werror)
 endif
 # powerpc is compiled with -O3 and gcc 4.8 has some known problems
