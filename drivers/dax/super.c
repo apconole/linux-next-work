@@ -118,13 +118,18 @@ int __bdev_dax_supported(struct super_block *sb, int blocksize)
 EXPORT_SYMBOL_GPL(__bdev_dax_supported);
 #endif
 
+enum dax_device_flags {
+	/* !alive + rcu grace period == no new operations / mappings */
+	DAXDEV_ALIVE,
+};
+
 /**
  * struct dax_device - anchor object for dax services
  * @inode: core vfs
  * @cdev: optional character interface for "device dax"
  * @host: optional name for lookups where the device path is not available
  * @private: dax driver private data
- * @alive: !alive + rcu grace period == no new operations / mappings
+ * @flags: state and boolean properties
  */
 struct dax_device {
 	struct hlist_node list;
@@ -132,7 +137,7 @@ struct dax_device {
 	struct cdev cdev;
 	const char *host;
 	void *private;
-	bool alive;
+	unsigned long flags;
 	const struct dax_operations *ops;
 };
 
@@ -178,7 +183,7 @@ EXPORT_SYMBOL_GPL(dax_direct_access);
 bool dax_alive(struct dax_device *dax_dev)
 {
 	lockdep_assert_held(&dax_srcu);
-	return dax_dev->alive;
+	return test_bit(DAXDEV_ALIVE, &dax_dev->flags);
 }
 EXPORT_SYMBOL_GPL(dax_alive);
 
@@ -198,7 +203,7 @@ void kill_dax(struct dax_device *dax_dev)
 	if (!dax_dev)
 		return;
 
-	dax_dev->alive = false;
+	clear_bit(DAXDEV_ALIVE, &dax_dev->flags);
 
 	synchronize_srcu(&dax_srcu);
 
@@ -242,7 +247,7 @@ static void dax_destroy_inode(struct inode *inode)
 {
 	struct dax_device *dax_dev = to_dax_dev(inode);
 
-	WARN_ONCE(dax_dev->alive,
+	WARN_ONCE(test_bit(DAXDEV_ALIVE, &dax_dev->flags),
 			"kill_dax() must be called before final iput()\n");
 	call_rcu(&inode->i_rcu, dax_i_callback);
 }
@@ -294,7 +299,7 @@ static struct dax_device *dax_dev_get(dev_t devt)
 
 	dax_dev = to_dax_dev(inode);
 	if (inode->i_state & I_NEW) {
-		dax_dev->alive = true;
+		set_bit(DAXDEV_ALIVE, &dax_dev->flags);
 		inode->i_cdev = &dax_dev->cdev;
 		inode->i_mode = S_IFCHR;
 		inode->i_flags = S_DAX;
