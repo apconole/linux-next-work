@@ -367,7 +367,8 @@ static int iomap_dax_zero(loff_t pos, unsigned offset, unsigned bytes,
 	sector_t sector = (iomap->addr +
 			   (pos & PAGE_MASK) - iomap->offset) >> 9;
 
-	return __dax_zero_page_range(iomap->bdev, sector, offset, bytes);
+	return __dax_zero_page_range(iomap->bdev, iomap->dax_dev, sector,
+			offset, bytes);
 }
 
 static loff_t
