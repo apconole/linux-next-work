@@ -2976,6 +2976,10 @@ static int check_modinfo(struct module *mod, struct load_info *info, int flags)
 
 static int find_module_sections(struct module *mod, struct load_info *info)
 {
+#ifdef CONFIG_S390
+	struct module_ext *mod_ext;
+#endif
+
 	mod->kp = section_objs(info, "__param",
 			       sizeof(*mod->kp), &mod->num_kp);
 	mod->syms = section_objs(info, "__ksymtab",
@@ -3040,8 +3044,6 @@ static int find_module_sections(struct module *mod, struct load_info *info)
 #endif
 #ifdef CONFIG_FTRACE_MCOUNT_RECORD
 #ifdef CONFIG_S390
-	struct module_ext *mod_ext;
-
 	mutex_lock(&module_ext_mutex);
 	mod_ext = find_module_ext(mod);
 	mod_ext->ftrace_callsites = section_objs(info, "__mcount_loc",
