@@ -993,8 +993,7 @@ IPSET_TOKEN(HTYPE, _create)(struct net *net, struct ip_set *set,
 
 	hsize = sizeof(*h);
 #ifdef IP_SET_HASH_WITH_NETS
-	hsize += sizeof(struct net_prefixes) *
-		(set->family == NFPROTO_IPV4 ? 32 : 128);
+	hsize += sizeof(struct net_prefixes) * NETS_LENGTH(set->family);
 #endif
 	h = kzalloc(hsize, GFP_KERNEL);
 	if (!h)
