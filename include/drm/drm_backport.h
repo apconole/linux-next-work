@@ -307,11 +307,6 @@ static inline void atomic_andnot(int i, atomic_t *v)
 #endif
 #endif
 
-static inline bool gfpflags_allow_blocking(const gfp_t gfp_flags)
-{
-	return !!(gfp_flags & __GFP_WAIT);
-}
-
 /* drm_panel stubs to make i915 happy.. I don't think we support any hw
  * using DSI and panel stuff without some work will be unhappy on power
  * or anything else w/ CONFIG_OF..
