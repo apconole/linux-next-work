@@ -97,14 +97,9 @@ SYSCALL_DEFINE5(add_key, const char __user *, _type,
 
 	if (plen) {
 		ret = -ENOMEM;
-		payload = kmalloc(plen, GFP_KERNEL | __GFP_NOWARN);
-		if (!payload) {
-			if (plen <= PAGE_SIZE)
-				goto error2;
-			payload = vmalloc(plen);
-			if (!payload)
-				goto error2;
-		}
+		payload = kvmalloc(plen, GFP_KERNEL);
+		if (!payload)
+			goto error2;
 
 		ret = -EFAULT;
 		if (copy_from_user(payload, _payload, plen) != 0)
@@ -1042,7 +1037,6 @@ long keyctl_instantiate_key_common(key_serial_t id,
 	struct key *instkey, *dest_keyring;
 	void *payload;
 	long ret;
-	bool vm = false;
 
 	kenter("%d,,%zu,%d", id, plen, ringid);
 
@@ -1066,15 +1060,9 @@ long keyctl_instantiate_key_common(key_serial_t id,
 
 	if (payload_iov) {
 		ret = -ENOMEM;
-		payload = kmalloc(plen, GFP_KERNEL);
-		if (!payload) {
-			if (plen <= PAGE_SIZE)
-				goto error;
-			vm = true;
-			payload = vmalloc(plen);
-			if (!payload)
-				goto error;
-		}
+		payload = kvmalloc(plen, GFP_KERNEL);
+		if (!payload)
+			goto error;
 
 		ret = copy_from_user_iovec(payload, payload_iov, ioc);
 		if (ret < 0)
@@ -1100,10 +1088,7 @@ long keyctl_instantiate_key_common(key_serial_t id,
 
 error2:
 	if (payload) {
-		if (!vm)
-			kfree(payload);
-		else
-			vfree(payload);
+		kvfree(payload);
 	}
 error:
 	return ret;

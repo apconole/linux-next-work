@@ -906,19 +906,6 @@ static inline u16 cmdif_rev(struct mlx5_core_dev *dev)
 	return ioread32be(&dev->iseg->cmdif_rev_fw_sub) >> 16;
 }
 
-/* if RHEL-7 doesn't have kvzalloc in include/linux/mm.h */
-#ifndef kvzalloc
-static inline void *kvzalloc(size_t size, gfp_t flags)
-{
-	void *rtn;
-
-	rtn = kzalloc(size, GFP_KERNEL | __GFP_NOWARN);
-	if (!rtn)
-		rtn = vzalloc(size);
-	return rtn;
-}
-#endif
-
 static inline u32 mlx5_base_mkey(const u32 key)
 {
 	return key & 0xffffff00u;

@@ -60,15 +60,6 @@ unsigned int swiotlb_max_size(void)
 }
 EXPORT_SYMBOL(swiotlb_max_size);
 
-void *kvmalloc(size_t size, gfp_t flags)
-{
-	void *mem = kmalloc(size, __GFP_NOWARN | flags);
-	if (!mem)
-		mem = vmalloc(size);
-	return mem;
-}
-EXPORT_SYMBOL(kvmalloc);
-
 int __init drm_backport_init(void)
 {
 	return 0;

@@ -336,16 +336,6 @@ unsigned int swiotlb_max_size(void);
 
 #define SLAB_TYPESAFE_BY_RCU SLAB_DESTROY_BY_RCU
 
-void *kvmalloc(size_t size, gfp_t flags);
-
-static inline void *kvmalloc_array(size_t n, size_t size, gfp_t flags)
-{
-	if (size != 0 && n > SIZE_MAX / size)
-		return NULL;
-
-	return kvmalloc(n * size, flags);
-}
-
 #include <linux/fs.h>
 
 static inline int call_mmap(struct file *file, struct vm_area_struct *vma)
