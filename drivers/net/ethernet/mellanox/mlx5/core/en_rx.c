@@ -624,6 +624,7 @@ struct sk_buff *skb_from_cqe(struct mlx5e_rq *rq, struct mlx5_cqe64 *cqe,
 	struct sk_buff *skb;
 	void *va, *data;
 	u16 rx_headroom = rq->rx_headroom;
+	u32 frag_size;
 
 	di             = &rq->dma_info[wqe_counter];
 	va             = page_address(di->page);
@@ -642,7 +643,8 @@ struct sk_buff *skb_from_cqe(struct mlx5e_rq *rq, struct mlx5_cqe64 *cqe,
 		return NULL;
 	}
 
-	skb = build_skb(va, RQ_PAGE_SIZE(rq));
+	frag_size = MLX5_SKB_FRAG_SZ(rx_headroom + cqe_bcnt);
+	skb = build_skb(va, frag_size);
 	if (unlikely(!skb)) {
 		rq->stats.buff_alloc_err++;
 		mlx5e_page_release(rq, di, true);
