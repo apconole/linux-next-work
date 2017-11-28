@@ -3428,6 +3428,9 @@ static const struct net_device_ops mlx5e_netdev_ops_basic = {
 	.ndo_change_mtu_rh74     = mlx5e_change_mtu,
 	.ndo_do_ioctl            = mlx5e_ioctl,
 	.extended.ndo_set_tx_maxrate      = mlx5e_set_tx_maxrate,
+	.extended.ndo_udp_tunnel_add      = mlx5e_add_vxlan_port,
+	.extended.ndo_udp_tunnel_del      = mlx5e_del_vxlan_port,
+	.ndo_features_check      = mlx5e_features_check,
 #ifdef CONFIG_RFS_ACCEL
 	.ndo_rx_flow_steer	 = mlx5e_rx_flow_steer,
 #endif
@@ -3452,13 +3455,18 @@ static const struct net_device_ops mlx5e_netdev_ops_sriov = {
 	.ndo_set_features        = mlx5e_set_features,
 	.ndo_change_mtu_rh74     = mlx5e_change_mtu,
 	.ndo_do_ioctl            = mlx5e_ioctl,
+	.extended.ndo_set_tx_maxrate      = mlx5e_set_tx_maxrate,
 	.extended.ndo_udp_tunnel_add	 = mlx5e_add_vxlan_port,
 	.extended.ndo_udp_tunnel_del	 = mlx5e_del_vxlan_port,
-	.extended.ndo_set_tx_maxrate      = mlx5e_set_tx_maxrate,
 	.ndo_features_check      = mlx5e_features_check,
 #ifdef CONFIG_RFS_ACCEL
 	.ndo_rx_flow_steer	 = mlx5e_rx_flow_steer,
 #endif
+	.ndo_tx_timeout          = mlx5e_tx_timeout,
+#ifdef CONFIG_NET_POLL_CONTROLLER
+	.ndo_poll_controller     = mlx5e_netpoll,
+#endif
+	/* SRIOV E-Switch NDOs */
 	.ndo_set_vf_mac          = mlx5e_set_vf_mac,
 	.ndo_set_vf_spoofchk     = mlx5e_set_vf_spoofchk,
 	.extended.ndo_set_vf_trust        = mlx5e_set_vf_trust,
@@ -3467,10 +3475,6 @@ static const struct net_device_ops mlx5e_netdev_ops_sriov = {
 	.ndo_get_vf_config       = mlx5e_get_vf_config,
 	.ndo_set_vf_link_state   = mlx5e_set_vf_link_state,
 	.ndo_get_vf_stats        = mlx5e_get_vf_stats,
-	.ndo_tx_timeout          = mlx5e_tx_timeout,
-#ifdef CONFIG_NET_POLL_CONTROLLER
-	.ndo_poll_controller     = mlx5e_netpoll,
-#endif
 	.extended.ndo_has_offload_stats	 = mlx5e_has_offload_stats,
 	.extended.ndo_get_offload_stats	 = mlx5e_get_offload_stats,
 };
