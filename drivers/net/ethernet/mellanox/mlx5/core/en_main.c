@@ -574,6 +574,7 @@ static int mlx5e_alloc_rq(struct mlx5e_channel *c,
 	rq->mdev    = mdev;
 
 	rq->buff.map_dir = DMA_FROM_DEVICE;
+	rq->rx_headroom = MLX5_RX_HEADROOM;
 
 	switch (rq->wq_type) {
 	case MLX5_WQ_TYPE_LINKED_LIST_STRIDING_RQ:
@@ -628,7 +629,7 @@ static int mlx5e_alloc_rq(struct mlx5e_channel *c,
 		byte_count = rq->buff.wqe_sz;
 
 		/* calc the required page order */
-		frag_sz = MLX5_RX_HEADROOM +
+		frag_sz = rq->rx_headroom +
 			  byte_count /* packet data */ +
 			  SKB_DATA_ALIGN(sizeof(struct skb_shared_info));
 		frag_sz = SKB_DATA_ALIGN(frag_sz);

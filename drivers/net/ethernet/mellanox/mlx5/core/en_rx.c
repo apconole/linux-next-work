@@ -244,7 +244,7 @@ int mlx5e_alloc_rx_wqe(struct mlx5e_rq *rq, struct mlx5e_rx_wqe *wqe, u16 ix)
 	if (unlikely(mlx5e_page_alloc_mapped(rq, di)))
 		return -ENOMEM;
 
-	wqe->data.addr = cpu_to_be64(di->addr + MLX5_RX_HEADROOM);
+	wqe->data.addr = cpu_to_be64(di->addr + rq->rx_headroom);
 	return 0;
 }
 
@@ -622,17 +622,19 @@ struct sk_buff *skb_from_cqe(struct mlx5e_rq *rq, struct mlx5_cqe64 *cqe,
 {
 	struct mlx5e_dma_info *di;
 	struct sk_buff *skb;
-	void *va;
+	void *va, *data;
+	u16 rx_headroom = rq->rx_headroom;
 
 	di             = &rq->dma_info[wqe_counter];
 	va             = page_address(di->page);
+	data           = va + rx_headroom;
 
 	dma_sync_single_range_for_cpu(rq->pdev,
 				      di->addr,
-				      MLX5_RX_HEADROOM,
+				      rx_headroom,
 				      rq->buff.wqe_sz,
 				      DMA_FROM_DEVICE);
-	prefetch(va + MLX5_RX_HEADROOM);
+	prefetch(data);
 
 	if (unlikely((cqe->op_own >> 4) != MLX5_CQE_RESP_SEND)) {
 		rq->stats.wqe_err++;
@@ -651,7 +653,7 @@ struct sk_buff *skb_from_cqe(struct mlx5e_rq *rq, struct mlx5_cqe64 *cqe,
 	page_ref_inc(di->page);
 	mlx5e_page_release(rq, di, true);
 
-	skb_reserve(skb, MLX5_RX_HEADROOM);
+	skb_reserve(skb, rx_headroom);
 	skb_put(skb, cqe_bcnt);
 
 	return skb;

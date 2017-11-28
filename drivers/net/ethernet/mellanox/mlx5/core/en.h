@@ -500,6 +500,7 @@ struct mlx5e_rq {
 
 	unsigned long          state;
 	int                    ix;
+	u16                    rx_headroom;
 
 	struct mlx5e_rx_am     am; /* Adaptive Moderation */
 
