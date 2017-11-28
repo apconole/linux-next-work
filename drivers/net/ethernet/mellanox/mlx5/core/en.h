@@ -288,7 +288,6 @@ struct mlx5e_tstamp {
 
 enum {
 	MLX5E_RQ_STATE_ENABLED,
-	MLX5E_RQ_STATE_UMR_WQE_IN_PROGRESS,
 	MLX5E_RQ_STATE_AM,
 };
 
@@ -507,6 +506,7 @@ struct mlx5e_rq {
 			void                  *mtt_no_align;
 			u16                    num_strides;
 			u8                     log_stride_sz;
+			bool                   umr_in_progress;
 		} mpwqe;
 	};
 	struct {
