@@ -871,7 +871,7 @@ int mlx5e_poll_rx_cq(struct mlx5e_cq *cq, int budget)
 		work_done += mlx5e_decompress_cqes_cont(rq, cq, 0, budget);
 
 	for (; work_done < budget; work_done++) {
-		struct mlx5_cqe64 *cqe = mlx5e_get_cqe(cq);
+		struct mlx5_cqe64 *cqe = mlx5_cqwq_get_cqe(&cq->wq);
 
 		if (!cqe)
 			break;
