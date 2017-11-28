@@ -458,16 +458,19 @@ void mlx5e_dealloc_rx_mpwqe(struct mlx5e_rq *rq, u16 ix)
 bool mlx5e_post_rx_wqes(struct mlx5e_rq *rq)
 {
 	struct mlx5_wq_ll *wq = &rq->wq;
+	int err;
 
 	if (unlikely(!test_bit(MLX5E_RQ_STATE_ENABLED, &rq->state)))
+		return false;
+
+	if (mlx5_wq_ll_is_full(wq))
 		return false;
 
 	if (test_bit(MLX5E_RQ_STATE_UMR_WQE_IN_PROGRESS, &rq->state))
 		return true;
 
-	while (!mlx5_wq_ll_is_full(wq)) {
+	do {
 		struct mlx5e_rx_wqe *wqe = mlx5_wq_ll_get_wqe(wq, wq->head);
-		int err;
 
 		err = rq->alloc_wqe(rq, wqe, wq->head);
 		if (err == -EBUSY)
@@ -478,14 +481,14 @@ bool mlx5e_post_rx_wqes(struct mlx5e_rq *rq)
 		}
 
 		mlx5_wq_ll_push(wq, be16_to_cpu(wqe->next.next_wqe_index));
-	}
+	} while (!mlx5_wq_ll_is_full(wq));
 
 	/* ensure wqes are visible to device before updating doorbell record */
 	dma_wmb();
 
 	mlx5_wq_ll_update_db_record(wq);
 
-	return !mlx5_wq_ll_is_full(wq);
+	return !!err;
 }
 
 static void mlx5e_lro_update_hdr(struct sk_buff *skb, struct mlx5_cqe64 *cqe,
@@ -857,6 +860,7 @@ mpwrq_cqe_out:
 int mlx5e_poll_rx_cq(struct mlx5e_cq *cq, int budget)
 {
 	struct mlx5e_rq *rq = container_of(cq, struct mlx5e_rq, cq);
+	struct mlx5_cqe64 *cqe;
 	int work_done = 0;
 
 	if (unlikely(!test_bit(MLX5E_RQ_STATE_ENABLED, &rq->state)))
@@ -865,12 +869,11 @@ int mlx5e_poll_rx_cq(struct mlx5e_cq *cq, int budget)
 	if (cq->decmprs_left)
 		work_done += mlx5e_decompress_cqes_cont(rq, cq, 0, budget);
 
-	for (; work_done < budget; work_done++) {
-		struct mlx5_cqe64 *cqe = mlx5_cqwq_get_cqe(&cq->wq);
+	cqe = mlx5_cqwq_get_cqe(&cq->wq);
+	if (!cqe)
+		return 0;
 
-		if (!cqe)
-			break;
-
+	do {
 		if (mlx5_get_cqe_format(cqe) == MLX5_COMPRESSED) {
 			work_done +=
 				mlx5e_decompress_cqes_start(rq, cq,
@@ -881,7 +884,7 @@ int mlx5e_poll_rx_cq(struct mlx5e_cq *cq, int budget)
 		mlx5_cqwq_pop(&cq->wq);
 
 		rq->handle_rx_cqe(rq, cqe);
-	}
+	} while ((++work_done < budget) && (cqe = mlx5_cqwq_get_cqe(&cq->wq)));
 
 	mlx5_cqwq_update_db_record(&cq->wq);
 
