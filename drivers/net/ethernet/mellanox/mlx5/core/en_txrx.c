@@ -30,7 +30,19 @@
  * SOFTWARE.
  */
 
+#include <linux/irq.h>
 #include "en.h"
+
+#ifdef CONFIG_GENERIC_HARDIRQS
+static inline bool mlx5e_channel_no_affinity_change(struct mlx5e_channel *c)
+{
+	int current_cpu = smp_processor_id();
+	const struct cpumask *aff;
+
+	aff = irq_desc_get_irq_data(c->irq_desc)->affinity;
+	return cpumask_test_cpu(current_cpu, aff);
+}
+#endif
 
 int mlx5e_napi_poll(struct napi_struct *napi, int budget)
 {
@@ -48,8 +60,14 @@ int mlx5e_napi_poll(struct napi_struct *napi, int budget)
 
 	busy |= c->rq.post_wqes(&c->rq);
 
-	if (busy)
-		return budget;
+	if (busy) {
+#ifdef CONFIG_GENERIC_HARDIRQS
+		if (likely(mlx5e_channel_no_affinity_change(c)))
+			return budget;
+#endif
+		if (work_done == budget)
+			work_done--;
+	}
 
 	if (unlikely(!napi_complete_done(napi, work_done)))
 		return work_done;
