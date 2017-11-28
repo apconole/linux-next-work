@@ -65,6 +65,7 @@ struct mlx5e_sw_stats {
 	u64 rx_csum_none;
 	u64 rx_csum_complete;
 	u64 rx_csum_unnecessary_inner;
+	u64 tx_csum_none;
 	u64 tx_csum_partial;
 	u64 tx_csum_partial_inner;
 	u64 tx_queue_stopped;
@@ -102,6 +103,7 @@ static const struct counter_desc sw_stats_desc[] = {
 	{ MLX5E_DECLARE_STAT(struct mlx5e_sw_stats, rx_csum_none) },
 	{ MLX5E_DECLARE_STAT(struct mlx5e_sw_stats, rx_csum_complete) },
 	{ MLX5E_DECLARE_STAT(struct mlx5e_sw_stats, rx_csum_unnecessary_inner) },
+	{ MLX5E_DECLARE_STAT(struct mlx5e_sw_stats, tx_csum_none) },
 	{ MLX5E_DECLARE_STAT(struct mlx5e_sw_stats, tx_csum_partial) },
 	{ MLX5E_DECLARE_STAT(struct mlx5e_sw_stats, tx_csum_partial_inner) },
 	{ MLX5E_DECLARE_STAT(struct mlx5e_sw_stats, tx_queue_stopped) },
@@ -333,6 +335,7 @@ struct mlx5e_rq_stats {
 	u64 packets;
 	u64 bytes;
 	u64 csum_complete;
+	u64 csum_unnecessary;
 	u64 csum_unnecessary_inner;
 	u64 csum_none;
 	u64 lro_packets;
@@ -354,6 +357,7 @@ static const struct counter_desc rq_stats_desc[] = {
 	{ MLX5E_DECLARE_RX_STAT(struct mlx5e_rq_stats, packets) },
 	{ MLX5E_DECLARE_RX_STAT(struct mlx5e_rq_stats, bytes) },
 	{ MLX5E_DECLARE_RX_STAT(struct mlx5e_rq_stats, csum_complete) },
+	{ MLX5E_DECLARE_RX_STAT(struct mlx5e_rq_stats, csum_unnecessary) },
 	{ MLX5E_DECLARE_RX_STAT(struct mlx5e_rq_stats, csum_unnecessary_inner) },
 	{ MLX5E_DECLARE_RX_STAT(struct mlx5e_rq_stats, csum_none) },
 	{ MLX5E_DECLARE_RX_STAT(struct mlx5e_rq_stats, lro_packets) },
@@ -380,6 +384,7 @@ struct mlx5e_sq_stats {
 	u64 tso_bytes;
 	u64 tso_inner_packets;
 	u64 tso_inner_bytes;
+	u64 csum_partial;
 	u64 csum_partial_inner;
 	u64 nop;
 	/* less likely accessed in data path */
@@ -396,6 +401,7 @@ static const struct counter_desc sq_stats_desc[] = {
 	{ MLX5E_DECLARE_TX_STAT(struct mlx5e_sq_stats, tso_bytes) },
 	{ MLX5E_DECLARE_TX_STAT(struct mlx5e_sq_stats, tso_inner_packets) },
 	{ MLX5E_DECLARE_TX_STAT(struct mlx5e_sq_stats, tso_inner_bytes) },
+	{ MLX5E_DECLARE_TX_STAT(struct mlx5e_sq_stats, csum_partial) },
 	{ MLX5E_DECLARE_TX_STAT(struct mlx5e_sq_stats, csum_partial_inner) },
 	{ MLX5E_DECLARE_TX_STAT(struct mlx5e_sq_stats, nop) },
 	{ MLX5E_DECLARE_TX_STAT(struct mlx5e_sq_stats, csum_none) },
