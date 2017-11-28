@@ -245,7 +245,7 @@ static void mlx5e_update_vport_counters(struct mlx5e_priv *priv)
 	mlx5_cmd_exec(mdev, in, sizeof(in), out, outlen);
 }
 
-static void mlx5e_update_pport_counters(struct mlx5e_priv *priv)
+static void mlx5e_update_pport_counters(struct mlx5e_priv *priv, bool full)
 {
 	struct mlx5e_pport_stats *pstats = &priv->stats.pport;
 	struct mlx5_core_dev *mdev = priv->mdev;
@@ -259,6 +259,9 @@ static void mlx5e_update_pport_counters(struct mlx5e_priv *priv)
 	out = pstats->IEEE_802_3_counters;
 	MLX5_SET(ppcnt_reg, in, grp, MLX5_IEEE_802_3_COUNTERS_GROUP);
 	mlx5_core_access_reg(mdev, in, sz, out, sz, MLX5_REG_PPCNT, 0, 0);
+
+	if (!full)
+		return;
 
 	out = pstats->RFC_2863_counters;
 	MLX5_SET(ppcnt_reg, in, grp, MLX5_RFC_2863_COUNTERS_GROUP);
@@ -319,13 +322,19 @@ static void mlx5e_update_pcie_counters(struct mlx5e_priv *priv)
 	mlx5_core_access_reg(mdev, in, sz, out, sz, MLX5_REG_MPCNT, 0, 0);
 }
 
-void mlx5e_update_stats(struct mlx5e_priv *priv)
+void mlx5e_update_stats(struct mlx5e_priv *priv, bool full)
 {
-	mlx5e_update_pcie_counters(priv);
-	mlx5e_update_pport_counters(priv);
+	if (full)
+		mlx5e_update_pcie_counters(priv);
+	mlx5e_update_pport_counters(priv, full);
 	mlx5e_update_vport_counters(priv);
 	mlx5e_update_q_counter(priv);
 	mlx5e_update_sw_counters(priv);
+}
+
+static void mlx5e_update_ndo_stats(struct mlx5e_priv *priv)
+{
+	mlx5e_update_stats(priv, false);
 }
 
 void mlx5e_update_stats_work(struct work_struct *work)
@@ -3929,7 +3938,7 @@ static const struct mlx5e_profile mlx5e_nic_profile = {
 	.cleanup_tx	   = mlx5e_cleanup_nic_tx,
 	.enable		   = mlx5e_nic_enable,
 	.disable	   = mlx5e_nic_disable,
-	.update_stats	   = mlx5e_update_stats,
+	.update_stats	   = mlx5e_update_ndo_stats,
 	.max_nch	   = mlx5e_get_max_num_channels,
 	.update_carrier	   = mlx5e_update_carrier,
 	.rx_handlers.handle_rx_cqe       = mlx5e_handle_rx_cqe,
