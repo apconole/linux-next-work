@@ -1861,6 +1861,7 @@ vxlan_encap_offload_err:
 		}
 	}
 
+	/* must verify if encap is valid or not */
 	if (found)
 		goto attach_flow;
 
@@ -1887,6 +1888,8 @@ attach_flow:
 	*encap_dev = e->out_dev;
 	if (e->flags & MLX5_ENCAP_ENTRY_VALID)
 		attr->encap_id = e->encap_id;
+	else
+		err = -EAGAIN;
 
 	return err;
 
