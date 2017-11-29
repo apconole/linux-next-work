@@ -693,7 +693,7 @@ static int i40evf_set_channels(struct net_device *netdev,
 	int num_req = ch->combined_count;
 
 	if (num_req != adapter->num_active_queues &&
-	    !(adapter->vf_res->vf_offload_flags &
+	    !(adapter->vf_res->vf_cap_flags &
 	      VIRTCHNL_VF_OFFLOAD_REQ_QUEUES)) {
 		dev_info(&adapter->pdev->dev, "PF is not capable of queue negotiation.\n");
 		return -EINVAL;
