@@ -382,10 +382,12 @@ static void dio_bio_end_aio(struct bio *bio, int error)
 		 * went in between AIO submission and completion into the
 		 * same region.
 		 */
-		if (dio->result)
+		if (dio->result && (dio->inode->i_sb->s_type->fs_flags &
+				    FS_HAS_DIO_IODONE2)) {
 			defer_completion = dio->defer_completion ||
 					   (dio->rw & WRITE &&
 					    dio->inode->i_mapping->nrpages);
+		}
 		if (defer_completion) {
 			INIT_WORK(&dio->complete_work, dio_aio_complete_work);
 			queue_work(dio->inode->i_sb->s_dio_done_wq,
