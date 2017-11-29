@@ -5341,6 +5341,11 @@ static inline void avic_post_state_restore(struct kvm_vcpu *vcpu)
 	avic_handle_ldr_update(vcpu);
 }
 
+static int svm_smi_allowed(struct kvm_vcpu *vcpu)
+{
+	return 1;
+}
+
 static int svm_pre_enter_smm(struct kvm_vcpu *vcpu, char *smstate)
 {
 	/* TODO: Implement */
@@ -5465,6 +5470,7 @@ static struct kvm_x86_ops svm_x86_ops = {
 	.deliver_posted_interrupt = svm_deliver_avic_intr,
 	.update_pi_irte = svm_update_pi_irte,
 
+	.smi_allowed = svm_smi_allowed,
 	.pre_enter_smm = svm_pre_enter_smm,
 	.pre_leave_smm = svm_pre_leave_smm,
 };
