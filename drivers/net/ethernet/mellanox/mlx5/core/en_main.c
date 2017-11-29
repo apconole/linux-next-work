@@ -2853,6 +2853,7 @@ out:
 	return err;
 }
 
+#ifdef CONFIG_MLX5_ESWITCH
 static int mlx5e_setup_tc_cls_flower(struct net_device *dev,
 				     struct tc_cls_flower_offload *cls_flower)
 {
@@ -2873,13 +2874,16 @@ static int mlx5e_setup_tc_cls_flower(struct net_device *dev,
 		return -EOPNOTSUPP;
 	}
 }
+#endif
 
 static int mlx5e_setup_tc(struct net_device *dev, enum tc_setup_type type,
 			  void *type_data)
 {
 	switch (type) {
+#ifdef CONFIG_MLX5_ESWITCH
 	case TC_SETUP_CLSFLOWER:
 		return mlx5e_setup_tc_cls_flower(dev, type_data);
+#endif
 	case TC_SETUP_MQPRIO:
 		return mlx5e_setup_tc_mqprio(dev, type_data);
 	default:
@@ -3181,6 +3185,7 @@ static int mlx5e_ioctl(struct net_device *dev, struct ifreq *ifr, int cmd)
 	}
 }
 
+#ifdef CONFIG_MLX5_ESWITCH
 static int mlx5e_set_vf_mac(struct net_device *dev, int vf, u8 *mac)
 {
 	struct mlx5e_priv *priv = netdev_priv(dev);
@@ -3283,6 +3288,7 @@ static int mlx5e_get_vf_stats(struct net_device *dev,
 	return mlx5_eswitch_get_vport_stats(mdev->priv.eswitch, vf + 1,
 					    vf_stats);
 }
+#endif
 
 static void mlx5e_add_vxlan_port(struct net_device *netdev,
 				 struct udp_tunnel_info *ti)
@@ -3406,7 +3412,7 @@ static void mlx5e_netpoll(struct net_device *dev)
 }
 #endif
 
-static const struct net_device_ops mlx5e_netdev_ops_basic = {
+static const struct net_device_ops mlx5e_netdev_ops = {
 	.ndo_size                = sizeof(struct net_device_ops),
 	.ndo_open                = mlx5e_open,
 	.ndo_stop                = mlx5e_close,
@@ -3432,34 +3438,7 @@ static const struct net_device_ops mlx5e_netdev_ops_basic = {
 #ifdef CONFIG_NET_POLL_CONTROLLER
 	.ndo_poll_controller     = mlx5e_netpoll,
 #endif
-};
-
-static const struct net_device_ops mlx5e_netdev_ops_sriov = {
-	.ndo_size                = sizeof(struct net_device_ops),
-	.ndo_open                = mlx5e_open,
-	.ndo_stop                = mlx5e_close,
-	.ndo_start_xmit          = mlx5e_xmit,
-	.extended.ndo_setup_tc_rh  = mlx5e_setup_tc,
-	.ndo_select_queue        = mlx5e_select_queue,
-	.ndo_get_stats64         = mlx5e_get_stats,
-	.ndo_set_rx_mode         = mlx5e_set_rx_mode,
-	.ndo_set_mac_address     = mlx5e_set_mac,
-	.ndo_vlan_rx_add_vid     = mlx5e_vlan_rx_add_vid,
-	.ndo_vlan_rx_kill_vid    = mlx5e_vlan_rx_kill_vid,
-	.ndo_set_features        = mlx5e_set_features,
-	.ndo_change_mtu_rh74     = mlx5e_change_mtu,
-	.ndo_do_ioctl            = mlx5e_ioctl,
-	.extended.ndo_set_tx_maxrate      = mlx5e_set_tx_maxrate,
-	.extended.ndo_udp_tunnel_add	 = mlx5e_add_vxlan_port,
-	.extended.ndo_udp_tunnel_del	 = mlx5e_del_vxlan_port,
-	.ndo_features_check      = mlx5e_features_check,
-#ifdef CONFIG_RFS_ACCEL
-	.ndo_rx_flow_steer	 = mlx5e_rx_flow_steer,
-#endif
-	.ndo_tx_timeout          = mlx5e_tx_timeout,
-#ifdef CONFIG_NET_POLL_CONTROLLER
-	.ndo_poll_controller     = mlx5e_netpoll,
-#endif
+#ifdef CONFIG_MLX5_ESWITCH
 	/* SRIOV E-Switch NDOs */
 	.ndo_set_vf_mac          = mlx5e_set_vf_mac,
 	.ndo_set_vf_spoofchk     = mlx5e_set_vf_spoofchk,
@@ -3471,6 +3450,7 @@ static const struct net_device_ops mlx5e_netdev_ops_sriov = {
 	.ndo_get_vf_stats        = mlx5e_get_vf_stats,
 	.extended.ndo_has_offload_stats	 = mlx5e_has_offload_stats,
 	.extended.ndo_get_offload_stats	 = mlx5e_get_offload_stats,
+#endif
 };
 
 static int mlx5e_check_required_hca_cap(struct mlx5_core_dev *mdev)
@@ -3690,9 +3670,11 @@ static void mlx5e_set_netdev_dev_addr(struct net_device *netdev)
 	}
 }
 
+#if IS_ENABLED(CONFIG_NET_SWITCHDEV) && IS_ENABLED(CONFIG_MLX5_ESWITCH)
 static const struct switchdev_ops mlx5e_switchdev_ops = {
 	.switchdev_port_attr_get	= mlx5e_attr_get,
 };
+#endif
 
 static void mlx5e_build_nic_netdev(struct net_device *netdev)
 {
@@ -3703,15 +3685,12 @@ static void mlx5e_build_nic_netdev(struct net_device *netdev)
 
 	SET_NETDEV_DEV(netdev, &mdev->pdev->dev);
 
-	if (MLX5_CAP_GEN(mdev, vport_group_manager)) {
-		netdev->netdev_ops = &mlx5e_netdev_ops_sriov;
+	netdev->netdev_ops = &mlx5e_netdev_ops;
+
 #ifdef CONFIG_MLX5_CORE_EN_DCB
-		if (MLX5_CAP_GEN(mdev, qos))
-			netdev->dcbnl_ops = &mlx5e_dcbnl_ops;
+	if (MLX5_CAP_GEN(mdev, vport_group_manager) && MLX5_CAP_GEN(mdev, qos))
+		netdev->dcbnl_ops = &mlx5e_dcbnl_ops;
 #endif
-	} else {
-		netdev->netdev_ops = &mlx5e_netdev_ops_basic;
-	}
 
 	netdev->watchdog_timeo    = 15 * HZ;
 
@@ -3783,7 +3762,7 @@ static void mlx5e_build_nic_netdev(struct net_device *netdev)
 
 	mlx5e_set_netdev_dev_addr(netdev);
 
-#ifdef CONFIG_NET_SWITCHDEV
+#if IS_ENABLED(CONFIG_NET_SWITCHDEV) && IS_ENABLED(CONFIG_MLX5_ESWITCH)
 	if (MLX5_VPORT_MANAGER(mdev))
 		netdev->switchdev_ops = &mlx5e_switchdev_ops;
 #endif
@@ -4140,6 +4119,7 @@ static void *mlx5e_add(struct mlx5_core_dev *mdev)
 	if (err)
 		return NULL;
 
+#ifdef CONFIG_MLX5_ESWITCH
 	if (MLX5_VPORT_MANAGER(mdev)) {
 		rpriv = mlx5e_alloc_nic_rep_priv(mdev);
 		if (!rpriv) {
@@ -4147,6 +4127,7 @@ static void *mlx5e_add(struct mlx5_core_dev *mdev)
 			return NULL;
 		}
 	}
+#endif
 
 	netdev = mlx5e_create_netdev(mdev, &mlx5e_nic_profile, rpriv);
 	if (!netdev) {
