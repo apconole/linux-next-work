@@ -492,7 +492,7 @@ list_set_head(struct ip_set *set, struct sk_buff *skb)
 	    (SET_WITH_COUNTER(set) &&
 	     nla_put_net32(skb, IPSET_ATTR_CADT_FLAGS,
 			   htonl(IPSET_FLAG_WITH_COUNTERS))) ||
-	    nla_put_net32(skb, IPSET_ATTR_REFERENCES, htonl(set->ref - 1)) ||
+	    nla_put_net32(skb, IPSET_ATTR_REFERENCES, htonl(set->ref)) ||
 	    nla_put_net32(skb, IPSET_ATTR_MEMSIZE,
 			  htonl(sizeof(*map) + map->size * map->dsize)))
 		goto nla_put_failure;
