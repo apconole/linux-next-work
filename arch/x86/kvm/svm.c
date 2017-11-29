@@ -5416,6 +5416,17 @@ static int svm_pre_leave_smm(struct kvm_vcpu *vcpu, u64 smbase)
 	return ret;
 }
 
+static int enable_smi_window(struct kvm_vcpu *vcpu)
+{
+	struct vcpu_svm *svm = to_svm(vcpu);
+
+	if (!gif_set(svm)) {
+		/* STGI will cause a vm exit */
+		return 1;
+	}
+	return 0;
+}
+
 static struct kvm_x86_ops svm_x86_ops = {
 	.cpu_has_kvm_support = has_svm,
 	.disabled_by_bios = is_disabled,
@@ -5531,6 +5542,7 @@ static struct kvm_x86_ops svm_x86_ops = {
 	.smi_allowed = svm_smi_allowed,
 	.pre_enter_smm = svm_pre_enter_smm,
 	.pre_leave_smm = svm_pre_leave_smm,
+	.enable_smi_window = enable_smi_window,
 };
 
 static int __init svm_init(void)
