@@ -1268,7 +1268,7 @@ static void of_i2c_register_devices(struct i2c_adapter *adap)
 		}
 
 		addr = of_get_property(node, "reg", &len);
-		if (!addr || (len < sizeof(int))) {
+		if (!addr || (len < sizeof(*addr))) {
 			dev_err(&adap->dev, "of_i2c: invalid reg on %s\n",
 				node->full_name);
 			continue;
