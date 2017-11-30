@@ -467,6 +467,16 @@ enum acpi_reconfig_event  {
 int acpi_reconfig_notifier_register(struct notifier_block *nb);
 int acpi_reconfig_notifier_unregister(struct notifier_block *nb);
 
+static inline void acpi_device_set_enumerated(struct acpi_device *adev)
+{
+	adev->flags.visited = true;
+}
+
+static inline void acpi_device_clear_enumerated(struct acpi_device *adev)
+{
+	adev->flags.visited = false;
+}
+
 #else	/* !CONFIG_ACPI */
 
 #define acpi_disabled 1
@@ -597,6 +607,14 @@ static inline int acpi_reconfig_notifier_register(struct notifier_block *nb)
 static inline int acpi_reconfig_notifier_unregister(struct notifier_block *nb)
 {
 	return -EINVAL;
+}
+
+static inline void acpi_device_set_enumerated(struct acpi_device *adev)
+{
+}
+
+static inline void acpi_device_clear_enumerated(struct acpi_device *adev)
+{
 }
 
 #endif	/* !CONFIG_ACPI */
