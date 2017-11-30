@@ -80,7 +80,7 @@ bool unwind_next_frame(struct unwind_state *state)
 		return false;
 
 	if (unwind_unsafe(state))
-		goto bad_address;
+		state->error = true;
 
 	if (unwind_end(state))
 		goto the_end;
@@ -88,15 +88,14 @@ bool unwind_next_frame(struct unwind_state *state)
 	next_bp = (unsigned long *)READ_ONCE(*state->bp);
 
 	/* make sure the next frame's data is accessible */
-	if (!update_stack_state(state, next_bp))
-		goto bad_address;
+	if (!update_stack_state(state, next_bp)) {
+		state->error = true;
+		goto the_end;
+	}
 
 	/* move to the next frame */
 	state->bp = next_bp;
 	return true;
-
-bad_address:
-	state->error = true;
 
 the_end:
 	state->stack_info.type = STACK_TYPE_UNKNOWN;
