@@ -1643,6 +1643,40 @@ void dm_init_normal_md_queue(struct mapped_device *md)
 	blk_queue_bounce_limit(md->queue, BLK_BOUNCE_ANY);
 }
 
+static void cleanup_mapped_device(struct mapped_device *md)
+{
+	if (md->wq)
+		destroy_workqueue(md->wq);
+	if (md->kworker_task)
+		kthread_stop(md->kworker_task);
+	mempool_destroy(md->io_pool);
+	mempool_destroy(md->rq_pool);
+	if (md->bs)
+		bioset_free(md->bs);
+
+	if (md->disk) {
+		spin_lock(&_minor_lock);
+		md->disk->private_data = NULL;
+		spin_unlock(&_minor_lock);
+		if (blk_get_integrity(md->disk))
+			blk_integrity_unregister(md->disk);
+		del_gendisk(md->disk);
+		put_disk(md->disk);
+	}
+
+	if (md->queue)
+		blk_cleanup_queue(md->queue);
+
+	cleanup_srcu_struct(&md->io_barrier);
+
+	if (md->bdev) {
+		bdput(md->bdev);
+		md->bdev = NULL;
+	}
+
+	dm_mq_cleanup_mapped_device(md);
+}
+
 /*
  * Allocate and initialise a blank device with a given minor.
  */
@@ -1691,13 +1725,13 @@ static struct mapped_device *alloc_dev(int minor)
 
 	md->queue = blk_alloc_queue_node(GFP_KERNEL, numa_node_id);
 	if (!md->queue)
-		goto bad_queue;
+		goto bad;
 
 	dm_init_md_queue(md);
 
 	md->disk = alloc_disk_node(1, numa_node_id);
 	if (!md->disk)
-		goto bad_disk;
+		goto bad;
 
 	atomic_set(&md->pending[0], 0);
 	atomic_set(&md->pending[1], 0);
@@ -1718,11 +1752,11 @@ static struct mapped_device *alloc_dev(int minor)
 
 	md->wq = alloc_workqueue("kdmflush", WQ_MEM_RECLAIM, 0);
 	if (!md->wq)
-		goto bad_thread;
+		goto bad;
 
 	md->bdev = bdget_disk(md->disk, 0);
 	if (!md->bdev)
-		goto bad_bdev;
+		goto bad;
 
 	bio_init(&md->flush_bio);
 	md->flush_bio.bi_bdev = md->bdev;
@@ -1739,15 +1773,8 @@ static struct mapped_device *alloc_dev(int minor)
 
 	return md;
 
-bad_bdev:
-	destroy_workqueue(md->wq);
-bad_thread:
-	del_gendisk(md->disk);
-	put_disk(md->disk);
-bad_disk:
-	blk_cleanup_queue(md->queue);
-bad_queue:
-	cleanup_srcu_struct(&md->io_barrier);
+bad:
+	cleanup_mapped_device(md);
 bad_io_barrier:
 	free_minor(minor);
 bad_minor:
@@ -1764,30 +1791,11 @@ static void free_dev(struct mapped_device *md)
 	int minor = MINOR(disk_devt(md->disk));
 
 	unlock_fs(md);
-	destroy_workqueue(md->wq);
 
-	if (md->kworker_task)
-		kthread_stop(md->kworker_task);
-	mempool_destroy(md->io_pool);
-	mempool_destroy(md->rq_pool);
-	if (md->bs)
-		bioset_free(md->bs);
+	cleanup_mapped_device(md);
 
-	spin_lock(&_minor_lock);
-	md->disk->private_data = NULL;
-	spin_unlock(&_minor_lock);
-	if (blk_get_integrity(md->disk))
-		blk_integrity_unregister(md->disk);
-	del_gendisk(md->disk);
-	put_disk(md->disk);
-	blk_cleanup_queue(md->queue);
-
-	cleanup_srcu_struct(&md->io_barrier);
 	free_table_devices(&md->table_devices);
 	dm_stats_cleanup(&md->stats);
-
-	dm_mq_cleanup_mapped_device(md);
-	bdput(md->bdev);
 	free_minor(minor);
 
 	module_put(THIS_MODULE);
@@ -2697,8 +2705,6 @@ int dm_kobject_uevent(struct mapped_device *md, enum kobject_action action,
 		return kobject_uevent_env(&disk_to_dev(md->disk)->kobj,
 					  action, envp);
 	}
-
-	dm_mq_cleanup_mapped_device(md);
 }
 
 uint32_t dm_next_uevent_seq(struct mapped_device *md)
