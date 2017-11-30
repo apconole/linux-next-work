@@ -1599,6 +1599,7 @@ ENTRY(nmi)
 	movq	%rsp, %rdi
 	movq	$-1, %rsi
 	call	do_nmi
+	UNWIND_UNSAFE_STACK
 
 	/*
 	 * Return back to user mode.  We must *not* do the normal exit
@@ -1815,6 +1816,7 @@ end_repeat_nmi:
 	movq %rsp,%rdi
 	movq $-1,%rsi
 	call do_nmi
+	UNWIND_UNSAFE_STACK
 
 	/* Did the NMI take a page fault? Restore cr2 if it did */
 	movq %cr2, %rcx
