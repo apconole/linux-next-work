@@ -1919,6 +1919,9 @@ static int __init i2c_init(void)
 	retval = bus_register(&i2c_bus_type);
 	if (retval)
 		return retval;
+
+	is_registered = true;
+
 #ifdef CONFIG_I2C_COMPAT
 	i2c_adapter_compat_class = class_compat_register("i2c-adapter");
 	if (!i2c_adapter_compat_class) {
@@ -1936,6 +1939,7 @@ class_err:
 	class_compat_unregister(i2c_adapter_compat_class);
 bus_err:
 #endif
+	is_registered = false;
 	bus_unregister(&i2c_bus_type);
 	return retval;
 }
@@ -2017,7 +2021,6 @@ static int i2c_check_for_quirks(struct i2c_adapter *adap, struct i2c_msg *msgs, 
 		}
 	}
 
-	is_registered = true;
 	return 0;
 }
 
