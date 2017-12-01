@@ -1810,11 +1810,6 @@ int ip6_route_info_create(struct fib6_config *cfg, struct rt6_info **rt_ret)
 	struct fib6_table *table;
 	int addr_type;
 
-	if (cfg->fc_flags & RTF_OFFLOAD) {
-		pr_warn("Userspace can not set RTF_OFFLOAD");
-		return -EINVAL;
-	}
-
 	if (cfg->fc_dst_len > 128 || cfg->fc_src_len > 128)
 		return -EINVAL;
 #ifndef CONFIG_IPV6_SUBTREES
@@ -3237,7 +3232,7 @@ static int rt6_fill_node(struct net *net,
 			goto nla_put_failure;
 	}
 
-	if (rt->rt6i_flags & RTF_OFFLOAD)
+	if (rt->rt6i_nh_flags & RTNH_F_OFFLOAD)
 		rtm->rtm_flags |= RTNH_F_OFFLOAD;
 
 	if (rt->dst.dev &&
