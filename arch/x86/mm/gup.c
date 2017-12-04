@@ -180,12 +180,14 @@ static inline void get_head_page_multiple(struct page *page, int nr)
 	SetPageReferenced(page);
 }
 
-static int __gup_device_huge(unsigned long pfn, unsigned long addr,
+static int __gup_device_huge_pmd(pmd_t pmd, unsigned long addr,
 		unsigned long end, struct page **pages, int *nr)
 {
 	int nr_start = *nr;
+	unsigned long pfn = pmd_pfn(pmd);
 	struct dev_pagemap *pgmap = NULL;
 
+	pfn += (addr & ~PMD_MASK) >> PAGE_SHIFT;
 	do {
 		struct page *page = pfn_to_page(pfn);
 
@@ -202,24 +204,6 @@ static int __gup_device_huge(unsigned long pfn, unsigned long addr,
 		pfn++;
 	} while (addr += PAGE_SIZE, addr != end);
 	return 1;
-}
-
-static int __gup_device_huge_pmd(pmd_t pmd, unsigned long addr,
-		unsigned long end, struct page **pages, int *nr)
-{
-	unsigned long fault_pfn;
-
-	fault_pfn = pmd_pfn(pmd) + ((addr & ~PMD_MASK) >> PAGE_SHIFT);
-	return __gup_device_huge(fault_pfn, addr, end, pages, nr);
-}
-
-static int __gup_device_huge_pud(pud_t pud, unsigned long addr,
-		unsigned long end, struct page **pages, int *nr)
-{
-	unsigned long fault_pfn;
-
-	fault_pfn = pud_pfn(pud) + ((addr & ~PUD_MASK) >> PAGE_SHIFT);
-	return __gup_device_huge(fault_pfn, addr, end, pages, nr);
 }
 
 static noinline int gup_huge_pmd(pmd_t pmd, unsigned long addr,
@@ -316,21 +300,32 @@ static int gup_pmd_range(pud_t pud, unsigned long addr, unsigned long end,
 static noinline int gup_huge_pud(pud_t pud, unsigned long addr,
 		unsigned long end, int write, struct page **pages, int *nr)
 {
+	pte_t pte = *(pte_t *)&pud;
 	struct page *head, *page;
 	int refs;
 
-	if (!pte_allows_gup(pud_val(pud), write))
+	if (!pte_allows_gup(pte_val(pte), write))
 		return 0;
-
-	VM_BUG_ON(!pfn_valid(pud_pfn(pud)));
-	if (pud_devmap(pud))
-		return __gup_device_huge_pud(pud, addr, end, pages, nr);
-
 	/* hugepages are never "special" */
-	VM_BUG_ON(pud_flags(pud) & _PAGE_SPECIAL);
+	VM_BUG_ON(pte_flags(pte) & _PAGE_SPECIAL);
+	VM_BUG_ON(!pfn_valid(pte_pfn(pte)));
 
 	refs = 0;
-	head = pud_page(pud);
+	head = pte_page(pte);
+
+	/* RHEL-only. See gup_pte_range() */
+	if (rh_flush_tlb_others_IPI_less()) {
+		if (!page_cache_get_speculative(head))
+			return 0;
+		if (unlikely(pte_val(pte) != pte_val(*(pte_t *)&pud))) {
+			put_page(head);
+			return 0;
+		}
+
+		/* Don't take ref to the head page twice */
+		refs--;
+	}
+
 	page = head + ((addr & ~PUD_MASK) >> PAGE_SHIFT);
 	do {
 		VM_BUG_ON_PAGE(compound_head(page) != head, page);
