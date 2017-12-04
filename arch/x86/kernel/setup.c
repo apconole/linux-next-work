@@ -916,6 +916,7 @@ static void rh_check_supported(void)
 		case 158: /* Kabylake-H/S */
 		case 142: /* Kabylake-U/Y */
 		case 133: /* Knights Mill */
+		case 122: /* Gemini Lake */
 		case 95: /* Denverton */
 		case 94: /* Skylake-S */
 		case 87: /* Knights Landing */
