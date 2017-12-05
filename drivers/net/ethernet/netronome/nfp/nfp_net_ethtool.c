@@ -430,7 +430,7 @@ static void nfp_net_get_stats(struct net_device *netdev,
 
 		do {
 			start = u64_stats_fetch_begin(&nn->r_vecs[j].rx_sync);
-			data[i++] = nn->r_vecs[j].rx_pkts;
+			data[0] = nn->r_vecs[j].rx_pkts;
 			tmp[0] = nn->r_vecs[j].hw_csum_rx_ok;
 			tmp[1] = nn->r_vecs[j].hw_csum_rx_inner_ok;
 			tmp[2] = nn->r_vecs[j].hw_csum_rx_error;
@@ -438,13 +438,15 @@ static void nfp_net_get_stats(struct net_device *netdev,
 
 		do {
 			start = u64_stats_fetch_begin(&nn->r_vecs[j].tx_sync);
-			data[i++] = nn->r_vecs[j].tx_pkts;
-			data[i++] = nn->r_vecs[j].tx_busy;
+			data[1] = nn->r_vecs[j].tx_pkts;
+			data[2] = nn->r_vecs[j].tx_busy;
 			tmp[3] = nn->r_vecs[j].hw_csum_tx;
 			tmp[4] = nn->r_vecs[j].hw_csum_tx_inner;
 			tmp[5] = nn->r_vecs[j].tx_gather;
 			tmp[6] = nn->r_vecs[j].tx_lso;
 		} while (u64_stats_fetch_retry(&nn->r_vecs[j].tx_sync, start));
+
+		data += 3;
 
 		for (k = 0; k < NN_ET_RVEC_GATHER_STATS; k++)
 			gathered_stats[k] += tmp[k];
