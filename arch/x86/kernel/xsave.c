@@ -11,10 +11,24 @@
 #include <linux/cpu.h>
 #include <linux/mman.h>
 #include <linux/pkeys.h>
+#include <asm/cpufeature.h>
 #include <asm/i387.h>
 #include <asm/fpu-internal.h>
 #include <asm/sigframe.h>
 #include <asm/xcr.h>
+
+static short xsave_cpuid_features[] __initdata = {
+	X86_FEATURE_FPU,
+	X86_FEATURE_XMM,
+	X86_FEATURE_AVX,
+	X86_FEATURE_MPX,
+	X86_FEATURE_MPX,
+	X86_FEATURE_AVX512F,
+	X86_FEATURE_AVX512F,
+	X86_FEATURE_AVX512F,
+	X86_FEATURE_INTEL_PT,
+	X86_FEATURE_PKU,
+};
 
 /*
  * Supported feature mask by the CPU and the kernel.
@@ -609,6 +623,7 @@ static void __init init_xstate_size(void)
 static void __init xstate_enable_boot_cpu(void)
 {
 	unsigned int eax, ebx, ecx, edx;
+	int i;
 
 	if (boot_cpu_data.cpuid_level < XSTATE_CPUID) {
 		WARN(1, KERN_ERR "XSTATE_CPUID missing\n");
@@ -622,6 +637,14 @@ static void __init xstate_enable_boot_cpu(void)
 		pr_err("FP/SSE not shown under xsave features 0x%llx\n",
 		       pcntxt_mask);
 		BUG();
+	}
+
+	/*
+	 * Clear XSAVE features that are disabled in the normal CPUID.
+	 */
+	for (i = 0; i < ARRAY_SIZE(xsave_cpuid_features); i++) {
+		if (!boot_cpu_has(xsave_cpuid_features[i]))
+			pcntxt_mask &= ~BIT(i);
 	}
 
 	/*
