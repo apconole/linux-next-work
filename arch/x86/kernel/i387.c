@@ -10,6 +10,7 @@
 #include <linux/sched.h>
 #include <linux/slab.h>
 
+#include <asm/cmdline.h>
 #include <asm/sigcontext.h>
 #include <asm/processor.h>
 #include <asm/math_emu.h>
@@ -175,6 +176,24 @@ static void init_thread_xstate(void)
 }
 
 /*
+ * We parse fpu parameters early because fpu_init() is executed
+ * before parse_early_param().
+ */
+static void fpu__init_parse_early_param(void)
+{
+	char arg[32];
+	char *argptr = arg;
+	int bit;
+
+	if (cmdline_find_option(boot_command_line, "clearcpuid", arg,
+				sizeof(arg)) &&
+	    get_option(&argptr, &bit) &&
+	    bit >= 0 &&
+	    bit < NCAPINTS * 32)
+		setup_clear_cpu_cap(bit);
+}
+
+/*
  * Called at bootup to set up the initial FPU state that is later cloned
  * into all processes.
  */
@@ -183,6 +202,8 @@ void fpu_init(void)
 {
 	unsigned long cr0;
 	unsigned long cr4_mask = 0;
+
+	fpu__init_parse_early_param();
 
 	if (cpu_has_fxsr)
 		cr4_mask |= X86_CR4_OSFXSR;
