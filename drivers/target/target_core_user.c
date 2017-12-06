@@ -1115,7 +1115,8 @@ static int tcmu_wait_genl_cmd_reply(struct tcmu_dev *udev)
        return ret;;
 }
 
-static int tcmu_netlink_event(struct tcmu_dev *udev, enum tcmu_genl_cmd cmd)
+static int tcmu_netlink_event(struct tcmu_dev *udev, enum tcmu_genl_cmd cmd,
+			      int reconfig_attr, const void *reconfig_data)
 {
 	struct sk_buff *skb;
 	void *msg_header;
@@ -1140,6 +1141,21 @@ static int tcmu_netlink_event(struct tcmu_dev *udev, enum tcmu_genl_cmd cmd)
 	ret = nla_put_u32(skb, TCMU_ATTR_DEVICE_ID, udev->dev_index);
 	if (ret < 0)
 		goto free_skb;
+
+	if (cmd == TCMU_CMD_RECONFIG_DEVICE) {
+		switch (reconfig_attr) {
+		case TCMU_ATTR_DEV_SIZE:
+			ret = nla_put_u64_64bit(skb, reconfig_attr,
+						*((u64 *)reconfig_data),
+						TCMU_ATTR_PAD);
+			break;
+		default:
+			BUG();
+		}
+
+		if (ret < 0)
+			goto free_skb;
+	}
 
 	genlmsg_end(skb, msg_header);
 
@@ -1248,7 +1264,7 @@ static int tcmu_configure_device(struct se_device *dev)
 		dev->dev_attrib.hw_max_sectors = 128;
 	dev->dev_attrib.hw_queue_depth = 128;
 
-	ret = tcmu_netlink_event(udev, TCMU_CMD_ADDED_DEVICE);
+	ret = tcmu_netlink_event(udev, TCMU_CMD_ADDED_DEVICE, 0, NULL);
 	if (ret)
 		goto err_netlink;
 
@@ -1307,7 +1323,7 @@ static void tcmu_destroy_device(struct se_device *dev)
 	del_timer_sync(&udev->timeout);
 
 	if (tcmu_dev_configured(udev)) {
-		tcmu_netlink_event(udev, TCMU_CMD_REMOVED_DEVICE);
+		tcmu_netlink_event(udev, TCMU_CMD_REMOVED_DEVICE, 0, NULL);
 
 		uio_unregister_device(&udev->uio_info);
 		kfree(udev->uio_info.name);
@@ -1573,23 +1589,24 @@ static ssize_t tcmu_dev_size_store(struct config_item *item, const char *page,
 	struct se_dev_attrib *da = container_of(to_config_group(item),
 						struct se_dev_attrib, da_group);
 	struct tcmu_dev *udev = TCMU_DEV(da->da_dev);
-	unsigned long val;
+	u64 val;
 	int ret;
 
-	ret = kstrtoul(page, 0, &val);
+	ret = kstrtou64(page, 0, &val);
 	if (ret < 0)
 		return ret;
-	udev->dev_size = val;
 
 	/* Check if device has been configured before */
 	if (tcmu_dev_configured(udev)) {
-		ret = tcmu_netlink_event(udev, TCMU_CMD_RECONFIG_DEVICE);
+		ret = tcmu_netlink_event(udev, TCMU_CMD_RECONFIG_DEVICE,
+					 TCMU_ATTR_DEV_SIZE, &val);
 		if (ret) {
 			pr_err("Unable to reconfigure device\n");
 			return ret;
 		}
 	}
 
+	udev->dev_size = val;
 	return count;
 }
 CONFIGFS_ATTR(tcmu_, dev_size);
