@@ -195,8 +195,8 @@ static int mlxsw_sp_erif_entry_get(struct mlxsw_sp *mlxsw_sp,
 }
 
 static int
-mlxsw_sp_table_erif_entries_dump(void *priv, bool counters_enabled,
-				 struct devlink_dpipe_dump_ctx *dump_ctx)
+mlxsw_sp_dpipe_table_erif_entries_dump(void *priv, bool counters_enabled,
+				       struct devlink_dpipe_dump_ctx *dump_ctx)
 {
 	struct devlink_dpipe_value match_value, action_value;
 	struct devlink_dpipe_action action = {0};
@@ -259,7 +259,7 @@ err_entry_get:
 	return err;
 }
 
-static int mlxsw_sp_table_erif_counters_update(void *priv, bool enable)
+static int mlxsw_sp_dpipe_table_erif_counters_update(void *priv, bool enable)
 {
 	struct mlxsw_sp *mlxsw_sp = priv;
 	int i;
@@ -291,8 +291,8 @@ static u64 mlxsw_sp_dpipe_table_erif_size_get(void *priv)
 static struct devlink_dpipe_table_ops mlxsw_sp_erif_ops = {
 	.matches_dump = mlxsw_sp_dpipe_table_erif_matches_dump,
 	.actions_dump = mlxsw_sp_dpipe_table_erif_actions_dump,
-	.entries_dump = mlxsw_sp_table_erif_entries_dump,
-	.counters_set_update = mlxsw_sp_table_erif_counters_update,
+	.entries_dump = mlxsw_sp_dpipe_table_erif_entries_dump,
+	.counters_set_update = mlxsw_sp_dpipe_table_erif_counters_update,
 	.size_get = mlxsw_sp_dpipe_table_erif_size_get,
 };
 
