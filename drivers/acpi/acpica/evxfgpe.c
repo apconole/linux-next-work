@@ -259,7 +259,7 @@ acpi_setup_gpe_for_wake(acpi_handle wake_device,
 	 * known as an "implicit notify". Note: The GPE is assumed to be
 	 * level-triggered (for windows compatibility).
 	 */
-	if ((gpe_event_info->flags & ACPI_GPE_DISPATCH_MASK) ==
+	if (ACPI_GPE_DISPATCH_TYPE(gpe_event_info->flags) ==
 	    ACPI_GPE_DISPATCH_NONE) {
 		/*
 		 * This is the first device for implicit notify on this GPE.
@@ -273,7 +273,7 @@ acpi_setup_gpe_for_wake(acpi_handle wake_device,
 	 * If we already have an implicit notify on this GPE, add
 	 * this device to the notify list.
 	 */
-	if ((gpe_event_info->flags & ACPI_GPE_DISPATCH_MASK) ==
+	if (ACPI_GPE_DISPATCH_TYPE(gpe_event_info->flags) ==
 	    ACPI_GPE_DISPATCH_NOTIFY) {
 
 		/* Ensure that the device is not already in the list */
@@ -469,7 +469,7 @@ acpi_get_gpe_status(acpi_handle gpe_device,
 
 	status = acpi_hw_get_gpe_status(gpe_event_info, event_status);
 
-	if (gpe_event_info->flags & ACPI_GPE_DISPATCH_MASK)
+	if (ACPI_GPE_DISPATCH_TYPE(gpe_event_info->flags))
 		*event_status |= ACPI_EVENT_FLAG_HANDLE;
 
       unlock_and_exit:
