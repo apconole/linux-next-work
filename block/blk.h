@@ -335,4 +335,6 @@ static inline int blk_throtl_init(struct request_queue *q) { return 0; }
 static inline void blk_throtl_exit(struct request_queue *q) { }
 #endif /* CONFIG_BLK_DEV_THROTTLING */
 
+extern void blk_drain_queue(struct request_queue *q);
+
 #endif /* BLK_INTERNAL_H */
