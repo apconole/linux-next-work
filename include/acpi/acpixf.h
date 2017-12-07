@@ -184,6 +184,9 @@ ACPI_EXTERNAL_RETURN_STATUS(acpi_status
 ACPI_EXTERNAL_RETURN_STATUS(acpi_status
 			    acpi_remove_interface(acpi_string interface_name))
 
+ACPI_EXTERNAL_RETURN_STATUS(acpi_status
+			    acpi_update_interfaces(u8 action))
+
 ACPI_EXTERNAL_RETURN_UINT32(u32
 			    acpi_check_address_range(acpi_adr_space_type
 						     space_id,
