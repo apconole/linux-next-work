@@ -445,6 +445,7 @@ struct acpi_gpe_register_info {
 	u8 enable_for_wake;	/* GPEs to keep enabled when sleeping */
 	u8 enable_for_run;	/* GPEs to keep enabled when running */
 	u8 base_gpe_number;	/* Base GPE number for this register */
+	u8 enable_mask;		/* Current mask of enabled GPEs */
 };
 
 /*
@@ -454,6 +455,7 @@ struct acpi_gpe_register_info {
 struct acpi_gpe_block_info {
 	struct acpi_namespace_node *node;
 	struct acpi_gpe_block_info *previous;
+	u8 enable_mask;		/* Current mask of enabled GPEs */
 	struct acpi_gpe_block_info *next;
 	struct acpi_gpe_xrupt_info *xrupt_block;	/* Backpointer to interrupt block */
 	struct acpi_gpe_register_info *register_info;	/* One per GPE register pair */
