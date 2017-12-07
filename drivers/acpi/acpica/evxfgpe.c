@@ -470,7 +470,7 @@ acpi_get_gpe_status(acpi_handle gpe_device,
 	status = acpi_hw_get_gpe_status(gpe_event_info, event_status);
 
 	if (ACPI_GPE_DISPATCH_TYPE(gpe_event_info->flags))
-		*event_status |= ACPI_EVENT_FLAG_HANDLE;
+		*event_status |= ACPI_EVENT_FLAG_ENABLE_SET;
 
       unlock_and_exit:
 	acpi_os_release_lock(acpi_gbl_gpe_lock, flags);

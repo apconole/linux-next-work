@@ -1171,7 +1171,7 @@ static void acpi_bus_set_run_wake_flags(struct acpi_device *device)
 						&event_status);
 	if (status == AE_OK)
 		device->wakeup.flags.run_wake =
-				!!(event_status & ACPI_EVENT_FLAG_HANDLE);
+				!!(event_status & ACPI_EVENT_FLAG_ENABLE_SET);
 }
 
 static void acpi_bus_get_wakeup_device_flags(struct acpi_device *device)
