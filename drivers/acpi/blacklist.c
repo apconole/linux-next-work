@@ -52,7 +52,7 @@ struct acpi_blacklist_item {
 	u32 is_critical_error;
 };
 
-static struct dmi_system_id acpi_rev_dmi_table[] __initdata;
+static const struct dmi_system_id acpi_rev_dmi_table[] __initdata;
 
 /*
  * POLICY: If *anything* doesn't work, put it on the blacklist.
@@ -138,3 +138,10 @@ int __init acpi_blacklisted(void)
 
 	return blacklisted;
 }
+
+static const struct dmi_system_id acpi_rev_dmi_table[] __initconst = {
+#ifdef CONFIG_ACPI_REV_OVERRIDE_POSSIBLE
+#endif
+        {}
+
+};
