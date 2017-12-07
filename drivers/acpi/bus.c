@@ -510,6 +510,37 @@ static void acpi_bus_notify(acpi_handle handle, u32 type, void *data)
 }
 
 /* --------------------------------------------------------------------------
+                             Device Matching
+   -------------------------------------------------------------------------- */
+
+/**
+ * acpi_get_first_physical_node - Get first physical node of an ACPI device
+ * @adev:       ACPI device in question
+ *
+ * Return: First physical node of ACPI device @adev
+ */
+struct device *acpi_get_first_physical_node(struct acpi_device *adev)
+{
+        struct mutex *physical_node_lock = &adev->physical_node_lock;
+        struct device *phys_dev;
+
+        mutex_lock(physical_node_lock);
+        if (list_empty(&adev->physical_node_list)) {
+                phys_dev = NULL;
+        } else {
+                const struct acpi_device_physical_node *node;
+
+                node = list_first_entry(&adev->physical_node_list,
+                                        struct acpi_device_physical_node, node);
+
+                phys_dev = node->dev;
+        }
+        mutex_unlock(physical_node_lock);
+        return phys_dev;
+}
+
+
+/* --------------------------------------------------------------------------
                              Initialization/Cleanup
    -------------------------------------------------------------------------- */
 
