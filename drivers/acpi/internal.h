@@ -37,8 +37,10 @@ void acpi_int340x_thermal_init(void);
 int acpi_sysfs_init(void);
 #ifdef CONFIG_ACPI_CONTAINER
 void acpi_container_init(void);
+void acpi_gpe_apply_masked_gpes(void);
 #else
 static inline void acpi_container_init(void) {}
+void acpi_gpe_apply_masked_gpes(void);
 #endif
 #ifdef CONFIG_ACPI_DOCK
 void register_dock_dependent_device(struct acpi_device *adev,
