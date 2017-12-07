@@ -314,6 +314,47 @@ ACPI_EXPORT_SYMBOL(acpi_setup_gpe_for_wake)
 
 /*******************************************************************************
  *
+ * FUNCTION:    acpi_mask_gpe
+ *
+ * PARAMETERS:  gpe_device          - Parent GPE Device. NULL for GPE0/GPE1
+ *              gpe_number          - GPE level within the GPE block
+ *              is_masked           - Whether the GPE is masked or not
+ *
+ * RETURN:      Status
+ *
+ * DESCRIPTION: Unconditionally mask/unmask the an individual GPE, ex., to
+ *              prevent a GPE flooding.
+ *
+ ******************************************************************************/
+acpi_status acpi_mask_gpe(acpi_handle gpe_device, u32 gpe_number, u8 is_masked)
+{
+	struct acpi_gpe_event_info *gpe_event_info;
+	acpi_status status;
+	acpi_cpu_flags flags;
+
+	ACPI_FUNCTION_TRACE(acpi_mask_gpe);
+
+	flags = acpi_os_acquire_lock(acpi_gbl_gpe_lock);
+
+	/* Ensure that we have a valid GPE number */
+
+	gpe_event_info = acpi_ev_get_gpe_event_info(gpe_device, gpe_number);
+	if (!gpe_event_info) {
+		status = AE_BAD_PARAMETER;
+		goto unlock_and_exit;
+	}
+
+	status = acpi_ev_mask_gpe(gpe_event_info, is_masked);
+
+unlock_and_exit:
+	acpi_os_release_lock(acpi_gbl_gpe_lock, flags);
+	return_ACPI_STATUS(status);
+}
+
+ACPI_EXPORT_SYMBOL(acpi_mask_gpe)
+
+/*******************************************************************************
+ *
  * FUNCTION:    acpi_set_gpe_wake_mask
  *
  * PARAMETERS:  gpe_device      - Parent GPE Device. NULL for GPE0/GPE1
@@ -370,12 +411,14 @@ acpi_set_gpe_wake_mask(acpi_handle gpe_device, u32 gpe_number, u8 action)
 
 		ACPI_SET_BIT(gpe_register_info->enable_for_wake,
 			     (u8)register_bit);
+		gpe_event_info->disable_for_dispatch = FALSE;
 		break;
 
 	case ACPI_GPE_DISABLE:
 
 		ACPI_CLEAR_BIT(gpe_register_info->enable_for_wake,
 			       (u8)register_bit);
+		gpe_event_info->disable_for_dispatch = TRUE;
 		break;
 
 	default:
