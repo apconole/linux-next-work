@@ -116,6 +116,7 @@
 #include <asm/microcode.h>
 #include <asm/mmu_context.h>
 #include <asm/kaslr.h>
+#include <asm/intel-family.h>
 
 /*
  * max_low_pfn_mapped: highest direct mapped pfn under 4GB
@@ -875,7 +876,54 @@ static void __init trim_low_memory_range(void)
 {
 	memblock_reserve(0, ALIGN(reserve_low, PAGE_SIZE));
 }
-	
+
+static bool valid_amd_processor(__u8 family, const char *model_id)
+{
+	bool valid;
+
+	if (family < 0x17)
+		valid = true;
+	else
+		valid = strstr(model_id, "AMD EPYC 7");
+
+	return valid;
+}
+
+static bool valid_intel_processor(__u8 model, __u8 stepping)
+{
+	bool valid;
+
+	switch(model) {
+	case INTEL_FAM6_KABYLAKE_DESKTOP:
+	case INTEL_FAM6_KABYLAKE_MOBILE:
+	case INTEL_FAM6_XEON_PHI_KNM:
+	case INTEL_FAM6_ATOM_GEMINI_LAKE:
+	case INTEL_FAM6_ATOM_DENVERTON:
+	case INTEL_FAM6_XEON_PHI_KNL:
+	case INTEL_FAM6_BROADWELL_XEON_D:
+	case INTEL_FAM6_BROADWELL_X:
+	case INTEL_FAM6_ATOM_SILVERMONT2:
+	case INTEL_FAM6_BROADWELL_GT3E:
+	case INTEL_FAM6_HASWELL_GT3E:
+	case INTEL_FAM6_HASWELL_ULT:
+		valid = true;
+		break;
+
+	case INTEL_FAM6_SKYLAKE_MOBILE:
+	case INTEL_FAM6_SKYLAKE_DESKTOP:
+	case INTEL_FAM6_SKYLAKE_X:
+		/* stepping > 4 is Cascade Lake and is not supported */
+		valid = (boot_cpu_data.x86_mask <= 4);
+		break;
+
+	default:
+		valid = (boot_cpu_data.x86_model <= INTEL_FAM6_HASWELL_X);
+		break;
+	}
+
+	return valid;
+}
+
 static void rh_check_supported(void)
 {
 	/* RHEL7 supports single cpu on guests only */
@@ -897,11 +945,9 @@ static void rh_check_supported(void)
 		mark_hardware_unsupported("Processor");
 	}
 
-	if ((boot_cpu_data.x86_vendor == X86_VENDOR_AMD) &&
-	    (boot_cpu_data.x86 >= 0x17)) {
-		/* RHEL7 supports model AMD EPYC 7xxx (Naples SP3) */
-		if (boot_cpu_data.x86 != 0x17 ||
-		    !strstr(boot_cpu_data.x86_model_id, "AMD EPYC 7")) {
+	if (boot_cpu_data.x86_vendor == X86_VENDOR_AMD) {
+		if (!valid_amd_processor(boot_cpu_data.x86,
+					 boot_cpu_data.x86_model_id)) {
 			pr_crit("Detected CPU family %xh model %d\n",
 				boot_cpu_data.x86,
 				boot_cpu_data.x86_model);
@@ -912,31 +958,13 @@ static void rh_check_supported(void)
 	/* Intel CPU family 6, model greater than 60 */
 	if ((boot_cpu_data.x86_vendor == X86_VENDOR_INTEL) &&
 	    ((boot_cpu_data.x86 == 6))) {
-		switch (boot_cpu_data.x86_model) {
-		case 158: /* Kabylake-H/S */
-		case 142: /* Kabylake-U/Y */
-		case 133: /* Knights Mill */
-		case 122: /* Gemini Lake */
-		case 95: /* Denverton */
-		case 94: /* Skylake-S */
-		case 87: /* Knights Landing */
-		case 86: /* Broadwell-DE SoC */
-		case 85: /* Purley */
-		case 79: /* Broadwell-EP and EX */
-		case 78: /* Skylake-Y */
-		case 77: /* Atom Avoton */
-		case 71: /* Broadwell-H */
-		case 70: /* Crystal Well */
-		case 69: /* Haswell ULT */
-			break;
-		default:
-			if (boot_cpu_data.x86_model > 63) {
-				pr_crit("Detected CPU family %d model %d\n",
-					boot_cpu_data.x86,
-					boot_cpu_data.x86_model);
-				mark_hardware_unsupported("Intel Processor");
-			}
-			break;
+		if (!valid_intel_processor(boot_cpu_data.x86_model,
+					   boot_cpu_data.x86_mask)) {
+			pr_crit("Detected CPU family %d model %d stepping %d\n",
+				boot_cpu_data.x86,
+				boot_cpu_data.x86_model,
+				boot_cpu_data.x86_mask);
+			mark_hardware_unsupported("Intel Processor");
 		}
 	}
 
