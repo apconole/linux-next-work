@@ -75,6 +75,8 @@ static inline const char *acpi_dev_name(struct acpi_device *adev)
 	return dev_name(&adev->dev);
 }
 
+struct device *acpi_get_first_physical_node(struct acpi_device *adev);
+
 enum acpi_irq_model_id {
 	ACPI_IRQ_MODEL_PIC = 0,
 	ACPI_IRQ_MODEL_IOAPIC,
@@ -503,6 +505,11 @@ static inline const char *acpi_dev_name(struct acpi_device *adev)
 static inline bool has_acpi_companion(struct device *dev)
 {
 	return false;
+}
+
+static inline struct device *acpi_get_first_physical_node(struct acpi_device *adev)
+{
+	return NULL;
 }
 
 static inline void acpi_early_init(void) { }
