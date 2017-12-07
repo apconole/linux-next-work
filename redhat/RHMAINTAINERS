@@ -881,6 +881,11 @@ F:	Documentation/networking/switchdev.txt
 F:	include/net/switchdev.h
 F:	net/switchdev/
 
+THUNDERBOLT
+M:	Jeremy McNicoll <jeremymc@redhat.com>
+S:	Maintained
+F:	drivers/thunderbolt/
+
 X86 ARCHITECTURE
 M:	Prarit Bhargava <prarit@redhat.com>
 M:	David Arcari <darcari@redhat.com>
