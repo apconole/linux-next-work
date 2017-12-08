@@ -474,20 +474,8 @@ void qede_config_rx_mode(struct net_device *ndev);
 void qede_fill_rss_params(struct qede_dev *edev,
 			  struct qed_update_vport_rss_params *rss, u8 *update);
 
-#ifdef CONFIG_QEDE_VXLAN
-void qede_add_vxlan_port(struct net_device *dev,
-			 sa_family_t sa_family, __be16 port);
-void qede_del_vxlan_port(struct net_device *dev,
-			 sa_family_t sa_family, __be16 port);
-#endif
-
-#ifdef CONFIG_QEDE_GENEVE
-void qede_add_geneve_port(struct net_device *dev,
-			  sa_family_t sa_family, __be16 port);
-void qede_del_geneve_port(struct net_device *dev,
-			  sa_family_t sa_family, __be16 port);
-#endif
-
+void qede_udp_tunnel_add(struct net_device *dev, struct udp_tunnel_info *ti);
+void qede_udp_tunnel_del(struct net_device *dev, struct udp_tunnel_info *ti);
 
 #ifdef CONFIG_DCB
 void qede_set_dcbnl_ops(struct net_device *ndev);

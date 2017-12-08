@@ -47,12 +47,7 @@
 #include <linux/netdev_features.h>
 #include <linux/udp.h>
 #include <linux/tcp.h>
-#ifdef CONFIG_QEDE_VXLAN
-#include <net/vxlan.h>
-#endif
-#ifdef CONFIG_QEDE_GENEVE
-#include <net/geneve.h>
-#endif
+#include <net/udp_tunnel.h>
 #include <linux/ip.h>
 #include <net/ipv6.h>
 #include <net/tcp.h>
@@ -556,14 +551,8 @@ static const struct net_device_ops qede_netdev_ops = {
 	.ndo_get_vf_config = qede_get_vf_config,
 	.ndo_set_vf_rate = qede_set_vf_rate,
 #endif
-#ifdef CONFIG_QEDE_VXLAN
-	.ndo_add_vxlan_port = qede_add_vxlan_port,
-	.ndo_del_vxlan_port = qede_del_vxlan_port,
-#endif
-#ifdef CONFIG_QEDE_GENEVE
-	.ndo_add_geneve_port = qede_add_geneve_port,
-	.ndo_del_geneve_port = qede_del_geneve_port,
-#endif
+	.extended.ndo_udp_tunnel_add = qede_udp_tunnel_add,
+	.extended.ndo_udp_tunnel_del = qede_udp_tunnel_del,
 	.ndo_features_check = qede_features_check,
 #ifdef CONFIG_RFS_ACCEL
 	.ndo_rx_flow_steer = qede_rx_flow_steer,
@@ -2049,12 +2038,7 @@ static int qede_open(struct net_device *ndev)
 	if (rc)
 		return rc;
 
-#ifdef CONFIG_QEDE_VXLAN
-	vxlan_get_rx_port(ndev);
-#endif
-#ifdef CONFIG_QEDE_GENEVE
-	geneve_get_rx_port(ndev);
-#endif
+	udp_tunnel_get_rx_info(ndev);
 
 	edev->ops->common->update_drv_state(edev->cdev, true);
 

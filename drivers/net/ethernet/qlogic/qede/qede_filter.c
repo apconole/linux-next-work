@@ -922,75 +922,74 @@ int qede_set_features(struct net_device *dev, netdev_features_t features)
 	return 0;
 }
 
-#ifdef CONFIG_QEDE_VXLAN
-void qede_add_vxlan_port(struct net_device *dev,
-			 sa_family_t sa_family, __be16 port)
+void qede_udp_tunnel_add(struct net_device *dev, struct udp_tunnel_info *ti)
 {
 	struct qede_dev *edev = netdev_priv(dev);
-	u16 t_port = ntohs(port);
+	u16 t_port = ntohs(ti->port);
 
-	if (edev->vxlan_dst_port)
+	switch (ti->type) {
+	case UDP_TUNNEL_TYPE_VXLAN:
+		if (edev->vxlan_dst_port)
+			return;
+
+		edev->vxlan_dst_port = t_port;
+
+		DP_VERBOSE(edev, QED_MSG_DEBUG, "Added vxlan port=%d",
+			   t_port);
+
+		set_bit(QEDE_SP_VXLAN_PORT_CONFIG, &edev->sp_flags);
+		break;
+	case UDP_TUNNEL_TYPE_GENEVE:
+		if (edev->geneve_dst_port)
+			return;
+
+		edev->geneve_dst_port = t_port;
+
+		DP_VERBOSE(edev, QED_MSG_DEBUG, "Added geneve port=%d",
+			   t_port);
+		set_bit(QEDE_SP_GENEVE_PORT_CONFIG, &edev->sp_flags);
+		break;
+	default:
 		return;
+	}
 
-	edev->vxlan_dst_port = t_port;
-
-	DP_VERBOSE(edev, QED_MSG_DEBUG, "Added vxlan port=%d", t_port);
-
-	set_bit(QEDE_SP_VXLAN_PORT_CONFIG, &edev->sp_flags);
 	schedule_delayed_work(&edev->sp_task, 0);
 }
 
-void qede_del_vxlan_port(struct net_device *dev,
-			 sa_family_t sa_family, __be16 port)
+void qede_udp_tunnel_del(struct net_device *dev, struct udp_tunnel_info *ti)
+
 {
 	struct qede_dev *edev = netdev_priv(dev);
-	u16 t_port = ntohs(port);
+	u16 t_port = ntohs(ti->port);
 
-	if (t_port != edev->vxlan_dst_port)
+	switch (ti->type) {
+	case UDP_TUNNEL_TYPE_VXLAN:
+		if (t_port != edev->vxlan_dst_port)
+			return;
+
+		edev->vxlan_dst_port = 0;
+
+		DP_VERBOSE(edev, QED_MSG_DEBUG, "Deleted vxlan port=%d",
+			   t_port);
+
+		set_bit(QEDE_SP_VXLAN_PORT_CONFIG, &edev->sp_flags);
+		break;
+	case UDP_TUNNEL_TYPE_GENEVE:
+		if (t_port != edev->geneve_dst_port)
+			return;
+
+		edev->geneve_dst_port = 0;
+
+		DP_VERBOSE(edev, QED_MSG_DEBUG, "Deleted geneve port=%d",
+			   t_port);
+		set_bit(QEDE_SP_GENEVE_PORT_CONFIG, &edev->sp_flags);
+		break;
+	default:
 		return;
+	}
 
-	edev->vxlan_dst_port = 0;
-
-	DP_VERBOSE(edev, QED_MSG_DEBUG, "Deleted vxlan port=%d", t_port);
-
-	set_bit(QEDE_SP_VXLAN_PORT_CONFIG, &edev->sp_flags);
 	schedule_delayed_work(&edev->sp_task, 0);
 }
-#endif
-
-#ifdef CONFIG_QEDE_GENEVE
-void qede_add_geneve_port(struct net_device *dev,
-			  sa_family_t sa_family, __be16 port)
-{
-	struct qede_dev *edev = netdev_priv(dev);
-	u16 t_port = ntohs(port);
-
-	if (edev->geneve_dst_port)
-		return;
-
-	edev->geneve_dst_port = t_port;
-
-	DP_VERBOSE(edev, QED_MSG_DEBUG, "Added geneve port=%d", t_port);
-	set_bit(QEDE_SP_GENEVE_PORT_CONFIG, &edev->sp_flags);
-	schedule_delayed_work(&edev->sp_task, 0);
-}
-
-void qede_del_geneve_port(struct net_device *dev,
-			  sa_family_t sa_family, __be16 port)
-{
-	struct qede_dev *edev = netdev_priv(dev);
-	u16 t_port = ntohs(port);
-
-	if (t_port != edev->geneve_dst_port)
-		return;
-
-	edev->geneve_dst_port = 0;
-
-	DP_VERBOSE(edev, QED_MSG_DEBUG, "Deleted geneve port=%d", t_port);
-	set_bit(QEDE_SP_GENEVE_PORT_CONFIG, &edev->sp_flags);
-	schedule_delayed_work(&edev->sp_task, 0);
-}
-#endif
 
 static int qede_set_mcast_rx_mac(struct qede_dev *edev,
 				 enum qed_filter_xcast_params_type opcode,
