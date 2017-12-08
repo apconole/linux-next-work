@@ -6449,17 +6449,21 @@ static int set_bitmap_file(struct mddev *mddev, int fd)
 		return -ENOENT; /* cannot remove what isn't there */
 	err = 0;
 	if (mddev->pers) {
-		mddev->pers->quiesce(mddev, 1);
 		if (fd >= 0) {
 			err = bitmap_create(mddev);
+			mddev->pers->quiesce(mddev, 1);
 			if (!err)
 				err = bitmap_load(mddev);
-		}
-		if (fd < 0 || err) {
+			if (err) {
+				bitmap_destroy(mddev);
+				fd = -1;
+			}
+			mddev->pers->quiesce(mddev, 0);
+		} else if (fd < 0) {
+			mddev->pers->quiesce(mddev, 1);
 			bitmap_destroy(mddev);
-			fd = -1; /* make sure to put the file */
+			mddev->pers->quiesce(mddev, 0);
 		}
-		mddev->pers->quiesce(mddev, 0);
 	}
 	if (fd < 0) {
 		struct file *f = mddev->bitmap_info.file;
@@ -6728,8 +6732,8 @@ static int update_array_info(struct mddev *mddev, mdu_array_info_t *info)
 				mddev->bitmap_info.default_offset;
 			mddev->bitmap_info.space =
 				mddev->bitmap_info.default_space;
-			mddev->pers->quiesce(mddev, 1);
 			rv = bitmap_create(mddev);
+			mddev->pers->quiesce(mddev, 1);
 			if (!rv)
 				rv = bitmap_load(mddev);
 			if (rv)
