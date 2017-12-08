@@ -38,79 +38,56 @@
 int idr_alloc_ext(struct idr_ext *idrext, void *ptr, unsigned long *index,
 		  unsigned long start, unsigned long end, gfp_t gfp)
 {
-	int istart, iend, result;
+	struct idr *block = NULL;
+	int ret;
 
-	/* Sanity check */
-	if (unlikely(start > UINT_MAX || end > UINT_MAX))
-		return -EINVAL;
+	if (!end || end > UINT_MAX)
+		end = UINT_MAX + 1UL;
 
-	if (start <= (unsigned long)INT_MAX) {
-		/* The start belongs to interval <0, INT_MAX> */
-		istart = (int)start;
+	if (unlikely(start >= end))
+		return -ENOSPC;
 
-		/*
-		 * If 'end' belongs to interval <INT_MAX+1, UINT_MAX> then
-		 * clip it to the maximum of first range. This means zero
-		 * because idr_alloc() uses this value for 'end' as maximum.
-		 */
-		if (end <= (unsigned long)INT_MAX)
-			iend = (int)end;
-		else
-			iend = 0;
+	/* Both endpoints map to low block */
+	if (end <= (unsigned long)INT_MAX + 1)
+		block = &idrext->idr_lo;
 
-		/* Try to allocate from the first block */
-		result = idr_alloc(&idrext->idr_lo, ptr, istart, iend, gfp);
-		if (result >= 0) {
-			if (index)
-				*index = result;
-			return 0;
-		}
-
-		/*
-		 * In case of error return it to the caller except the
-		 * situation that the part of the requested range is full
-		 * in lower block.
-		 */
-		if (result != -ENOSPC)
-			return result;
-
-		/*
-		 * There is no space in the lower block, move the start
-		 * to the beginning of the higher block and continue.
-		 * The higher range will be searched only if requested
-		 * one touches it -> this means (end > INT_MAX || end == 0)
-		 */
-		start = (unsigned long)INT_MAX + 1;
+	/* Both endpoints map to high block */
+	if (start >= (unsigned long)INT_MAX + 1) {
+		block = &idrext->idr_hi;
+		start -= (unsigned long)INT_MAX + 1;
+		end -= (unsigned long)INT_MAX + 1;
 	}
 
-	/*
-	 * Continue with higher block only if 'end' belongs to high interval
-	 * and is higher than 'start'.
-	 * Note that 'start' is always higher than INT_MAX at this place and
-	 * we need to zero value of 'end' that means maximum.
-	 */
-	if (!end || end > start) {
-		/* Adjust 'start' and 'end' by higher block offset */
-		istart = (int)(start - INT_MAX - 1);
-
-		if (end)
-			iend = (int)(end - INT_MAX - 1);
-		else
-			iend = 0;
-
-		/* Try to allocate from higher block */
-		result = idr_alloc(&idrext->idr_hi, ptr, istart, iend, gfp);
-		if (result >= 0) {
-			if (index)
-				/* Move the 'result' to higher range */
-				*index = (unsigned long)result + INT_MAX + 1;
-			return 0;
-		}
-
-		return result;
+	/* In the two cases above, just map and fail if idr_alloc() fails */
+	if (block) {
+		ret = idr_alloc(block, ptr, (int)start,
+				(int)(end > INT_MAX ? 0 : end), gfp);
+		goto done;
 	}
 
-	return -ENOSPC;
+	/* If range spans over both blocks instead: try to map to low block */
+	block = &idrext->idr_lo;
+	ret = idr_alloc(block, ptr, (int)start, 0, gfp);
+	if (ret != -ENOSPC)
+		goto done;
+
+	/* ...and if there's no space there, move to high block */
+	end -= (unsigned long)INT_MAX + 1;
+	block = &idrext->idr_hi;
+	ret = idr_alloc(block, ptr, 0, (int)(end > INT_MAX ? 0 : end), gfp);
+
+done:
+	if (unlikely(ret < 0))
+		return ret;
+
+	if (index) {
+		if (block == &idrext->idr_lo)
+			*index = (unsigned long)ret;
+		else
+			*index = (unsigned long)ret + INT_MAX + 1;
+	}
+
+	return 0;
 }
 EXPORT_SYMBOL(idr_alloc_ext);
 
@@ -122,7 +99,7 @@ void *idr_get_next_ext(struct idr_ext *idrext, unsigned long *nextidp)
 	if (*nextidp > UINT_MAX)
 		return NULL;
 
-	if (*nextidp <= (unsigned long)INT_MAX) {
+	if (*nextidp <= INT_MAX) {
 		idp = (int)*nextidp;
 		ptr = idr_get_next(&idrext->idr_lo, &idp);
 		if (ptr) {
