@@ -265,7 +265,7 @@ static void md_make_request(struct request_queue *q, struct bio *bio)
 		bio_endio(bio, bio_sectors(bio) == 0 ? 0 : -EROFS);
 		return;
 	}
-	smp_rmb(); /* Ensure implications of  'active' are visible */
+check_suspended:
 	rcu_read_lock();
 	if (mddev->suspended) {
 		DEFINE_WAIT(__wait);
@@ -288,7 +288,11 @@ static void md_make_request(struct request_queue *q, struct bio *bio)
 	 * go away inside make_request
 	 */
 	sectors = bio_sectors(bio);
-	mddev->pers->make_request(mddev, bio);
+	if (!mddev->pers->make_request(mddev, bio)) {
+		atomic_dec(&mddev->active_io);
+		wake_up(&mddev->sb_wait);
+		goto check_suspended;
+	}
 
 	cpu = part_stat_lock();
 	part_stat_inc(cpu, &mddev->gendisk->part0, ios[rw]);
@@ -311,6 +315,7 @@ void mddev_suspend(struct mddev *mddev)
 	if (mddev->suspended++)
 		return;
 	synchronize_rcu();
+	wake_up(&mddev->sb_wait);
 	wait_event(mddev->sb_wait, atomic_read(&mddev->active_io) == 0);
 	mddev->pers->quiesce(mddev, 1);
 
@@ -7704,12 +7709,14 @@ EXPORT_SYMBOL(md_done_sync);
  * If we need to update some array metadata (e.g. 'active' flag
  * in superblock) before writing, schedule a superblock update
  * and wait for it to complete.
+ * A return value of 'false' means that the write wasn't recorded
+ * and cannot proceed as the array is being suspend.
  */
-void md_write_start(struct mddev *mddev, struct bio *bi)
+bool md_write_start(struct mddev *mddev, struct bio *bi)
 {
 	int did_change = 0;
 	if (bio_data_dir(bi) != WRITE)
-		return;
+		return true;
 
 	BUG_ON(mddev->ro == 1);
 	if (mddev->ro == 2) {
@@ -7741,7 +7748,12 @@ void md_write_start(struct mddev *mddev, struct bio *bi)
 	if (did_change)
 		sysfs_notify_dirent_safe(mddev->sysfs_state);
 	wait_event(mddev->sb_wait,
-		   !test_bit(MD_SB_CHANGE_PENDING, &mddev->sb_flags));
+		   !test_bit(MD_SB_CHANGE_PENDING, &mddev->sb_flags) && !mddev->suspended);
+	if (test_bit(MD_SB_CHANGE_PENDING, &mddev->sb_flags)) {
+		percpu_ref_put(&mddev->writes_pending);
+		return false;
+	}
+	return true;
 }
 EXPORT_SYMBOL(md_write_start);
 

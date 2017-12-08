@@ -5284,7 +5284,6 @@ static void make_discard_request(struct mddev *mddev, struct bio *bi)
 
 	bi->bi_next = NULL;
 	bi->bi_phys_segments = 1; /* over-loaded to count active stripes */
-	md_write_start(mddev, bi);
 
 	stripe_sectors = conf->chunk_sectors *
 		(conf->raid_disks - conf->max_degraded);
@@ -5354,14 +5353,13 @@ static void make_discard_request(struct mddev *mddev, struct bio *bi)
 		release_stripe_plug(mddev, sh);
 	}
 
-	md_write_end(mddev);
 	remaining = raid5_dec_bi_active_stripes(bi);
 	if (remaining == 0) {
 		bio_endio(bi, 0);
 	}
 }
 
-static void raid5_make_request(struct mddev *mddev, struct bio * bi)
+static bool raid5_make_request(struct mddev *mddev, struct bio * bi)
 {
 	struct r5conf *conf = mddev->private;
 	int dd_idx;
@@ -5377,14 +5375,16 @@ static void raid5_make_request(struct mddev *mddev, struct bio * bi)
 		int ret = r5l_handle_flush_request(conf->log, bi);
 
 		if (ret == 0)
-			return;
+			return true;
 		if (ret == -ENODEV) {
 			md_flush_request(mddev, bi);
-			return;
+			return true;
 		}
 		/* ret == -EAGAIN, fallback */
 	}
 
+	if (!md_write_start(mddev, bi))
+		return false;
 	/*
 	 * If array is degraded, better not do chunk aligned read because
 	 * later we might have to read it again in order to reconstruct
@@ -5394,18 +5394,18 @@ static void raid5_make_request(struct mddev *mddev, struct bio * bi)
 	    !r5c_is_writeback(conf->log) &&
 	     mddev->reshape_position == MaxSector &&
 	     chunk_aligned_read(mddev,bi))
-		return;
+		return true;
 
 	if (unlikely(bi->bi_rw & REQ_DISCARD)) {
 		make_discard_request(mddev, bi);
-		return;
+		md_write_end(mddev);
+		return true;
 	}
 
 	logical_sector = bi->bi_sector & ~((sector_t)STRIPE_SECTORS-1);
 	last_sector = bio_end_sector(bi);
 	bi->bi_next = NULL;
 	bi->bi_phys_segments = 1;	/* over-loaded to count active stripes */
-	md_write_start(mddev, bi);
 
 	prepare_to_wait(&conf->wait_for_overlap, &w, TASK_UNINTERRUPTIBLE);
 	for (;logical_sector < last_sector; logical_sector += STRIPE_SECTORS) {
@@ -5547,6 +5547,7 @@ static void raid5_make_request(struct mddev *mddev, struct bio * bi)
 					 bi, 0);
 		bio_endio(bi, 0);
 	}
+	return true;
 }
 
 static sector_t raid5_size(struct mddev *mddev, sector_t sectors, int raid_disks);
