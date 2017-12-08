@@ -260,6 +260,12 @@ struct mddev {
 	int				hold_active;
 #define MD_HAS_PPL 9           /* The raid array has PPL feature set */
 #define MD_HAS_MULTIPLE_PPLS 10 /* The raid array has multiple PPLs feature set */
+#define MD_ALLOW_SB_UPDATE 11   /* md_check_recovery is allowed to update
+				 * the metadata without taking reconfig_mutex.
+				 */
+#define MD_UPDATING_SB 12       /* md_check_recovery is updating the metadata
+				 * without explicitly holding reconfig_mutex.
+				 */
 #define	UNTIL_IOCTL	1
 #define	UNTIL_STOP	2
 
