@@ -1313,28 +1313,6 @@ static bool raid1_write_request(struct mddev *mddev, struct bio *bio,
 	if(!md_write_start(mddev, bio)) /* wait on superblock update early */
 		return false;
 
-	if (bio_end_sector(bio) > mddev->suspend_lo &&
-	    bio->bi_sector < mddev->suspend_hi) {
-		/* As the suspend_* range is controlled by
-		 * userspace, we want an interruptible
-		 * wait.
-		 */
-		DEFINE_WAIT(w);
-		for (;;) {
-			sigset_t full, old;
-			prepare_to_wait(&conf->wait_barrier,
-					&w, TASK_INTERRUPTIBLE);
-			if (bio_end_sector(bio) <= mddev->suspend_lo ||
-			    bio->bi_sector >= mddev->suspend_hi)
-				break;
-			sigfillset(&full);
-			sigprocmask(SIG_BLOCK, &full, &old);
-			schedule();
-			sigprocmask(SIG_SETMASK, &old, NULL);
-		}
-		finish_wait(&conf->wait_barrier, &w);
-	}
-
 	if (conf->pending_count >= max_queued_requests) {
 		md_wakeup_thread(mddev->thread);
 		wait_event(conf->wait_barrier,
