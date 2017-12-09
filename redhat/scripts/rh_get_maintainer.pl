@@ -686,7 +686,7 @@ sub recent_git_authors {
 	warn("$P: git not found.  Add --nogit to options?\n");
 	return;
     }
-    if (!(-d ".git")) {
+    if (!(-e ".git")) {
 	warn("$P: .git directory not found.  Use a git repository for better results.\n");
 	warn("$P: perhaps 'git clone git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6.git'\n");
 	return;
