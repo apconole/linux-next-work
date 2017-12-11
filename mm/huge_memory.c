@@ -1988,12 +1988,11 @@ void __split_huge_page_pud(struct vm_area_struct *vma, unsigned long address,
 	struct mm_struct *mm = vma->vm_mm;
 	unsigned long haddr = address & HPAGE_PUD_MASK;
 
-	BUG_ON(vma->vm_start > haddr || vma->vm_end < haddr + HPAGE_PUD_SIZE);
-
 	mmu_notifier_invalidate_range_start(mm, haddr, haddr + HPAGE_PUD_SIZE);
 	ptl = pud_lock(mm, pud);
 	if (unlikely(!pud_trans_huge(*pud) && !pud_devmap(*pud)))
 		goto out;
+	BUG_ON(vma->vm_start > haddr || vma->vm_end < haddr + HPAGE_PUD_SIZE);
 	pudp_clear_flush_notify(vma, haddr, pud);
 
 out:
@@ -3278,8 +3277,6 @@ void __split_huge_page_pmd(struct vm_area_struct *vma, unsigned long address,
 	unsigned long mmun_start;	/* For mmu_notifiers */
 	unsigned long mmun_end;		/* For mmu_notifiers */
 
-	BUG_ON(vma->vm_start > haddr || vma->vm_end < haddr + HPAGE_PMD_SIZE);
-
 	mmun_start = haddr;
 	mmun_end   = haddr + HPAGE_PMD_SIZE;
 again:
@@ -3287,6 +3284,7 @@ again:
 	ptl = pmd_lock(mm, pmd);
 	if (unlikely(!pmd_trans_huge(*pmd) && !pmd_devmap(*pmd)))
 		goto unlock;
+	BUG_ON(vma->vm_start > haddr || vma->vm_end < haddr + HPAGE_PMD_SIZE);
 	if (vma_is_dax(vma)) {
 		pmd_t _pmd = pmdp_clear_flush_notify(vma, haddr, pmd);
 		if (is_huge_zero_pmd(_pmd))
