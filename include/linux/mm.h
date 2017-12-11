@@ -172,6 +172,7 @@ extern unsigned int kobjsize(const void *objp);
  */
 #define VM_PFN_MKWRITE	0x00000001	/* vm_operations_struct includes pfn_mkwrite */
 #define VM_HUGE_FAULT	0x00000002	/* vm_operations_struct includes huge_fault */
+#define VM_SPLIT	0x00000004	/* vm_operations_struct includes split */
 
 #if defined(CONFIG_X86)
 # define VM_PAT		VM_ARCH_1	/* PAT reserves whole VMA at once (x86) */
@@ -352,7 +353,8 @@ struct vm_operations_struct {
 	RH_KABI_EXTEND(int (*pfn_mkwrite)(struct vm_area_struct *vma, struct vm_fault *vmf))
 	RH_KABI_EXTEND(int (*huge_fault)(struct vm_fault *vmf,
 					 enum page_entry_size pe_size))
-
+	RH_KABI_EXTEND(int (*split)(struct vm_area_struct *area,
+				    unsigned long addr))
 };
 
 struct mmu_gather;
