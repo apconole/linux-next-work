@@ -227,7 +227,18 @@ enum lcsr_wr_src {
 	LCSR_WR_IMM,
 };
 
-#define OP_CARB_BASE	0x0e000000000ULL
-#define OP_CARB_OR	0x00000010000ULL
+#define OP_CARB_BASE		0x0e000000000ULL
+#define OP_CARB_OR		0x00000010000ULL
+
+#define NFP_CSR_CTX_PTR		0x20
+
+#define NFP_IND_ME_REFL_WR_SIG_INIT	3
+#define NFP_IND_ME_CTX_PTR_BASE_MASK	GENMASK(9, 0)
+#define NFP_IND_NUM_CONTEXTS		8
+
+static inline u32 nfp_get_ind_csr_ctx_ptr_offs(u32 read_offset)
+{
+	return (read_offset & ~NFP_IND_ME_CTX_PTR_BASE_MASK) | NFP_CSR_CTX_PTR;
+}
 
 #endif
