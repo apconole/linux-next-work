@@ -5,6 +5,7 @@
  * See LICENSE.qla2xxx for copyright and licensing details.
  */
 #include "qla_nvme.h"
+#include "qla_def.h"
 #include <linux/scatterlist.h>
 #include <linux/delay.h>
 #include <linux/nvme.h>
@@ -14,7 +15,7 @@ static struct nvme_fc_port_template qla_nvme_fc_transport;
 
 static void qla_nvme_unregister_remote_port(struct work_struct *);
 
-int qla_nvme_register_remote(struct scsi_qla_host *vha, struct fc_port *fcport)
+int qla_nvme_register_remote(scsi_qla_host_t *vha, fc_port_t *fcport)
 {
 	struct nvme_rport *rport;
 	int ret;
@@ -615,7 +616,7 @@ static int qla_nvme_wait_on_rport_del(fc_port_t *fcport)
 	return ret;
 }
 
-void qla_nvme_abort(struct qla_hw_data *ha, struct srb *sp)
+void qla_nvme_abort(struct qla_hw_data *ha, srb_t *sp)
 {
 	int rval;
 
@@ -678,7 +679,7 @@ static void qla_nvme_unregister_remote_port(struct work_struct *work)
 	}
 }
 
-void qla_nvme_delete(struct scsi_qla_host *vha)
+void qla_nvme_delete(scsi_qla_host_t *vha)
 {
 	struct nvme_rport *rport, *trport;
 	fc_port_t *fcport;
@@ -710,7 +711,7 @@ void qla_nvme_delete(struct scsi_qla_host *vha)
 	}
 }
 
-void qla_nvme_register_hba(struct scsi_qla_host *vha)
+void qla_nvme_register_hba(scsi_qla_host_t *vha)
 {
 	struct nvme_fc_port_template *tmpl;
 	struct qla_hw_data *ha;
