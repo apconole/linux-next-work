@@ -170,7 +170,7 @@ static void qla_nvme_sp_done(void *ptr, int res)
 		goto rel;
 
 	if (unlikely(res == QLA_FUNCTION_FAILED))
-		fd->status = NVME_SC_INTERNAL;
+		fd->status = NVME_SC_FC_TRANSPORT_ERROR;
 	else
 		fd->status = 0;
 
