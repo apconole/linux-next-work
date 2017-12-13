@@ -1645,7 +1645,7 @@ static struct crypto_alg aesni_algs[] = { {
 			.encrypt	= generic_gcmaes_encrypt,
 			.decrypt	= generic_gcmaes_decrypt,
 			.geniv		= "seqiv",
-			.ivsize		= 12,
+			.ivsize		= 16,
 			.maxauthsize	= 16,
 		},
 	},
