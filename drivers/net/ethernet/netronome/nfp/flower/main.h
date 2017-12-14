@@ -57,6 +57,9 @@ struct nfp_app;
 #define NFP_FL_MASK_REUSE_TIME_NS	40000
 #define NFP_FL_MASK_ID_LOCATION		1
 
+#define NFP_FLOWER_GOLDEN_RATIO_64	0x61C8864680B583EBull
+#define NFP_FLOWER_GOLDEN_RATIO_32	0x61C88647
+
 struct nfp_fl_mask_id {
 	struct circ_buf mask_id_free_list;
 	struct timespec64 *last_used;
@@ -134,6 +137,15 @@ struct nfp_fl_stats_frame {
 	__be64 byte_count;
 	__be64 stats_cookie;
 };
+
+static inline unsigned long nfp_flower_fl_key(unsigned long tc_flower_cookie)
+{
+#if BITS_PER_LONG == 64
+	return tc_flower_cookie * NFP_FLOWER_GOLDEN_RATIO_64;
+#else
+	return tc_flower_cookie * NFP_FLOWER_GOLDEN_RATIO_32;
+#endif
+}
 
 int nfp_flower_metadata_init(struct nfp_app *app);
 void nfp_flower_metadata_cleanup(struct nfp_app *app);

@@ -101,11 +101,12 @@ static int nfp_get_stats_entry(struct nfp_app *app, u32 *stats_context_id)
 struct nfp_fl_payload *
 nfp_flower_search_fl_table(struct nfp_app *app, unsigned long tc_flower_cookie)
 {
+	unsigned long fl_key = nfp_flower_fl_key(tc_flower_cookie);
 	struct nfp_flower_priv *priv = app->priv;
 	struct nfp_fl_payload *flower_entry;
 
 	hash_for_each_possible_rcu(priv->flow_table, flower_entry, link,
-				   tc_flower_cookie)
+				   fl_key)
 		if (flower_entry->tc_flower_cookie == tc_flower_cookie)
 			return flower_entry;
 
