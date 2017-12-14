@@ -115,10 +115,9 @@ int acpi_device_get_power(struct acpi_device *device, int *state)
 	/*
 	 * If we were unsure about the device parent's power state up to this
 	 * point, the fact that the device is in D0 implies that the parent has
-	 * to be in D0 too, except if ignore_parent is set.
+	 * to be in D0 too.
 	 */
-	if (!device->power.flags.ignore_parent && device->parent
-	    && device->parent->power.state == ACPI_STATE_UNKNOWN
+	if (device->parent && device->parent->power.state == ACPI_STATE_UNKNOWN
 	    && result == ACPI_STATE_D0)
 		device->parent->power.state = ACPI_STATE_D0;
 
@@ -164,21 +163,20 @@ int acpi_device_set_power(struct acpi_device *device, int state)
 	/* Make sure this is a valid target state */
 
 	if (state == device->power.state) {
-		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Device [%s] already in %s\n",
-				  device->pnp.bus_id,
+		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Device is already at %s\n",
 				  acpi_power_state_string(state)));
 		return 0;
 	}
 
 	if (!device->power.states[state].flags.valid) {
-		dev_warn(&device->dev, "Power state %s not supported\n",
-			 acpi_power_state_string(state));
+		printk(KERN_WARNING PREFIX "Device does not support %s\n",
+		       acpi_power_state_string(state));
 		return -ENODEV;
 	}
-	if (!device->power.flags.ignore_parent &&
-	    device->parent && (state < device->parent->power.state)) {
-		dev_warn(&device->dev,
-			 "Cannot transition to a higher-powered state than parent\n");
+	if (device->parent && (state < device->parent->power.state)) {
+		printk(KERN_WARNING PREFIX
+			      "Cannot set device to a higher-powered"
+			      " state than parent\n");
 		return -ENODEV;
 	}
 
@@ -191,8 +189,8 @@ int acpi_device_set_power(struct acpi_device *device, int state)
 
 	if (state < device->power.state && state != ACPI_STATE_D0
 	    && device->power.state >= ACPI_STATE_D3_HOT) {
-		dev_warn(&device->dev,
-			 "Cannot transition to non-D0 state from D3\n");
+		printk(KERN_WARNING PREFIX
+			"Cannot transition to non-D0 state from D3\n");
 		return -ENODEV;
 	}
 
@@ -219,8 +217,10 @@ int acpi_device_set_power(struct acpi_device *device, int state)
 
  end:
 	if (result) {
-		dev_warn(&device->dev, "Failed to change power state to %s\n",
-			 acpi_power_state_string(state));
+		printk(KERN_WARNING PREFIX
+			      "Device [%s] failed to transition to %s\n",
+			      device->pnp.bus_id,
+			      acpi_power_state_string(state));
 	} else {
 		device->power.state = state;
 		ACPI_DEBUG_PRINT((ACPI_DB_INFO,

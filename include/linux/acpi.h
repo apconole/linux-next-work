@@ -395,17 +395,6 @@ extern bool osc_sb_apei_support_acked;
 #define OSC_PCI_EXPRESS_CAPABILITY_CONTROL	0x00000010
 #define OSC_PCI_CONTROL_MASKS			0x0000001f
 
-#define ACPI_GSB_ACCESS_ATTRIB_QUICK		0x00000002
-#define ACPI_GSB_ACCESS_ATTRIB_SEND_RCV         0x00000004
-#define ACPI_GSB_ACCESS_ATTRIB_BYTE		0x00000006
-#define ACPI_GSB_ACCESS_ATTRIB_WORD		0x00000008
-#define ACPI_GSB_ACCESS_ATTRIB_BLOCK		0x0000000A
-#define ACPI_GSB_ACCESS_ATTRIB_MULTIBYTE	0x0000000B
-#define ACPI_GSB_ACCESS_ATTRIB_WORD_CALL	0x0000000C
-#define ACPI_GSB_ACCESS_ATTRIB_BLOCK_CALL	0x0000000D
-#define ACPI_GSB_ACCESS_ATTRIB_RAW_BYTES	0x0000000E
-#define ACPI_GSB_ACCESS_ATTRIB_RAW_PROCESS	0x0000000F
-
 extern acpi_status acpi_pci_osc_control_set(acpi_handle handle,
 					     u32 *mask, u32 req);
 
@@ -459,24 +448,6 @@ extern bool acpi_driver_match_device(struct device *dev,
 
 struct platform_device *acpi_create_platform_device(struct acpi_device *);
 #define ACPI_PTR(_ptr)	(_ptr)
-
-enum acpi_reconfig_event  {
-	ACPI_RECONFIG_DEVICE_ADD = 0,
-	ACPI_RECONFIG_DEVICE_REMOVE,
-};
-
-int acpi_reconfig_notifier_register(struct notifier_block *nb);
-int acpi_reconfig_notifier_unregister(struct notifier_block *nb);
-
-static inline void acpi_device_set_enumerated(struct acpi_device *adev)
-{
-	adev->flags.visited = true;
-}
-
-static inline void acpi_device_clear_enumerated(struct acpi_device *adev)
-{
-	adev->flags.visited = false;
-}
 
 #else	/* !CONFIG_ACPI */
 
@@ -599,24 +570,6 @@ static inline bool acpi_driver_match_device(struct device *dev,
 }
 
 #define ACPI_PTR(_ptr)	(NULL)
-
-static inline int acpi_reconfig_notifier_register(struct notifier_block *nb)
-{
-	return -EINVAL;
-}
-
-static inline int acpi_reconfig_notifier_unregister(struct notifier_block *nb)
-{
-	return -EINVAL;
-}
-
-static inline void acpi_device_set_enumerated(struct acpi_device *adev)
-{
-}
-
-static inline void acpi_device_clear_enumerated(struct acpi_device *adev)
-{
-}
 
 #endif	/* !CONFIG_ACPI */
 
