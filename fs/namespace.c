@@ -3506,6 +3506,8 @@ static int mntns_install(struct nsproxy *nsproxy, void *ns)
 		return err;
 	}
 
+	put_mnt_ns(old_mnt_ns);
+
 	/* Update the pwd and root */
 	set_fs_pwd(fs, &root);
 	set_fs_root(fs, &root);
