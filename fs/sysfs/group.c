@@ -354,7 +354,6 @@ int __compat_only_sysfs_link_entry_to_kobj(struct kobject *kobj,
 {
 	struct sysfs_dirent *target, *entry, *link;
 	struct sysfs_addrm_cxt acxt;
-	enum kobj_ns_type ns_type;
 	int rc;
 
 	/*
@@ -382,24 +381,10 @@ int __compat_only_sysfs_link_entry_to_kobj(struct kobject *kobj,
 		return -ENOMEM;
 	}
 
-	ns_type = sysfs_ns_type(kobj->sd);
-	if (ns_type)
-		link->s_ns = target_kobj->ktype->namespace(target_kobj);
 	link->s_symlink.target_sd = entry;
 
 	sysfs_addrm_start(&acxt, kobj->sd);
-	if (!ns_type ||
-	    (ns_type == sysfs_ns_type(link->s_symlink.target_sd->s_parent))) {
-		rc = sysfs_add_one(&acxt, link);
-	} else {
-		rc = -EINVAL;
-		WARN(1, KERN_WARNING
-		     "sysfs: symlink across ns_types %s/%s -> %s/%s\n",
-		     kobj->sd->s_name,
-		     link->s_name,
-		     link->s_symlink.target_sd->s_parent->s_name,
-		     link->s_symlink.target_sd->s_name);
-	}
+	rc = sysfs_add_one(&acxt, link);
 	sysfs_addrm_finish(&acxt);
 
 	if (rc)
