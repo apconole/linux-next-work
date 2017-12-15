@@ -1789,8 +1789,6 @@ static struct file_system_type cgroup_fs_type = {
 	.kill_sb = cgroup_kill_sb,
 };
 
-static struct kobject *cgroup_kobj;
-
 /**
  * cgroup_path - generate the path of a cgroup
  * @cgrp: the cgroup in question
@@ -4687,15 +4685,13 @@ int __init cgroup_init(void)
 	hash_add(css_set_table, &init_css_set.hlist, key);
 	BUG_ON(!init_root_id(&rootnode));
 
-	cgroup_kobj = kobject_create_and_add("cgroup", fs_kobj);
-	if (!cgroup_kobj) {
-		err = -ENOMEM;
+	err = sysfs_create_mount_point(fs_kobj, "cgroup");
+	if (err)
 		goto out;
-	}
 
 	err = register_filesystem(&cgroup_fs_type);
 	if (err < 0) {
-		kobject_put(cgroup_kobj);
+		sysfs_remove_mount_point(fs_kobj, "cgroup");
 		goto out;
 	}
 
