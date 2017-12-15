@@ -1861,7 +1861,6 @@ static int link_path_walk(const char *name, struct nameidata *nd)
 static int path_init(int dfd, const char *name, unsigned int flags,
 		     struct nameidata *nd, struct file **fp)
 {
-	int retval = 0;
 
 	nd->last_type = LAST_ROOT; /* if there are only slashes... */
 	nd->flags = flags | LOOKUP_JUMPED;
@@ -1869,13 +1868,8 @@ static int path_init(int dfd, const char *name, unsigned int flags,
 	if (flags & LOOKUP_ROOT) {
 		struct dentry *root = nd->root.dentry;
 		struct inode *inode = root->d_inode;
-		if (*name) {
-			if (!d_can_lookup(root))
-				return -ENOTDIR;
-			retval = inode_permission(inode, MAY_EXEC);
-			if (retval)
-				return retval;
-		}
+		if (*name && unlikely(!d_can_lookup(root)))
+			return -ENOTDIR;
 		nd->path = nd->root;
 		nd->inode = inode;
 		if (flags & LOOKUP_RCU) {
