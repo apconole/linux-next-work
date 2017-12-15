@@ -1791,15 +1791,6 @@ static struct ctl_table fs_table[] = {
 		.proc_handler	= proc_dointvec_minmax,
 		.extra1		= &one,
 	},
-	{
-		.procname	= "may_detach_mounts",
-		.data		= &may_detach_mounts,
-		.maxlen		= sizeof(may_detach_mounts),
-		.mode		= 0644,
-		.proc_handler	= proc_dointvec_minmax,
-		.extra1		= &zero,
-		.extra2		= &one,
-	},
 	{ }
 };
 
