@@ -247,7 +247,6 @@ int __compat_only_sysfs_link_entry_to_kobj(struct kobject *kobj,
 				      const char *target_name);
 
 void sysfs_notify(struct kobject *kobj, const char *dir, const char *attr);
-void sysfs_notify_dirent(struct sysfs_dirent *sd);
 struct sysfs_dirent *sysfs_get_dirent_ns(struct sysfs_dirent *parent_sd,
 					 const unsigned char *name,
 					 const void *ns);
@@ -430,9 +429,6 @@ static inline void sysfs_notify(struct kobject *kobj, const char *dir,
 				const char *attr)
 {
 }
-static inline void sysfs_notify_dirent(struct sysfs_dirent *sd)
-{
-}
 static inline struct sysfs_dirent *
 sysfs_get_dirent_ns(struct sysfs_dirent *parent_sd, const unsigned char *name,
 		    const void *ns)
@@ -476,6 +472,11 @@ static inline struct sysfs_dirent *
 sysfs_get_dirent(struct sysfs_dirent *parent_sd, const unsigned char *name)
 {
 	return sysfs_get_dirent_ns(parent_sd, name, NULL);
+}
+
+static inline void sysfs_notify_dirent(struct sysfs_dirent *sd)
+{
+	kernfs_notify(sd);
 }
 
 #endif /* _SYSFS_H_ */
