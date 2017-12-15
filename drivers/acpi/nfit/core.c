@@ -1609,14 +1609,14 @@ static int acpi_nfit_register_dimms(struct acpi_nfit_desc *acpi_desc)
 	 * is flushed, attempt to enable event notification.
 	 */
 	list_for_each_entry(nfit_mem, &acpi_desc->dimms, list) {
-		struct sysfs_dirent *nfit_sysfs;
+		struct kernfs_node *nfit_kernfs;
 
 		nvdimm = nfit_mem->nvdimm;
-		nfit_sysfs = sysfs_get_dirent(nvdimm_kobj(nvdimm)->sd, "nfit");
-		if (nfit_sysfs)
-			nfit_mem->flags_attr = sysfs_get_dirent(nfit_sysfs,
+		nfit_kernfs = sysfs_get_dirent(nvdimm_kobj(nvdimm)->sd, "nfit");
+		if (nfit_kernfs)
+			nfit_mem->flags_attr = sysfs_get_dirent(nfit_kernfs,
 					"flags");
-		sysfs_put(nfit_sysfs);
+		sysfs_put(nfit_kernfs);
 		if (!nfit_mem->flags_attr)
 			dev_warn(acpi_desc->dev, "%s: notifications disabled\n",
 					nvdimm_name(nvdimm));
@@ -2772,7 +2772,7 @@ static int acpi_nfit_check_deletions(struct acpi_nfit_desc *acpi_desc,
 static int acpi_nfit_desc_init_scrub_attr(struct acpi_nfit_desc *acpi_desc)
 {
 	struct device *dev = acpi_desc->dev;
-	struct sysfs_dirent *nfit;
+	struct kernfs_node *nfit;
 	struct device *bus_dev;
 
 	if (!ars_supported(acpi_desc->nvdimm_bus))

@@ -438,7 +438,7 @@ static void nd_pmem_notify(struct device *dev, enum nvdimm_event event)
 	struct nd_namespace_io *nsio;
 	struct resource res;
 	struct badblocks *bb;
-	struct sysfs_dirent *bb_state;
+	struct kernfs_node *bb_state;
 
 	if (event != NVDIMM_REVALIDATE_POISON)
 		return;

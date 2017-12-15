@@ -710,7 +710,7 @@ static int powernv_cpufreq_cpu_exit(struct cpufreq_policy *policy)
 static void powernv_cpufreq_cpu_ready(struct cpufreq_policy *policy)
 {
 	int ret;
-	struct sysfs_dirent *kn;
+	struct kernfs_node *kn;
 
 	kn = sysfs_get_dirent(policy->kobj.sd, throttle_attr_grp.name);
 	if (!kn) {

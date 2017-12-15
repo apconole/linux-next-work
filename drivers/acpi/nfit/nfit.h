@@ -132,7 +132,7 @@ struct nfit_mem {
 	struct acpi_nfit_system_address *spa_bdw;
 	struct acpi_nfit_interleave *idt_dcr;
 	struct acpi_nfit_interleave *idt_bdw;
-	struct sysfs_dirent *flags_attr;
+	struct kernfs_node *flags_attr;
 	struct nfit_flush *nfit_flush;
 	struct list_head list;
 	struct acpi_device *adev;
@@ -160,7 +160,7 @@ struct acpi_nfit_desc {
 	size_t ars_status_size;
 	struct work_struct work;
 	struct list_head list;
-	struct sysfs_dirent *scrub_count_state;
+	struct kernfs_node *scrub_count_state;
 	unsigned int scrub_count;
 	unsigned int scrub_mode;
 	unsigned int cancel:1;
