@@ -1951,6 +1951,36 @@ static inline int lookup_last(struct nameidata *nd, struct path *path)
 	return walk_component(nd, path, nd->flags & LOOKUP_FOLLOW);
 }
 
+static int handle_lookup_down(struct nameidata *nd)
+{
+	struct path path = nd->path;
+	struct inode *inode = nd->inode;
+	int err;
+
+	if (nd->flags & LOOKUP_RCU) {
+		/*
+		 * don't bother with unlazy_walk on failure - we are
+		 * at the very beginning of walk, so we lose nothing
+		 * if we simply redo everything in non-RCU mode
+		 */
+		if (unlikely(!__follow_mount_rcu(nd, &path, &inode)))
+			return -ECHILD;
+	} else {
+		dget(path.dentry);
+		err = follow_managed(&path, nd->flags);
+		if (unlikely(err < 0)) {
+			path_put_conditional(&path, nd);
+			return err;
+		}
+		if (err)
+			nd->flags |= LOOKUP_JUMPED;
+		inode = d_backing_inode(path.dentry);
+	}
+	path_to_nameidata(&path, nd);
+	nd->inode = inode;
+	return 0;
+}
+
 /* Returns 0 and nd will be valid on success; Retuns error, otherwise. */
 static int path_lookupat(int dfd, const char *name,
 				unsigned int flags, struct nameidata *nd)
@@ -1979,7 +2009,15 @@ static int path_lookupat(int dfd, const char *name,
 		return err;
 
 	current->total_link_count = 0;
-	err = link_path_walk(name, nd);
+
+	if (unlikely(flags & LOOKUP_DOWN)) {
+		err = handle_lookup_down(nd);
+		if (unlikely(err < 0))
+			terminate_walk(nd);
+	}
+
+	if (!err)
+		err = link_path_walk(name, nd);
 
 	if (!err && !(flags & LOOKUP_PARENT)) {
 		err = lookup_last(nd, &path);
