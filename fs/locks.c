@@ -1173,6 +1173,7 @@ int posix_lock_inode_wait(struct inode *inode, struct file_lock *fl)
 }
 EXPORT_SYMBOL(posix_lock_inode_wait);
 
+#ifdef CONFIG_MANDATORY_FILE_LOCKING
 /**
  * locks_mandatory_locked - Check for an active lock
  * @file: the file to check
@@ -1260,6 +1261,7 @@ int locks_mandatory_area(struct inode *inode, struct file *filp, loff_t start,
 }
 
 EXPORT_SYMBOL(locks_mandatory_area);
+#endif /* CONFIG_MANDATORY_FILE_LOCKING */
 
 static void lease_clear_pending(struct file_lock *fl, int arg)
 {
