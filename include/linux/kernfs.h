@@ -93,6 +93,7 @@ struct kernfs_elem_attr {
 	const struct kernfs_ops	*ops;
 	struct kernfs_open_node	*open;
 	loff_t			size;
+	struct kernfs_node	*notify_next;	/* for kernfs_notify() */
 };
 
 /*
