@@ -1550,6 +1550,7 @@ struct super_block {
 	RH_KABI_EXTEND(struct list_head s_inodes_wb)	/* writeback inodes */
 
 	RH_KABI_EXTEND(unsigned long	s_iflags)
+	RH_KABI_EXTEND(struct user_namespace *s_user_ns)
 };
 
 extern const unsigned super_block_wrapper_version;
@@ -2270,6 +2271,11 @@ void deactivate_locked_super(struct super_block *sb);
 int set_anon_super(struct super_block *s, void *data);
 int get_anon_bdev(dev_t *);
 void free_anon_bdev(dev_t);
+struct super_block *sget_userns(struct file_system_type *type,
+			int (*test)(struct super_block *,void *),
+			int (*set)(struct super_block *,void *),
+			int flags, struct user_namespace *user_ns,
+			void *data);
 struct super_block *sget(struct file_system_type *type,
 			int (*test)(struct super_block *,void *),
 			int (*set)(struct super_block *,void *),
