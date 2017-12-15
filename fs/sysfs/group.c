@@ -360,11 +360,11 @@ int __compat_only_sysfs_link_entry_to_kobj(struct kobject *kobj,
 	 * We don't own @target_kobj and it may be removed at any time.
 	 * Synchronize using sysfs_assoc_lock.
 	 */
-	spin_lock(&sysfs_assoc_lock);
+	spin_lock(&sysfs_symlink_target_lock);
 	target = target_kobj->sd;
 	if (target)
 		sysfs_get(target_kobj->sd);
-	spin_unlock(&sysfs_assoc_lock);
+	spin_unlock(&sysfs_symlink_target_lock);
 	if (!target)
 		return -ENOENT;
 
