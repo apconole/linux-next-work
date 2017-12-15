@@ -34,11 +34,6 @@ struct ovl_dir_cache {
 	struct list_head entries;
 };
 
-struct dir_context {
-	const filldir_t actor;
-	//loff_t pos;
-};
-
 struct ovl_readdir_data {
 	struct dir_context ctx;
 	struct dentry *dentry;
@@ -244,11 +239,11 @@ static inline int ovl_dir_read(struct path *realpath,
 		return PTR_ERR(realfile);
 
 	rdd->first_maybe_whiteout = NULL;
-	//rdd->ctx.pos = 0;
+	rdd->ctx.pos = 0;
 	do {
 		rdd->count = 0;
 		rdd->err = 0;
-		err = vfs_readdir(realfile, rdd->ctx.actor, rdd);
+		err = iterate_dir(realfile, &rdd->ctx);
 		if (err >= 0)
 			err = rdd->err;
 	} while (!err && rdd->count);
@@ -358,22 +353,17 @@ static struct ovl_dir_cache *ovl_cache_get(struct dentry *dentry)
 	return cache;
 }
 
-static int ovl_readdir(struct file *file, void *buf, filldir_t filler)
+static int ovl_iterate(struct file *file, struct dir_context *ctx)
 {
 	struct ovl_dir_file *od = file->private_data;
 	struct dentry *dentry = file->f_path.dentry;
 	struct ovl_cache_entry *p;
-	int res;
 
-	if (!file->f_pos)
+	if (!ctx->pos)
 		ovl_dir_reset(file);
 
-	if (od->is_real) {
-		res = vfs_readdir(od->realfile, filler, buf);
-		file->f_pos = od->realfile->f_pos;
-
-		return res;
-	}
+	if (od->is_real)
+		return iterate_dir(od->realfile, ctx);
 
 	if (!od->cache) {
 		struct ovl_dir_cache *cache;
@@ -383,16 +373,16 @@ static int ovl_readdir(struct file *file, void *buf, filldir_t filler)
 			return PTR_ERR(cache);
 
 		od->cache = cache;
-		ovl_seek_cursor(od, file->f_pos);
+		ovl_seek_cursor(od, ctx->pos);
 	}
 
 	while (od->cursor != &od->cache->entries) {
 		p = list_entry(od->cursor, struct ovl_cache_entry, l_node);
 		if (!p->is_whiteout)
-			if (filler(buf, p->name, p->len, file->f_pos, p->ino, p->type))
+			if (!dir_emit(ctx, p->name, p->len, p->ino, p->type))
 				break;
 		od->cursor = p->l_node.next;
-		file->f_pos++;
+		ctx->pos++;
 	}
 	return 0;
 }
@@ -515,6 +505,7 @@ static int ovl_dir_open(struct inode *inode, struct file *file)
 	od->is_real = !OVL_TYPE_MERGE(type);
 	od->is_upper = OVL_TYPE_UPPER(type);
 	file->private_data = od;
+	file->f_mode |= FMODE_KABI_ITERATE;
 
 	return 0;
 }
@@ -522,7 +513,7 @@ static int ovl_dir_open(struct inode *inode, struct file *file)
 const struct file_operations ovl_dir_operations = {
 	.read		= generic_read_dir,
 	.open		= ovl_dir_open,
-	.readdir	= ovl_readdir,
+	.iterate	= ovl_iterate,
 	.llseek		= ovl_dir_llseek,
 	.fsync		= ovl_dir_fsync,
 	.release	= ovl_dir_release,
