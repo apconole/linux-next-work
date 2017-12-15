@@ -2124,6 +2124,7 @@ struct file_system_type {
 #define FS_HAS_SUBTYPE		4
 #define FS_USERNS_MOUNT		8	/* Can be mounted by userns root */
 #define FS_USERNS_DEV_MOUNT	16 /* A userns mount does not imply MNT_NODEV */
+#define FS_USERNS_VISIBLE	32	/* FS must already be visible */
 #define FS_HAS_RM_XQUOTA	256	/* KABI: fs has the rm_xquota quota op */
 #define FS_HAS_INVALIDATE_RANGE	512	/* FS has new ->invalidatepage with length arg */
 #define FS_HAS_DIO_IODONE2	1024	/* KABI: fs supports new iodone */
@@ -2307,7 +2308,6 @@ extern int vfs_ustat(dev_t, struct kstatfs *);
 extern int freeze_super(struct super_block *super);
 extern int thaw_super(struct super_block *super);
 extern bool our_mnt(struct vfsmount *mnt);
-extern bool fs_fully_visible(struct file_system_type *);
 
 extern int current_umask(void);
 
