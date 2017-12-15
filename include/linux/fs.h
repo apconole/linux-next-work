@@ -1407,6 +1407,9 @@ struct mm_struct;
 extern struct list_head super_blocks;
 extern spinlock_t sb_lock;
 
+/* sb->s_iflags */
+#define SB_I_NOEXEC	0x00000002	/* Ignore executables on this fs */
+
 /* Possible states of 'frozen' field */
 enum {
 	SB_UNFROZEN = 0,		/* FS is unfrozen */
@@ -1542,6 +1545,8 @@ struct super_block {
 
 	RH_KABI_EXTEND(spinlock_t s_inode_wblist_lock)
 	RH_KABI_EXTEND(struct list_head s_inodes_wb)	/* writeback inodes */
+
+	RH_KABI_EXTEND(unsigned long	s_iflags)
 };
 
 extern const unsigned super_block_wrapper_version;
@@ -3331,5 +3336,7 @@ static inline iop_dentry_open_t get_dentry_open_iop(struct inode *inode)
 	const struct inode_operations_wrapper *wrapper = get_iop_wrapper(inode, 0);
 	return wrapper ? wrapper->dentry_open : NULL;
 }
+
+extern bool path_noexec(const struct path *path);
 
 #endif /* _LINUX_FS_H */
