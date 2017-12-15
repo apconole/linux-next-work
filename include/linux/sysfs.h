@@ -251,6 +251,11 @@ void sysfs_notify(struct kobject *kobj, const char *dir, const char *attr);
 
 int __must_check sysfs_init(void);
 
+static inline void sysfs_enable_ns(struct kernfs_node *kn)
+{
+	return kernfs_enable_ns(kn);
+}
+
 #else /* CONFIG_SYSFS */
 
 static inline int sysfs_schedule_callback(struct kobject *kobj,
@@ -435,6 +440,10 @@ static inline void sysfs_notify(struct kobject *kobj, const char *dir,
 static inline int __must_check sysfs_init(void)
 {
 	return 0;
+}
+
+static inline void sysfs_enable_ns(struct kernfs_node *kn)
+{
 }
 
 #endif /* CONFIG_SYSFS */
