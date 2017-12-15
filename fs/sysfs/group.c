@@ -383,8 +383,8 @@ int __compat_only_sysfs_link_entry_to_kobj(struct kobject *kobj,
 
 	link->s_symlink.target_sd = entry;
 
-	sysfs_addrm_start(&acxt, kobj->sd);
-	rc = sysfs_add_one(&acxt, link);
+	sysfs_addrm_start(&acxt);
+	rc = sysfs_add_one(&acxt, link, kobj->sd);
 	sysfs_addrm_finish(&acxt);
 
 	if (rc)
