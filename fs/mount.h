@@ -14,6 +14,8 @@ struct mnt_namespace {
 	u64			seq;	/* Sequence number to prevent loops */
 	wait_queue_head_t poll;
 	u64 event;
+	RH_KABI_EXTEND(unsigned int	mounts) /* # of mounts in the namespace */
+	RH_KABI_EXTEND(unsigned int	pending_mounts)
 };
 
 struct mnt_pcp {
