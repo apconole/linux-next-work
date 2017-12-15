@@ -185,7 +185,7 @@ static const char *safe_name(struct kobject *kobj, const char *orig_name)
 	int i = 0;
 
 	/* don't be a hero. After 16 tries give up */
-	while (i < 16 && (kn = sysfs_get_dirent(kobj->sd, NULL, name))) {
+	while (i < 16 && (kn = sysfs_get_dirent(kobj->sd, name))) {
 		sysfs_put(kn);
 		if (name != orig_name)
 			kfree(name);

@@ -59,7 +59,7 @@ static int nd_region_probe(struct device *dev)
 		if (devm_init_badblocks(dev, &nd_region->bb))
 			return -ENODEV;
 		nd_region->bb_state = sysfs_get_dirent(nd_region->dev.kobj.sd,
-						       NULL, "badblocks");
+						       "badblocks");
 		if (!nd_region->bb_state)
 			dev_warn(&nd_region->dev,
 					"'badblocks' notification disabled\n");

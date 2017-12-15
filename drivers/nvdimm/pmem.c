@@ -373,7 +373,7 @@ static int pmem_attach_disk(struct device *dev,
 	revalidate_disk(disk);
 
 	pmem->bb_state = sysfs_get_dirent(disk_to_dev(disk)->kobj.sd,
-					  NULL, "badblocks");
+					  "badblocks");
 	if (!pmem->bb_state)
 		dev_warn(dev, "'badblocks' notification disabled\n");
 

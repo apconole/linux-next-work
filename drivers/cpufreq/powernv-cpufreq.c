@@ -712,7 +712,7 @@ static void powernv_cpufreq_cpu_ready(struct cpufreq_policy *policy)
 	int ret;
 	struct sysfs_dirent *kn;
 
-	kn = sysfs_get_dirent(policy->kobj.sd, NULL, throttle_attr_grp.name);
+	kn = sysfs_get_dirent(policy->kobj.sd, throttle_attr_grp.name);
 	if (!kn) {
 		ret = sysfs_create_group(&policy->kobj, &throttle_attr_grp);
 		if (ret)

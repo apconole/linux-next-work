@@ -1612,11 +1612,10 @@ static int acpi_nfit_register_dimms(struct acpi_nfit_desc *acpi_desc)
 		struct sysfs_dirent *nfit_sysfs;
 
 		nvdimm = nfit_mem->nvdimm;
-		nfit_sysfs = sysfs_get_dirent(nvdimm_kobj(nvdimm)->sd,
-					      NULL, "nfit");
+		nfit_sysfs = sysfs_get_dirent(nvdimm_kobj(nvdimm)->sd, "nfit");
 		if (nfit_sysfs)
 			nfit_mem->flags_attr = sysfs_get_dirent(nfit_sysfs,
-					NULL, "flags");
+					"flags");
 		sysfs_put(nfit_sysfs);
 		if (!nfit_mem->flags_attr)
 			dev_warn(acpi_desc->dev, "%s: notifications disabled\n",
@@ -2780,12 +2779,12 @@ static int acpi_nfit_desc_init_scrub_attr(struct acpi_nfit_desc *acpi_desc)
 		return 0;
 
 	bus_dev = to_nvdimm_bus_dev(acpi_desc->nvdimm_bus);
-	nfit = sysfs_get_dirent(bus_dev->kobj.sd, NULL, "nfit");
+	nfit = sysfs_get_dirent(bus_dev->kobj.sd, "nfit");
 	if (!nfit) {
 		dev_err(dev, "sysfs_get_dirent 'nfit' failed\n");
 		return -ENODEV;
 	}
-	acpi_desc->scrub_count_state = sysfs_get_dirent(nfit, NULL, "scrub");
+	acpi_desc->scrub_count_state = sysfs_get_dirent(nfit, "scrub");
 	sysfs_put(nfit);
 	if (!acpi_desc->scrub_count_state) {
 		dev_err(dev, "sysfs_get_dirent 'scrub' failed\n");

@@ -3711,7 +3711,7 @@ level_store(struct mddev *mddev, const char *buf, size_t len)
 		if (sysfs_create_group(&mddev->kobj, &md_redundancy_group))
 			pr_warn("md: cannot register extra attributes for %s\n",
 				mdname(mddev));
-		mddev->sysfs_action = sysfs_get_dirent(mddev->kobj.sd, NULL, "sync_action");
+		mddev->sysfs_action = sysfs_get_dirent(mddev->kobj.sd, "sync_action");
 	}
 	if (oldpers->sync_request != NULL &&
 	    pers->sync_request == NULL) {
