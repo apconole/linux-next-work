@@ -53,8 +53,8 @@ struct user_namespace {
 	kuid_t			owner;
 	kgid_t			group;
 	unsigned int		proc_inum;
-	bool			may_mount_sysfs;
-	bool			may_mount_proc;
+	RH_KABI_DEPRECATE(bool,	may_mount_sysfs)
+	RH_KABI_DEPRECATE(bool, may_mount_proc)
 
 	/* Register of per-UID persistent keyrings for this namespace */
 #ifdef CONFIG_PERSISTENT_KEYRINGS
@@ -143,7 +143,5 @@ static inline bool userns_may_setgroups(const struct user_namespace *ns)
 	return true;
 }
 #endif
-
-void update_mnt_policy(struct user_namespace *userns);
 
 #endif /* _LINUX_USER_H */
