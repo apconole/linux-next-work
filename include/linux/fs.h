@@ -32,6 +32,10 @@
 #include <uapi/linux/fs.h>
 #include <linux/rh_kabi.h>
 
+#ifndef __GENKSYMS__
+#include <linux/mm_types.h>
+#endif
+
 struct export_operations;
 struct hd_geometry;
 struct iovec;
@@ -3174,6 +3178,11 @@ extern void replace_mount_options(struct super_block *sb, char *options);
 static inline bool io_is_direct(struct file *filp)
 {
 	return (filp->f_flags & O_DIRECT) || IS_DAX(filp->f_mapping->host);
+}
+
+static inline bool vma_is_dax(struct vm_area_struct *vma)
+{
+	return vma->vm_file && IS_DAX(vma->vm_file->f_mapping->host);
 }
 
 static inline ino_t parent_ino(struct dentry *dentry)
