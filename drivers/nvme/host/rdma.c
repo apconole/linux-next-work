@@ -1515,7 +1515,12 @@ static void nvme_rdma_complete_rq(struct request *rq)
 	nvme_complete_rq(rq);
 }
 
+static struct blk_mq_aux_ops nvme_rdma_mq_aux_ops = {
+	.reinit_request	= nvme_rdma_reinit_request,
+};
+
 static struct blk_mq_ops nvme_rdma_mq_ops = {
+	.aux_ops	= &nvme_rdma_mq_aux_ops,
 	.queue_rq	= nvme_rdma_queue_rq,
 	.complete	= nvme_rdma_complete_rq,
 	.init_request	= nvme_rdma_init_request,
@@ -1525,6 +1530,7 @@ static struct blk_mq_ops nvme_rdma_mq_ops = {
 };
 
 static struct blk_mq_ops nvme_rdma_admin_mq_ops = {
+	.aux_ops	= &nvme_rdma_mq_aux_ops,
 	.queue_rq	= nvme_rdma_queue_rq,
 	.complete	= nvme_rdma_complete_rq,
 	.init_request	= nvme_rdma_init_admin_request,
@@ -1568,8 +1574,6 @@ static int nvme_rdma_configure_admin_queue(struct nvme_rdma_ctrl *ctrl)
 	error = blk_mq_alloc_tag_set(&ctrl->admin_tag_set);
 	if (error)
 		goto out_put_dev;
-	blk_mq_set_aux_func(&ctrl->admin_tag_set, reinit_request,
-			nvme_rdma_reinit_request);
 
 	ctrl->ctrl.admin_q = blk_mq_init_queue(&ctrl->admin_tag_set);
 	if (IS_ERR(ctrl->ctrl.admin_q)) {
@@ -1801,7 +1805,6 @@ static int nvme_rdma_create_io_queues(struct nvme_rdma_ctrl *ctrl)
 	if (ret)
 		goto out_put_dev;
 	ctrl->ctrl.tagset = &ctrl->tag_set;
-	blk_mq_set_aux_func(&ctrl->tag_set, reinit_request, nvme_rdma_reinit_request);
 
 	ctrl->ctrl.connect_q = blk_mq_init_queue(&ctrl->tag_set);
 	if (IS_ERR(ctrl->ctrl.connect_q)) {

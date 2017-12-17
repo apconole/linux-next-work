@@ -1242,7 +1242,12 @@ static struct blk_mq_ops nvme_mq_admin_ops = {
 	.timeout	= nvme_timeout,
 };
 
+static struct blk_mq_aux_ops nvme_mq_aux_ops = {
+	.map_queues	= nvme_pci_map_queues,
+};
+
 static struct blk_mq_ops nvme_mq_ops = {
+	.aux_ops	= &nvme_mq_aux_ops,
 	.queue_rq	= nvme_queue_rq,
 	.complete	= nvme_pci_complete_rq,
 	.init_hctx	= nvme_init_hctx,
@@ -1789,7 +1794,6 @@ static int nvme_dev_add(struct nvme_dev *dev)
 
 		if (blk_mq_alloc_tag_set(&dev->tagset))
 			return 0;
-		blk_mq_set_aux_func(&dev->tagset, map_queues, nvme_pci_map_queues);
 		dev->ctrl.tagset = &dev->tagset;
 
 		nvme_dbbuf_set(dev);

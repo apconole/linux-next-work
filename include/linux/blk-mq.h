@@ -179,10 +179,6 @@ struct blk_mq_aux_ops {
 	put_budget_fn		*put_budget;
 };
 
-#define blk_mq_set_aux_func(set, field, func_ptr) do { \
-	(set)->ops->aux_ops->field = (func_ptr); \
-} while (0)
-
 struct blk_mq_ops {
 	/*
 	 * Queue request

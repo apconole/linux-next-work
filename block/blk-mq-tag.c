@@ -302,7 +302,7 @@ int blk_mq_reinit_tagset(struct blk_mq_tag_set *set)
 {
 	int i, j, ret = 0;
 
-	if (!set->ops->aux_ops->reinit_request)
+	if (!set->ops->aux_ops || !set->ops->aux_ops->reinit_request)
 		goto out;
 
 	for (i = 0; i < set->nr_hw_queues; i++) {

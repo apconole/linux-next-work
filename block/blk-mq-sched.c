@@ -307,7 +307,7 @@ void blk_mq_sched_dispatch_requests(struct blk_mq_hw_ctx *hctx)
 		}
 	} else if (has_sched_dispatch) {
 		blk_mq_do_dispatch_sched(hctx);
-	} else if (q->mq_ops->aux_ops->get_budget) {
+	} else if (q->mq_ops->aux_ops && q->mq_ops->aux_ops->get_budget) {
 		/*
 		 * If we need to get budget before queuing request, we
 		 * dequeue request one by one from sw queue for avoiding

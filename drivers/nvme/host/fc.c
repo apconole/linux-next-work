@@ -2497,7 +2497,12 @@ nvme_fc_terminate_exchange(struct request *req, void *data, bool reserved)
 	}
 }
 
+static struct blk_mq_aux_ops nvme_fc_mq_aux_ops = {
+	.reinit_request	= nvme_fc_reinit_request,
+};
+
 static struct blk_mq_ops nvme_fc_mq_ops = {
+	.aux_ops	= &nvme_fc_mq_aux_ops,
 	.queue_rq	= nvme_fc_queue_rq,
 	.complete	= nvme_fc_complete_rq,
 	.init_request	= nvme_fc_init_request,
@@ -2545,8 +2550,6 @@ nvme_fc_create_io_queues(struct nvme_fc_ctrl *ctrl)
 	ret = blk_mq_alloc_tag_set(&ctrl->tag_set);
 	if (ret)
 		return ret;
-
-	blk_mq_set_aux_func(&ctrl->tag_set, reinit_request, nvme_fc_reinit_request);
 
 	ctrl->ctrl.tagset = &ctrl->tag_set;
 
@@ -3071,6 +3074,7 @@ nvme_fc_connect_ctrl_work(struct work_struct *work)
 
 
 static struct blk_mq_ops nvme_fc_admin_mq_ops = {
+	.aux_ops	= &nvme_fc_mq_aux_ops,
 	.queue_rq	= nvme_fc_queue_rq,
 	.complete	= nvme_fc_complete_rq,
 	.init_request	= nvme_fc_init_admin_request,
@@ -3187,9 +3191,6 @@ nvme_fc_init_ctrl(struct device *dev, struct nvmf_ctrl_options *opts,
 	ret = blk_mq_alloc_tag_set(&ctrl->admin_tag_set);
 	if (ret)
 		goto out_free_queues;
-
-	blk_mq_set_aux_func(&ctrl->admin_tag_set, reinit_request,
-			nvme_fc_reinit_request);
 
 	ctrl->ctrl.admin_q = blk_mq_init_queue(&ctrl->admin_tag_set);
 	if (IS_ERR(ctrl->ctrl.admin_q)) {

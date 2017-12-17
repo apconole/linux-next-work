@@ -2562,7 +2562,7 @@ static int blk_mq_alloc_rq_maps(struct blk_mq_tag_set *set)
 
 static int blk_mq_update_queue_map(struct blk_mq_tag_set *set)
 {
-	if (set->ops->aux_ops->map_queues)
+	if (set->ops->aux_ops && set->ops->aux_ops->map_queues)
 		return set->ops->aux_ops->map_queues(set);
 	else
 		return blk_mq_map_queues(set);
@@ -2617,15 +2617,10 @@ int blk_mq_alloc_tag_set(struct blk_mq_tag_set *set)
 		return -ENOMEM;
 
 	ret = -ENOMEM;
-	set->ops->aux_ops = kzalloc_node(sizeof(*set->ops->aux_ops),
-			GFP_KERNEL, set->numa_node);
-	if (!set->ops->aux_ops)
-		goto out_free_tags;
-
 	set->mq_map = kzalloc_node(sizeof(*set->mq_map) * nr_cpu_ids,
 			GFP_KERNEL, set->numa_node);
 	if (!set->mq_map)
-		goto out_free_aux_ops;
+		goto out_free_tags;
 
 	ret = blk_mq_update_queue_map(set);
 	if (ret)
@@ -2643,8 +2638,6 @@ int blk_mq_alloc_tag_set(struct blk_mq_tag_set *set)
 out_free_mq_map:
 	kfree(set->mq_map);
 	set->mq_map = NULL;
-out_free_aux_ops:
-	kfree(set->ops->aux_ops);
 out_free_tags:
 	kfree(set->tags);
 	set->tags = NULL;
@@ -2655,9 +2648,6 @@ EXPORT_SYMBOL(blk_mq_alloc_tag_set);
 void blk_mq_free_tag_set(struct blk_mq_tag_set *set)
 {
 	int i;
-
-	kfree(set->ops->aux_ops);
-	set->ops->aux_ops = NULL;
 
 	for (i = 0; i < nr_cpu_ids; i++)
 		blk_mq_free_map_and_requests(set, i);

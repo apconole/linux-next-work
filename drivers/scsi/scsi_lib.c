@@ -2028,7 +2028,13 @@ struct request_queue *scsi_alloc_queue(struct scsi_device *sdev)
 	return q;
 }
 
+static struct blk_mq_aux_ops scsi_mq_aux_ops = {
+	.get_budget	= scsi_mq_get_budget,
+	.put_budget	= scsi_mq_put_budget,
+};
+
 static struct blk_mq_ops scsi_mq_ops = {
+	.aux_ops	= &scsi_mq_aux_ops,
 	.queue_rq	= scsi_queue_rq,
 	.complete	= scsi_softirq_done,
 	.timeout        = scsi_timeout,
@@ -2075,10 +2081,6 @@ int scsi_mq_setup_tags(struct Scsi_Host *shost)
 	shost->tag_set->driver_data = shost;
 
 	ret = blk_mq_alloc_tag_set(shost->tag_set);
-	if (!ret) {
-		blk_mq_set_aux_func(shost->tag_set, get_budget, scsi_mq_get_budget);
-		blk_mq_set_aux_func(shost->tag_set, put_budget, scsi_mq_put_budget);
-	}
 	return ret;
 }
 
