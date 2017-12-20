@@ -785,7 +785,6 @@ static struct raid_set *raid_set_alloc(struct dm_target *ti, struct raid_type *r
 	/* Add @rs to global list. */
 	list_add(&rs->list, &raid_sets);
 
-
 	/*
 	 * Remaining items to be initialized by further RAID params:
 	 *  rs->md.persistent
@@ -1914,7 +1913,7 @@ static bool rs_reshape_requested(struct raid_set *rs)
 	if (rs_takeover_requested(rs))
 		return false;
 
-	if (!mddev->level)
+	if (rs_is_raid0(rs))
 		return false;
 
 	change = mddev->new_layout != mddev->layout ||
@@ -1922,7 +1921,7 @@ static bool rs_reshape_requested(struct raid_set *rs)
 		 rs->delta_disks;
 
 	/* Historical case to support raid1 reshape without delta disks */
-	if (mddev->level == 1) {
+	if (rs_is_raid1(rs)) {
 		if (rs->delta_disks)
 			return !!rs->delta_disks;
 
@@ -1930,7 +1929,7 @@ static bool rs_reshape_requested(struct raid_set *rs)
 		       mddev->raid_disks != rs->raid_disks;
 	}
 
-	if (mddev->level == 10)
+	if (rs_is_raid10(rs))
 		return change &&
 		       !__is_raid10_far(mddev->new_layout) &&
 		       rs->delta_disks >= 0;
@@ -2741,14 +2740,14 @@ static int rs_setup_takeover(struct raid_set *rs)
 	sector_t new_data_offset = rs->dev[0].rdev.data_offset ? 0 : rs->data_offset;
 
 	if (rt_is_raid10(rs->raid_type)) {
-		if (mddev->level == 0) {
+		if (rs_is_raid0(rs)) {
 			/* Userpace reordered disks -> adjust raid_disk indexes */
 			__reorder_raid_disk_indexes(rs);
 
 			/* raid0 -> raid10_far layout */
 			mddev->layout = raid10_format_to_md_layout(rs, ALGORITHM_RAID10_FAR,
 								   rs->raid10_copies);
-		} else if (mddev->level == 1)
+		} else if (rs_is_raid1(rs))
 			/* raid1 -> raid10_near layout */
 			mddev->layout = raid10_format_to_md_layout(rs, ALGORITHM_RAID10_NEAR,
 								   rs->raid_disks);
@@ -2974,7 +2973,7 @@ static void configure_discard_support(struct raid_set *rs)
 	struct dm_target *ti = rs->ti;
 
 	/* RAID level 4,5,6 require discard_zeroes_data for data integrity! */
-	raid456 = (rs->md.level == 4 || rs->md.level == 5 || rs->md.level == 6);
+	raid456 = rs_is_raid456(rs);
 
 	for (i = 0; i < rs->raid_disks; i++) {
 		struct request_queue *q;
@@ -3001,7 +3000,7 @@ static void configure_discard_support(struct raid_set *rs)
 	 * RAID1 and RAID10 personalities require bio splitting,
 	 * RAID0/4/5/6 don't and process large discard bios properly.
 	 */
-	ti->split_discard_bios = !!(rs->md.level == 1 || rs->md.level == 10);
+	ti->split_discard_bios = !!(rs_is_raid1(rs) || rs_is_raid10(rs));
 	ti->num_discard_bios = 1;
 }
 
@@ -3961,7 +3960,7 @@ static int raid_preresume(struct dm_target *ti)
 		return r;
 
 	/* Resize bitmap to adjust to changed region size (aka MD bitmap chunksize) */
-	if (test_bit(RT_FLAG_RS_BITMAP_LOADED, &rs->runtime_flags) &&
+	if (test_bit(RT_FLAG_RS_BITMAP_LOADED, &rs->runtime_flags) && mddev->bitmap &&
 	    mddev->bitmap_info.chunksize != to_bytes(rs->requested_bitmap_chunk_sectors)) {
 		r = bitmap_resize(mddev->bitmap, mddev->dev_sectors,
 				  to_bytes(rs->requested_bitmap_chunk_sectors), 0);
