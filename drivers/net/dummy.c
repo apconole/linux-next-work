@@ -136,7 +136,7 @@ static void dummy_setup(struct net_device *dev)
 	eth_hw_addr_random(dev);
 
 	dev->extended->min_mtu = 0;
-	dev->extended->max_mtu = ETH_MAX_MTU;
+	dev->extended->max_mtu = 0;
 }
 
 static int dummy_validate(struct nlattr *tb[], struct nlattr *data[])
