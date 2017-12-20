@@ -565,6 +565,8 @@ static inline bool is_livepatch_module(struct module *mod)
 }
 #endif /* CONFIG_LIVEPATCH */
 
+bool is_module_sig_enforced(void);
+
 #else /* !CONFIG_MODULES... */
 
 /* Given an address, look for it in the exception tables. */
@@ -677,6 +679,11 @@ static inline void print_modules(void)
 }
 
 static inline bool check_module_rhelversion(struct module *mod, char *version)
+{
+	return false;
+}
+
+static inline bool is_module_sig_enforced(void)
 {
 	return false;
 }
