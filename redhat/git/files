@@ -10,6 +10,7 @@ securebootca.cer
 secureboot.cer
 Makefile.common
 Makefile
+README.dist-git
 cpupower.config
 cpupower.service
 sign-modules

@@ -201,7 +201,7 @@ sources-rh: rh-git-dirtytree $(TARBALL) rh-configs rh-kabi rh-kabi-dup
 		git diff --numstat HEAD..`git describe --match="kernel-$(RPMVERSION)-*" --abbrev=0` > $(SOURCES)/lastcommit.stat; \
 		sed -i 's/%define with_commitstats.*/%define with_commitstats 1/' $(SOURCES)/kernel.spec; \
 	fi)
-	@cp cpupower.* x509.genkey keys/rhel*.x509 keys/extra_certificates Makefile.common kabi/check-kabi kabi/Module.kabi_{ppc64,ppc64le,s390x,x86_64} kabi/Module.kabi_dup_{ppc64,ppc64le,s390x,x86_64} configs/kernel-*.config rhpkg/Makefile scripts/sign-modules keys/*.cer modprobe.d/* $(SOURCES)/
+	@cp cpupower.* x509.genkey keys/rhel*.x509 keys/extra_certificates Makefile.common kabi/check-kabi kabi/Module.kabi_{ppc64,ppc64le,s390x,x86_64} kabi/Module.kabi_dup_{ppc64,ppc64le,s390x,x86_64} configs/kernel-*.config rhpkg/Makefile scripts/sign-modules keys/*.cer modprobe.d/* docs/README.dist-git $(SOURCES)/
 	@(cd kabi && tar cjvf $(SOURCES)/$(KABI_TARFILE) kabi-rhel$(RHELMAJOR)* kabi-current)
 	@if [ ! -d $(KABIDW)/base ]; then \
 		mkdir -p $(KABIDW)/base; \
