@@ -396,11 +396,22 @@ const struct header_ops eth_header_ops ____cacheline_aligned = {
 	.cache_update	= eth_header_cache_update,
 };
 
+/*
+ * RHEL: The macros ether_setup and alloc_etherdev_mqs need to be undefined
+ * here. For details, please see their definition in include/linux/netdevice.h
+ * and include/linux/etherdevice.h
+ */
+#undef ether_setup
+#undef alloc_etherdev_mqs
+
 /**
  * ether_setup - setup Ethernet network device
  * @dev: network device
  *
  * Fill in the fields of the device structure with Ethernet-generic values.
+ *
+ * RHEL: This function is preserved for existing binary modules compiled
+ * against RHEL-7.4 and older.
  */
 void ether_setup(struct net_device *dev)
 {
@@ -408,8 +419,6 @@ void ether_setup(struct net_device *dev)
 	dev->type		= ARPHRD_ETHER;
 	dev->hard_header_len 	= ETH_HLEN;
 	dev->mtu		= ETH_DATA_LEN;
-	dev->extended->min_mtu	= ETH_MIN_MTU;
-	dev->extended->max_mtu	= ETH_DATA_LEN;
 	dev->addr_len		= ETH_ALEN;
 	dev->tx_queue_len	= DEFAULT_TX_QUEUE_LEN;
 	dev->flags		= IFF_BROADCAST|IFF_MULTICAST;
@@ -421,7 +430,23 @@ void ether_setup(struct net_device *dev)
 EXPORT_SYMBOL(ether_setup);
 
 /**
- * alloc_etherdev_mqs - Allocates and sets up an Ethernet device
+ * ether_setup_rh - setup Ethernet network device
+ * @dev: network device
+ *
+ * Fill in the fields of the device structure with Ethernet-generic values.
+ *
+ * RHEL: This variant also initializes .min_mtu & .max_mtu
+ */
+void ether_setup_rh(struct net_device *dev)
+{
+	ether_setup(dev);
+	dev->extended->min_mtu	= ETH_MIN_MTU;
+	dev->extended->max_mtu	= ETH_DATA_LEN;
+}
+EXPORT_SYMBOL(ether_setup_rh);
+
+/**
+ * alloc_etherdev_mqs_rh - Allocates and sets up an Ethernet device
  * @sizeof_priv: Size of additional driver-private structure to be allocated
  *	for this Ethernet device
  * @txqs: The number of TX queues this device has.
@@ -433,8 +458,23 @@ EXPORT_SYMBOL(ether_setup);
  * Constructs a new net device, complete with a private data area of
  * size (sizeof_priv).  A 32-byte (not bit) alignment is enforced for
  * this private data area.
+ *
+ * RHEL: This function uses ether_setup_rh() that also initializes
+ * .{min,max}_mtu members to their default values.
  */
 
+struct net_device *alloc_etherdev_mqs_rh(int sizeof_priv, unsigned int txqs,
+					 unsigned int rxqs)
+{
+	return alloc_netdev_mqs(sizeof_priv, "eth%d", ether_setup_rh, txqs,
+				rxqs);
+}
+EXPORT_SYMBOL(alloc_etherdev_mqs_rh);
+
+/*
+ * RHEL: This function is preserved for existing binary modules compiled
+ * against RHEL-7.4 and older.
+ */
 struct net_device *alloc_etherdev_mqs(int sizeof_priv, unsigned int txqs,
 				      unsigned int rxqs)
 {

@@ -49,8 +49,18 @@ int eth_mac_addr(struct net_device *dev, void *p);
 int eth_change_mtu(struct net_device *dev, int new_mtu);
 int eth_validate_addr(struct net_device *dev);
 
-struct net_device *alloc_etherdev_mqs(int sizeof_priv, unsigned int txqs,
+/*
+ * RHEL-7.5+: Function alloc_etherdev_mqs() calls ether_setup() that
+ * initializes part of net_device structure. This function is on kABI
+ * white-list and because we have 2 versions of ether_setup() that is also
+ * on white-list we need also 2 versions of alloc_etherdev_mqs(). The old
+ * one is preserved for existing binary modules that were compiled against
+ * RHEL-7.4 and older. The new one is used by inbox drivers and o-o-tree
+ * drivers compiled against RHEL-7.5 and above.
+ */
+struct net_device *alloc_etherdev_mqs_rh(int sizeof_priv, unsigned int txqs,
 					    unsigned int rxqs);
+#define alloc_etherdev_mqs alloc_etherdev_mqs_rh
 #define alloc_etherdev(sizeof_priv) alloc_etherdev_mq(sizeof_priv, 1)
 #define alloc_etherdev_mq(sizeof_priv, count) alloc_etherdev_mqs(sizeof_priv, count, count)
 

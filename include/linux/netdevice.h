@@ -3770,7 +3770,21 @@ static inline void netif_addr_unlock_bh(struct net_device *dev)
 
 /* These functions live elsewhere (drivers/net/net_init.c, but related) */
 
-void ether_setup(struct net_device *dev);
+/*
+ * RHEL 7.5+: The network core checks MTU value requested by an user
+ * against minimum and maximum stored in .min_mtu and .max_mtu fields when
+ * both .extended.ndo_change_mtu() as well as .ndo_change_mtu_rh74() are
+ * not implemented by a driver. Default values for .{min,max}_mtu are
+ * initialized by ether_setup() but because this function is on kABI
+ * white-list we have to preserve its semantic so this initialization
+ * cannot be placed there. Instead of this we have to create separate
+ * ether_setup_rh() that additionally initializes .{min,max}_mtu.
+ * Macro ether_setup ensures that old ether_setup (preserved for existing
+ * binary modules) is not used by inbox drivers & o-o-box drivers compiled
+ * against RHEL-7.5 and above.
+ */
+void ether_setup_rh(struct net_device *dev);
+#define ether_setup ether_setup_rh
 
 /* Support for loadable net-drivers */
 struct net_device *alloc_netdev_mqs(int sizeof_priv, const char *name,
