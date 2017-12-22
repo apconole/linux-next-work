@@ -32,6 +32,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <linux/if.h>
 #include <net/ip_tunnels.h>
 
 #include "spectrum_ipip.h"
