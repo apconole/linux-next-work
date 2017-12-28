@@ -690,7 +690,6 @@ static int build_memreg(struct t4_sq *sq, union t4_wr *wqe,
 			if (++p == (__be64 *)&sq->queue[sq->size])
 				p = (__be64 *)sq->queue;
 		}
-		BUG_ON(rem < 0);
 		while (rem) {
 			*p = 0;
 			rem -= sizeof(*p);
@@ -1569,7 +1568,6 @@ int c4iw_modify_qp(struct c4iw_dev *rhp, struct c4iw_qp *qhp,
 	case C4IW_QP_STATE_RTS:
 		switch (attrs->next_state) {
 		case C4IW_QP_STATE_CLOSING:
-			BUG_ON(kref_read(&qhp->ep->com.kref) < 2);
 			t4_set_wq_in_error(&qhp->wq);
 			set_state(qhp, C4IW_QP_STATE_CLOSING);
 			ep = qhp->ep;
@@ -1678,7 +1676,6 @@ err:
 	set_state(qhp, C4IW_QP_STATE_ERROR);
 	free = 1;
 	abort = 1;
-	BUG_ON(!ep);
 	flush_qp(qhp);
 	wake_up(&qhp->wait);
 out:

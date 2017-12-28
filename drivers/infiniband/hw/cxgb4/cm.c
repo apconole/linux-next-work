@@ -922,8 +922,6 @@ static int send_mpa_req(struct c4iw_ep *ep, struct sk_buff *skb,
 	pr_debug("ep %p tid %u pd_len %d\n",
 		 ep, ep->hwtid, ep->plen);
 
-	BUG_ON(skb_cloned(skb));
-
 	mpalen = sizeof(*mpa) + ep->plen;
 	if (mpa_rev_to_use == 2)
 		mpalen += sizeof(struct mpa_v2_conn_params);
@@ -1007,7 +1005,6 @@ static int send_mpa_req(struct c4iw_ep *ep, struct sk_buff *skb,
 	 */
 	skb_get(skb);
 	t4_set_arp_err_handler(skb, NULL, arp_failure_discard);
-	BUG_ON(ep->mpa_skb);
 	ep->mpa_skb = skb;
 	ret = c4iw_l2t_send(&ep->com.dev->rdev, skb, ep->l2t);
 	if (ret)
@@ -1094,7 +1091,6 @@ static int send_mpa_reject(struct c4iw_ep *ep, const void *pdata, u8 plen)
 	skb_get(skb);
 	set_wr_txq(skb, CPL_PRIORITY_DATA, ep->txq_idx);
 	t4_set_arp_err_handler(skb, NULL, mpa_start_arp_failure);
-	BUG_ON(ep->mpa_skb);
 	ep->mpa_skb = skb;
 	ep->snd_seq += mpalen;
 	return c4iw_l2t_send(&ep->com.dev->rdev, skb, ep->l2t);
@@ -1849,7 +1845,6 @@ static int rx_data(struct c4iw_dev *dev, struct sk_buff *skb)
 		struct c4iw_qp_attributes attrs;
 
 		update_rx_credits(ep, dlen);
-		BUG_ON(!ep->com.qp);
 		if (status)
 			pr_err("%s Unexpected streaming data." \
 			       " qpid %u ep %p state %d tid %u status %d\n",
@@ -2123,7 +2118,7 @@ static int c4iw_reconnect(struct c4iw_ep *ep)
 	 * further connection establishment. As we are using the same EP pointer
 	 * for reconnect, few skbs are used during the previous c4iw_connect(),
 	 * which leaves the EP with inadequate skbs for further
-	 * c4iw_reconnect(), Further causing an assert BUG_ON() due to empty
+	 * c4iw_reconnect(), Further causing a crash due to an empty
 	 * skb_list() during peer_abort(). Allocate skbs which is already used.
 	 */
 	size = (CN_MAX_CON_BUF - skb_queue_len(&ep->com.ep_skb_list));
@@ -2370,7 +2365,6 @@ static int accept_cr(struct c4iw_ep *ep, struct sk_buff *skb,
 	enum chip_type adapter_type = ep->com.dev->rdev.lldi.adapter_type;
 
 	pr_debug("ep %p tid %u\n", ep, ep->hwtid);
-	BUG_ON(skb_cloned(skb));
 
 	skb_get(skb);
 	rpl = cplhdr(skb);
@@ -2454,7 +2448,6 @@ static int accept_cr(struct c4iw_ep *ep, struct sk_buff *skb,
 static void reject_cr(struct c4iw_dev *dev, u32 hwtid, struct sk_buff *skb)
 {
 	pr_debug("c4iw_dev %p tid %u\n", dev, hwtid);
-	BUG_ON(skb_cloned(skb));
 	skb_trim(skb, sizeof(struct cpl_tid_release));
 	release_tid(&dev->rdev, hwtid, skb);
 	return;
@@ -2727,7 +2720,7 @@ static int peer_close(struct c4iw_dev *dev, struct sk_buff *skb)
 		disconnect = 0;
 		break;
 	default:
-		BUG_ON(1);
+		WARN_ONCE(1, "Bad endpoint state %u\n", ep->com.state);
 	}
 	mutex_unlock(&ep->com.mutex);
 	if (disconnect)
@@ -2827,7 +2820,7 @@ static int peer_abort(struct c4iw_dev *dev, struct sk_buff *skb)
 		mutex_unlock(&ep->com.mutex);
 		goto deref_ep;
 	default:
-		BUG_ON(1);
+		WARN_ONCE(1, "Bad endpoint state %u\n", ep->com.state);
 		break;
 	}
 	dst_confirm(ep->dst);
@@ -2914,7 +2907,7 @@ static int close_con_rpl(struct c4iw_dev *dev, struct sk_buff *skb)
 	case DEAD:
 		break;
 	default:
-		BUG_ON(1);
+		WARN_ONCE(1, "Bad endpoint state %u\n", ep->com.state);
 		break;
 	}
 	mutex_unlock(&ep->com.mutex);
@@ -2932,7 +2925,6 @@ static int terminate(struct c4iw_dev *dev, struct sk_buff *skb)
 	struct c4iw_qp_attributes attrs;
 
 	ep = get_ep_from_tid(dev, tid);
-	BUG_ON(!ep);
 
 	if (ep && ep->com.qp) {
 		pr_warn("TERM received tid %u qpid %u\n",
@@ -3032,7 +3024,10 @@ int c4iw_accept_cr(struct iw_cm_id *cm_id, struct iw_cm_conn_param *conn_param)
 		goto err_out;
 	}
 
-	BUG_ON(!qp);
+	if (!qp) {
+		err = -EINVAL;
+		goto err_out;
+	}
 
 	set_bit(ULP_ACCEPT, &ep->com.history);
 	if ((conn_param->ord > cur_max_read_depth(ep->com.dev)) ||
@@ -3590,7 +3585,7 @@ int c4iw_ep_disconnect(struct c4iw_ep *ep, int abrupt, gfp_t gfp)
 			__func__, ep, ep->com.state);
 		break;
 	default:
-		BUG();
+		WARN_ONCE(1, "Bad endpoint state %u\n", ep->com.state);
 		break;
 	}
 
@@ -3689,7 +3684,6 @@ static void passive_ofld_conn_reply(struct c4iw_dev *dev, struct sk_buff *skb,
 	int ret;
 
 	rpl_skb = (struct sk_buff *)(unsigned long)req->cookie;
-	BUG_ON(!rpl_skb);
 	if (req->retval) {
 		pr_err("%s passive open failure %d\n", __func__, req->retval);
 		mutex_lock(&dev->rdev.stats.lock);
@@ -4120,7 +4114,6 @@ static void process_work(struct work_struct *work)
 		dev = *((struct c4iw_dev **) (skb->cb + sizeof(void *)));
 		opcode = rpl->ot.opcode;
 
-		BUG_ON(!work_handlers[opcode]);
 		ret = work_handlers[opcode](dev, skb);
 		if (!ret)
 			kfree_skb(skb);
