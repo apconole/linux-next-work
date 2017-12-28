@@ -101,11 +101,10 @@ static int _c4iw_write_mem_dma_aligned(struct c4iw_rdev *rdev, u32 addr,
 	sgl->len0 = cpu_to_be32(len);
 	sgl->addr0 = cpu_to_be64(data);
 
-	ret = c4iw_ofld_send(rdev, skb);
-	if (ret)
-		return ret;
 	if (wr_waitp)
-		ret = c4iw_wait_for_reply(rdev, wr_waitp, 0, 0, __func__);
+		ret = c4iw_ref_send_wait(rdev, skb, wr_waitp, 0, 0, __func__);
+	else
+		ret = c4iw_ofld_send(rdev, skb);
 	return ret;
 }
 
@@ -175,14 +174,17 @@ static int _c4iw_write_mem_inline(struct c4iw_rdev *rdev, u32 addr, u32 len,
 		if (copy_len % T4_ULPTX_MIN_IO)
 			memset(to_dp + copy_len, 0, T4_ULPTX_MIN_IO -
 			       (copy_len % T4_ULPTX_MIN_IO));
-		ret = c4iw_ofld_send(rdev, skb);
-		skb = NULL;
+		if (i == (num_wqe-1))
+			ret = c4iw_ref_send_wait(rdev, skb, wr_waitp, 0, 0,
+						 __func__);
+		else
+			ret = c4iw_ofld_send(rdev, skb);
 		if (ret)
-			return ret;
+			break;
+		skb = NULL;
 		len -= C4IW_MAX_INLINE_SIZE;
 	}
 
-	ret = c4iw_wait_for_reply(rdev, wr_waitp, 0, 0, __func__);
 	return ret;
 }
 
@@ -449,7 +451,7 @@ struct ib_mr *c4iw_get_dma_mr(struct ib_pd *pd, int acc)
 	mhp = kzalloc(sizeof(*mhp), GFP_KERNEL);
 	if (!mhp)
 		return ERR_PTR(-ENOMEM);
-	mhp->wr_waitp = kzalloc(sizeof(*mhp->wr_waitp), GFP_KERNEL);
+	mhp->wr_waitp = c4iw_alloc_wr_wait(GFP_KERNEL);
 	if (!mhp->wr_waitp) {
 		ret = -ENOMEM;
 		goto err_free_mhp;
@@ -487,7 +489,7 @@ err_dereg_mem:
 	dereg_mem(&rhp->rdev, mhp->attr.stag, mhp->attr.pbl_size,
 		  mhp->attr.pbl_addr, mhp->dereg_skb, mhp->wr_waitp);
 err_free_wr_wait:
-	kfree(mhp->wr_waitp);
+	c4iw_put_wr_wait(mhp->wr_waitp);
 err_free_skb:
 	kfree_skb(mhp->dereg_skb);
 err_free_mhp:
@@ -524,7 +526,7 @@ struct ib_mr *c4iw_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
 	mhp = kzalloc(sizeof(*mhp), GFP_KERNEL);
 	if (!mhp)
 		return ERR_PTR(-ENOMEM);
-	mhp->wr_waitp = kzalloc(sizeof(*mhp->wr_waitp), GFP_KERNEL);
+	mhp->wr_waitp = c4iw_alloc_wr_wait(GFP_KERNEL);
 	if (!mhp->wr_waitp)
 		goto err_free_mhp;
 
@@ -602,7 +604,7 @@ err_umem_release:
 err_free_skb:
 	kfree_skb(mhp->dereg_skb);
 err_free_wr_wait:
-	kfree(mhp->wr_waitp);
+	c4iw_put_wr_wait(mhp->wr_waitp);
 err_free_mhp:
 	kfree(mhp);
 	return ERR_PTR(err);
@@ -627,7 +629,7 @@ struct ib_mw *c4iw_alloc_mw(struct ib_pd *pd, enum ib_mw_type type,
 	if (!mhp)
 		return ERR_PTR(-ENOMEM);
 
-	mhp->wr_waitp = kzalloc(sizeof(*mhp->wr_waitp), GFP_KERNEL);
+	mhp->wr_waitp = c4iw_alloc_wr_wait(GFP_KERNEL);
 	if (!mhp->wr_waitp) {
 		ret = -ENOMEM;
 		goto free_mhp;
@@ -661,7 +663,7 @@ dealloc_win:
 free_skb:
 	kfree_skb(mhp->dereg_skb);
 free_wr_wait:
-	kfree(mhp->wr_waitp);
+	c4iw_put_wr_wait(mhp->wr_waitp);
 free_mhp:
 	kfree(mhp);
 	return ERR_PTR(ret);
@@ -680,7 +682,7 @@ int c4iw_dealloc_mw(struct ib_mw *mw)
 	deallocate_window(&rhp->rdev, mhp->attr.stag, mhp->dereg_skb,
 			  mhp->wr_waitp);
 	kfree_skb(mhp->dereg_skb);
-	kfree(mhp->wr_waitp);
+	c4iw_put_wr_wait(mhp->wr_waitp);
 	kfree(mhp);
 	pr_debug("ib_mw %p mmid 0x%x ptr %p\n", mw, mmid, mhp);
 	return 0;
@@ -712,7 +714,7 @@ struct ib_mr *c4iw_alloc_mr(struct ib_pd *pd,
 		goto err;
 	}
 
-	mhp->wr_waitp = kzalloc(sizeof(*mhp->wr_waitp), GFP_KERNEL);
+	mhp->wr_waitp = c4iw_alloc_wr_wait(GFP_KERNEL);
 	if (!mhp->wr_waitp) {
 		ret = -ENOMEM;
 		goto err_free_mhp;
@@ -760,7 +762,7 @@ err_free_dma:
 	dma_free_coherent(&mhp->rhp->rdev.lldi.pdev->dev,
 			  mhp->max_mpl_len, mhp->mpl, mhp->mpl_addr);
 err_free_wr_wait:
-	kfree(mhp->wr_waitp);
+	c4iw_put_wr_wait(mhp->wr_waitp);
 err_free_mhp:
 	kfree(mhp);
 err:
@@ -814,7 +816,7 @@ int c4iw_dereg_mr(struct ib_mr *ib_mr)
 	if (mhp->umem)
 		ib_umem_release(mhp->umem);
 	pr_debug("mmid 0x%x ptr %p\n", mmid, mhp);
-	kfree(mhp->wr_waitp);
+	c4iw_put_wr_wait(mhp->wr_waitp);
 	kfree(mhp);
 	return 0;
 }
