@@ -45,7 +45,7 @@ uint16_t __cachemode2pte_tbl[_PAGE_CACHE_MODE_NUM] = {
 	[_PAGE_CACHE_MODE_WT]		= _PAGE_PCD,
 	[_PAGE_CACHE_MODE_WP]		= _PAGE_PCD,
 };
-EXPORT_SYMBOL_GPL(__cachemode2pte_tbl);
+EXPORT_SYMBOL(__cachemode2pte_tbl);
 uint8_t __pte2cachemode_tbl[8] = {
 	[__pte2cm_idx(0)] = _PAGE_CACHE_MODE_WB,
 	[__pte2cm_idx(_PAGE_PWT)] = _PAGE_CACHE_MODE_WC,
@@ -56,7 +56,7 @@ uint8_t __pte2cachemode_tbl[8] = {
 	[__pte2cm_idx(_PAGE_PCD | _PAGE_PAT)] = _PAGE_CACHE_MODE_UC_MINUS,
 	[__pte2cm_idx(_PAGE_PWT | _PAGE_PCD | _PAGE_PAT)] = _PAGE_CACHE_MODE_UC,
 };
-EXPORT_SYMBOL_GPL(__pte2cachemode_tbl);
+EXPORT_SYMBOL(__pte2cachemode_tbl);
 
 static unsigned long __initdata pgt_buf_start;
 static unsigned long __initdata pgt_buf_end;
