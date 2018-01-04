@@ -403,7 +403,7 @@ static int add_call_destinations(struct objtool_file *file)
 			dest_off = insn->offset + insn->len + insn->immediate;
 			insn->call_dest = find_symbol_by_offset(insn->sec,
 								dest_off);
-			if (!insn->call_dest) {
+			if (!insn->call_dest && !insn->visited) {
 				WARN_FUNC("can't find call dest symbol at offset 0x%lx",
 					  insn->sec, insn->offset, dest_off);
 				return -1;
