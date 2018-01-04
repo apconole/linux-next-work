@@ -29,6 +29,7 @@
 #include <linux/string.h>
 #include <linux/types.h>
 #include <linux/bug.h>
+#include <linux/debugfs.h>
 #include <linux/init.h>
 #include <linux/interrupt.h>
 #include <linux/spinlock.h>
@@ -437,3 +438,50 @@ void kaiser_remove_mapping(unsigned long start, unsigned long size)
 	 */
 	__native_flush_tlb_global();
 }
+
+int kaiser_enabled = 1;
+static ssize_t kaiser_enabled_read_file(struct file *file, char __user *user_buf,
+			     size_t count, loff_t *ppos)
+{
+	char buf[32];
+	unsigned int len;
+
+	len = sprintf(buf, "%d\n", kaiser_enabled);
+	return simple_read_from_buffer(user_buf, count, ppos, buf, len);
+}
+
+static ssize_t kaiser_enabled_write_file(struct file *file,
+		 const char __user *user_buf, size_t count, loff_t *ppos)
+{
+	char buf[32];
+	ssize_t len;
+	unsigned int enable;
+
+	len = min(count, sizeof(buf) - 1);
+	if (copy_from_user(buf, user_buf, len))
+		return -EFAULT;
+
+	buf[len] = '\0';
+	if (kstrtouint(buf, 0, &enable))
+		return -EINVAL;
+
+	if (enable > 1)
+		return -EINVAL;
+
+	WRITE_ONCE(kaiser_enabled, enable);
+	return count;
+}
+
+static const struct file_operations fops_kaiser_enabled = {
+	.read = kaiser_enabled_read_file,
+	.write = kaiser_enabled_write_file,
+	.llseek = default_llseek,
+};
+
+static int __init create_kaiser_enabled(void)
+{
+	debugfs_create_file("kaiser-enabled", S_IRUSR | S_IWUSR,
+			    arch_debugfs_dir, NULL, &fops_kaiser_enabled);
+	return 0;
+}
+late_initcall(create_kaiser_enabled);
