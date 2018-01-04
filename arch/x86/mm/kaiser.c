@@ -58,12 +58,12 @@ static pteval_t kaiser_pte_mask __read_mostly = ~(_PAGE_NX | _PAGE_GLOBAL);
 int kaiser_enabled __read_mostly;
 
 /*
- * The flag that captures the command line "kaiser" and "nokaiser" option.
+ * The flag that captures the command line "kpti" and "nokpti" option.
  *  1 - enabled
  *  0 - auto
  * -1 - disabled
  */
-static int kaiser_force_enabled __read_mostly;
+static int kpti_force_enabled __read_mostly;
 
 /*
  * At runtime, the only things we map are some things for CPU
@@ -390,21 +390,21 @@ static bool is_xen_pv_domain(void)
 }
 
 /*
- * Functions for processing the command line "kaiser" and "nokaiser" options.
+ * Functions for processing the command line "kpti" and "nokpti" options.
  */
-static int __init force_kaiser(char *arg)
+static int __init force_kpti(char *arg)
 {
-	kaiser_force_enabled = 1;
+	kpti_force_enabled = 1;
 	return 0;
 }
-early_param("kaiser", force_kaiser);
+early_param("kpti", force_kpti);
 
-static int __init force_nokaiser(char *arg)
+static int __init force_nokpti(char *arg)
 {
-	kaiser_force_enabled = -1;
+	kpti_force_enabled = -1;
 	return 0;
 }
-early_param("nokaiser", force_nokaiser);
+early_param("nokpti", force_nokpti);
 
 /*
  * If anything in here fails, we will likely die on one of the
@@ -478,12 +478,12 @@ void __init kaiser_init(void)
 #endif
 
 	if (is_xen_pv_domain()) {
-		pr_info("x86/kaiser: Xen PV detected, disabling "
-			"KAISER protection\n");
-	} else if ((kaiser_force_enabled > 0) ||
+		pr_info("x86/kpti: Xen PV detected, disabling "
+			"KPTI protection\n");
+	} else if ((kpti_force_enabled > 0) ||
 		   (boot_cpu_data.x86_vendor == X86_VENDOR_INTEL &&
-		   !kaiser_force_enabled)) {
-		pr_info("x86/kaiser: Unmapping kernel while in userspace\n");
+		   !kpti_force_enabled)) {
+		pr_info("x86/kpti: Unmapping kernel while in userspace\n");
 		kaiser_enable_pcp(true);
 		kaiser_enabled = 1;
 	}
@@ -629,13 +629,13 @@ static const struct file_operations fops_kaiser_enabled = {
 	.llseek = default_llseek,
 };
 
-static int __init create_kaiser_enabled(void)
+static int __init create_kpti_enabled(void)
 {
-	debugfs_create_file("kaiser-enabled", S_IRUSR | S_IWUSR,
+	debugfs_create_file("kpti-enabled", S_IRUSR | S_IWUSR,
 			    arch_debugfs_dir, NULL, &fops_kaiser_enabled);
 	return 0;
 }
-late_initcall(create_kaiser_enabled);
+late_initcall(create_kpti_enabled);
 
 void kaiser_poison_pgd_page(pgd_t *pgd_page, enum poison do_poison)
 {
