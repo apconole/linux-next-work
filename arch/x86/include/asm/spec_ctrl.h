@@ -308,8 +308,9 @@ static inline void spec_ctrl_ibpb_if_different_creds(struct task_struct *next)
 	struct task_struct *prev = current;
 
 	if (boot_cpu_has(X86_FEATURE_IBPB_SUPPORT)) {
-		if (__this_cpu_read(spec_ctrl_pcp) & SPEC_CTRL_PCP_IBPB && next &&
-		    ___ptrace_may_access(next, NULL, prev, PTRACE_MODE_IBPB))
+		if (__this_cpu_read(spec_ctrl_pcp) & SPEC_CTRL_PCP_IBPB &&
+		    (!next || ___ptrace_may_access(next, NULL, prev,
+						   PTRACE_MODE_IBPB)))
 			__spec_ctrl_ibpb();
 	}
 }
