@@ -724,13 +724,6 @@ END(\label)
 	FORK_LIKE  vfork
 	FIXED_FRAME stub_iopl, sys_iopl
 
-ENTRY(ptregscall_common)
-	DEFAULT_FRAME 1 8	/* offset 8: return address */
-	RESTORE_TOP_OF_STACK %r11, 8
-	ret
-	CFI_ENDPROC
-END(ptregscall_common)
-
 ENTRY(stub_execve)
 	CFI_STARTPROC
 	addq $8, %rsp
