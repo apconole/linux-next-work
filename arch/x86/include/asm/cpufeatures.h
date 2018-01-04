@@ -201,7 +201,8 @@
 #define X86_FEATURE_INTEL_PT	( 7*32+15) /* Intel Processor Trace */
 #define X86_FEATURE_AVX512_4VNNIW (7*32+16) /* AVX-512 Neural Network Instructions */
 #define X86_FEATURE_AVX512_4FMAPS (7*32+17) /* AVX-512 Multiply Accumulation Single precision */
-#define X86_FEATURE_AVX512_VPOPCNTDQ (16*32+14) /* POPCNT for vectors of DW/QW */
+#define X86_FEATURE_SPEC_CTRL	( 7*32+19) /* Control Speculation Control */
+#define X86_FEATURE_IBPB_SUPPORT ( 7*32+20) /* Indirect Branch Prediction Barrier Support */
 
 #define X86_FEATURE_MBA		( 7*32+18) /* Memory Bandwidth Allocation */
 
@@ -290,6 +291,7 @@
 #define X86_FEATURE_AVX512VBMI	(16*32+ 1) /* AVX512 Vector Bit Manipulation instructions*/
 #define X86_FEATURE_PKU		(16*32+ 3) /* Protection Keys for Userspace */
 #define X86_FEATURE_OSPKE	(16*32+ 4) /* OS Protection Keys Enable */
+#define X86_FEATURE_AVX512_VPOPCNTDQ (16*32+14) /* POPCNT for vectors of DW/QW */
 
 /*
  * BUG word(s)

@@ -562,6 +562,13 @@ static void init_intel(struct cpuinfo_x86 *c)
 	}
 
 	probe_xeon_phi_r3mwait(c);
+
+	/*
+	 * On both Intel and AMD, SPEC_CTRL implies IBPB, but only AMD has
+	 * IBPB in a separate CPUID bit.
+	 */
+	if (cpu_has(c, X86_FEATURE_SPEC_CTRL))
+		set_cpu_cap(c, X86_FEATURE_IBPB_SUPPORT);
 }
 
 #ifdef CONFIG_X86_32
