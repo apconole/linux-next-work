@@ -76,11 +76,12 @@
 .endm
 
 .macro SAVE_AND_SWITCH_TO_KERNEL_CR3 scratch_reg:req save_reg:req
+	movq	%cr3, \save_reg
+
 	testl   $KAISER_PCP_ENABLED, PER_CPU_VAR(kaiser_enabled_pcp)
 	jz      .Lnokaiser_\@
 
-	movq	%cr3, \scratch_reg
-	movq	\scratch_reg, \save_reg
+	movq	\save_reg, \scratch_reg
 	/*
 	 * Is the switch bit zero?  This means the address is
 	 * up in real KAISER patches in a moment.
