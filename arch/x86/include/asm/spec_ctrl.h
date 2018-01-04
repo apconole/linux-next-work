@@ -1,70 +1,80 @@
 #ifndef _ASM_X86_SPEC_CTRL_H
 #define _ASM_X86_SPEC_CTRL_H
 
-#include <linux/stringify.h>
-#include <asm/msr-index.h>
-#include <asm/cpufeature.h>
-#include <asm/alternative-asm.h>
+#define SPEC_CTRL_PCP_IBRS	(1<<0)
+#define SPEC_CTRL_PCP_IBPB	(1<<1)
 
 #ifdef __ASSEMBLY__
 
-#define __ASM_ENABLE_IBRS			\
-	pushq %rax;				\
-	pushq %rcx;				\
-	pushq %rdx;				\
-	movl $MSR_IA32_SPEC_CTRL, %ecx;		\
-	movl $0, %edx;				\
-	movl $FEATURE_ENABLE_IBRS, %eax;	\
-	wrmsr;					\
-	popq %rdx;				\
-	popq %rcx;				\
-	popq %rax
-#define __ASM_ENABLE_IBRS_CLOBBER		\
-	movl $MSR_IA32_SPEC_CTRL, %ecx;		\
-	movl $0, %edx;				\
-	movl $FEATURE_ENABLE_IBRS, %eax;	\
-	wrmsr;
-#define __ASM_DISABLE_IBRS			\
-	pushq %rax;				\
-	pushq %rcx;				\
-	pushq %rdx;				\
-	movl $MSR_IA32_SPEC_CTRL, %ecx;		\
-	movl $0, %edx;				\
-	movl $0, %eax;				\
-	wrmsr;					\
-	popq %rdx;				\
-	popq %rcx;				\
-	popq %rax
-#define __ASM_SET_IBPB				\
-	pushq %rax;				\
-	pushq %rcx;				\
-	pushq %rdx;				\
-	movl $MSR_IA32_PRED_CMD, %ecx;		\
-	movl $0, %edx;				\
-	movl $FEATURE_SET_IBPB, %eax;		\
-	wrmsr;					\
-	popq %rdx;				\
-	popq %rcx;				\
-	popq %rax
+#include <asm/msr-index.h>
 
 .macro ENABLE_IBRS
-ALTERNATIVE "", __stringify(__ASM_ENABLE_IBRS), X86_FEATURE_SPEC_CTRL
+	testl $SPEC_CTRL_PCP_IBRS, PER_CPU_VAR(spec_ctrl_pcp)
+	jz .Lskip_\@
+
+	pushq %rax
+	pushq %rcx
+	pushq %rdx
+	movl $MSR_IA32_SPEC_CTRL, %ecx
+	movl $0, %edx
+	movl $FEATURE_ENABLE_IBRS, %eax
+	wrmsr
+	popq %rdx
+	popq %rcx
+	popq %rax
+
+.Lskip_\@:
 .endm
 
 .macro ENABLE_IBRS_CLOBBER
-	testl	$1, use_ibrs
-	jz	11f
-	__ASM_ENABLE_IBRS_CLOBBER
-11:
+	testl $SPEC_CTRL_PCP_IBRS, PER_CPU_VAR(spec_ctrl_pcp)
+	jz .Lskip_\@
+
+	movl $MSR_IA32_SPEC_CTRL, %ecx
+	movl $0, %edx
+	movl $FEATURE_ENABLE_IBRS, %eax
+	wrmsr
+
+.Lskip_\@:
 .endm
 
 .macro DISABLE_IBRS
-ALTERNATIVE "", __stringify(__ASM_DISABLE_IBRS), X86_FEATURE_SPEC_CTRL
+	testl $SPEC_CTRL_PCP_IBRS, PER_CPU_VAR(spec_ctrl_pcp)
+	jz .Lskip_\@
+
+	pushq %rax
+	pushq %rcx
+	pushq %rdx
+	movl $MSR_IA32_SPEC_CTRL, %ecx
+	movl $0, %edx
+	movl $0, %eax
+	wrmsr
+	popq %rdx
+	popq %rcx
+	popq %rax
+
+.Lskip_\@:
 .endm
 
+#if 0 /* unused */
 .macro SET_IBPB
-ALTERNATIVE "", __stringify(__ASM_SET_IBPB), X86_FEATURE_IBPB_SUPPORT
+	testl $SPEC_CTRL_PCP_IBPB, PER_CPU_VAR(spec_ctrl_pcp)
+	jz .Lskip_\@
+
+	pushq %rax
+	pushq %rcx
+	pushq %rdx
+	movl $MSR_IA32_PRED_CMD, %ecx
+	movl $0, %edx
+	movl $FEATURE_SET_IBPB, %eax
+	wrmsr
+	popq %rdx
+	popq %rcx
+	popq %rax
+
+.Lskip_\@:
 .endm
+#endif
 
 #endif /* __ASSEMBLY__ */
 #endif /* _ASM_X86_SPEC_CTRL_H */
