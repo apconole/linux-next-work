@@ -8,6 +8,7 @@
 #include <asm/paravirt.h>
 #include <asm/mpx.h>
 #include <linux/pkeys.h>
+#include <asm/spec_ctrl.h>
 #ifndef CONFIG_PARAVIRT
 #include <asm-generic/mm_hooks.h>
 
@@ -68,6 +69,8 @@ static inline void switch_mm(struct mm_struct *prev, struct mm_struct *next,
 		this_cpu_write(cpu_tlbstate.active_mm, next);
 #endif
 		cpumask_set_cpu(cpu, mm_cpumask(next));
+
+		spec_ctrl_ibpb();
 
 		/*
 		 * Re-load page tables.
