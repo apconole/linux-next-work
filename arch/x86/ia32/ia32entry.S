@@ -293,13 +293,11 @@ ENTRY(ia32_cstar_target)
 	CFI_REGISTER	rsp,r8
 	movq	PER_CPU_VAR(kernel_stack),%rsp
 	ENABLE_IBRS
-	CLEAR_R8_TO_R15
 	STUFF_RSB /* no ret allowed before stuffing the RSB */
 	/*
 	 * No need to follow this irqs on/off section: the syscall
 	 * disabled irqs and here we enable it straight after entry:
 	 */
-	ENABLE_INTERRUPTS(CLBR_NONE)
 	SAVE_ARGS 8,0,0
 	movl 	%eax,%eax	/* zero extension */
 	movq	%rax,ORIG_RAX-ARGOFFSET(%rsp)
@@ -312,11 +310,14 @@ ENTRY(ia32_cstar_target)
 	movq	%r11,EFLAGS-ARGOFFSET(%rsp)
 	/*CFI_REL_OFFSET rflags,EFLAGS-ARGOFFSET*/
 	movq	%r8,RSP-ARGOFFSET(%rsp)	
+	CLEAR_R8_TO_R15
+	ENABLE_INTERRUPTS(CLBR_NONE)
 	CFI_REL_OFFSET rsp,RSP-ARGOFFSET
 	/* no need to do an access_ok check here because r8 has been
 	   32bit zero extended */ 
 	/* hardware stack frame is complete now */	
 	ASM_STAC
+	movq	RSP-ARGOFFSET(%rsp), %r8
 1:	movl	(%r8),%r9d
 	_ASM_EXTABLE(1b,ia32_badarg)
 	ASM_CLAC
