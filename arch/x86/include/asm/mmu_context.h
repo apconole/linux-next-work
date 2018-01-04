@@ -70,7 +70,11 @@ static inline void switch_mm(struct mm_struct *prev, struct mm_struct *next,
 #endif
 		cpumask_set_cpu(cpu, mm_cpumask(next));
 
+#ifndef CONFIG_PREEMPT_RCU
 		spec_ctrl_ibpb_if_different_creds(tsk);
+#else
+		spec_ctrl_ibpb();
+#endif
 
 		/*
 		 * Re-load page tables.
