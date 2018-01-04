@@ -32,6 +32,11 @@ static inline void enter_lazy_tlb(struct mm_struct *mm, struct task_struct *tsk)
 #endif
 }
 
+static inline void load_cr3(pgd_t *pgdir)
+{
+	__load_cr3(__sme_pa(pgdir));
+}
+
 static inline int init_new_context(struct task_struct *tsk,
 				       struct mm_struct *mm)
 {

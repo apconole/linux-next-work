@@ -19,6 +19,7 @@
 #include <asm/microcode.h>
 #include <asm/kaslr.h>
 #include <asm/cpufeature.h>
+#include <asm/mmu_context.h>
 
 #include "mm_internal.h"
 

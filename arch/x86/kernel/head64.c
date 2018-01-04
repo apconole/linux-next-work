@@ -158,7 +158,7 @@ static void __init reset_early_page_tables(void)
 	memset(early_level4_pgt, 0, sizeof(pgd_t)*(PTRS_PER_PGD-1));
 	next_early_pgt = 0;
 
-	write_cr3(__sme_pa(early_level4_pgt));
+	__load_cr3(__sme_pa(early_level4_pgt));
 }
 
 /* Create a new PMD entry */

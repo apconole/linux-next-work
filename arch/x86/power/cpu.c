@@ -24,6 +24,7 @@
 #include <asm/debugreg.h>
 #include <asm/fpu-internal.h> /* pcntxt_mask */
 #include <asm/cpu.h>
+#include <asm/mmu_context.h>
 
 #ifdef CONFIG_X86_32
 unsigned long saved_context_ebx;
@@ -183,7 +184,7 @@ static void notrace __restore_processor_state(struct saved_context *ctxt)
 	write_cr8(ctxt->cr8);
 	write_cr4(ctxt->cr4);
 #endif
-	write_cr3(ctxt->cr3);
+	__load_cr3(ctxt->cr3);
 	write_cr2(ctxt->cr2);
 	write_cr0(ctxt->cr0);
 

@@ -15,6 +15,12 @@
  * Based on work published here: https://github.com/IAIK/KAISER
  * Modified by Dave Hansen <dave.hansen@intel.com to actually work.
  */
+
+#define KAISER_SHADOW_PCID_ASID	1
+
+#define KAISER_PCP_ENABLED	(1<<0)
+#define KAISER_PCP_PCID		(1<<1)
+
 #ifndef __ASSEMBLY__
 
 #ifdef CONFIG_KAISER

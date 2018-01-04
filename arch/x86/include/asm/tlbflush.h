@@ -64,9 +64,42 @@ static inline void invpcid_flush_all_nonglobals(void)
 	__invpcid(0, 0, INVPCID_TYPE_ALL_NON_GLOBAL);
 }
 
+#ifdef CONFIG_KAISER
+static __always_inline void __load_cr3(unsigned long cr3)
+{
+	if (static_cpu_has(X86_FEATURE_PCID) && kaiser_active()) {
+		unsigned long shadow_cr3;
+		VM_WARN_ON(cr3 & KAISER_SHADOW_PCID_ASID);
+		VM_WARN_ON(cr3 & (1<<KAISER_PGTABLE_SWITCH_BIT));
+		VM_WARN_ON(cr3 & X86_CR3_PCID_NOFLUSH);
+		shadow_cr3 = cr3 | (1<<KAISER_PGTABLE_SWITCH_BIT) |
+			KAISER_SHADOW_PCID_ASID;
+		asm volatile("\tjmp 1f\n\t"
+			     "2:\n\t"
+			     ".section .entry.text, \"ax\"\n\t"
+			     "1:\n\t"
+			     "pushf\n\t"
+			     "cli\n\t"
+			     "movq %0, %%cr3\n\t"
+			     "movq %1, %%cr3\n\t"
+			     "popf\n\t"
+			     "jmp 2b\n\t"
+			     ".previous" : :
+			     "r" (shadow_cr3), "r" (cr3) :
+			     "memory");
+	} else
+		write_cr3(cr3);
+}
+#else /* CONFIG_KAISER */
+static __always_inline void __load_cr3(unsigned long cr3)
+{
+	write_cr3(cr3);
+}
+#endif /* CONFIG_KAISER */
+
 static inline void __native_flush_tlb(void)
 {
-	native_write_cr3(native_read_cr3());
+	__load_cr3(native_read_cr3());
 }
 
 static inline void __native_flush_tlb_global_irq_disabled(void)
@@ -124,7 +157,45 @@ static inline void __native_flush_tlb_global(void)
 
 static inline void __native_flush_tlb_single(unsigned long addr)
 {
-	asm volatile("invlpg (%0)" ::"r" (addr) : "memory");
+#ifdef CONFIG_KAISER
+	unsigned long cr3, shadow_cr3;
+
+	/* Flush the address out of both PCIDs. */
+	/*
+	 * An optimization here might be to determine addresses
+	 * that are only kernel-mapped and only flush the kernel
+	 * ASID.  But, userspace flushes are probably much more
+	 * important performance-wise.
+	 *
+	 * Make sure to do only a single invpcid when KAISER is
+	 * disabled and we have only a single ASID.
+	 */
+	if (static_cpu_has(X86_FEATURE_PCID) && kaiser_active()) {
+		cr3 = native_read_cr3();
+		VM_WARN_ON(cr3 & KAISER_SHADOW_PCID_ASID);
+		VM_WARN_ON(cr3 & (1<<KAISER_PGTABLE_SWITCH_BIT));
+		VM_WARN_ON(cr3 & X86_CR3_PCID_NOFLUSH);
+		cr3 |= X86_CR3_PCID_NOFLUSH;
+		shadow_cr3 = cr3 | (1<<KAISER_PGTABLE_SWITCH_BIT) |
+			KAISER_SHADOW_PCID_ASID;
+		asm volatile("\tjmp 1f\n\t"
+			     "2:\n\t"
+			     ".section .entry.text, \"ax\"\n\t"
+			     "1:\n\t"
+			     "pushf\n\t"
+			     "cli\n\t"
+			     "movq %0, %%cr3\n\t"
+			     "invlpg (%2)\n\t"
+			     "movq %1, %%cr3\n\t"
+			     "popf\n\t"
+			     "invlpg (%2)\n\t"
+			     "jmp 2b\n\t"
+			     ".previous" : :
+			     "r" (shadow_cr3), "r" (cr3), "r" (addr) :
+			     "memory");
+	} else
+#endif
+		asm volatile("invlpg (%0)" ::"r" (addr) : "memory");
 }
 
 static inline void __flush_tlb_all(void)

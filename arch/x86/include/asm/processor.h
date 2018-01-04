@@ -241,11 +241,6 @@ static inline unsigned long native_read_cr3_pa(void)
 	return native_read_cr3() & CR3_ADDR_MASK;
 }
 
-static inline void load_cr3(pgd_t *pgdir)
-{
-	write_cr3(__sme_pa(pgdir));
-}
-
 #ifdef CONFIG_X86_32
 /* This is the TSS defined by the hardware. */
 struct x86_hw_tss {
