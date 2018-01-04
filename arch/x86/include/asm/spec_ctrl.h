@@ -59,6 +59,14 @@
 	jmp .Lend_\@
 
 .Lskip_\@:
+	/*
+	 * Simulate no IBRS just in case IBRS is enabled in the middle
+	 * of an exception, this avoids the very remote risk of
+	 * writing random save_reg content into the SPEC_CTRL MSR in
+	 * such case.
+	 */
+	movl $FEATURE_ENABLE_IBRS, \save_reg
+
 	lfence
 .Lend_\@:
 .endm
