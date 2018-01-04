@@ -78,7 +78,7 @@ void set_spec_ctrl_pcp_ibpb(bool enable)
 	set_spec_ctrl_pcp(enable, SPEC_CTRL_PCP_IBPB);
 }
 
-static void spec_ctrl_flush_all_cpus(u32 msr_nr, u64 val)
+static void spec_ctrl_sync_all_cpus(u32 msr_nr, u64 val)
 {
 	int cpu;
 	get_online_cpus();
@@ -87,13 +87,13 @@ static void spec_ctrl_flush_all_cpus(u32 msr_nr, u64 val)
 	put_online_cpus();
 }
 
-static void flush_all_cpus_ibrs(bool enable)
+static void sync_all_cpus_ibrs(bool enable)
 {
-	spec_ctrl_flush_all_cpus(MSR_IA32_SPEC_CTRL,
+	spec_ctrl_sync_all_cpus(MSR_IA32_SPEC_CTRL,
 				 enable ? FEATURE_ENABLE_IBRS : 0);
 }
 
-static void __flush_this_cpu_ibp(void *data)
+static void __sync_this_cpu_ibp(void *data)
 {
 	bool enable = *(bool *)data;
 	u64 val;
@@ -108,13 +108,13 @@ static void __flush_this_cpu_ibp(void *data)
 }
 
 /* enable means IBP should be enabled in the CPU (i.e. fast) */
-static void flush_all_cpus_ibp(bool enable)
+static void sync_all_cpus_ibp(bool enable)
 {
 	get_online_cpus();
 
-	__flush_this_cpu_ibp(&enable);
+	__sync_this_cpu_ibp(&enable);
 
-	smp_call_function_many(cpu_online_mask, __flush_this_cpu_ibp,
+	smp_call_function_many(cpu_online_mask, __sync_this_cpu_ibp,
 			       &enable, 1);
 
 	put_online_cpus();
@@ -141,7 +141,7 @@ void spec_ctrl_cpu_init(struct cpuinfo_x86 *c)
 {
 	if (use_ibp_disable) {
 		bool enabled = !ibrs_enabled();
-		__flush_this_cpu_ibp(&enabled);
+		__sync_this_cpu_ibp(&enabled);
 		return;
 	}
 
@@ -285,11 +285,11 @@ static ssize_t ibrs_enabled_write(struct file *file,
 			goto out_unlock;
 		} else {
 			if (enable == IBRS_DISABLED) {
-				flush_all_cpus_ibp(true);
+				sync_all_cpus_ibp(true);
 				WRITE_ONCE(ibpb_enabled, false);
 			} else {
 				WARN_ON(enable != IBRS_ENABLED_USER);
-				flush_all_cpus_ibp(false);
+				sync_all_cpus_ibp(false);
 				WRITE_ONCE(ibpb_enabled, true);
 			}
 		}
@@ -309,11 +309,11 @@ static ssize_t ibrs_enabled_write(struct file *file,
 		set_spec_ctrl_pcp_ibrs(false);
 		if (enable == IBRS_DISABLED) {
 			set_spec_ctrl_pcp_ibrs_user(false);
-			flush_all_cpus_ibrs(false);
+			sync_all_cpus_ibrs(false);
 		} else {
 			WARN_ON(enable != IBRS_ENABLED_USER);
 			set_spec_ctrl_pcp_ibrs_user(true);
-			flush_all_cpus_ibrs(true);
+			sync_all_cpus_ibrs(true);
 		}
 	}
 	WRITE_ONCE(__ibrs_enabled, enable);
