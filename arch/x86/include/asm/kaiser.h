@@ -58,6 +58,8 @@ extern void kaiser_remove_mapping(unsigned long start, unsigned long size);
  */
 extern void kaiser_init(void);
 
+extern bool is_kaiser_pgd(pgd_t *pgd);
+
 extern int kaiser_enabled;
 static __always_inline bool kaiser_active(void)
 {

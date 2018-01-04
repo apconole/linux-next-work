@@ -613,3 +613,13 @@ void kaiser_poison_pgds(enum poison do_poison)
 	}
 	spin_unlock(&pgd_lock);
 }
+
+/*
+ * Won't compile inline in pgtable headers, where it has to be called
+ * from. This is only called in a slow path unless DEBUG_VM=y so it's
+ * not a concern.
+ */
+bool is_kaiser_pgd(pgd_t *pgd)
+{
+	return !list_empty(&virt_to_page(pgd)->lru);
+}
