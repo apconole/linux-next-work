@@ -23,8 +23,11 @@
 	popq %rdx
 	popq %rcx
 	popq %rax
+	jmp .Lend_\@
 
 .Lskip_\@:
+	lfence
+.Lend_\@:
 .endm
 
 .macro ENABLE_IBRS_CLOBBER
@@ -35,8 +38,11 @@
 	movl $0, %edx
 	movl $FEATURE_ENABLE_IBRS, %eax
 	wrmsr
+	jmp .Lend_\@
 
 .Lskip_\@:
+	lfence
+.Lend_\@:
 .endm
 
 .macro ENABLE_IBRS_SAVE_AND_CLOBBER save_reg:req
@@ -50,8 +56,11 @@
 	movl $0, %edx
 	movl $FEATURE_ENABLE_IBRS, %eax
 	wrmsr
+	jmp .Lend_\@
 
 .Lskip_\@:
+	lfence
+.Lend_\@:
 .endm
 
 .macro DISABLE_IBRS
@@ -217,6 +226,16 @@ extern void set_spec_ctrl_pcp_ibpb(bool enable);
 extern void spec_ctrl_rescan_cpuid(void);
 extern void spec_ctrl_init(struct cpuinfo_x86 *c);
 
+static inline int cpu_has_spec_ctrl(void)
+{
+	if (boot_cpu_has(X86_FEATURE_SPEC_CTRL))
+		return 1;
+
+	/* rmb to prevent wrong speculation for security */
+	rmb();
+	return 0;
+}
+
 static __always_inline void __spec_ctrl_vm_ibrs(u64 vcpu_ibrs, bool vmenter)
 {
 	u64 host_ibrs = 0;
@@ -229,6 +248,10 @@ static __always_inline void __spec_ctrl_vm_ibrs(u64 vcpu_ibrs, bool vmenter)
 		 */
 		host_ibrs = FEATURE_ENABLE_IBRS;
 	}
+	else
+		/* rmb to prevent wrong speculation for security */
+		rmb();
+
 	if (vcpu_ibrs != host_ibrs)
 		native_wrmsrl(MSR_IA32_SPEC_CTRL,
 			      vmenter ? vcpu_ibrs : host_ibrs);
@@ -236,7 +259,7 @@ static __always_inline void __spec_ctrl_vm_ibrs(u64 vcpu_ibrs, bool vmenter)
 
 static inline void spec_ctrl_vmenter_ibrs(u64 vcpu_ibrs)
 {
-	if (boot_cpu_has(X86_FEATURE_SPEC_CTRL))
+	if (cpu_has_spec_ctrl())
 		__spec_ctrl_vm_ibrs(vcpu_ibrs, true);
 }
 
@@ -247,17 +270,23 @@ static inline void __spec_ctrl_vmexit_ibrs(u64 vcpu_ibrs)
 
 static inline void spec_ctrl_enable_ibrs(void)
 {
-	if (boot_cpu_has(X86_FEATURE_SPEC_CTRL)) {
+	if (cpu_has_spec_ctrl()) {
 		if (__this_cpu_read(spec_ctrl_pcp) & SPEC_CTRL_PCP_IBRS)
 			native_wrmsrl(MSR_IA32_SPEC_CTRL, FEATURE_ENABLE_IBRS);
+		else
+			/* rmb to prevent wrong speculation for security */
+			rmb();
 	}
 }
 
 static inline void spec_ctrl_disable_ibrs(void)
 {
-	if (boot_cpu_has(X86_FEATURE_SPEC_CTRL)) {
+	if (cpu_has_spec_ctrl()) {
 		if (__this_cpu_read(spec_ctrl_pcp) & SPEC_CTRL_PCP_IBRS)
 			native_wrmsrl(MSR_IA32_SPEC_CTRL, 0);
+		else
+			/* rmb to prevent wrong speculation for security */
+			rmb();
 	}
 }
 
