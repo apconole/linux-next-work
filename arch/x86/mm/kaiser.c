@@ -368,6 +368,10 @@ void __init kaiser_init(void)
 				  sizeof(gate_desc) * NR_VECTORS,
 				  __PAGE_KERNEL_RO | _PAGE_GLOBAL);
 
+	kaiser_add_user_map_ptrs_early(__kprobes_text_start,
+				       __kprobes_text_end,
+				       __PAGE_KERNEL_RX | _PAGE_GLOBAL);
+
 	/*
 	 * .irqentry.text helps us identify code that runs before
 	 * we get a chance to call entering_irq().  This includes
