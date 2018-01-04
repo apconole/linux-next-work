@@ -165,6 +165,13 @@ struct map_range {
 
 static int page_size_mask;
 
+static void enable_global_pages(void)
+{
+#ifndef CONFIG_KAISER
+	__supported_pte_mask |= _PAGE_GLOBAL;
+#endif
+}
+
 static void __init probe_page_size_mask(void)
 {
 	init_gbpages();
@@ -189,9 +196,10 @@ static void __init probe_page_size_mask(void)
 		set_in_cr4(X86_CR4_PSE);
 
 	/* Enable PGE if available */
+	__supported_pte_mask &= ~_PAGE_GLOBAL;
 	if (cpu_has_pge) {
 		set_in_cr4(X86_CR4_PGE);
-		__supported_pte_mask |= _PAGE_GLOBAL;
+		enable_global_pages();
 	}
 }
 
