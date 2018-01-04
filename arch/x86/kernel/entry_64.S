@@ -896,35 +896,8 @@ retint_userspace_restore_args:
 	jmp irq_return
 
 paranoid_userspace_restore_all:
-	RESTORE_IBRS_CLOBBER save_reg=%r13d
-	/*
-	 * Returning from a paranoid exception to user space.  We might have
-	 * switched to the kernel task stack in order to call schedule() or
-	 * handle a signal, so copy the iret frame to the trampoline stack and
-	 * switch to it before returning.
-	 *
-	 * The saved CR3 value is put into the ORIG_RAX slot of the stack
-	 * frame which is not being used in the register restore process.
-	 */
-	movq %r14, ORIG_RAX(%rsp)
-	RESTORE_ALL
-	pushq %rdi	/* rsp point to RDI slot */
-	movq %rsp, %rdi
-	movq PER_CPU_VAR(init_tss + TSS_sp0), %rsp
-	pushq SS-RDI(%rdi)
-	pushq RSP-RDI(%rdi)
-	pushq EFLAGS-RDI(%rdi)
-	pushq CS-RDI(%rdi)
-	pushq RIP-RDI(%rdi)
-	pushq ORIG_RAX-RDI(%rdi)
-	pushq RDI-RDI(%rdi)
-	movq 8(%rsp), %rdi
-	movq %rax, 8(%rsp)
-	RESTORE_CR3 scratch_reg=%rax save_reg=%rdi
-	popq %rdi
-	popq %rax
-	SWAPGS_UNSAFE_STACK
-	jmp irq_return
+	RESTORE_REST
+	jmp retint_userspace_restore_args
 
 retint_restore_args:	/* return to kernel space */
 	DISABLE_INTERRUPTS(CLBR_ANY)
