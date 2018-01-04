@@ -326,6 +326,16 @@ do {								\
 	WARN_ON(__ret);							\
 } while (0)
 
+static void kaiser_enable_pcp(bool enable)
+{
+	int cpu, val = 0;
+	if (enable) {
+		val = 1;
+	}
+	for_each_possible_cpu(cpu)
+		WRITE_ONCE(per_cpu(kaiser_enabled_pcp, cpu), val);
+}
+
 extern char __per_cpu_user_mapped_start[], __per_cpu_user_mapped_end[];
 
 void kaiser_add_mapping_cpu_entry(int cpu)
@@ -450,6 +460,56 @@ static ssize_t kaiser_enabled_read_file(struct file *file, char __user *user_buf
 	return simple_read_from_buffer(user_buf, count, ppos, buf, len);
 }
 
+enum poison {
+	KAISER_POISON,
+	KAISER_UNPOISON
+};
+void kaiser_poison_pgds(enum poison do_poison);
+
+void kaiser_do_disable(void)
+{
+	/* Make sure the kernel PGDs are usable by userspace: */
+	kaiser_poison_pgds(KAISER_UNPOISON);
+
+	/*
+	 * Make sure all the CPUs have the poison clear in their TLBs.
+	 * This also functions as a barrier to ensure that everyone
+	 * sees the unpoisoned PGDs.
+	 */
+	flush_tlb_all();
+
+	/* Tell the assembly code to stop switching CR3. */
+	kaiser_enable_pcp(false);
+
+	/*
+	 * Make sure everybody does an interrupt.  This means that
+	 * they have gone through a SWITCH_TO_KERNEL_CR3 amd are no
+	 * longer running on the userspace CR3.  If we did not do
+	 * this, we might have CPUs running on the shadow page tables
+	 * that then enter the kernel and think they do *not* need to
+	 * switch.
+	 */
+	flush_tlb_all();
+}
+
+void kaiser_do_enable(void)
+{
+	/* Tell the assembly code to start switching CR3: */
+	kaiser_enable_pcp(true);
+
+	/* Make sure everyone can see the kaiser_asm_do_switch update: */
+	synchronize_rcu();
+
+	/*
+	 * Now that userspace is no longer using the kernel copy of
+	 * the page tables, we can poison it:
+	 */
+	kaiser_poison_pgds(KAISER_POISON);
+
+	/* Make sure all the CPUs see the poison: */
+	flush_tlb_all();
+}
+
 static ssize_t kaiser_enabled_write_file(struct file *file,
 		 const char __user *user_buf, size_t count, loff_t *ppos)
 {
@@ -472,6 +532,13 @@ static ssize_t kaiser_enabled_write_file(struct file *file,
 		return count;
 
 	WRITE_ONCE(kaiser_enabled, enable);
+	synchronize_rcu();
+
+	if (enable)
+		kaiser_do_enable();
+	else
+		kaiser_do_disable();
+
 	return count;
 }
 
@@ -489,10 +556,6 @@ static int __init create_kaiser_enabled(void)
 }
 late_initcall(create_kaiser_enabled);
 
-enum poison {
-	KAISER_POISON,
-	KAISER_UNPOISON
-};
 void kaiser_poison_pgd_page(pgd_t *pgd_page, enum poison do_poison)
 {
 	int i = 0;
