@@ -29,8 +29,9 @@ static bool noibpb_cmdline __read_mostly;
 
 static int ibrs_enabled(void)
 {
-	if (__ibrs_enabled)
-		return 1;
+	int val = READ_ONCE(__ibrs_enabled);
+	if (val)
+		return val;
 
 	/* rmb to prevent wrong speculation for security */
 	rmb();
