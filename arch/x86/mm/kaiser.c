@@ -30,6 +30,7 @@
 #include <linux/types.h>
 #include <linux/bug.h>
 #include <linux/init.h>
+#include <linux/interrupt.h>
 #include <linux/spinlock.h>
 #include <linux/mm.h>
 #include <linux/uaccess.h>
@@ -366,6 +367,19 @@ void __init kaiser_init(void)
 	kaiser_add_user_map_early((void *)idt_descr.address,
 				  sizeof(gate_desc) * NR_VECTORS,
 				  __PAGE_KERNEL_RO | _PAGE_GLOBAL);
+
+	/*
+	 * .irqentry.text helps us identify code that runs before
+	 * we get a chance to call entering_irq().  This includes
+	 * the interrupt entry assembly plus the first C function
+	 * that gets called.  KAISER does not need the C code
+	 * mapped.  We just use the .irqentry.text section as-is
+	 * to avoid having to carve out a new section for the
+	 * assembly only.
+	 */
+	kaiser_add_user_map_ptrs_early(__irqentry_text_start,
+				       __irqentry_text_end,
+				       __PAGE_KERNEL_RX | _PAGE_GLOBAL);
 }
 
 int kaiser_add_mapping(unsigned long addr, unsigned long size,
