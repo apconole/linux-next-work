@@ -5005,20 +5005,20 @@ static void svm_vcpu_run(struct kvm_vcpu *vcpu)
 #endif
 		);
 
-	if (cpu_has_spec_ctrl()) {
-		rdmsrl(MSR_IA32_SPEC_CTRL, svm->spec_ctrl);
-		__spec_ctrl_vmexit_ibrs(svm->spec_ctrl);
-	}
-	stuff_RSB();
-
 #ifdef CONFIG_X86_64
-	wrmsrl(MSR_GS_BASE, svm->host.gs_base);
+	native_wrmsrl(MSR_GS_BASE, svm->host.gs_base);
 #else
 	loadsegment(fs, svm->host.fs);
 #ifndef CONFIG_X86_32_LAZY_GS
 	loadsegment(gs, svm->host.gs);
 #endif
 #endif
+
+	if (cpu_has_spec_ctrl()) {
+		rdmsrl(MSR_IA32_SPEC_CTRL, svm->spec_ctrl);
+		__spec_ctrl_vmexit_ibrs(svm->spec_ctrl);
+	}
+	stuff_RSB();
 
 	reload_tss(vcpu);
 
