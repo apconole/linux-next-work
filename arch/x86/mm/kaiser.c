@@ -468,6 +468,9 @@ static ssize_t kaiser_enabled_write_file(struct file *file,
 	if (enable > 1)
 		return -EINVAL;
 
+	if (kaiser_enabled == enable)
+		return count;
+
 	WRITE_ONCE(kaiser_enabled, enable);
 	return count;
 }
@@ -485,3 +488,38 @@ static int __init create_kaiser_enabled(void)
 	return 0;
 }
 late_initcall(create_kaiser_enabled);
+
+enum poison {
+	KAISER_POISON,
+	KAISER_UNPOISON
+};
+void kaiser_poison_pgd_page(pgd_t *pgd_page, enum poison do_poison)
+{
+	int i = 0;
+
+	for (i = 0; i < PTRS_PER_PGD; i++) {
+		pgd_t *pgd = &pgd_page[i];
+
+		/* Stop once we hit kernel addresses: */
+		if (!pgdp_maps_userspace(pgd))
+			break;
+
+		if (do_poison == KAISER_POISON)
+			kaiser_poison_pgd(pgd);
+		else
+			kaiser_unpoison_pgd(pgd);
+	}
+
+}
+
+void kaiser_poison_pgds(enum poison do_poison)
+{
+	struct page *page;
+
+	spin_lock(&pgd_lock);
+	list_for_each_entry(page, &pgd_list, lru) {
+		pgd_t *pgd = (pgd_t *)page_address(page);
+		kaiser_poison_pgd_page(pgd, do_poison);
+	}
+	spin_unlock(&pgd_lock);
+}
