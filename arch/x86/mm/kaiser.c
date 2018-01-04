@@ -182,7 +182,7 @@ static pte_t *kaiser_shadow_pagetable_walk(unsigned long address,
 
 		spin_lock(&shadow_table_allocation_lock);
 		if (pud_none(*pud))
-			set_pud(pud, __pud(_KERNPG_TABLE | __pa(new_pmd_page)));
+			set_pud(pud, __pud(_PAGE_TABLE | __pa(new_pmd_page)));
 		else
 			free_page(new_pmd_page);
 		spin_unlock(&shadow_table_allocation_lock);
@@ -201,7 +201,7 @@ static pte_t *kaiser_shadow_pagetable_walk(unsigned long address,
 
 		spin_lock(&shadow_table_allocation_lock);
 		if (pmd_none(*pmd))
-			set_pmd(pmd, __pmd(_KERNPG_TABLE  | __pa(new_pte_page)));
+			set_pmd(pmd, __pmd(_PAGE_TABLE  | __pa(new_pte_page)));
 		else
 			free_page(new_pte_page);
 		spin_unlock(&shadow_table_allocation_lock);
@@ -300,7 +300,7 @@ static void __init kaiser_init_all_pgds(void)
 			WARN_ON(1);
 			break;
 		}
-		set_pgd(pgd + i, __pgd(_KERNPG_TABLE | __pa(pud)));
+		set_pgd(pgd + i, __pgd(_PAGE_TABLE | __pa(pud)));
 	}
 }
 
@@ -365,7 +365,8 @@ void kaiser_add_mapping_cpu_entry(int cpu)
  */
 void __init kaiser_init(void)
 {
-	int cpu;
+	int cpu, idx;
+	extern enum { EMULATE, NATIVE, NONE } vsyscall_mode;
 	kaiser_init_all_pgds();
 
 	for_each_possible_cpu(cpu)
@@ -399,6 +400,20 @@ void __init kaiser_init(void)
 	kaiser_add_user_map_ptrs_early(__irqentry_text_start,
 				       __irqentry_text_end,
 				       __PAGE_KERNEL_RX | _PAGE_GLOBAL);
+
+	kaiser_add_user_map_early((void *)VVAR_ADDRESS, PAGE_SIZE,
+				  __PAGE_KERNEL_VVAR | _PAGE_GLOBAL);
+	kaiser_add_user_map_early((void *)VSYSCALL_START, PAGE_SIZE,
+				  vsyscall_mode == NATIVE
+				  ? __PAGE_KERNEL_VSYSCALL | _PAGE_GLOBAL
+				  : __PAGE_KERNEL_VVAR | _PAGE_GLOBAL);
+#ifdef CONFIG_PARAVIRT_CLOCK
+	for (idx = 0; idx <= (PVCLOCK_FIXMAP_END-PVCLOCK_FIXMAP_BEGIN); idx++) {
+		kaiser_add_user_map_early((void *)__fix_to_virt(PVCLOCK_FIXMAP_BEGIN + idx),
+					  PAGE_SIZE,
+					  __PAGE_KERNEL_VVAR | _PAGE_GLOBAL);
+	}
+#endif
 }
 
 int kaiser_add_mapping(unsigned long addr, unsigned long size,
