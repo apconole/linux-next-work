@@ -447,7 +447,7 @@ void __init kaiser_init(void)
 	if (is_xen_pv_domain()) {
 		pr_info("x86/kaiser: Xen PV detected, disabling "
 			"KAISER protection\n");
-	} else {
+	} else if (boot_cpu_data.x86_vendor == X86_VENDOR_INTEL) {
 		pr_info("x86/kaiser: Unmapping kernel while in userspace\n");
 		kaiser_enable_pcp(true);
 		kaiser_enabled = 1;
