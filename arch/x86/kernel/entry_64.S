@@ -358,26 +358,6 @@ ENTRY(save_paranoid)
 1:
 	SAVE_AND_SWITCH_TO_KERNEL_CR3 scratch_reg=%rax save_reg=%r14
 	ENABLE_IBRS_SAVE_AND_CLOBBER save_reg=%r13d /* no indirect jump allowed before IBRS */
-	/* Check to see if we're on the trampoline stack. */
-	movq PER_CPU_VAR(init_tss + TSS_sp0), %rcx
-	cmpq %rcx, %rsp
-	ja 1f
-	leaq -TSS_stack_size(%rcx), %rax
-	cmpq %rsp, %rax
-	ja 1f
-	/*
-	 * We're on the trampoline stack.  Copy the trampoline stack's
-	 * contents to the kernel task stack and switch to it.
-	 */
-	subq %rsp, %rcx
-	movq PER_CPU_VAR(kernel_stack), %rdi
-	addq $KERNEL_STACK_OFFSET, %rdi
-	subq %rcx, %rdi
-	movq %rdi, %rax
-	movq %rsp, %rsi
-	rep movsb
-	movq %rax, %rsp
-1:
 	STUFF_RSB /* no ret allowed before stuffing the RSB */
 	ret
 	CFI_ENDPROC
