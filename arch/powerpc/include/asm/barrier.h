@@ -34,6 +34,8 @@
 #define rmb()  __asm__ __volatile__ ("sync" : : : "memory")
 #define wmb()  __asm__ __volatile__ ("sync" : : : "memory")
 
+#define gmb()  do { } while (0)
+
 #define set_mb(var, value)	do { var = value; mb(); } while (0)
 
 #ifdef __SUBARCH_HAS_LWSYNC

@@ -30,6 +30,8 @@
 #define smp_rmb()			rmb()
 #define smp_wmb()			wmb()
 
+#define gmb()				do { } while (0)
+
 #define read_barrier_depends()		do { } while (0)
 #define smp_read_barrier_depends()	do { } while (0)
 
