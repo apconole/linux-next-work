@@ -903,19 +903,14 @@ restore_args:
 	 */
 	RESTORE_ARGS 1,8,1
 	pushq %rax
-	movq 8(%rsp), %rax
-	movq %rax, PER_CPU_VAR(init_tss + TSS_stack + TSS_stack_size -8-8-8-8-8)
-	movq 8+8(%rsp), %rax
-	movq %rax, PER_CPU_VAR(init_tss + TSS_stack + TSS_stack_size -8-8-8-8)
-	movq 8+8+8(%rsp), %rax
-	movq %rax, PER_CPU_VAR(init_tss + TSS_stack + TSS_stack_size -8-8-8)
-	movq 8+8+8+8(%rsp), %rax
-	movq %rax, PER_CPU_VAR(init_tss + TSS_stack + TSS_stack_size -8-8)
-	movq 8+8+8+8+8(%rsp), %rax
-	movq %rax, PER_CPU_VAR(init_tss + TSS_stack + TSS_stack_size -8)
-	popq %rax
+	movq %rsp, %rax
 	movq PER_CPU_VAR(init_tss + TSS_sp0), %rsp
-	leaq -8-8-8-8-8(%rsp), %rsp
+	pushq SS-ORIG_RAX(%rax)
+	pushq RSP-ORIG_RAX(%rax)
+	pushq EFLAGS-ORIG_RAX(%rax)
+	pushq CS-ORIG_RAX(%rax)
+	pushq RIP-ORIG_RAX(%rax)
+	movq (%rax), %rax
 	SWITCH_TO_USER_CR3
 	SWAPGS
 	jmp irq_return
@@ -926,29 +921,27 @@ restore_all:
 	 * Returning from an exception, possibly on the kernel task
 	 * stack.  Copy the iret frame to the trampoline stack and
 	 * switch to it before returning.
+	 *
+	 * The saved CR3 value is put into the ORIG_RAX slot of the stack
+	 * frame which is not being used in the register restore process.
 	 */
-	movq %r14, PER_CPU_VAR(init_tss + TSS_stack + TSS_stack_size -8-8-8-8-8-8-8-8)
-	RESTORE_ALL 8
-	pushq %rax
-	movq 8(%rsp), %rax
-	movq %rax, PER_CPU_VAR(init_tss + TSS_stack + TSS_stack_size -8-8-8-8-8)
-	movq 8+8(%rsp), %rax
-	movq %rax, PER_CPU_VAR(init_tss + TSS_stack + TSS_stack_size -8-8-8-8)
-	movq 8+8+8(%rsp), %rax
-	movq %rax, PER_CPU_VAR(init_tss + TSS_stack + TSS_stack_size -8-8-8)
-	movq 8+8+8+8(%rsp), %rax
-	movq %rax, PER_CPU_VAR(init_tss + TSS_stack + TSS_stack_size -8-8)
-	movq 8+8+8+8+8(%rsp), %rax
-	movq %rax, PER_CPU_VAR(init_tss + TSS_stack + TSS_stack_size -8)
-	popq %rax
+	movq %r14, ORIG_RAX(%rsp)
+	RESTORE_ALL
+	pushq %rdi	/* rsp point to RDI slot */
+	movq %rsp, %rdi
 	movq PER_CPU_VAR(init_tss + TSS_sp0), %rsp
-	leaq -8-8-8-8-8(%rsp), %rsp
-	pushq %r14
-	pushq %rax
-	movq PER_CPU_VAR(init_tss + TSS_stack + TSS_stack_size -8-8-8-8-8-8-8-8), %r14
-	RESTORE_CR3 scratch_reg=%rax save_reg=%r14
+	pushq SS-RDI(%rdi)
+	pushq RSP-RDI(%rdi)
+	pushq EFLAGS-RDI(%rdi)
+	pushq CS-RDI(%rdi)
+	pushq RIP-RDI(%rdi)
+	pushq ORIG_RAX-RDI(%rdi)
+	pushq RDI-RDI(%rdi)
+	movq 8(%rsp), %rdi
+	movq %rax, 8(%rsp)
+	RESTORE_CR3 scratch_reg=%rax save_reg=%rdi
+	popq %rdi
 	popq %rax
-	popq %r14
 	SWAPGS_UNSAFE_STACK
 	jmp irq_return
 
