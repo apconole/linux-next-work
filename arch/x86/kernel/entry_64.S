@@ -58,6 +58,7 @@
 #include <asm/context_tracking.h>
 #include <asm/smap.h>
 #include <linux/err.h>
+#include "kaiser.h"
 
 /* Avoid __ASSEMBLER__'ifying <linux/audit.h> just for this.  */
 #include <linux/elf-em.h>
@@ -262,6 +263,7 @@ ENDPROC(native_usergs_sysret64)
 	testl $3, CS-RBP(%rsi)
 	je 1f
 	SWAPGS
+	SWITCH_TO_KERNEL_CR3
 	/*
 	 * irq_count is used to check if a CPU is already on an interrupt stack
 	 * or not. While this is essentially redundant with preempt_count it is
@@ -325,7 +327,9 @@ ENTRY(save_paranoid)
 	js 1f	/* negative -> in kernel */
 	SWAPGS
 	xorl %ebx,%ebx
-1:	ret
+1:
+	SAVE_AND_SWITCH_TO_KERNEL_CR3 scratch_reg=%rax save_reg=%r14
+	ret
 	CFI_ENDPROC
 END(save_paranoid)
 	.popsection
@@ -420,6 +424,7 @@ ENTRY(system_call)
 	 */
 GLOBAL(system_call_after_swapgs)
 
+	SWITCH_TO_KERNEL_CR3
 	movq	%rsp,PER_CPU_VAR(old_rsp)
 	movq	PER_CPU_VAR(kernel_stack),%rsp
 	/*
@@ -469,6 +474,7 @@ sysret_check:
 	RESTORE_ARGS 1,-ARG_SKIP,0
 	/*CFI_REGISTER	rflags,r11*/
 	movq	PER_CPU_VAR(old_rsp), %rsp
+	SWITCH_TO_USER_CR3
 	USERGS_SYSRET64
 
 	CFI_RESTORE_STATE
@@ -853,6 +859,7 @@ retint_swapgs:		/* return to user-space */
 	 */
 	DISABLE_INTERRUPTS(CLBR_ANY)
 	TRACE_IRQS_IRETQ
+	SWITCH_TO_USER_CR3
 	SWAPGS
 	jmp restore_args
 
@@ -1374,6 +1381,7 @@ ENTRY(paranoid_exit)
 	jnz   paranoid_userspace
 paranoid_swapgs:
 	TRACE_IRQS_IRETQ 0
+	RESTORE_CR3 scratch_reg=%rax save_reg=%r14
 	SWAPGS_UNSAFE_STACK
 	RESTORE_ALL 8
 	jmp irq_return
@@ -1439,6 +1447,7 @@ ENTRY(error_entry)
 	je error_kernelspace
 error_swapgs:
 	SWAPGS
+	SWITCH_TO_KERNEL_CR3
 error_sti:
 	TRACE_IRQS_OFF
 	ret
@@ -1573,6 +1582,7 @@ ENTRY(nmi)
 	 */
 
 	SWAPGS_UNSAFE_STACK
+	SWITCH_TO_KERNEL_CR3
 	cld
 	movq	%rsp, %rdx
 	movq	PER_CPU_VAR(kernel_stack), %rsp
@@ -1615,6 +1625,7 @@ ENTRY(nmi)
 	 * work, because we don't want to enable interrupts.  Fortunately,
 	 * do_nmi doesn't modify pt_regs.
 	 */
+	SWITCH_TO_USER_CR3
 	SWAPGS
 
 	addq	$6*8, %rsp	/* skip bx, bp, and r12-r15 */
@@ -1826,6 +1837,8 @@ end_repeat_nmi:
 	movq $-1,%rsi
 	call do_nmi
 	UNWIND_UNSAFE_STACK
+
+	RESTORE_CR3 scratch_reg=%rax save_reg=%r14
 
 	/* Did the NMI take a page fault? Restore cr2 if it did */
 	movq %cr2, %rcx

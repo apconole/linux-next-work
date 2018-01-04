@@ -17,6 +17,7 @@
 #include <asm/smap.h>
 #include <linux/linkage.h>
 #include <linux/err.h>
+#include "../kernel/kaiser.h"
 
 /* Avoid __ASSEMBLER__'ifying <linux/audit.h> just for this.  */
 #include <linux/elf-em.h>
@@ -121,6 +122,7 @@ ENTRY(ia32_sysenter_target)
 	CFI_DEF_CFA	rsp,0
 	CFI_REGISTER	rsp,rbp
 	SWAPGS_UNSAFE_STACK
+	SWITCH_TO_KERNEL_CR3
 	movq	PER_CPU_VAR(kernel_stack), %rsp
 	addq	$(KERNEL_STACK_OFFSET),%rsp
 	/*
@@ -182,6 +184,7 @@ sysexit_from_sys_call:
 	popq_cfi %rcx				/* User %esp */
 	CFI_REGISTER rsp,rcx
 	TRACE_IRQS_ON
+	SWITCH_TO_USER_CR3
 	ENABLE_INTERRUPTS_SYSEXIT32
 
 #ifdef CONFIG_AUDITSYSCALL
@@ -280,6 +283,7 @@ ENTRY(ia32_cstar_target)
 	CFI_REGISTER	rip,rcx
 	/*CFI_REGISTER	rflags,r11*/
 	SWAPGS_UNSAFE_STACK
+	SWITCH_TO_KERNEL_CR3
 	movl	%esp,%r8d
 	CFI_REGISTER	rsp,r8
 	movq	PER_CPU_VAR(kernel_stack),%rsp
@@ -336,6 +340,7 @@ sysretl_from_sys_call:
 	TRACE_IRQS_ON
 	movl RSP-ARGOFFSET(%rsp),%esp
 	CFI_RESTORE rsp
+	SWITCH_TO_USER_CR3
 	USERGS_SYSRET32
 	
 #ifdef CONFIG_AUDITSYSCALL
@@ -408,6 +413,7 @@ ENTRY(ia32_syscall)
 	PARAVIRT_ADJUST_EXCEPTION_FRAME
 	ASM_CLAC			/* Do this early to minimize exposure */
 	SWAPGS
+	SWITCH_TO_KERNEL_CR3
 	/*
 	 * No need to follow this irqs on/off section: the syscall
 	 * disabled irqs and here we enable it straight after entry:
