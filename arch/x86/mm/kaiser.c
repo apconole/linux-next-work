@@ -41,6 +41,7 @@
 #include <asm/pgalloc.h>
 #include <asm/tlbflush.h>
 #include <asm/desc.h>
+#include <asm/kvmclock.h>
 
 #define KAISER_WALK_ATOMIC  0x1
 
@@ -408,7 +409,8 @@ void __init kaiser_init(void)
 				  ? __PAGE_KERNEL_VSYSCALL | _PAGE_GLOBAL
 				  : __PAGE_KERNEL_VVAR | _PAGE_GLOBAL);
 #ifdef CONFIG_PARAVIRT_CLOCK
-	for (idx = 0; idx <= (PVCLOCK_FIXMAP_END-PVCLOCK_FIXMAP_BEGIN); idx++) {
+	for (idx = 0; kvm_clock.archdata.vclock_mode == VCLOCK_PVCLOCK &&
+		     idx <= (PVCLOCK_FIXMAP_END-PVCLOCK_FIXMAP_BEGIN); idx++) {
 		kaiser_add_user_map_early((void *)__fix_to_virt(PVCLOCK_FIXMAP_BEGIN + idx),
 					  PAGE_SIZE,
 					  __PAGE_KERNEL_VVAR | _PAGE_GLOBAL);
