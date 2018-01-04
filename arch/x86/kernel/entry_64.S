@@ -896,6 +896,7 @@ retint_userspace_restore_args:
 	jmp irq_return
 
 paranoid_userspace_restore_all:
+	TRACE_IRQS_IRETQ
 	RESTORE_REST
 	jmp retint_userspace_restore_args
 
