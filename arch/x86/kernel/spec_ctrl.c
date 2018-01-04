@@ -198,7 +198,7 @@ void spec_ctrl_init(struct cpuinfo_x86 *c)
 		setup_force_cpu_cap(X86_FEATURE_IBPB_SUPPORT);
 		if (!ibrs_enabled() && !noibrs_cmdline()) {
 			set_spec_ctrl_pcp_ibrs(true);
-			__ibrs_enabled = 1;
+			__ibrs_enabled = IBRS_ENABLED;
 		}
 		printk(KERN_INFO
 		       "FEATURE SPEC_CTRL Present\n");
