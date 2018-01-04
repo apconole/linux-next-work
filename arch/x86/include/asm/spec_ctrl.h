@@ -4,26 +4,38 @@
 #define SPEC_CTRL_PCP_IBRS	(1<<0)
 #define SPEC_CTRL_PCP_IBPB	(1<<1)
 #define SPEC_CTRL_PCP_IBRS_USER	(1<<2)
+#define SPEC_CTRL_PCP_ONLY_IBPB	(1<<3) /* use IBPB instead of IBRS */
+
+#define SPEC_CTRL_PCP_ENTRY (SPEC_CTRL_PCP_IBRS|SPEC_CTRL_PCP_ONLY_IBPB)
 
 #ifdef __ASSEMBLY__
 
 #include <asm/msr-index.h>
 
 .macro ENABLE_IBRS
-	testl $SPEC_CTRL_PCP_IBRS, PER_CPU_VAR(spec_ctrl_pcp)
+	testl $SPEC_CTRL_PCP_ENTRY, PER_CPU_VAR(spec_ctrl_pcp)
 	jz .Lskip_\@
+
 
 	pushq %rax
 	pushq %rcx
 	pushq %rdx
-	movl $MSR_IA32_SPEC_CTRL, %ecx
 	movl $0, %edx
+	testl $SPEC_CTRL_PCP_ONLY_IBPB, PER_CPU_VAR(spec_ctrl_pcp)
+	jnz .Lonly_ibpb_\@
+	movl $MSR_IA32_SPEC_CTRL, %ecx
 	movl $FEATURE_ENABLE_IBRS, %eax
+.Lback_\@:
 	wrmsr
 	popq %rdx
 	popq %rcx
 	popq %rax
 	jmp .Lend_\@
+
+.Lonly_ibpb_\@:
+	movl $MSR_IA32_PRED_CMD, %ecx
+	movl $FEATURE_SET_IBPB, %eax
+	jmp .Lback_\@
 
 .Lskip_\@:
 	lfence
@@ -31,14 +43,22 @@
 .endm
 
 .macro ENABLE_IBRS_CLOBBER
-	testl $SPEC_CTRL_PCP_IBRS, PER_CPU_VAR(spec_ctrl_pcp)
+	testl $SPEC_CTRL_PCP_ENTRY, PER_CPU_VAR(spec_ctrl_pcp)
 	jz .Lskip_\@
 
-	movl $MSR_IA32_SPEC_CTRL, %ecx
 	movl $0, %edx
+	testl $SPEC_CTRL_PCP_ONLY_IBPB, PER_CPU_VAR(spec_ctrl_pcp)
+	jnz .Lonly_ibpb_\@
+	movl $MSR_IA32_SPEC_CTRL, %ecx
 	movl $FEATURE_ENABLE_IBRS, %eax
+.Lback_\@:
 	wrmsr
 	jmp .Lend_\@
+
+.Lonly_ibpb_\@:
+	movl $MSR_IA32_PRED_CMD, %ecx
+	movl $FEATURE_SET_IBPB, %eax
+	jmp .Lback_\@
 
 .Lskip_\@:
 	lfence
@@ -46,8 +66,11 @@
 .endm
 
 .macro ENABLE_IBRS_SAVE_AND_CLOBBER save_reg:req
-	testl $SPEC_CTRL_PCP_IBRS, PER_CPU_VAR(spec_ctrl_pcp)
+	testl $SPEC_CTRL_PCP_ENTRY, PER_CPU_VAR(spec_ctrl_pcp)
 	jz .Lskip_\@
+
+	testl $SPEC_CTRL_PCP_ONLY_IBPB, PER_CPU_VAR(spec_ctrl_pcp)
+	jnz .Lonly_ibpb_\@
 
 	movl $MSR_IA32_SPEC_CTRL, %ecx
 	rdmsr
@@ -56,6 +79,22 @@
 	movl $0, %edx
 	movl $FEATURE_ENABLE_IBRS, %eax
 	wrmsr
+	jmp .Lend_\@
+
+.Lonly_ibpb_\@:
+	movl $0, %edx
+	movl $MSR_IA32_PRED_CMD, %ecx
+	movl $FEATURE_SET_IBPB, %eax
+	wrmsr
+
+	/*
+	 * Simulate no IBRS just in case IBRS is enabled in the middle
+	 * of an exception, this avoids the very remote risk of
+	 * writing random save_reg content into the SPEC_CTRL MSR in
+	 * such case.
+	 */
+	movl $FEATURE_ENABLE_IBRS, \save_reg
+
 	jmp .Lend_\@
 
 .Lskip_\@:
@@ -311,6 +350,23 @@ static inline void spec_ctrl_ibpb(void)
 	}
 }
 
+static inline int spec_ctrl_check_only_ibpb(void)
+{
+	if (boot_cpu_has(X86_FEATURE_IBPB_SUPPORT) &&
+	    __this_cpu_read(spec_ctrl_pcp) & (SPEC_CTRL_PCP_ONLY_IBPB))
+		return 1;
+
+	/* rmb to prevent wrong speculation for security */
+	rmb();
+	return 0;
+}
+
+static inline void spec_ctrl_ibpb_as_ibrs(void)
+{
+	if (spec_ctrl_check_only_ibpb())
+		__spec_ctrl_ibpb();
+}
+
 static inline void spec_ctrl_ibpb_if_different_creds(struct task_struct *next)
 {
 	struct task_struct *prev = current;
@@ -325,6 +381,7 @@ static inline void spec_ctrl_ibpb_if_different_creds(struct task_struct *next)
 
 static __always_inline void stuff_RSB(void)
 {
+	spec_ctrl_ibpb_as_ibrs();
 	__asm__ __volatile__("       call 1f; pause;"
 			     "1:     call 2f; pause;"
 			     "2:     call 3f; pause;"
