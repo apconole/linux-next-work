@@ -172,8 +172,8 @@ void spec_ctrl_init(struct cpuinfo_x86 *c)
 				use_ibp_disable = true;
 				if (USE_IBP_DISABLE_DEFAULT) {
 					/* default enabled */
-					ibrs_enabled = 2;
-					ibpb_enabled = 1;
+					ibrs_enabled = IBRS_ENABLED_USER;
+					ibpb_enabled = IBPB_ENABLED;
 				}
 				spec_ctrl_cpu_init(c);
 
@@ -281,11 +281,11 @@ static ssize_t ibrs_enabled_write(struct file *file,
 		} else {
 			if (enable == IBRS_DISABLED) {
 				sync_all_cpus_ibp(true);
-				WRITE_ONCE(ibpb_enabled, 0);
+				WRITE_ONCE(ibpb_enabled, IBPB_DISABLED);
 			} else {
 				WARN_ON(enable != IBRS_ENABLED_USER);
 				sync_all_cpus_ibp(false);
-				WRITE_ONCE(ibpb_enabled, 1);
+				WRITE_ONCE(ibpb_enabled, IBPB_ENABLED);
 			}
 		}
 		WRITE_ONCE(ibrs_enabled, enable);
