@@ -271,6 +271,7 @@
 extern void set_spec_ctrl_pcp_ibrs(bool enable);
 extern void set_spec_ctrl_pcp_ibpb(bool enable);
 
+extern void spec_ctrl_rescan_cpuid(void);
 extern void spec_ctrl_init(struct cpuinfo_x86 *c);
 
 static __always_inline void __spec_ctrl_vm_ibrs(u64 vcpu_ibrs, bool vmenter)
@@ -292,7 +293,7 @@ static __always_inline void __spec_ctrl_vm_ibrs(u64 vcpu_ibrs, bool vmenter)
 
 static inline void spec_ctrl_vmenter_ibrs(u64 vcpu_ibrs)
 {
-	if (static_cpu_has(X86_FEATURE_SPEC_CTRL))
+	if (boot_cpu_has(X86_FEATURE_SPEC_CTRL))
 		__spec_ctrl_vm_ibrs(vcpu_ibrs, true);
 }
 
@@ -303,7 +304,7 @@ static inline void __spec_ctrl_vmexit_ibrs(u64 vcpu_ibrs)
 
 static inline void spec_ctrl_enable_ibrs(void)
 {
-	if (static_cpu_has(X86_FEATURE_SPEC_CTRL)) {
+	if (boot_cpu_has(X86_FEATURE_SPEC_CTRL)) {
 		if (__this_cpu_read(spec_ctrl_pcp) & SPEC_CTRL_PCP_IBRS)
 			native_wrmsrl(MSR_IA32_SPEC_CTRL, FEATURE_ENABLE_IBRS);
 	}
@@ -311,7 +312,7 @@ static inline void spec_ctrl_enable_ibrs(void)
 
 static inline void spec_ctrl_disable_ibrs(void)
 {
-	if (static_cpu_has(X86_FEATURE_SPEC_CTRL)) {
+	if (boot_cpu_has(X86_FEATURE_SPEC_CTRL)) {
 		if (__this_cpu_read(spec_ctrl_pcp) & SPEC_CTRL_PCP_IBRS)
 			native_wrmsrl(MSR_IA32_SPEC_CTRL, 0);
 	}
@@ -324,7 +325,7 @@ static inline void __spec_ctrl_ibpb(void)
 
 static inline void spec_ctrl_ibpb(void)
 {
-	if (static_cpu_has(X86_FEATURE_IBPB_SUPPORT)) {
+	if (boot_cpu_has(X86_FEATURE_IBPB_SUPPORT)) {
 		if (__this_cpu_read(spec_ctrl_pcp) & SPEC_CTRL_PCP_IBPB)
 			__spec_ctrl_ibpb();
 	}
@@ -334,7 +335,7 @@ static inline void spec_ctrl_ibpb_if_different_creds(struct task_struct *next)
 {
 	struct task_struct *prev = current;
 
-	if (static_cpu_has(X86_FEATURE_IBPB_SUPPORT)) {
+	if (boot_cpu_has(X86_FEATURE_IBPB_SUPPORT)) {
 		if (__this_cpu_read(spec_ctrl_pcp) & SPEC_CTRL_PCP_IBPB && next &&
 		    ___ptrace_may_access(next, NULL, prev, PTRACE_MODE_IBPB))
 			__spec_ctrl_ibpb();

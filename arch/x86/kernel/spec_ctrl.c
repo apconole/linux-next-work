@@ -128,6 +128,18 @@ void spec_ctrl_init(struct cpuinfo_x86 *c)
 	}
 }
 
+void spec_ctrl_rescan_cpuid(void)
+{
+	mutex_lock(&spec_ctrl_mutex);
+	if (boot_cpu_data.x86_vendor == X86_VENDOR_INTEL ||
+	    boot_cpu_data.x86_vendor == X86_VENDOR_AMD) {
+		/* detect spec ctrl related cpuid additions */
+		init_scattered_cpuid_features(&boot_cpu_data);
+		spec_ctrl_init(&boot_cpu_data);
+	}
+	mutex_unlock(&spec_ctrl_mutex);
+}
+
 static ssize_t __enabled_read(struct file *file, char __user *user_buf,
 			      size_t count, loff_t *ppos, unsigned int *field)
 {

@@ -9072,7 +9072,7 @@ static void __noclone vmx_vcpu_run(struct kvm_vcpu *vcpu)
 #endif
 	      );
 
-	if (static_cpu_has(X86_FEATURE_SPEC_CTRL)) {
+	if (boot_cpu_has(X86_FEATURE_SPEC_CTRL)) {
 		rdmsrl(MSR_IA32_SPEC_CTRL, vmx->spec_ctrl);
 		__spec_ctrl_vmexit_ibrs(vmx->spec_ctrl);
 	}

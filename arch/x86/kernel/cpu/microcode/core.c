@@ -39,6 +39,7 @@
 #include <asm/microcode.h>
 #include <asm/processor.h>
 #include <asm/cmdline.h>
+#include <asm/spec_ctrl.h>
 
 #define MICROCODE_VERSION	"2.01"
 
@@ -320,6 +321,8 @@ static ssize_t microcode_write(struct file *file, const char __user *buf,
 
 	if (ret > 0)
 		perf_check_microcode();
+
+	spec_ctrl_rescan_cpuid();
 
 	mutex_unlock(&microcode_mutex);
 	put_online_cpus();
