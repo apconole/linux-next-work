@@ -368,6 +368,15 @@ void kaiser_add_mapping_cpu_entry(int cpu)
 				  __PAGE_KERNEL | _PAGE_GLOBAL);
 }
 
+static bool is_xen_pv_domain(void)
+{
+#ifdef CONFIG_XEN
+	return xen_pv_domain();
+#else
+	return false;
+#endif
+}
+
 /*
  * If anything in here fails, we will likely die on one of the
  * first kernel->user transitions and init will die.  But, we
@@ -435,7 +444,7 @@ void __init kaiser_init(void)
 	}
 #endif
 
-	if (xen_pv_domain()) {
+	if (is_xen_pv_domain()) {
 		pr_info("x86/kaiser: Xen PV detected, disabling "
 			"KAISER protection\n");
 	} else {
@@ -482,7 +491,7 @@ void kaiser_remove_mapping(unsigned long start, unsigned long size)
 	 * expensive right now: this is called to unmap process
 	 * stacks in the exit() path.
 	 *
-	 * This can change if we get to the point where this is not
+	  This can change if we get to the point where this is not
 	 * in a remotely hot path, like only called via write_ldt().
 	 *
 	 * Note: we could probably also just invalidate the individual
