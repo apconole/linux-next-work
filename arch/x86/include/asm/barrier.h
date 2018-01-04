@@ -24,11 +24,7 @@
 #define wmb()	asm volatile("sfence" ::: "memory")
 #endif
 
-#define gmb()								\
-({									\
-	alternative(ASM_NOP3, "mfence", X86_FEATURE_MFENCE_RDTSC);	\
-	alternative(ASM_NOP3, "lfence", X86_FEATURE_LFENCE_RDTSC);	\
-})
+#define gmb() alternative(ASM_NOP3, "lfence", X86_FEATURE_LFENCE_RDTSC)
 
 #ifdef CONFIG_X86_PPRO_FENCE
 #define dma_rmb()	rmb()
@@ -106,7 +102,6 @@ do {									\
  */
 static __always_inline void rdtsc_barrier(void)
 {
-	alternative(ASM_NOP3, "mfence", X86_FEATURE_MFENCE_RDTSC);
 	alternative(ASM_NOP3, "lfence", X86_FEATURE_LFENCE_RDTSC);
 }
 
