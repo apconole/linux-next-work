@@ -48,6 +48,14 @@
 static pteval_t kaiser_pte_mask __read_mostly = ~(_PAGE_NX | _PAGE_GLOBAL);
 
 /*
+ * We need a two-stage enable/disable.  One (kaiser_enabled) to stop
+ * the ongoing work that keeps KAISER from being disabled (like PGD
+ * poisoning) and another (kaiser_asm_do_switch) that we set when it
+ * is completely safe to run without doing KAISER switches.
+ */
+int kaiser_enabled __read_mostly;
+
+/*
  * At runtime, the only things we map are some things for CPU
  * hotplug, and stacks for new processes.  No two CPUs will ever
  * be populating the same addresses, so we only need to ensure
@@ -426,6 +434,15 @@ void __init kaiser_init(void)
 					  __PAGE_KERNEL_VVAR | _PAGE_GLOBAL);
 	}
 #endif
+
+	if (xen_pv_domain()) {
+		pr_info("x86/kaiser: Xen PV detected, disabling "
+			"KAISER protection\n");
+	} else {
+		pr_info("x86/kaiser: Unmapping kernel while in userspace\n");
+		kaiser_enable_pcp(true);
+		kaiser_enabled = 1;
+	}
 }
 
 int kaiser_add_mapping(unsigned long addr, unsigned long size,
@@ -476,7 +493,6 @@ void kaiser_remove_mapping(unsigned long start, unsigned long size)
 	__native_flush_tlb_global();
 }
 
-int kaiser_enabled = 1;
 static ssize_t kaiser_enabled_read_file(struct file *file, char __user *user_buf,
 			     size_t count, loff_t *ppos)
 {
