@@ -271,6 +271,8 @@
 extern void set_spec_ctrl_pcp_ibrs(bool enable);
 extern void set_spec_ctrl_pcp_ibpb(bool enable);
 
+extern void spec_ctrl_init(struct cpuinfo_x86 *c);
+
 static __always_inline void __spec_ctrl_vm_ibrs(u64 vcpu_ibrs, bool vmenter)
 {
 	u64 host_ibrs = 0;
