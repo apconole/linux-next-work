@@ -161,7 +161,7 @@ void spec_ctrl_init(struct cpuinfo_x86 *c)
 	 * support (MSR 0xc0011021[14]).
 	 */
 	if (c->x86_vendor == X86_VENDOR_AMD &&
-	    !(boot_cpu_has(X86_FEATURE_IBPB_SUPPORT) &&
+	    !(boot_cpu_has(X86_FEATURE_IBPB_SUPPORT) ||
 	      cpu_has_spec_ctrl()) &&
 	    !(noibpb_cmdline && noibrs_cmdline)) {
 		switch (c->x86) {
