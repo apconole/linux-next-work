@@ -272,6 +272,7 @@ extern void set_spec_ctrl_pcp_ibpb(bool enable);
 
 extern void spec_ctrl_rescan_cpuid(void);
 extern void spec_ctrl_init(struct cpuinfo_x86 *c);
+extern void spec_ctrl_cpu_init(void);
 
 static inline int cpu_has_spec_ctrl(void)
 {

@@ -243,6 +243,7 @@ static void notrace __restore_processor_state(struct saved_context *ctxt)
 	x86_platform.restore_sched_clock_state();
 	mtrr_bp_restore();
 	perf_restore_debug_store();
+	spec_ctrl_cpu_init();
 }
 
 /* Needed by apm.c */

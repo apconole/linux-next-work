@@ -127,7 +127,7 @@ static int __init noibpb(char *str)
 early_param("noibpb", noibpb);
 
 /* this is called when secondary CPUs come online */
-void spec_ctrl_cpu_init(struct cpuinfo_x86 *c)
+void spec_ctrl_cpu_init(void)
 {
 	if (use_ibp_disable) {
 		bool enabled = !ibrs_enabled;
@@ -151,7 +151,7 @@ void spec_ctrl_init(struct cpuinfo_x86 *c)
 		return;
 
 	if (c != &boot_cpu_data) {
-		spec_ctrl_cpu_init(c);
+		spec_ctrl_cpu_init();
 		return;
 	}
 
@@ -175,13 +175,13 @@ void spec_ctrl_init(struct cpuinfo_x86 *c)
 					ibrs_enabled = IBRS_ENABLED_USER;
 					ibpb_enabled = IBPB_ENABLED;
 				}
-				spec_ctrl_cpu_init(c);
 
 				printk("FEATURE SPEC_CTRL Present "
 				       "(Implicit)\n");
 				printk("FEATURE IBPB_SUPPORT Present "
 				       "(Implicit)\n");
 			}
+			spec_ctrl_cpu_init();
 			break;
 		}
 	}
@@ -200,6 +200,7 @@ void spec_ctrl_init(struct cpuinfo_x86 *c)
 		}
 		printk(KERN_INFO
 		       "FEATURE SPEC_CTRL Present\n");
+		spec_ctrl_cpu_init();
 	} else {
 		printk(KERN_INFO
 		       "FEATURE SPEC_CTRL Not Present\n");
