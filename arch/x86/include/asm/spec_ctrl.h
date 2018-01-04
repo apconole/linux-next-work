@@ -56,6 +56,18 @@
 .Lskip_\@:
 .endm
 
+.macro DISABLE_IBRS_CLOBBER
+	testl $SPEC_CTRL_PCP_IBRS, PER_CPU_VAR(spec_ctrl_pcp)
+	jz .Lskip_\@
+
+	movl $MSR_IA32_SPEC_CTRL, %ecx
+	movl $0, %edx
+	movl $0, %eax
+	wrmsr
+
+.Lskip_\@:
+.endm
+
 #if 0 /* unused */
 .macro SET_IBPB
 	testl $SPEC_CTRL_PCP_IBPB, PER_CPU_VAR(spec_ctrl_pcp)

@@ -15,6 +15,7 @@
 #include <asm/irqflags.h>
 #include <asm/asm.h>
 #include <asm/smap.h>
+#include <asm/spec_ctrl.h>
 #include <linux/linkage.h>
 #include <linux/err.h>
 #include "../kernel/kaiser.h"
@@ -125,6 +126,7 @@ ENTRY(ia32_sysenter_target)
 	SWITCH_TO_KERNEL_CR3
 	movq	PER_CPU_VAR(kernel_stack), %rsp
 	addq	$(KERNEL_STACK_OFFSET),%rsp
+	ENABLE_IBRS
 	/*
 	 * No need to follow this irqs on/off section: the syscall
 	 * disabled irqs, here we enable it straight after entry:
@@ -169,6 +171,7 @@ sysenter_dispatch:
 	testl	$_TIF_ALLWORK_MASK,TI_flags+THREAD_INFO(%rsp,RIP-ARGOFFSET)
 	jnz	sysexit_audit
 sysexit_from_sys_call:
+	DISABLE_IBRS
 	andl    $~TS_COMPAT,TI_status+THREAD_INFO(%rsp,RIP-ARGOFFSET)
 	/* clear IF, that popfq doesn't enable interrupts early */
 	andl  $~0x200,EFLAGS-R11(%rsp) 
@@ -287,6 +290,7 @@ ENTRY(ia32_cstar_target)
 	movl	%esp,%r8d
 	CFI_REGISTER	rsp,r8
 	movq	PER_CPU_VAR(kernel_stack),%rsp
+	ENABLE_IBRS
 	/*
 	 * No need to follow this irqs on/off section: the syscall
 	 * disabled irqs and here we enable it straight after entry:
@@ -328,6 +332,7 @@ cstar_dispatch:
 	testl $_TIF_ALLWORK_MASK,TI_flags+THREAD_INFO(%rsp,RIP-ARGOFFSET)
 	jnz sysretl_audit
 sysretl_from_sys_call:
+	DISABLE_IBRS
 	andl $~TS_COMPAT,TI_status+THREAD_INFO(%rsp,RIP-ARGOFFSET)
 	RESTORE_ARGS 0,-ARG_SKIP,0,0,0
 	movl RIP-ARGOFFSET(%rsp),%ecx
@@ -449,6 +454,8 @@ ENTRY(ia32_syscall)
 1:
 	movq %r8, %rax
 	movq %r9, %rcx
+
+	ENABLE_IBRS
 
 	/*
 	 * No need to follow this irqs on/off section: the syscall

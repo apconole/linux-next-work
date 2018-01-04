@@ -57,6 +57,7 @@
 #include <asm/asm.h>
 #include <asm/context_tracking.h>
 #include <asm/smap.h>
+#include <asm/spec_ctrl.h>
 #include <linux/err.h>
 #include "kaiser.h"
 
@@ -264,6 +265,7 @@ ENDPROC(native_usergs_sysret64)
 	je 1f
 	SWAPGS
 	SWITCH_TO_KERNEL_CR3
+	ENABLE_IBRS_CLOBBER /* no indirect jump allowed before IBRS */
 1:
 	/* Check to see if we're on the trampoline stack. */
 	movq PER_CPU_VAR(init_tss + TSS_sp0), %rcx
@@ -352,6 +354,7 @@ ENTRY(save_paranoid)
 	xorl %ebx,%ebx
 1:
 	SAVE_AND_SWITCH_TO_KERNEL_CR3 scratch_reg=%rax save_reg=%r14
+	ENABLE_IBRS_CLOBBER /* no indirect jump allowed before IBRS */
 	/* Check to see if we're on the trampoline stack. */
 	movq PER_CPU_VAR(init_tss + TSS_sp0), %rcx
 	cmpq %rcx, %rsp
@@ -470,6 +473,7 @@ GLOBAL(system_call_after_swapgs)
 	SWITCH_TO_KERNEL_CR3
 	movq	%rsp,PER_CPU_VAR(old_rsp)
 	movq	PER_CPU_VAR(kernel_stack),%rsp
+	ENABLE_IBRS /* no indirect jump allowed before IBRS */
 	/*
 	 * No need to follow this irqs off/on section - it's straight
 	 * and short:
@@ -512,6 +516,7 @@ sysret_check:
 	 * sysretq will re-enable interrupts:
 	 */
 	TRACE_IRQS_ON
+	DISABLE_IBRS_CLOBBER
 	movq RIP-ARGOFFSET(%rsp),%rcx
 	CFI_REGISTER	rip,rcx
 	RESTORE_ARGS 1,-ARG_SKIP,0
@@ -904,6 +909,7 @@ retint_swapgs:		/* return to user-space */
 	TRACE_IRQS_IRETQ
 
 restore_args:
+	DISABLE_IBRS_CLOBBER
 	/*
 	 * Returning from an NMI to user space, currently on the kernel
 	 * task stack.  Copy the iret frame to the trampoline stack and
@@ -929,6 +935,7 @@ restore_args:
 	jmp irq_return
 
 restore_all:
+	DISABLE_IBRS_CLOBBER
 	/*
 	 * Returning from an exception, possibly on the kernel task
 	 * stack.  Copy the iret frame to the trampoline stack and
@@ -1540,6 +1547,7 @@ ENTRY(error_entry)
 error_swapgs:
 	SWAPGS
 	SWITCH_TO_KERNEL_CR3
+	ENABLE_IBRS_CLOBBER /* no indirect jump allowed before IBRS */
 error_sti:
 	/* Check to see if we're on the trampoline stack. */
 	movq PER_CPU_VAR(init_tss + TSS_sp0), %rcx
@@ -1720,6 +1728,8 @@ ENTRY(nmi)
 	pushq	%r13		/* pt_regs->r13 */
 	pushq	%r14		/* pt_regs->r14 */
 	pushq	%r15		/* pt_regs->r15 */
+
+	ENABLE_IBRS_CLOBBER /* no indirect jump allowed before IBRS */
 
 	/*
 	 * At this point we no longer need to worry about stack damage
@@ -1946,6 +1956,11 @@ end_repeat_nmi:
 	movq $-1,%rsi
 	call do_nmi
 	UNWIND_UNSAFE_STACK
+
+	testl %ebx,%ebx				/* swapgs needed? */
+	jnz 11f
+	DISABLE_IBRS
+11:
 
 	RESTORE_CR3 scratch_reg=%rax save_reg=%r14
 
