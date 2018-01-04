@@ -144,6 +144,14 @@ void spec_ctrl_cpu_init(struct cpuinfo_x86 *c)
 		__flush_this_cpu_ibp(&enabled);
 		return;
 	}
+
+	/*
+	 * If ibrs_enabled == 2 kernel entry points won't set IBRS so
+	 * set it during secondary CPU startup.
+	 */
+	if (cpu_has_spec_ctrl() &&
+	    __this_cpu_read(spec_ctrl_pcp) & SPEC_CTRL_PCP_IBRS_USER)
+		native_wrmsrl(MSR_IA32_SPEC_CTRL, FEATURE_ENABLE_IBRS);
 }
 
 void spec_ctrl_init(struct cpuinfo_x86 *c)
