@@ -46,24 +46,19 @@ static inline void __mwait(unsigned long eax, unsigned long ecx)
 static inline void mwait_idle_with_hints(unsigned long eax, unsigned long ecx)
 {
 	if (!current_set_polling_and_test()) {
-		bool can_toggle_ibrs = false;
 		if (this_cpu_has(X86_FEATURE_CLFLUSH_MONITOR))
 			clflush((void *)&current_thread_info()->flags);
 
-		if (irqs_disabled()) {
-			/*
-			  * nmi uses the save_paranoid model which
-			  * always enables ibrs on exception entry
-			  * before any indirect jump can run.
-			  */
-			can_toggle_ibrs = true;
-			spec_ctrl_disable_ibrs();
-		}
+		/*
+		 * IRQs must be disabled here and nmi uses the
+		 * save_paranoid model which always enables ibrs on
+		 * exception entry before any indirect jump can run.
+		 */
+		spec_ctrl_disable_ibrs();
 		__monitor((void *)&current_thread_info()->flags, 0, 0);
 		if (!need_resched())
 			__mwait(eax, ecx);
-		if (can_toggle_ibrs)
-			spec_ctrl_enable_ibrs();
+		spec_ctrl_enable_ibrs();
 	}
 	__current_clr_polling();
 }
