@@ -821,6 +821,36 @@ static void init_amd(struct cpuinfo_x86 *c)
 	if (cpu_has_amd_erratum(c, amd_erratum_400))
 		set_cpu_bug(c, X86_BUG_AMD_APIC_C1E);
 
+
+	/*
+	 * On both Intel and AMD, SPEC_CTRL implies IBPB.
+	 */
+	if (cpu_has(c, X86_FEATURE_SPEC_CTRL)) {
+		set_cpu_cap(c, X86_FEATURE_IBPB_SUPPORT);
+		printk_once(KERN_INFO "FEATURE SPEC_CTRL Present\n");
+	} else {
+		printk_once(KERN_INFO "FEATURE SPEC_CTRL Not Present\n");
+	}
+
+	/*
+	 * Some AMD CPUs don't IBPB or IBRS CPUID bits, because
+	 * they can just disable indirect branch predictor
+	 * support (MSR 0xc0011021[14]).
+	 */
+	if (!(cpu_has(c, X86_FEATURE_IBPB_SUPPORT) &&
+	      cpu_has(c, X86_FEATURE_SPEC_CTRL))) {
+		u64 val;
+
+		switch (c->x86) {
+		case 0x10:
+		case 0x12:
+		case 0x16:
+			rdmsrl(MSR_F15H_IC_CFG, val);
+			val |= MSR_F15H_IC_CFG_DIS_IND;
+			wrmsrl(MSR_F15H_IC_CFG, val);
+			break;
+		}
+	}
 }
 
 #ifdef CONFIG_X86_32
