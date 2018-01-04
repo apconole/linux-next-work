@@ -24,7 +24,14 @@ enum {
 static unsigned int __ibrs_enabled __read_mostly;
 static bool __noibrs_cmdline __read_mostly;
 
-static bool ibpb_enabled __read_mostly;
+#define IBPB_ENABLED_ONLY_DEFAULT 1
+enum {
+	IBPB_DISABLED,
+	IBPB_ENABLED,
+	IBPB_ENABLED_ONLY, /* use only IBPB instead of IBRS */
+	IBPB_MAX = IBPB_ENABLED_ONLY,
+};
+static unsigned int ibpb_enabled __read_mostly;
 static bool noibpb_cmdline __read_mostly;
 
 #define USE_IBP_DISABLE_DEFAULT 1
@@ -76,6 +83,11 @@ void set_spec_ctrl_pcp_ibrs_user(bool enable)
 void set_spec_ctrl_pcp_ibpb(bool enable)
 {
 	set_spec_ctrl_pcp(enable, SPEC_CTRL_PCP_IBPB);
+}
+
+void set_spec_ctrl_pcp_only_ibpb(bool enable)
+{
+	set_spec_ctrl_pcp(enable, SPEC_CTRL_PCP_ONLY_IBPB);
 }
 
 static void spec_ctrl_sync_all_cpus(u32 msr_nr, u64 val)
@@ -218,7 +230,12 @@ void spec_ctrl_init(struct cpuinfo_x86 *c)
 	if (boot_cpu_has(X86_FEATURE_IBPB_SUPPORT)) {
 		if (!ibpb_enabled && !noibpb_cmdline) {
 			set_spec_ctrl_pcp_ibpb(true);
-			ibpb_enabled = 1;
+			ibpb_enabled = IBPB_ENABLED;
+			if (IBPB_ENABLED_ONLY_DEFAULT &&
+			    !cpu_has_spec_ctrl() && !ibrs_enabled()) {
+				set_spec_ctrl_pcp_only_ibpb(true);
+				ibpb_enabled = IBPB_ENABLED_ONLY;
+			}
 		}
 		printk(KERN_INFO "FEATURE IBPB_SUPPORT Present\n");
 	} else {
@@ -286,11 +303,11 @@ static ssize_t ibrs_enabled_write(struct file *file,
 		} else {
 			if (enable == IBRS_DISABLED) {
 				sync_all_cpus_ibp(true);
-				WRITE_ONCE(ibpb_enabled, false);
+				WRITE_ONCE(ibpb_enabled, 0);
 			} else {
 				WARN_ON(enable != IBRS_ENABLED_USER);
 				sync_all_cpus_ibp(false);
-				WRITE_ONCE(ibpb_enabled, true);
+				WRITE_ONCE(ibpb_enabled, 1);
 			}
 		}
 		WRITE_ONCE(__ibrs_enabled, enable);
@@ -299,6 +316,11 @@ static ssize_t ibrs_enabled_write(struct file *file,
 
 	if (!cpu_has_spec_ctrl()) {
 		count = -ENODEV;
+		goto out_unlock;
+	}
+
+	if (ibpb_enabled == IBPB_ENABLED_ONLY) {
+		count = -EINVAL;
 		goto out_unlock;
 	}
 
@@ -332,8 +354,7 @@ static const struct file_operations fops_ibrs_enabled = {
 static ssize_t ibpb_enabled_read(struct file *file, char __user *user_buf,
 				 size_t count, loff_t *ppos)
 {
-	unsigned int tmp = ibpb_enabled;
-	return __enabled_read(file, user_buf, count, ppos, &tmp);
+	return __enabled_read(file, user_buf, count, ppos, &ibpb_enabled);
 }
 
 static ssize_t ibpb_enabled_write(struct file *file,
@@ -352,11 +373,11 @@ static ssize_t ibpb_enabled_write(struct file *file,
 	if (kstrtouint(buf, 0, &enable))
 		return -EINVAL;
 
-	if (enable > 1)
+	if (enable > IBPB_MAX)
 		return -EINVAL;
 
 	mutex_lock(&spec_ctrl_mutex);
-	if (ibpb_enabled == !!enable)
+	if (ibpb_enabled == enable)
 		goto out_unlock;
 
 	if (!boot_cpu_has(X86_FEATURE_IBPB_SUPPORT) || use_ibp_disable) {
@@ -364,13 +385,23 @@ static ssize_t ibpb_enabled_write(struct file *file,
 		goto out_unlock;
 	}
 
-	if (enable) {
+	if (enable == IBPB_ENABLED) {
 		set_spec_ctrl_pcp_ibpb(true);
-		WRITE_ONCE(ibpb_enabled, true);
-	} else {
+		set_spec_ctrl_pcp_only_ibpb(false);
+	} else if (enable == IBPB_DISABLED) {
 		set_spec_ctrl_pcp_ibpb(false);
-		WRITE_ONCE(ibpb_enabled, false);
+		set_spec_ctrl_pcp_only_ibpb(false);
+	} else {
+		WARN_ON(enable != IBPB_ENABLED_ONLY);
+		set_spec_ctrl_pcp_ibpb(true);
+		set_spec_ctrl_pcp_only_ibpb(true);
+
+		set_spec_ctrl_pcp_ibrs(false);
+		set_spec_ctrl_pcp_ibrs_user(false);
+		sync_all_cpus_ibrs(false);
+		WRITE_ONCE(__ibrs_enabled, IBRS_DISABLED);
 	}
+	WRITE_ONCE(ibpb_enabled, enable);
 
 out_unlock:
 	mutex_unlock(&spec_ctrl_mutex);
