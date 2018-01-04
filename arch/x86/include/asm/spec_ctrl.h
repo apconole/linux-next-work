@@ -6,6 +6,8 @@
 
 #ifdef __ASSEMBLY__
 
+#define SPEC_CTRL_DEBUG 1
+
 #include <asm/msr-index.h>
 
 .macro ENABLE_IBRS
@@ -24,6 +26,17 @@
 	popq %rax
 
 .Lskip_\@:
+#ifdef SPEC_CTRL_DEBUG
+	pushq %rax
+	pushq %rcx
+	pushq %rdx
+	movq $0xcccc1ccccccccccc, %rcx
+	movq $0xdddd1ddddddddddd, %rdx
+	movq $0xaaaa1aaaaaaaaaaa, %rax
+	popq %rdx
+	popq %rcx
+	popq %rax
+#endif
 .endm
 
 .macro ENABLE_IBRS_CLOBBER
@@ -36,6 +49,11 @@
 	wrmsr
 
 .Lskip_\@:
+#ifdef SPEC_CTRL_DEBUG
+	movq $0xcccc2ccccccccccc, %rcx
+	movq $0xdddd2ddddddddddd, %rdx
+	movq $0xaaaa2aaaaaaaaaaa, %rax
+#endif
 .endm
 
 .macro ENABLE_IBRS_SAVE_AND_CLOBBER save_reg:req
@@ -51,6 +69,12 @@
 	wrmsr
 
 .Lskip_\@:
+#ifdef SPEC_CTRL_DEBUG
+	movq $0xcccc3ccccccccccc, %rcx
+	movq $0xdddd3ddddddddddd, %rdx
+	movq $0xaaaa3aaaaaaaaaaa, %rax
+	movl $0xe3eeeeee, \save_reg
+#endif
 .endm
 
 .macro DISABLE_IBRS
@@ -69,6 +93,17 @@
 	popq %rax
 
 .Lskip_\@:
+#ifdef SPEC_CTRL_DEBUG
+	pushq %rax
+	pushq %rcx
+	pushq %rdx
+	movq $0xcccc4ccccccccccc, %rcx
+	movq $0xdddd4ddddddddddd, %rdx
+	movq $0xaaaa4aaaaaaaaaaa, %rax
+	popq %rdx
+	popq %rcx
+	popq %rax
+#endif
 .endm
 
 .macro RESTORE_IBRS_CLOBBER save_reg:req
@@ -84,6 +119,12 @@
 	wrmsr
 
 .Lskip_\@:
+#ifdef SPEC_CTRL_DEBUG
+	movq $0xcccc5ccccccccccc, %rcx
+	movq $0xdddd5ddddddddddd, %rdx
+	movq $0xaaaa5aaaaaaaaaaa, %rax
+	movl $0xe5eeeeee, \save_reg
+#endif
 .endm
 
 .macro DISABLE_IBRS_CLOBBER
@@ -96,6 +137,11 @@
 	wrmsr
 
 .Lskip_\@:
+#ifdef SPEC_CTRL_DEBUG
+	movq $0xcccc6ccccccccccc, %rcx
+	movq $0xdddd6ddddddddddd, %rdx
+	movq $0xaaaa6aaaaaaaaaaa, %rax
+#endif
 .endm
 
 #if 0 /* unused */
@@ -115,6 +161,17 @@
 	popq %rax
 
 .Lskip_\@:
+#ifdef SPEC_CTRL_DEBUG
+	pushq %rax
+	pushq %rcx
+	pushq %rdx
+	movq $0xcccc7ccccccccccc, %rcx
+	movq $0xdddd7ddddddddddd, %rdx
+	movq $0xaaaa7aaaaaaaaaaa, %rax
+	popq %rdx
+	popq %rcx
+	popq %rax
+#endif
 .endm
 #endif
 
