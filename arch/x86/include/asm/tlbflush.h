@@ -26,9 +26,22 @@ static inline void __native_flush_tlb_global_irq_disabled(void)
 	unsigned long cr4;
 
 	cr4 = native_read_cr4();
-	/* clear PGE */
-	native_write_cr4(cr4 & ~X86_CR4_PGE);
-	/* write old PGE again and flush TLBs */
+	/*
+	 * This function is only called on systems that support X86_CR4_PGE
+	 * and where we expect X86_CR4_PGE to be set.  Warn if we are called
+	 * without PGE set.
+	 */
+	WARN_ON_ONCE(!(cr4 & X86_CR4_PGE));
+
+	/*
+	 * Architecturally, any _change_ to X86_CR4_PGE will fully flush the
+	 * TLB of all entries including all entries in all PCIDs and all
+	 * global pages.  Make sure that we _change_ the bit, regardless of
+	 * whether we had X86_CR4_PGE set in the first place.
+	 */
+	native_write_cr4(cr4 ^ X86_CR4_PGE);
+
+	/* Put original CR4 value back: */
 	native_write_cr4(cr4);
 }
 
