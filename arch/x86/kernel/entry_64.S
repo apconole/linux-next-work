@@ -487,10 +487,10 @@ GLOBAL(system_call_after_swapgs)
 	SAVE_ARGS 8,0
 	SAVE_REST
 	CLEAR_EXTRA_REGS
-	movq  %rax,ORIG_RAX-ARGOFFSET(%rsp)
-	movq  %rcx,RIP-ARGOFFSET(%rsp)
-	CFI_REL_OFFSET rip,RIP-ARGOFFSET
-	testl $_TIF_WORK_SYSCALL_ENTRY,TI_flags+THREAD_INFO(%rsp,RIP-ARGOFFSET)
+	movq  %rax,ORIG_RAX(%rsp)
+	movq  %rcx,RIP(%rsp)
+	CFI_REL_OFFSET rip,RIP
+	testl $_TIF_WORK_SYSCALL_ENTRY,TI_flags+THREAD_INFO(%rsp,RIP)
 	jnz tracesys
 system_call_fastpath:
 #if __SYSCALL_MASK == ~0
@@ -503,7 +503,7 @@ system_call_fastpath:
 	movq %r10,%rcx
 	call *sys_call_table(,%rax,8)  # XXX:	 rip relative
 	UNWIND_END_OF_STACK
-	movq %rax,RAX-ARGOFFSET(%rsp)
+	movq %rax,RAX(%rsp)
 /*
  * Syscall return path ending with SYSRET (fast path)
  * Has incomplete stack frame and undefined top of stack.
@@ -515,7 +515,7 @@ sysret_check:
 	LOCKDEP_SYS_EXIT
 	DISABLE_INTERRUPTS(CLBR_NONE)
 	TRACE_IRQS_OFF
-	movl TI_flags+THREAD_INFO(%rsp,RIP-ARGOFFSET),%edx
+	movl TI_flags+THREAD_INFO(%rsp,RIP),%edx
 	andl %edi,%edx
 	jnz  sysret_careful
 	CFI_REMEMBER_STATE
@@ -524,7 +524,7 @@ sysret_check:
 	 */
 	TRACE_IRQS_ON
 	DISABLE_IBRS_CLOBBER
-	movq RIP-ARGOFFSET(%rsp),%rcx
+	movq RIP(%rsp),%rcx
 	CFI_REGISTER	rip,rcx
 	RESTORE_REST
 	RESTORE_ARGS 1,-ARG_SKIP,0
@@ -560,11 +560,11 @@ sysret_signal:
 	 * These all wind up with the iret return path anyway,
 	 * so just join that path right now.
 	 */
-	FIXUP_TOP_OF_STACK %r11, -ARGOFFSET
+	FIXUP_TOP_OF_STACK %r11
 	jmp int_check_syscall_exit_work
 
 badsys:
-	movq $-ENOSYS,RAX-ARGOFFSET(%rsp)
+	movq $-ENOSYS,RAX(%rsp)
 	jmp ret_from_sys_call
 
 #ifdef CONFIG_AUDITSYSCALL
@@ -580,7 +580,7 @@ auditsys:
 	movq %rdi,%rsi			/* 2nd arg: 1st syscall arg */
 	movq %rax,%rdi			/* 1st arg: syscall number */
 	call __audit_syscall_entry
-	LOAD_ARGS 0		/* reload call-clobbered registers */
+	LOAD_ARGS ARGOFFSET		/* reload call-clobbered registers */
 	jmp system_call_fastpath
 
 	/*
@@ -589,7 +589,7 @@ auditsys:
 	 * masked off.
 	 */
 sysret_audit:
-	movq RAX-ARGOFFSET(%rsp),%rsi	/* second arg, syscall return value */
+	movq RAX(%rsp),%rsi	/* second arg, syscall return value */
 	cmpq $-MAX_ERRNO,%rsi	/* is it < -MAX_ERRNO? */
 	setbe %al		/* 1 if so, 0 if not */
 	movzbl %al,%edi		/* zero-extend that into %edi */
@@ -601,7 +601,7 @@ sysret_audit:
 	/* Do syscall tracing */
 tracesys:
 #ifdef CONFIG_AUDITSYSCALL
-	testl $(_TIF_WORK_SYSCALL_ENTRY & ~_TIF_SYSCALL_AUDIT),TI_flags+THREAD_INFO(%rsp,RIP-ARGOFFSET)
+	testl $(_TIF_WORK_SYSCALL_ENTRY & ~_TIF_SYSCALL_AUDIT),TI_flags+THREAD_INFO(%rsp,RIP)
 	jz auditsys
 #endif
 	movq $-ENOSYS,RAX(%rsp) /* ptrace can change this for a bad syscall */
@@ -620,12 +620,13 @@ tracesys:
 	andl $__SYSCALL_MASK,%eax
 	cmpl $__NR_syscall_max,%eax
 #endif
-	ja   int_ret_from_sys_call	/* RAX(%rsp) set to -ENOSYS above */
+	ja   1f		/* RAX(%rsp) set to -ENOSYS above */
 	movq %r10,%rcx	/* fixup for C */
 	call *sys_call_table(,%rax,8)
 	UNWIND_END_OF_STACK
-	movq %rax,RAX-ARGOFFSET(%rsp)
-	/* Use IRET because user could have changed frame */
+	movq %rax,RAX(%rsp)
+1:	RESTORE_REST
+/* Use IRET because user could have changed frame */
 
 /*
  * Syscall return path ending with IRET.
@@ -665,6 +666,7 @@ int_careful:
 int_very_careful:
 	TRACE_IRQS_ON
 	ENABLE_INTERRUPTS(CLBR_NONE)
+	SAVE_REST
 int_check_syscall_exit_work:
 	/* Check for syscall exit trace */
 	testl $_TIF_WORK_SYSCALL_EXIT,%edx
@@ -694,16 +696,12 @@ END(system_call)
 	.macro FORK_LIKE func
 ENTRY(stub_\func)
 	CFI_STARTPROC
-	popq	%r11			/* save return address */
-	PARTIAL_FRAME 0
-	SAVE_REST
-	pushq	%r11			/* put it back on stack */
-	FIXUP_TOP_OF_STACK %r11, 8
 	DEFAULT_FRAME 0 8		/* offset 8: return address */
+	FIXUP_TOP_OF_STACK %r11, 8
 	call sys_\func
 	UNWIND_END_OF_STACK
 	RESTORE_TOP_OF_STACK %r11, 8
-	ret $REST_SKIP		/* pop extended registers */
+	ret
 	CFI_ENDPROC
 END(stub_\func)
 	.endm
@@ -711,11 +709,11 @@ END(stub_\func)
 	.macro FIXED_FRAME label,func
 ENTRY(\label)
 	CFI_STARTPROC
-	PARTIAL_FRAME 0 8		/* offset 8: return address */
-	FIXUP_TOP_OF_STACK %r11, 8-ARGOFFSET
+	DEFAULT_FRAME 0 8		/* offset 8: return address */
+	FIXUP_TOP_OF_STACK %r11, 8
 	call \func
 	UNWIND_END_OF_STACK
-	RESTORE_TOP_OF_STACK %r11, 8-ARGOFFSET
+	RESTORE_TOP_OF_STACK %r11, 8
 	ret
 	CFI_ENDPROC
 END(\label)
@@ -729,21 +727,14 @@ END(\label)
 ENTRY(ptregscall_common)
 	DEFAULT_FRAME 1 8	/* offset 8: return address */
 	RESTORE_TOP_OF_STACK %r11, 8
-	movq_cfi_restore R15+8, r15
-	movq_cfi_restore R14+8, r14
-	movq_cfi_restore R13+8, r13
-	movq_cfi_restore R12+8, r12
-	movq_cfi_restore RBP+8, rbp
-	movq_cfi_restore RBX+8, rbx
-	ret $REST_SKIP		/* pop extended registers */
+	ret
 	CFI_ENDPROC
 END(ptregscall_common)
 
 ENTRY(stub_execve)
 	CFI_STARTPROC
 	addq $8, %rsp
-	PARTIAL_FRAME 0
-	SAVE_REST
+	DEFAULT_FRAME 0
 	FIXUP_TOP_OF_STACK %r11
 	call sys_execve
 	UNWIND_END_OF_STACK
@@ -760,8 +751,7 @@ END(stub_execve)
 ENTRY(stub_rt_sigreturn)
 	CFI_STARTPROC
 	addq $8, %rsp
-	PARTIAL_FRAME 0
-	SAVE_REST
+	DEFAULT_FRAME 0
 	FIXUP_TOP_OF_STACK %r11
 	call sys_rt_sigreturn
 	UNWIND_END_OF_STACK
@@ -775,8 +765,7 @@ END(stub_rt_sigreturn)
 ENTRY(stub_x32_rt_sigreturn)
 	CFI_STARTPROC
 	addq $8, %rsp
-	PARTIAL_FRAME 0
-	SAVE_REST
+	DEFAULT_FRAME 0
 	FIXUP_TOP_OF_STACK %r11
 	call sys32_x32_rt_sigreturn
 	UNWIND_END_OF_STACK
@@ -789,8 +778,7 @@ END(stub_x32_rt_sigreturn)
 ENTRY(stub_x32_execve)
 	CFI_STARTPROC
 	addq $8, %rsp
-	PARTIAL_FRAME 0
-	SAVE_REST
+	DEFAULT_FRAME 0
 	FIXUP_TOP_OF_STACK %r11
 	call compat_sys_execve
 	UNWIND_END_OF_STACK
