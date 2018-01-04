@@ -354,7 +354,7 @@ ENTRY(save_paranoid)
 	xorl %ebx,%ebx
 1:
 	SAVE_AND_SWITCH_TO_KERNEL_CR3 scratch_reg=%rax save_reg=%r14
-	ENABLE_IBRS_CLOBBER /* no indirect jump allowed before IBRS */
+	ENABLE_IBRS_SAVE_AND_CLOBBER save_reg=%r13d /* no indirect jump allowed before IBRS */
 	/* Check to see if we're on the trampoline stack. */
 	movq PER_CPU_VAR(init_tss + TSS_sp0), %rcx
 	cmpq %rcx, %rsp
@@ -935,7 +935,7 @@ restore_args:
 	jmp irq_return
 
 restore_all:
-	DISABLE_IBRS_CLOBBER
+	RESTORE_IBRS_CLOBBER save_reg=%r13d
 	/*
 	 * Returning from an exception, possibly on the kernel task
 	 * stack.  Copy the iret frame to the trampoline stack and
@@ -1957,10 +1957,7 @@ end_repeat_nmi:
 	call do_nmi
 	UNWIND_UNSAFE_STACK
 
-	testl %ebx,%ebx				/* swapgs needed? */
-	jnz 11f
-	DISABLE_IBRS
-11:
+	RESTORE_IBRS_CLOBBER save_reg=%r13d
 
 	RESTORE_CR3 scratch_reg=%rax save_reg=%r14
 

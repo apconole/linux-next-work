@@ -38,6 +38,21 @@
 .Lskip_\@:
 .endm
 
+.macro ENABLE_IBRS_SAVE_AND_CLOBBER save_reg:req
+	testl $SPEC_CTRL_PCP_IBRS, PER_CPU_VAR(spec_ctrl_pcp)
+	jz .Lskip_\@
+
+	movl $MSR_IA32_SPEC_CTRL, %ecx
+	rdmsr
+	movl %eax, \save_reg
+
+	movl $0, %edx
+	movl $FEATURE_ENABLE_IBRS, %eax
+	wrmsr
+
+.Lskip_\@:
+.endm
+
 .macro DISABLE_IBRS
 	testl $SPEC_CTRL_PCP_IBRS, PER_CPU_VAR(spec_ctrl_pcp)
 	jz .Lskip_\@
@@ -52,6 +67,21 @@
 	popq %rdx
 	popq %rcx
 	popq %rax
+
+.Lskip_\@:
+.endm
+
+.macro RESTORE_IBRS_CLOBBER save_reg:req
+	testl $SPEC_CTRL_PCP_IBRS, PER_CPU_VAR(spec_ctrl_pcp)
+	jz .Lskip_\@
+
+	cmpl $FEATURE_ENABLE_IBRS, \save_reg
+	je .Lskip_\@
+
+	movl $MSR_IA32_SPEC_CTRL, %ecx
+	movl $0, %edx
+	movl \save_reg, %eax
+	wrmsr
 
 .Lskip_\@:
 .endm
