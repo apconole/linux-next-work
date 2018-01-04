@@ -567,8 +567,12 @@ static void init_intel(struct cpuinfo_x86 *c)
 	 * On both Intel and AMD, SPEC_CTRL implies IBPB, but only AMD has
 	 * IBPB in a separate CPUID bit.
 	 */
-	if (cpu_has(c, X86_FEATURE_SPEC_CTRL))
+	if (cpu_has(c, X86_FEATURE_SPEC_CTRL)) {
 		set_cpu_cap(c, X86_FEATURE_IBPB_SUPPORT);
+		printk_once(KERN_INFO "FEATURE SPEC_CTRL Present\n");
+	} else {
+		printk_once(KERN_INFO "FEATURE SPEC_CTRL Not Present\n");
+	}
 }
 
 #ifdef CONFIG_X86_32
