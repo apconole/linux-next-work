@@ -224,9 +224,8 @@ static inline pgd_t kaiser_set_shadow_pgd(pgd_t *pgdp, pgd_t pgd)
 {
 #ifdef CONFIG_KAISER
 	if (pgd_userspace_access(pgd)) {
-		VM_WARN_ON_ONCE(system_state == SYSTEM_RUNNING &&
-				!is_kaiser_pgd(pgdp));
 		if (pgdp_maps_userspace(pgdp)) {
+			VM_WARN_ON_ONCE(!is_kaiser_pgd(pgdp));
 			/*
 			 * The user/shadow page tables get the full
 			 * PGD, accessible from userspace:
@@ -243,14 +242,13 @@ static inline pgd_t kaiser_set_shadow_pgd(pgd_t *pgdp, pgd_t pgd)
 				kaiser_poison_pgd(&pgd);
 		}
 	} else if (pgd_userspace_access(*pgdp)) {
-		VM_WARN_ON_ONCE(system_state == SYSTEM_RUNNING &&
-				!is_kaiser_pgd(pgdp));
 		/*
 		 * We are clearing a _PAGE_USER PGD for which we
 		 * presumably populated the shadow.  We must now
 		 * clear the shadow PGD entry.
 		 */
 		if (pgdp_maps_userspace(pgdp)) {
+			VM_WARN_ON_ONCE(!is_kaiser_pgd(pgdp));
 			kernel_to_shadow_pgdp(pgdp)->pgd = pgd.pgd;
 		} else {
 			/*

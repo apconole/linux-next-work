@@ -664,5 +664,6 @@ void kaiser_poison_pgds(enum poison do_poison)
  */
 bool is_kaiser_pgd(pgd_t *pgd)
 {
-	return !list_empty(&virt_to_page(pgd)->lru);
+	return (pgd >= init_mm.pgd && pgd < init_mm.pgd + PTRS_PER_PGD) ||
+		!list_empty(&virt_to_page(pgd)->lru);
 }
