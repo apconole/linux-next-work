@@ -894,12 +894,12 @@ retint_swapgs:		/* return to user-space */
 	DISABLE_INTERRUPTS(CLBR_ANY)
 	TRACE_IRQS_IRETQ
 
-restore_args:
+retint_userspace_restore_args:
 	DISABLE_IBRS_CLOBBER
 	/*
-	 * Returning from an NMI to user space, currently on the kernel
-	 * task stack.  Copy the iret frame to the trampoline stack and
-	 * switch to it before returning.
+	 * Returning from an interrupt/NMI/exception to user space, currently
+	 * on the kernel task stack, which is not user-mapped.  Copy the iret
+	 * frame to the trampoline stack and switch to it before returning.
 	 */
 	RESTORE_ARGS 1,8,1
 	pushq %rax
@@ -915,11 +915,12 @@ restore_args:
 	SWAPGS
 	jmp irq_return
 
-restore_all:
+paranoid_userspace_restore_all:
 	RESTORE_IBRS_CLOBBER save_reg=%r13d
 	/*
-	 * Returning from an exception, possibly on the kernel task
-	 * stack.  Copy the iret frame to the trampoline stack and
+	 * Returning from a paranoid exception to user space.  We might have
+	 * switched to the kernel task stack in order to call schedule() or
+	 * handle a signal, so copy the iret frame to the trampoline stack and
 	 * switch to it before returning.
 	 *
 	 * The saved CR3 value is put into the ORIG_RAX slot of the stack
@@ -1457,21 +1458,27 @@ ENTRY(paranoid_exit)
 	DISABLE_INTERRUPTS(CLBR_NONE)
 	TRACE_IRQS_OFF_DEBUG
 	testl %ebx,%ebx				/* swapgs needed? */
-	jnz paranoid_restore
+	jnz paranoid_noswapgs_restore
 	testl $3,CS(%rsp)
 	jnz   paranoid_userspace
-paranoid_swapgs:
-	TRACE_IRQS_IRETQ 0
-	jmp restore_all
-paranoid_restore:
-	TRACE_IRQS_IRETQ_DEBUG 0
+paranoid_swapgs_restore:
+	/* return to kernel with swapgs */
+	RESTORE_IBRS_CLOBBER save_reg=%r13d
+	RESTORE_CR3 scratch_reg=%rax save_reg=%r14
+	RESTORE_ALL 8
+	SWAPGS
+	jmp irq_return
+paranoid_noswapgs_restore:
+	/* return to kernel */
+	RESTORE_IBRS_CLOBBER save_reg=%r13d
+	RESTORE_CR3 scratch_reg=%rax save_reg=%r14
 	RESTORE_ALL 8
 	jmp irq_return
 paranoid_userspace:
 	GET_THREAD_INFO(%rcx)
 	movl TI_flags(%rcx),%ebx
 	andl $_TIF_WORK_MASK,%ebx
-	jz paranoid_swapgs
+	jz paranoid_userspace_restore_all
 	movq %rsp,%rdi			/* &pt_regs */
 	call sync_regs
 	movq %rax,%rsp			/* switch stack for scheduling */
@@ -1732,7 +1739,7 @@ ENTRY(nmi)
 	 * do_nmi doesn't modify pt_regs.
 	 */
 	addq	$6*8, %rsp	/* skip bx, bp, and r12-r15 */
-	jmp	restore_args
+	jmp	retint_userspace_restore_args
 
 .Lnmi_from_kernel:
 	/*
