@@ -27,6 +27,9 @@ static bool __noibrs_cmdline __read_mostly;
 static bool ibpb_enabled __read_mostly;
 static bool noibpb_cmdline __read_mostly;
 
+#define USE_IBP_DISABLE_DEFAULT 1
+static bool use_ibp_disable __read_mostly;
+
 static int ibrs_enabled(void)
 {
 	int val = READ_ONCE(__ibrs_enabled);
@@ -90,6 +93,33 @@ static void flush_all_cpus_ibrs(bool enable)
 				 enable ? FEATURE_ENABLE_IBRS : 0);
 }
 
+static void __flush_this_cpu_ibp(void *data)
+{
+	bool enable = *(bool *)data;
+	u64 val;
+
+	/* disable IBP on old CPU families */
+	rdmsrl(MSR_F15H_IC_CFG, val);
+	if (!enable)
+		val |= MSR_F15H_IC_CFG_DIS_IND;
+	else
+		val &= ~MSR_F15H_IC_CFG_DIS_IND;
+	wrmsrl(MSR_F15H_IC_CFG, val);
+}
+
+/* enable means IBP should be enabled in the CPU (i.e. fast) */
+static void flush_all_cpus_ibp(bool enable)
+{
+	get_online_cpus();
+
+	__flush_this_cpu_ibp(&enable);
+
+	smp_call_function_many(cpu_online_mask, __flush_this_cpu_ibp,
+			       &enable, 1);
+
+	put_online_cpus();
+}
+
 static int __init noibrs(char *str)
 {
 	__noibrs_cmdline = true;
@@ -106,15 +136,59 @@ static int __init noibpb(char *str)
 }
 early_param("noibpb", noibpb);
 
+/* this is called when secondary CPUs come online */
+void spec_ctrl_cpu_init(struct cpuinfo_x86 *c)
+{
+	if (use_ibp_disable) {
+		bool enabled = !ibrs_enabled();
+		__flush_this_cpu_ibp(&enabled);
+		return;
+	}
+}
+
 void spec_ctrl_init(struct cpuinfo_x86 *c)
 {
-	bool implicit_ibpb = false;
-
-	if (c != &boot_cpu_data)
-		return;
-
 	if (c->x86_vendor != X86_VENDOR_INTEL &&
 	    c->x86_vendor != X86_VENDOR_AMD)
+		return;
+
+	if (c != &boot_cpu_data) {
+		spec_ctrl_cpu_init(c);
+		return;
+	}
+
+	/*
+	 * Some AMD CPUs don't need IBPB or IBRS CPUID bits, because
+	 * they can just disable indirect branch predictor
+	 * support (MSR 0xc0011021[14]).
+	 */
+	if (c->x86_vendor == X86_VENDOR_AMD &&
+	    !(boot_cpu_has(X86_FEATURE_IBPB_SUPPORT) &&
+	      cpu_has_spec_ctrl()) &&
+	    !(noibpb_cmdline && noibrs_cmdline())) {
+		switch (c->x86) {
+		case 0x10:
+		case 0x12:
+		case 0x16:
+			if (!use_ibp_disable) {
+				use_ibp_disable = true;
+				if (USE_IBP_DISABLE_DEFAULT) {
+					/* default enabled */
+					__ibrs_enabled = 2;
+					ibpb_enabled = 1;
+				}
+				spec_ctrl_cpu_init(c);
+
+				printk("FEATURE SPEC_CTRL Present "
+				       "(Implicit)\n");
+				printk("FEATURE IBPB_SUPPORT Present "
+				       "(Implicit)\n");
+			}
+			break;
+		}
+	}
+
+	if (use_ibp_disable)
 		return;
 
 	/*
@@ -133,38 +207,12 @@ void spec_ctrl_init(struct cpuinfo_x86 *c)
 		       "FEATURE SPEC_CTRL Not Present\n");
 	}
 
-	/*
-	 * Some AMD CPUs don't need IBPB or IBRS CPUID bits, because
-	 * they can just disable indirect branch predictor
-	 * support (MSR 0xc0011021[14]).
-	 */
-	if (c->x86_vendor == X86_VENDOR_AMD &&
-	    !(cpu_has(c, X86_FEATURE_IBPB_SUPPORT) &&
-	      cpu_has_spec_ctrl()) &&
-	    !(noibpb_cmdline && noibrs_cmdline())) {
-		u64 val;
-
-		switch (c->x86) {
-		case 0x10:
-		case 0x12:
-		case 0x16:
-			rdmsrl(MSR_F15H_IC_CFG, val);
-			val |= MSR_F15H_IC_CFG_DIS_IND;
-			wrmsrl(MSR_F15H_IC_CFG, val);
-			implicit_ibpb = true;
-			break;
+	if (boot_cpu_has(X86_FEATURE_IBPB_SUPPORT)) {
+		if (!ibpb_enabled && !noibpb_cmdline) {
+			set_spec_ctrl_pcp_ibpb(true);
+			ibpb_enabled = 1;
 		}
-	}
-	if (boot_cpu_has(X86_FEATURE_IBPB_SUPPORT) || implicit_ibpb) {
-		if (boot_cpu_has(X86_FEATURE_IBPB_SUPPORT)) {
-			if (!ibpb_enabled && !noibpb_cmdline) {
-				set_spec_ctrl_pcp_ibpb(true);
-				ibpb_enabled = 1;
-			}
-			printk(KERN_INFO "FEATURE IBPB_SUPPORT Present\n");
-		} else {
-			printk(KERN_INFO "FEATURE IBPB_SUPPORT Implicit\n");
-		}
+		printk(KERN_INFO "FEATURE IBPB_SUPPORT Present\n");
 	} else {
 		printk(KERN_INFO "FEATURE IBPB_SUPPORT Not Present\n");
 	}
@@ -172,6 +220,8 @@ void spec_ctrl_init(struct cpuinfo_x86 *c)
 
 void spec_ctrl_rescan_cpuid(void)
 {
+	if (use_ibp_disable)
+		return;
 	mutex_lock(&spec_ctrl_mutex);
 	if (boot_cpu_data.x86_vendor == X86_VENDOR_INTEL ||
 	    boot_cpu_data.x86_vendor == X86_VENDOR_AMD) {
@@ -220,6 +270,24 @@ static ssize_t ibrs_enabled_write(struct file *file,
 	mutex_lock(&spec_ctrl_mutex);
 	if (ibrs_enabled() == enable)
 		goto out_unlock;
+
+	if (use_ibp_disable) {
+		if (enable == IBRS_ENABLED) {
+			count = -EINVAL;
+			goto out_unlock;
+		} else {
+			if (enable == IBRS_DISABLED) {
+				flush_all_cpus_ibp(true);
+				WRITE_ONCE(ibpb_enabled, false);
+			} else {
+				WARN_ON(enable != IBRS_ENABLED_USER);
+				flush_all_cpus_ibp(false);
+				WRITE_ONCE(ibpb_enabled, true);
+			}
+		}
+		WRITE_ONCE(__ibrs_enabled, enable);
+		goto out_unlock;
+	}
 
 	if (!cpu_has_spec_ctrl()) {
 		count = -ENODEV;
@@ -283,7 +351,7 @@ static ssize_t ibpb_enabled_write(struct file *file,
 	if (ibpb_enabled == !!enable)
 		goto out_unlock;
 
-	if (!boot_cpu_has(X86_FEATURE_IBPB_SUPPORT)) {
+	if (!boot_cpu_has(X86_FEATURE_IBPB_SUPPORT) || use_ibp_disable) {
 		count = -ENODEV;
 		goto out_unlock;
 	}
