@@ -10,7 +10,7 @@
 
 .macro ADJUST_USER_CR3 reg:req
 	/* Move CR3 up a page to the user page tables: */
-	orq	$(KAISER_SWITCH_MASK), \reg
+	orq	$KAISER_SWITCH_MASK, \reg
 .endm
 
 .macro SWITCH_TO_KERNEL_CR3
@@ -47,7 +47,7 @@
 	 * Is the switch bit zero?  This means the address is
 	 * up in real KAISER patches in a moment.
 	 */
-	testq	$(KAISER_SWITCH_MASK), \scratch_reg
+	testq	$KAISER_SWITCH_MASK, \scratch_reg
 	jz	.Lnokaiser_\@
 
 	ADJUST_KERNEL_CR3 \scratch_reg

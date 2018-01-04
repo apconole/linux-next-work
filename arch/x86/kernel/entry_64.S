@@ -264,6 +264,24 @@ ENDPROC(native_usergs_sysret64)
 	je 1f
 	SWAPGS
 	SWITCH_TO_KERNEL_CR3
+1:
+	movq PER_CPU_VAR(init_tss + TSS_sp0), %rcx
+	cmpq %rcx, %rsp
+	ja 1f
+	leaq -TSS_stack_size(%rcx), %rax
+	cmpq %rsp, %rax
+	ja 1f
+	pushq %rdi
+	subq %rsp, %rcx
+	movq PER_CPU_VAR(kernel_stack), %rdi
+	addq $KERNEL_STACK_OFFSET, %rdi
+	subq %rcx, %rdi
+	movq %rdi, %rax
+	movq %rsp, %rsi
+	rep movsb
+	movq %rax, %rsp
+	popq %rdi
+	movq %rsp, %rsi /* we earlier saved %rsp in %rsi, update it to new one */
 	/*
 	 * irq_count is used to check if a CPU is already on an interrupt stack
 	 * or not. While this is essentially redundant with preempt_count it is
@@ -329,6 +347,21 @@ ENTRY(save_paranoid)
 	xorl %ebx,%ebx
 1:
 	SAVE_AND_SWITCH_TO_KERNEL_CR3 scratch_reg=%rax save_reg=%r14
+	movq PER_CPU_VAR(init_tss + TSS_sp0), %rcx
+	cmpq %rcx, %rsp
+	ja 1f
+	leaq -TSS_stack_size(%rcx), %rax
+	cmpq %rsp, %rax
+	ja 1f
+	subq %rsp, %rcx
+	movq PER_CPU_VAR(kernel_stack), %rdi
+	addq $KERNEL_STACK_OFFSET, %rdi
+	subq %rcx, %rdi
+	movq %rdi, %rax
+	movq %rsp, %rsi
+	rep movsb
+	movq %rax, %rsp
+1:
 	ret
 	CFI_ENDPROC
 END(save_paranoid)
@@ -859,9 +892,52 @@ retint_swapgs:		/* return to user-space */
 	 */
 	DISABLE_INTERRUPTS(CLBR_ANY)
 	TRACE_IRQS_IRETQ
+
+restore_args:
+	RESTORE_ARGS 1,8,1
+	pushq %rax
+	movq 8(%rsp), %rax
+	movq %rax, PER_CPU_VAR(init_tss + TSS_stack + TSS_stack_size -8-8-8-8-8)
+	movq 8+8(%rsp), %rax
+	movq %rax, PER_CPU_VAR(init_tss + TSS_stack + TSS_stack_size -8-8-8-8)
+	movq 8+8+8(%rsp), %rax
+	movq %rax, PER_CPU_VAR(init_tss + TSS_stack + TSS_stack_size -8-8-8)
+	movq 8+8+8+8(%rsp), %rax
+	movq %rax, PER_CPU_VAR(init_tss + TSS_stack + TSS_stack_size -8-8)
+	movq 8+8+8+8+8(%rsp), %rax
+	movq %rax, PER_CPU_VAR(init_tss + TSS_stack + TSS_stack_size -8)
+	popq %rax
+	movq PER_CPU_VAR(init_tss + TSS_sp0), %rsp
+	leaq -8-8-8-8-8(%rsp), %rsp
 	SWITCH_TO_USER_CR3
 	SWAPGS
-	jmp restore_args
+	jmp irq_return
+
+restore_all:
+	movq %r14, PER_CPU_VAR(init_tss + TSS_stack + TSS_stack_size -8-8-8-8-8-8-8-8)
+	RESTORE_ALL 8
+	pushq %rax
+	movq 8(%rsp), %rax
+	movq %rax, PER_CPU_VAR(init_tss + TSS_stack + TSS_stack_size -8-8-8-8-8)
+	movq 8+8(%rsp), %rax
+	movq %rax, PER_CPU_VAR(init_tss + TSS_stack + TSS_stack_size -8-8-8-8)
+	movq 8+8+8(%rsp), %rax
+	movq %rax, PER_CPU_VAR(init_tss + TSS_stack + TSS_stack_size -8-8-8)
+	movq 8+8+8+8(%rsp), %rax
+	movq %rax, PER_CPU_VAR(init_tss + TSS_stack + TSS_stack_size -8-8)
+	movq 8+8+8+8+8(%rsp), %rax
+	movq %rax, PER_CPU_VAR(init_tss + TSS_stack + TSS_stack_size -8)
+	popq %rax
+	movq PER_CPU_VAR(init_tss + TSS_sp0), %rsp
+	leaq -8-8-8-8-8(%rsp), %rsp
+	pushq %r14
+	pushq %rax
+	movq PER_CPU_VAR(init_tss + TSS_stack + TSS_stack_size -8-8-8-8-8-8-8-8), %r14
+	RESTORE_CR3 scratch_reg=%rax save_reg=%r14
+	popq %rax
+	popq %r14
+	SWAPGS_UNSAFE_STACK
+	jmp irq_return
 
 retint_restore_args:	/* return to kernel space */
 	DISABLE_INTERRUPTS(CLBR_ANY)
@@ -869,7 +945,6 @@ retint_restore_args:	/* return to kernel space */
 	 * The iretq could re-enable interrupts:
 	 */
 	TRACE_IRQS_IRETQ
-restore_args:
 	RESTORE_ARGS 1,8,1
 
 irq_return:
@@ -1381,10 +1456,7 @@ ENTRY(paranoid_exit)
 	jnz   paranoid_userspace
 paranoid_swapgs:
 	TRACE_IRQS_IRETQ 0
-	RESTORE_CR3 scratch_reg=%rax save_reg=%r14
-	SWAPGS_UNSAFE_STACK
-	RESTORE_ALL 8
-	jmp irq_return
+	jmp restore_all
 paranoid_restore:
 	TRACE_IRQS_IRETQ_DEBUG 0
 	RESTORE_ALL 8
@@ -1449,6 +1521,21 @@ error_swapgs:
 	SWAPGS
 	SWITCH_TO_KERNEL_CR3
 error_sti:
+	movq PER_CPU_VAR(init_tss + TSS_sp0), %rcx
+	cmpq %rcx, %rsp
+	ja 1f
+	leaq -TSS_stack_size(%rcx), %rax
+	cmpq %rsp, %rax
+	ja 1f
+	subq %rsp, %rcx
+	movq PER_CPU_VAR(kernel_stack), %rdi
+	addq $KERNEL_STACK_OFFSET, %rdi
+	subq %rcx, %rdi
+	movq %rdi, %rax
+	movq %rsp, %rsi
+	rep movsb
+	movq %rax, %rsp
+1:
 	TRACE_IRQS_OFF
 	ret
 
@@ -1625,9 +1712,6 @@ ENTRY(nmi)
 	 * work, because we don't want to enable interrupts.  Fortunately,
 	 * do_nmi doesn't modify pt_regs.
 	 */
-	SWITCH_TO_USER_CR3
-	SWAPGS
-
 	addq	$6*8, %rsp	/* skip bx, bp, and r12-r15 */
 	jmp	restore_args
 

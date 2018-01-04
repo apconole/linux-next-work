@@ -414,6 +414,37 @@ ENTRY(ia32_syscall)
 	ASM_CLAC			/* Do this early to minimize exposure */
 	SWAPGS
 	SWITCH_TO_KERNEL_CR3
+
+	/*
+	 * We could remove the boundary checks, but this is more flexible
+	 * in case we need to change TSS_sp0 during context switch and
+	 * point it to the real kernel stack if booted in Xen PV.
+	*/
+	cld
+	movq %rax, %r8
+	movq %rcx, %r9
+	movq PER_CPU_VAR(init_tss + TSS_sp0), %rcx
+	cmpq %rcx, %rsp
+	ja 1f
+	leaq -TSS_stack_size(%rcx), %rax
+	cmpq %rsp, %rax
+	ja 1f
+	pushq %rdi
+	pushq %rsi
+	subq %rsp, %rcx
+	movq PER_CPU_VAR(kernel_stack), %rdi
+	addq $KERNEL_STACK_OFFSET, %rdi
+	subq %rcx, %rdi
+	movq %rdi, %rax
+	movq %rsp, %rsi
+	rep movsb
+	movq %rax, %rsp
+	popq %rsi
+	popq %rdi
+1:
+	movq %r8, %rax
+	movq %r9, %rcx
+
 	/*
 	 * No need to follow this irqs on/off section: the syscall
 	 * disabled irqs and here we enable it straight after entry:
@@ -421,7 +452,6 @@ ENTRY(ia32_syscall)
 	ENABLE_INTERRUPTS(CLBR_NONE)
 	movl %eax,%eax
 	pushq_cfi %rax
-	cld
 	/* note the registers are not zero extended to the sf.
 	   this could be a problem. */
 	SAVE_ARGS 0,1,0
