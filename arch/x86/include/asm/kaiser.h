@@ -58,6 +58,12 @@ extern void kaiser_remove_mapping(unsigned long start, unsigned long size);
  */
 extern void kaiser_init(void);
 
+extern int kaiser_enabled;
+static __always_inline bool kaiser_active(void)
+{
+	return __this_cpu_read(kaiser_enabled_pcp);
+}
+
 #else
 static inline void kaiser_add_mapping_cpu_entry(int cpu) {}
 #endif

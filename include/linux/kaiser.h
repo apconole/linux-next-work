@@ -25,5 +25,9 @@ static inline int kaiser_add_mapping(unsigned long addr, unsigned long size,
 	return 0;
 }
 
+static inline bool kaiser_active(void)
+{
+	return 0;
+}
 #endif /* !CONFIG_KAISER */
 #endif /* _INCLUDE_KAISER_H */
