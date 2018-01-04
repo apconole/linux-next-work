@@ -1082,6 +1082,11 @@ extern void pmdp_invalidate(struct vm_area_struct *vma, unsigned long address,
 static inline void clone_pgd_range(pgd_t *dst, pgd_t *src, int count)
 {
        memcpy(dst, src, count * sizeof(pgd_t));
+#ifdef CONFIG_KAISER
+	/* Clone the shadow pgd part as well */
+	memcpy(kernel_to_shadow_pgdp(dst), kernel_to_shadow_pgdp(src),
+	       count * sizeof(pgd_t));
+#endif
 }
 
 #define PTE_SHIFT ilog2(PTRS_PER_PTE)

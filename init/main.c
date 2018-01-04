@@ -72,6 +72,7 @@
 #include <linux/perf_event.h>
 #include <linux/file.h>
 #include <linux/ptrace.h>
+#include <linux/kaiser.h>
 #include <linux/blkdev.h>
 #include <linux/elevator.h>
 #include <linux/random.h>
@@ -480,6 +481,8 @@ static void __init mm_init(void)
 	pgtable_init();
 	vmalloc_init();
 	ioremap_huge_init();
+	/* This just needs to be done before we first run userspace: */
+	kaiser_init();
 }
 
 asmlinkage void __init start_kernel(void)
