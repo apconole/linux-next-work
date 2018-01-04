@@ -18,6 +18,7 @@
 #include <asm/dma.h>		/* for MAX_DMA_PFN */
 #include <asm/microcode.h>
 #include <asm/kaslr.h>
+#include <asm/cpufeature.h>
 
 #include "mm_internal.h"
 
@@ -201,6 +202,38 @@ static void __init probe_page_size_mask(void)
 		set_in_cr4(X86_CR4_PGE);
 		enable_global_pages();
 	}
+}
+
+static void setup_pcid(void)
+{
+#ifdef CONFIG_X86_64
+	if (boot_cpu_has(X86_FEATURE_PCID)) {
+		if (boot_cpu_has(X86_FEATURE_PGE)) {
+			/*
+			 * This can't be cr4_set_bits_and_update_boot() --
+			 * the trampoline code can't handle CR4.PCIDE and
+			 * it wouldn't do any good anyway.  Despite the name,
+			 * cr4_set_bits_and_update_boot() doesn't actually
+			 * cause the bits in question to remain set all the
+			 * way through the secondary boot asm.
+			 *
+			 * Instead, we brute-force it and set CR4.PCIDE
+			 * manually in start_secondary().
+			 */
+			set_in_cr4(X86_CR4_PCIDE);
+		} else {
+			/*
+			 * flush_tlb_all(), as currently implemented, won't
+			 * work if PCID is on but PGE is not.  Since that
+			 * combination doesn't exist on real hardware, there's
+			 * no reason to try to fully support it, but it's
+			 * polite to avoid corrupting data if we're on
+			 * an improperly configured VM.
+			 */
+			setup_clear_cpu_cap(X86_FEATURE_PCID);
+		}
+	}
+#endif
 }
 
 #ifdef CONFIG_X86_32
@@ -581,6 +614,7 @@ void __init init_mem_mapping(void)
 	unsigned long end;
 
 	probe_page_size_mask();
+	setup_pcid();
 
 #ifdef CONFIG_X86_64
 	end = max_pfn << PAGE_SHIFT;

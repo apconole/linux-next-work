@@ -658,8 +658,13 @@ static inline void set_in_cr4(unsigned long mask)
 	unsigned long cr4;
 
 	mmu_cr4_features |= mask;
-	if (trampoline_cr4_features)
-		*trampoline_cr4_features = mmu_cr4_features;
+	if (trampoline_cr4_features) {
+		/*
+		 * Mask off features that don't work outside long mode (just
+		 * PCIDE for now).
+		 */
+		*trampoline_cr4_features = mmu_cr4_features & ~X86_CR4_PCIDE;
+	}
 	cr4 = read_cr4();
 	cr4 |= mask;
 	write_cr4(cr4);
