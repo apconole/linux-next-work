@@ -2183,8 +2183,7 @@ static void vmx_vcpu_load(struct kvm_vcpu *vcpu, int cpu)
 	if (per_cpu(current_vmcs, cpu) != vmx->loaded_vmcs->vmcs) {
 		per_cpu(current_vmcs, cpu) = vmx->loaded_vmcs->vmcs;
 		vmcs_load(vmx->loaded_vmcs->vmcs);
-		if (static_cpu_has(X86_FEATURE_IBPB_SUPPORT))
-			wrmsrl(MSR_IA32_PRED_CMD, FEATURE_SET_IBPB);
+		spec_ctrl_ibpb();
 	}
 
 	if (vmx->loaded_vmcs->cpu != cpu) {
@@ -3477,8 +3476,7 @@ static void free_loaded_vmcs(struct loaded_vmcs *loaded_vmcs)
 	 * The VMCS could be recycled, causing a false negative in vmx_vcpu_load;
 	 * block speculative execution.
 	 */
-	if (static_cpu_has(X86_FEATURE_IBPB_SUPPORT))
-		wrmsrl(MSR_IA32_PRED_CMD, FEATURE_SET_IBPB);
+	spec_ctrl_ibpb();
 }
 
 static void free_kvm_area(void)
@@ -8944,10 +8942,7 @@ static void __noclone vmx_vcpu_run(struct kvm_vcpu *vcpu)
 	    vcpu->arch.pkru != vmx->host_pkru)
 		__write_pkru(vcpu->arch.pkru);
 
-	if (static_cpu_has(X86_FEATURE_SPEC_CTRL) &&
-	    vmx->spec_ctrl != FEATURE_ENABLE_IBRS)
-		wrmsrl(MSR_IA32_SPEC_CTRL, vmx->spec_ctrl);
-
+	spec_ctrl_vmenter_ibrs(vmx->spec_ctrl);
 
 	atomic_switch_perf_msrs(vmx);
 	debugctlmsr = get_debugctlmsr();
@@ -9079,8 +9074,7 @@ static void __noclone vmx_vcpu_run(struct kvm_vcpu *vcpu)
 
 	if (static_cpu_has(X86_FEATURE_SPEC_CTRL)) {
 		rdmsrl(MSR_IA32_SPEC_CTRL, vmx->spec_ctrl);
-		if (vmx->spec_ctrl)
-			wrmsrl(MSR_IA32_SPEC_CTRL, FEATURE_ENABLE_IBRS);
+		__spec_ctrl_vmexit_ibrs(vmx->spec_ctrl);
 	}
 	stuff_RSB();
 

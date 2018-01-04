@@ -3,6 +3,7 @@
 
 #define SPEC_CTRL_PCP_IBRS	(1<<0)
 #define SPEC_CTRL_PCP_IBPB	(1<<1)
+#define SPEC_CTRL_PCP_IBRS_USER	(1<<2)
 
 #ifdef __ASSEMBLY__
 
@@ -269,6 +270,34 @@
 
 extern void set_spec_ctrl_pcp_ibrs(bool enable);
 extern void set_spec_ctrl_pcp_ibpb(bool enable);
+
+static __always_inline void __spec_ctrl_vm_ibrs(u64 vcpu_ibrs, bool vmenter)
+{
+	u64 host_ibrs = 0;
+	if (__this_cpu_read(spec_ctrl_pcp) & (SPEC_CTRL_PCP_IBRS_USER |
+					      SPEC_CTRL_PCP_IBRS)) {
+		/*
+		 * If IBRS is enabled for host kernel mode or
+		 * host user mode we must set
+		 * FEATURE_ENABLE_IBRS at vmexit.
+		 */
+		host_ibrs = FEATURE_ENABLE_IBRS;
+	}
+	if (vcpu_ibrs != host_ibrs)
+		native_wrmsrl(MSR_IA32_SPEC_CTRL,
+			      vmenter ? vcpu_ibrs : host_ibrs);
+}
+
+static inline void spec_ctrl_vmenter_ibrs(u64 vcpu_ibrs)
+{
+	if (static_cpu_has(X86_FEATURE_SPEC_CTRL))
+		__spec_ctrl_vm_ibrs(vcpu_ibrs, true);
+}
+
+static inline void __spec_ctrl_vmexit_ibrs(u64 vcpu_ibrs)
+{
+	__spec_ctrl_vm_ibrs(vcpu_ibrs, false);
+}
 
 static inline void spec_ctrl_enable_ibrs(void)
 {

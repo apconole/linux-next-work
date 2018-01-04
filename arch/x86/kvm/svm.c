@@ -1674,8 +1674,7 @@ static void svm_free_vcpu(struct kvm_vcpu *vcpu)
 	 * The VMCB could be recycled, causing a false negative in svm_vcpu_load;
 	 * block speculative execution.
 	 */
-	if (static_cpu_has(X86_FEATURE_IBPB_SUPPORT))
-		wrmsrl(MSR_IA32_PRED_CMD, FEATURE_SET_IBPB);
+	spec_ctrl_ibpb();
 }
 
 static void svm_vcpu_load(struct kvm_vcpu *vcpu, int cpu)
@@ -1712,8 +1711,7 @@ static void svm_vcpu_load(struct kvm_vcpu *vcpu, int cpu)
 
 	if (sd->current_vmcb != svm->vmcb) {
 		sd->current_vmcb = svm->vmcb;
-		if (static_cpu_has(X86_FEATURE_IBPB_SUPPORT))
-			wrmsrl(MSR_IA32_PRED_CMD, FEATURE_SET_IBPB);
+		spec_ctrl_ibpb();
 	}
 
 	avic_vcpu_load(vcpu, cpu);
@@ -4913,9 +4911,7 @@ static void svm_vcpu_run(struct kvm_vcpu *vcpu)
 
 	local_irq_enable();
 
-	if (static_cpu_has(X86_FEATURE_SPEC_CTRL) &&
-	    svm->spec_ctrl != FEATURE_ENABLE_IBRS)
-		wrmsrl(MSR_IA32_SPEC_CTRL, svm->spec_ctrl);
+	spec_ctrl_vmenter_ibrs(svm->spec_ctrl);
 
 	asm volatile (
 		"push %%" _ASM_BP "; \n\t"
@@ -5011,8 +5007,7 @@ static void svm_vcpu_run(struct kvm_vcpu *vcpu)
 
 	if (static_cpu_has(X86_FEATURE_SPEC_CTRL)) {
 		rdmsrl(MSR_IA32_SPEC_CTRL, svm->spec_ctrl);
-		if (svm->spec_ctrl != FEATURE_ENABLE_IBRS)
-			wrmsrl(MSR_IA32_SPEC_CTRL, FEATURE_ENABLE_IBRS);
+		__spec_ctrl_vmexit_ibrs(svm->spec_ctrl);
 	}
 	stuff_RSB();
 
