@@ -198,12 +198,10 @@ void spec_ctrl_init(struct cpuinfo_x86 *c)
 			set_spec_ctrl_pcp_ibrs(true);
 			ibrs_enabled = IBRS_ENABLED;
 		}
-		printk(KERN_INFO
-		       "FEATURE SPEC_CTRL Present\n");
+		printk_once(KERN_INFO "FEATURE SPEC_CTRL Present\n");
 		spec_ctrl_cpu_init();
 	} else {
-		printk(KERN_INFO
-		       "FEATURE SPEC_CTRL Not Present\n");
+		printk_once(KERN_INFO "FEATURE SPEC_CTRL Not Present\n");
 	}
 
 	if (boot_cpu_has(X86_FEATURE_IBPB_SUPPORT)) {
@@ -216,9 +214,9 @@ void spec_ctrl_init(struct cpuinfo_x86 *c)
 				ibpb_enabled = IBPB_ENABLED_ONLY;
 			}
 		}
-		printk(KERN_INFO "FEATURE IBPB_SUPPORT Present\n");
+		printk_once(KERN_INFO "FEATURE IBPB_SUPPORT Present\n");
 	} else {
-		printk(KERN_INFO "FEATURE IBPB_SUPPORT Not Present\n");
+		printk_once(KERN_INFO "FEATURE IBPB_SUPPORT Not Present\n");
 	}
 }
 
