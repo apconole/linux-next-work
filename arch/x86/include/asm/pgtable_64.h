@@ -191,13 +191,13 @@ static inline bool pgd_userspace_access(pgd_t pgd)
 
 static inline void kaiser_poison_pgd(pgd_t *pgd)
 {
-	if (pgd->pgd & _PAGE_PRESENT)
+	if (pgd->pgd & _PAGE_PRESENT && __supported_pte_mask & _PAGE_NX)
 		pgd->pgd |= _PAGE_NX;
 }
 
 static inline void kaiser_unpoison_pgd(pgd_t *pgd)
 {
-	if (pgd->pgd & _PAGE_PRESENT)
+	if (pgd->pgd & _PAGE_PRESENT && __supported_pte_mask & _PAGE_NX)
 		pgd->pgd &= ~_PAGE_NX;
 }
 
