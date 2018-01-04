@@ -1628,7 +1628,7 @@ ENTRY(nmi)
 	/*
 	 * Fix up the exception frame if we're on Xen.
 	 * PARAVIRT_ADJUST_EXCEPTION_FRAME is guaranteed to push at most
-	 * one value to the stack on native, so it may clobber the rdx
+	 * one value to the stack on native, so it may clobber the rsi
 	 * scratch slot, but it won't clobber any of the important
 	 * slots past it.
 	 *
@@ -1675,9 +1675,9 @@ ENTRY(nmi)
 	 * other IST entries.
 	 */
 
-	/* Use %rdx as out temp variable throughout */
-	pushq_cfi %rdx
-	CFI_REL_OFFSET rdx, 0
+	/* Use %rsi as out temp variable throughout */
+	pushq_cfi %rsi
+	CFI_REL_OFFSET rsi, 0
 
 	testb	$3, CS-RIP+8(%rsp)
 	jz	.Lnmi_from_kernel
@@ -1696,18 +1696,18 @@ ENTRY(nmi)
 	SWAPGS_UNSAFE_STACK
 	SWITCH_TO_KERNEL_CR3
 	cld
-	movq	%rsp, %rdx
+	movq	%rsp, %rsi
 	movq	PER_CPU_VAR(kernel_stack), %rsp
 	addq	$KERNEL_STACK_OFFSET, %rsp
-	pushq	5*8(%rdx)	/* pt_regs->ss */
-	pushq	4*8(%rdx)	/* pt_regs->rsp */
-	pushq	3*8(%rdx)	/* pt_regs->flags */
-	pushq	2*8(%rdx)	/* pt_regs->cs */
-	pushq	1*8(%rdx)	/* pt_regs->rip */
+	pushq	5*8(%rsi)	/* pt_regs->ss */
+	pushq	4*8(%rsi)	/* pt_regs->rsp */
+	pushq	3*8(%rsi)	/* pt_regs->flags */
+	pushq	2*8(%rsi)	/* pt_regs->cs */
+	pushq	1*8(%rsi)	/* pt_regs->rip */
 	pushq   $-1		/* pt_regs->orig_ax */
 	pushq   %rdi		/* pt_regs->di */
-	pushq   %rsi		/* pt_regs->si */
-	pushq   (%rdx)		/* pt_regs->dx */
+	pushq   (%rsi)		/* pt_regs->si */
+	pushq   %rdx		/* pt_regs->dx */
 	pushq   %rcx		/* pt_regs->cx */
 	pushq   %rax		/* pt_regs->ax */
 	pushq   %r8		/* pt_regs->r8 */
@@ -1750,7 +1750,7 @@ ENTRY(nmi)
 	 * | original CS                                             |
 	 * | original RIP                                            |
 	 * +---------------------------------------------------------+
-	 * | temp storage for rdx                                    |
+	 * | temp storage for rsi                                    |
 	 * +---------------------------------------------------------+
 	 * | "NMI executing" variable                                |
 	 * +---------------------------------------------------------+
@@ -1792,11 +1792,11 @@ ENTRY(nmi)
 	 * about to about to call do_nmi anyway, so we can just
 	 * resume the outer NMI.
 	 */
-	movq	$repeat_nmi, %rdx
-	cmpq	8(%rsp), %rdx
+	movq	$repeat_nmi, %rsi
+	cmpq	8(%rsp), %rsi
 	ja	1f
-	movq	$end_repeat_nmi, %rdx
-	cmpq	8(%rsp), %rdx
+	movq	$end_repeat_nmi, %rsi
+	cmpq	8(%rsp), %rsi
 	ja	nested_nmi_out
 1:
 
@@ -1820,8 +1820,8 @@ ENTRY(nmi)
 	 * if it controls the kernel's RSP.  We set DF before we clear
 	 * "NMI executing".
 	 */
-	lea 6*8(%rsp), %rdx
-	test_in_nmi rdx, 4*8(%rsp), nested_nmi, first_nmi
+	lea 6*8(%rsp), %rsi
+	test_in_nmi rsi, 4*8(%rsp), nested_nmi, first_nmi
 
 	/* Ah, it is within the NMI stack. */
 
@@ -1837,12 +1837,12 @@ nested_nmi:
 	 * Modify the "iret" frame to point to repeat_nmi, forcing another
 	 * iteration of NMI handling.
 	 */
-	leaq -1*8(%rsp), %rdx
-	movq %rdx, %rsp
+	leaq -1*8(%rsp), %rsi
+	movq %rsi, %rsp
 	CFI_ADJUST_CFA_OFFSET 1*8
-	leaq -10*8(%rsp), %rdx
+	leaq -10*8(%rsp), %rsi
 	pushq_cfi $__KERNEL_DS
-	pushq_cfi %rdx
+	pushq_cfi %rsi
 	pushfq_cfi
 	pushq_cfi $__KERNEL_CS
 	pushq_cfi $repeat_nmi
@@ -1852,17 +1852,17 @@ nested_nmi:
 	CFI_ADJUST_CFA_OFFSET -6*8
 
 nested_nmi_out:
-	popq_cfi %rdx
-	CFI_RESTORE rdx
+	popq_cfi %rsi
+	CFI_RESTORE rsi
 
 	/* We are returning to kernel mode, so this cannot result in a fault. */
 	INTERRUPT_RETURN
 
 	CFI_RESTORE_STATE
 first_nmi:
-	/* Restore rdx. */
-	movq (%rsp), %rdx
-	CFI_RESTORE rdx
+	/* Restore rsi. */
+	movq (%rsp), %rsi
+	CFI_RESTORE rsi
 
 	/* Set "NMI executing" on the stack. */
 	pushq_cfi $1
