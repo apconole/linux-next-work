@@ -120,6 +120,7 @@
 
 #else /* __ASSEMBLY__ */
 
+#include <linux/ptrace.h>
 #include <asm/microcode.h>
 
 extern void set_spec_ctrl_pcp_ibrs(bool enable);
@@ -141,11 +142,27 @@ static inline void spec_ctrl_disable_ibrs(void)
 	}
 }
 
+static inline void __spec_ctrl_ibpb(void)
+{
+	native_wrmsrl(MSR_IA32_PRED_CMD, FEATURE_SET_IBPB);
+}
+
 static inline void spec_ctrl_ibpb(void)
 {
 	if (static_cpu_has(X86_FEATURE_IBPB_SUPPORT)) {
 		if (__this_cpu_read(spec_ctrl_pcp) & SPEC_CTRL_PCP_IBPB)
-			native_wrmsrl(MSR_IA32_PRED_CMD, FEATURE_SET_IBPB);
+			__spec_ctrl_ibpb();
+	}
+}
+
+static inline void spec_ctrl_ibpb_if_different_creds(struct task_struct *next)
+{
+	struct task_struct *prev = current;
+
+	if (static_cpu_has(X86_FEATURE_IBPB_SUPPORT)) {
+		if (__this_cpu_read(spec_ctrl_pcp) & SPEC_CTRL_PCP_IBPB && next &&
+		    ___ptrace_may_access(next, NULL, prev, PTRACE_MODE_IBPB))
+			__spec_ctrl_ibpb();
 	}
 }
 
