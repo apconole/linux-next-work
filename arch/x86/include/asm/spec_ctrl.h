@@ -118,5 +118,36 @@
 .endm
 #endif
 
+#else /* __ASSEMBLY__ */
+
+#include <asm/microcode.h>
+
+extern void set_spec_ctrl_pcp_ibrs(bool enable);
+extern void set_spec_ctrl_pcp_ibpb(bool enable);
+
+static inline void spec_ctrl_enable_ibrs(void)
+{
+	if (static_cpu_has(X86_FEATURE_SPEC_CTRL)) {
+		if (__this_cpu_read(spec_ctrl_pcp) & SPEC_CTRL_PCP_IBRS)
+			native_wrmsrl(MSR_IA32_SPEC_CTRL, FEATURE_ENABLE_IBRS);
+	}
+}
+
+static inline void spec_ctrl_disable_ibrs(void)
+{
+	if (static_cpu_has(X86_FEATURE_SPEC_CTRL)) {
+		if (__this_cpu_read(spec_ctrl_pcp) & SPEC_CTRL_PCP_IBRS)
+			native_wrmsrl(MSR_IA32_SPEC_CTRL, 0);
+	}
+}
+
+static inline void spec_ctrl_ibpb(void)
+{
+	if (static_cpu_has(X86_FEATURE_IBPB_SUPPORT)) {
+		if (__this_cpu_read(spec_ctrl_pcp) & SPEC_CTRL_PCP_IBPB)
+			native_wrmsrl(MSR_IA32_PRED_CMD, FEATURE_SET_IBPB);
+	}
+}
+
 #endif /* __ASSEMBLY__ */
 #endif /* _ASM_X86_SPEC_CTRL_H */
