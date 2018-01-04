@@ -889,7 +889,16 @@ bad_iret:
 	 */
 	pushq $0
 
+	/*
+	 * If a kernel bug clears user CS bit and in turn we'll skip SWAPGS in
+	 * general_protection, skip the SWAPGS here as well so we won't hard reboot.
+	 * This increases robustness of bad_iret to kernel bugs as well.
+	 */
+	testl $3, 8*2(%rsp)
+	je 1f
 	SWAPGS
+1:
+
 	jmp general_protection
 
 	.previous
