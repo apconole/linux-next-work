@@ -23,6 +23,8 @@ enum {
 };
 static unsigned int ibrs_enabled __read_mostly;
 static bool ibpb_enabled __read_mostly;
+static bool noibrs_cmdline __read_mostly;
+static bool noibpb_cmdline __read_mostly;
 
 static void set_spec_ctrl_pcp(bool enable, int flag)
 {
@@ -65,6 +67,22 @@ static void flush_all_cpus_ibrs(bool enable)
 				 enable ? FEATURE_ENABLE_IBRS : 0);
 }
 
+static int __init noibrs(char *str)
+{
+	noibrs_cmdline = true;
+
+	return 0;
+}
+early_param("noibrs", noibrs);
+
+static int __init noibpb(char *str)
+{
+	noibpb_cmdline = true;
+
+	return 0;
+}
+early_param("noibpb", noibpb);
+
 void spec_ctrl_init(struct cpuinfo_x86 *c)
 {
 	bool implicit_ibpb = false;
@@ -81,7 +99,7 @@ void spec_ctrl_init(struct cpuinfo_x86 *c)
 	 */
 	if (boot_cpu_has(X86_FEATURE_SPEC_CTRL)) {
 		setup_force_cpu_cap(X86_FEATURE_IBPB_SUPPORT);
-		if (!ibrs_enabled) {
+		if (!ibrs_enabled && !noibrs_cmdline) {
 			set_spec_ctrl_pcp_ibrs(true);
 			ibrs_enabled = 1;
 		}
@@ -99,7 +117,8 @@ void spec_ctrl_init(struct cpuinfo_x86 *c)
 	 */
 	if (c->x86_vendor == X86_VENDOR_AMD &&
 	    !(cpu_has(c, X86_FEATURE_IBPB_SUPPORT) &&
-	      cpu_has(c, X86_FEATURE_SPEC_CTRL))) {
+	      cpu_has(c, X86_FEATURE_SPEC_CTRL)) &&
+	    !(noibpb_cmdline && noibrs_cmdline)) {
 		u64 val;
 
 		switch (c->x86) {
@@ -115,7 +134,7 @@ void spec_ctrl_init(struct cpuinfo_x86 *c)
 	}
 	if (boot_cpu_has(X86_FEATURE_IBPB_SUPPORT) || implicit_ibpb) {
 		if (boot_cpu_has(X86_FEATURE_IBPB_SUPPORT)) {
-			if (!ibpb_enabled) {
+			if (!ibpb_enabled && !noibpb_cmdline) {
 				set_spec_ctrl_pcp_ibpb(true);
 				ibpb_enabled = 1;
 			}
