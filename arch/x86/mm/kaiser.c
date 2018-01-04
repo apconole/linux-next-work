@@ -622,9 +622,9 @@ void kaiser_poison_pgd_page(pgd_t *pgd_page, enum poison do_poison)
 			break;
 
 		if (do_poison == KAISER_POISON)
-			kaiser_poison_pgd(pgd);
+			kaiser_poison_pgd_atomic(pgd);
 		else
-			kaiser_unpoison_pgd(pgd);
+			kaiser_unpoison_pgd_atomic(pgd);
 	}
 
 }

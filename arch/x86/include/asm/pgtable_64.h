@@ -201,6 +201,19 @@ static inline void kaiser_unpoison_pgd(pgd_t *pgd)
 		pgd->pgd &= ~_PAGE_NX;
 }
 
+static inline void kaiser_poison_pgd_atomic(pgd_t *pgd)
+{
+	BUILD_BUG_ON(_PAGE_NX == 0);
+	if (pgd->pgd & _PAGE_PRESENT && __supported_pte_mask & _PAGE_NX)
+		set_bit(_PAGE_BIT_NX, &pgd->pgd);
+}
+
+static inline void kaiser_unpoison_pgd_atomic(pgd_t *pgd)
+{
+	if (pgd->pgd & _PAGE_PRESENT && __supported_pte_mask & _PAGE_NX)
+		clear_bit(_PAGE_BIT_NX, &pgd->pgd);
+}
+
 /*
  * Take a PGD location (pgdp) and a pgd value that needs
  * to be set there.  Populates the shadow and returns
