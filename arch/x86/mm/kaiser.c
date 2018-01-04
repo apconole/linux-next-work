@@ -35,6 +35,7 @@
 #include <linux/spinlock.h>
 #include <linux/mm.h>
 #include <linux/uaccess.h>
+#include <linux/stop_machine.h>
 
 #include <asm/kaiser.h>
 #include <asm/pgtable.h>
@@ -42,6 +43,7 @@
 #include <asm/tlbflush.h>
 #include <asm/desc.h>
 #include <asm/kvmclock.h>
+#include <asm/cmpxchg.h>
 
 #define KAISER_WALK_ATOMIC  0x1
 
@@ -520,48 +522,35 @@ enum poison {
 };
 void kaiser_poison_pgds(enum poison do_poison);
 
-void kaiser_do_disable(void)
+enum {
+	FIRST_STOP_MACHINE_INIT,
+	FIRST_STOP_MACHINE_START,
+	FIRST_STOP_MACHINE_END,
+};
+static int first_stop_machine;
+static int kaiser_stop_machine(void *data)
 {
-	/* Make sure the kernel PGDs are usable by userspace: */
-	kaiser_poison_pgds(KAISER_UNPOISON);
+	bool enable = !!*(unsigned int *)data;
+	int first;
 
-	/*
-	 * Make sure all the CPUs have the poison clear in their TLBs.
-	 * This also functions as a barrier to ensure that everyone
-	 * sees the unpoisoned PGDs.
-	 */
-	flush_tlb_all();
+	first = cmpxchg(&first_stop_machine, FIRST_STOP_MACHINE_INIT,
+			FIRST_STOP_MACHINE_START);
+	if (first == FIRST_STOP_MACHINE_INIT) {
+		/* Tell the assembly code to start/stop switching CR3. */
+		kaiser_enable_pcp(enable);
+		kaiser_poison_pgds(enable ? KAISER_POISON : KAISER_UNPOISON);
+		smp_wmb();
+		WRITE_ONCE(first_stop_machine, FIRST_STOP_MACHINE_END);
+	} else {
+		do {
+			cpu_relax();
+		} while (READ_ONCE(first_stop_machine) !=
+			 FIRST_STOP_MACHINE_END);
+		smp_rmb();
+	}
+	__flush_tlb_all();
 
-	/* Tell the assembly code to stop switching CR3. */
-	kaiser_enable_pcp(false);
-
-	/*
-	 * Make sure everybody does an interrupt.  This means that
-	 * they have gone through a SWITCH_TO_KERNEL_CR3 amd are no
-	 * longer running on the userspace CR3.  If we did not do
-	 * this, we might have CPUs running on the shadow page tables
-	 * that then enter the kernel and think they do *not* need to
-	 * switch.
-	 */
-	flush_tlb_all();
-}
-
-void kaiser_do_enable(void)
-{
-	/* Tell the assembly code to start switching CR3: */
-	kaiser_enable_pcp(true);
-
-	/* Make sure everyone can see the kaiser_asm_do_switch update: */
-	synchronize_rcu();
-
-	/*
-	 * Now that userspace is no longer using the kernel copy of
-	 * the page tables, we can poison it:
-	 */
-	kaiser_poison_pgds(KAISER_POISON);
-
-	/* Make sure all the CPUs see the poison: */
-	flush_tlb_all();
+	return 0;
 }
 
 static ssize_t kaiser_enabled_write_file(struct file *file,
@@ -570,6 +559,8 @@ static ssize_t kaiser_enabled_write_file(struct file *file,
 	char buf[32];
 	ssize_t len;
 	unsigned int enable;
+	ssize_t err;
+	static DEFINE_MUTEX(enable_mutex);
 
 	len = min(count, sizeof(buf) - 1);
 	if (copy_from_user(buf, user_buf, len))
@@ -582,17 +573,22 @@ static ssize_t kaiser_enabled_write_file(struct file *file,
 	if (enable > 1)
 		return -EINVAL;
 
+	mutex_lock(&enable_mutex);
 	if (kaiser_enabled == enable)
-		return count;
+		goto out_unlock;
 
-	WRITE_ONCE(kaiser_enabled, enable);
-	synchronize_rcu();
+	first_stop_machine = FIRST_STOP_MACHINE_INIT;
+	get_online_cpus();
+	err = __stop_machine(kaiser_stop_machine, &enable, cpu_online_mask);
+	put_online_cpus();
+	if (err) {
+		VM_WARN_ON(1);
+		count = err;
+	} else
+		kaiser_enabled = enable;
 
-	if (enable)
-		kaiser_do_enable();
-	else
-		kaiser_do_disable();
-
+out_unlock:
+	mutex_unlock(&enable_mutex);
 	return count;
 }
 
