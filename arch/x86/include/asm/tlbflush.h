@@ -72,6 +72,13 @@ static __always_inline void __load_cr3(unsigned long cr3)
 		VM_WARN_ON(cr3 & KAISER_SHADOW_PCID_ASID);
 		VM_WARN_ON(cr3 & (1<<KAISER_PGTABLE_SWITCH_BIT));
 		VM_WARN_ON(cr3 & X86_CR3_PCID_NOFLUSH);
+
+		if (this_cpu_has(X86_FEATURE_INVPCID_SINGLE)) {
+			invpcid_flush_single_context(KAISER_SHADOW_PCID_ASID);
+			write_cr3(cr3);
+			return;
+		}
+
 		shadow_cr3 = cr3 | (1<<KAISER_PGTABLE_SWITCH_BIT) |
 			KAISER_SHADOW_PCID_ASID;
 		asm volatile("\tjmp 1f\n\t"
@@ -99,7 +106,14 @@ static __always_inline void __load_cr3(unsigned long cr3)
 
 static inline void __native_flush_tlb(void)
 {
-	__load_cr3(native_read_cr3());
+	if (!static_cpu_has(X86_FEATURE_INVPCID)) {
+		__load_cr3(native_read_cr3());
+		return;
+	}
+	/*
+	 * Note, this works with CR4.PCIDE=0 or 1.
+	 */
+	invpcid_flush_all_nonglobals();
 }
 
 static inline void __native_flush_tlb_global_irq_disabled(void)
@@ -171,6 +185,17 @@ static inline void __native_flush_tlb_single(unsigned long addr)
 	 * disabled and we have only a single ASID.
 	 */
 	if (static_cpu_has(X86_FEATURE_PCID) && kaiser_active()) {
+		/*
+		 * Some platforms #GP if we call invpcid(type=1/2) before
+		 * CR4.PCIDE=1.  Just call invpcid in the case we are called
+		 * early.
+		 */
+		if (this_cpu_has(X86_FEATURE_INVPCID_SINGLE)) {
+			invpcid_flush_one(KAISER_SHADOW_PCID_ASID, addr);
+			invpcid_flush_one(0, addr);
+			return;
+		}
+
 		cr3 = native_read_cr3();
 		VM_WARN_ON(cr3 & KAISER_SHADOW_PCID_ASID);
 		VM_WARN_ON(cr3 & (1<<KAISER_PGTABLE_SWITCH_BIT));
