@@ -58,6 +58,14 @@ static pteval_t kaiser_pte_mask __read_mostly = ~(_PAGE_NX | _PAGE_GLOBAL);
 int kaiser_enabled __read_mostly;
 
 /*
+ * The flag that captures the command line "kaiser" and "nokaiser" option.
+ *  1 - enabled
+ *  0 - auto
+ * -1 - disabled
+ */
+static int kaiser_force_enabled __read_mostly;
+
+/*
  * At runtime, the only things we map are some things for CPU
  * hotplug, and stacks for new processes.  No two CPUs will ever
  * be populating the same addresses, so we only need to ensure
@@ -382,6 +390,23 @@ static bool is_xen_pv_domain(void)
 }
 
 /*
+ * Functions for processing the command line "kaiser" and "nokaiser" options.
+ */
+static int __init force_kaiser(char *arg)
+{
+	kaiser_force_enabled = 1;
+	return 0;
+}
+early_param("kaiser", force_kaiser);
+
+static int __init force_nokaiser(char *arg)
+{
+	kaiser_force_enabled = -1;
+	return 0;
+}
+early_param("nokaiser", force_nokaiser);
+
+/*
  * If anything in here fails, we will likely die on one of the
  * first kernel->user transitions and init will die.  But, we
  * will have most of the kernel up by then and should be able to
@@ -455,7 +480,9 @@ void __init kaiser_init(void)
 	if (is_xen_pv_domain()) {
 		pr_info("x86/kaiser: Xen PV detected, disabling "
 			"KAISER protection\n");
-	} else if (boot_cpu_data.x86_vendor == X86_VENDOR_INTEL) {
+	} else if ((kaiser_force_enabled > 0) ||
+		   (boot_cpu_data.x86_vendor == X86_VENDOR_INTEL &&
+		   !kaiser_force_enabled)) {
 		pr_info("x86/kaiser: Unmapping kernel while in userspace\n");
 		kaiser_enable_pcp(true);
 		kaiser_enabled = 1;
