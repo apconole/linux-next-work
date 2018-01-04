@@ -423,12 +423,17 @@ ENTRY(ia32_syscall)
 	cld
 	movq %rax, %r8
 	movq %rcx, %r9
+	/* Check to see if we're on the trampoline stack. */
 	movq PER_CPU_VAR(init_tss + TSS_sp0), %rcx
 	cmpq %rcx, %rsp
 	ja 1f
 	leaq -TSS_stack_size(%rcx), %rax
 	cmpq %rsp, %rax
 	ja 1f
+	/*
+	 * We're on the trampoline stack.  Copy the trampoline stack's
+	 * contents to the kernel task stack and switch to it.
+	 */
 	pushq %rdi
 	pushq %rsi
 	subq %rsp, %rcx

@@ -265,12 +265,17 @@ ENDPROC(native_usergs_sysret64)
 	SWAPGS
 	SWITCH_TO_KERNEL_CR3
 1:
+	/* Check to see if we're on the trampoline stack. */
 	movq PER_CPU_VAR(init_tss + TSS_sp0), %rcx
 	cmpq %rcx, %rsp
 	ja 1f
 	leaq -TSS_stack_size(%rcx), %rax
 	cmpq %rsp, %rax
 	ja 1f
+	/*
+	 * We're on the trampoline stack.  Copy the trampoline stack's
+	 * contents to the kernel task stack and switch to it.
+	 */
 	pushq %rdi
 	subq %rsp, %rcx
 	movq PER_CPU_VAR(kernel_stack), %rdi
@@ -347,12 +352,17 @@ ENTRY(save_paranoid)
 	xorl %ebx,%ebx
 1:
 	SAVE_AND_SWITCH_TO_KERNEL_CR3 scratch_reg=%rax save_reg=%r14
+	/* Check to see if we're on the trampoline stack. */
 	movq PER_CPU_VAR(init_tss + TSS_sp0), %rcx
 	cmpq %rcx, %rsp
 	ja 1f
 	leaq -TSS_stack_size(%rcx), %rax
 	cmpq %rsp, %rax
 	ja 1f
+	/*
+	 * We're on the trampoline stack.  Copy the trampoline stack's
+	 * contents to the kernel task stack and switch to it.
+	 */
 	subq %rsp, %rcx
 	movq PER_CPU_VAR(kernel_stack), %rdi
 	addq $KERNEL_STACK_OFFSET, %rdi
@@ -894,6 +904,11 @@ retint_swapgs:		/* return to user-space */
 	TRACE_IRQS_IRETQ
 
 restore_args:
+	/*
+	 * Returning from an NMI to user space, currently on the kernel
+	 * task stack.  Copy the iret frame to the trampoline stack and
+	 * switch to it before returning.
+	 */
 	RESTORE_ARGS 1,8,1
 	pushq %rax
 	movq 8(%rsp), %rax
@@ -914,6 +929,11 @@ restore_args:
 	jmp irq_return
 
 restore_all:
+	/*
+	 * Returning from an exception, possibly on the kernel task
+	 * stack.  Copy the iret frame to the trampoline stack and
+	 * switch to it before returning.
+	 */
 	movq %r14, PER_CPU_VAR(init_tss + TSS_stack + TSS_stack_size -8-8-8-8-8-8-8-8)
 	RESTORE_ALL 8
 	pushq %rax
@@ -1521,12 +1541,17 @@ error_swapgs:
 	SWAPGS
 	SWITCH_TO_KERNEL_CR3
 error_sti:
+	/* Check to see if we're on the trampoline stack. */
 	movq PER_CPU_VAR(init_tss + TSS_sp0), %rcx
 	cmpq %rcx, %rsp
 	ja 1f
 	leaq -TSS_stack_size(%rcx), %rax
 	cmpq %rsp, %rax
 	ja 1f
+	/*
+	 * We're on the trampoline stack.  Copy the trampoline stack's
+	 * contents to the kernel task stack and switch to it.
+	 */
 	subq %rsp, %rcx
 	movq PER_CPU_VAR(kernel_stack), %rdi
 	addq $KERNEL_STACK_OFFSET, %rdi
