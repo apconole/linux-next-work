@@ -322,6 +322,7 @@ int nfp_repr_init(struct nfp_app *app, struct net_device *netdev,
 	netdev->netdev_ops = &nfp_repr_netdev_ops;
 
 	netdev->extended->max_mtu = pf_netdev->extended->max_mtu;
+	netdev->ethtool_ops = &nfp_port_ethtool_ops;
 
 	SWITCHDEV_SET_OPS(netdev, &nfp_port_switchdev_ops);
 
