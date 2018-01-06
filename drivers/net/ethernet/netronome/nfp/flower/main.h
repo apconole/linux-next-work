@@ -38,6 +38,7 @@
 #include <linux/hashtable.h>
 #include <linux/time64.h>
 #include <linux/types.h>
+#include <net/pkt_cls.h>
 #include <linux/workqueue.h>
 
 struct tc_to_netdev;
