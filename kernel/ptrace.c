@@ -285,7 +285,8 @@ int ___ptrace_may_access(struct task_struct *tracer,
 	    gid_eq(caller_gid, tcred->sgid) &&
 	    gid_eq(caller_gid, tcred->gid))
 		goto ok;
-	if (ptrace_has_cap(tcred->user_ns, mode))
+	if (!(mode & PTRACE_MODE_NOACCESS_CHK) &&
+	    ptrace_has_cap(tcred->user_ns, mode))
 		goto ok;
 	rcu_read_unlock();
 	return -EPERM;
@@ -296,7 +297,8 @@ ok:
 		dumpable = get_dumpable(task->mm);
 	rcu_read_lock();
 	if (dumpable != SUID_DUMP_USER &&
-	    !ptrace_has_cap(__task_cred(task)->user_ns, mode)) {
+	    ((mode & PTRACE_MODE_NOACCESS_CHK) ||
+	     !ptrace_has_cap(__task_cred(task)->user_ns, mode))) {
 		rcu_read_unlock();
 		return -EPERM;
 	}
