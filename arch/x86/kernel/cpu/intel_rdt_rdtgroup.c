@@ -1314,9 +1314,12 @@ static void rdt_kill_sb(struct super_block *sb)
 		reset_all_ctrls(r);
 	cdp_disable();
 	rmdir_all_sub();
-	static_key_slow_dec(&rdt_alloc_enable_key);
-	static_key_slow_dec(&rdt_mon_enable_key);
-	static_key_slow_dec(&rdt_enable_key);
+	if (rdt_alloc_capable)
+		static_key_slow_dec(&rdt_alloc_enable_key);
+	if (rdt_mon_capable)
+		static_key_slow_dec(&rdt_mon_enable_key);
+	if (rdt_alloc_capable || rdt_mon_capable)
+		static_key_slow_dec(&rdt_enable_key);
 	kernfs_kill_sb(sb);
 	mutex_unlock(&rdtgroup_mutex);
 }
