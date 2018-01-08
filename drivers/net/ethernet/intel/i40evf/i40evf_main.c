@@ -2446,6 +2446,7 @@ static netdev_features_t i40evf_fix_features(struct net_device *netdev,
 }
 
 static const struct net_device_ops i40evf_netdev_ops = {
+	.ndo_size		= sizeof(struct net_device_ops),
 	.ndo_open		= i40evf_open,
 	.ndo_stop		= i40evf_close,
 	.ndo_start_xmit		= i40evf_xmit_frame,
