@@ -189,11 +189,13 @@ static void insert_##name(struct rb_root *root, type *t)		\
 									\
 		parent = *n;						\
 		cmp = cmpexp(keyexp(t->keyfld), keyexp(cur->keyfld));	\
-		if (cmp < 0)						\
+		if (cmp < 0) {						\
+			gmb();						\
 			n = &(*n)->rb_left;				\
-		else if (cmp > 0)					\
+		} else if (cmp > 0) {					\
+			gmb();						\
 			n = &(*n)->rb_right;				\
-		else							\
+		} else							\
 			BUG();						\
 	}								\
 									\

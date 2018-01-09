@@ -3230,6 +3230,7 @@ lpfc_idiag_cqs_for_eq(struct lpfc_hba *phba, char *pbuffer,
 	}
 
 	if (eqidx < phba->cfg_nvmet_mrq) {
+		gmb();
 		/* NVMET CQset */
 		qp = phba->sli4_hba.nvmet_cqset[eqidx];
 		*len = __lpfc_idiag_print_cq(qp, "NVMET CQset", pbuffer, *len);

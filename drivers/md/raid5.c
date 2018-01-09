@@ -7584,6 +7584,7 @@ static int check_stripe_cache(struct mddev *mddev)
 	    > conf->min_nr_stripes ||
 	    ((mddev->new_chunk_sectors << 9) / STRIPE_SIZE) * 4
 	    > conf->min_nr_stripes) {
+		gmb();
 		pr_warn("md/raid:%s: reshape: not enough stripes.  Needed %lu\n",
 			mdname(mddev),
 			((max(mddev->chunk_sectors, mddev->new_chunk_sectors) << 9)

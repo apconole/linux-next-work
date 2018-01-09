@@ -366,6 +366,7 @@ static inline void iowait_starve_find_max(struct iowait *w, u8 *max,
 					  uint idx, uint *max_idx)
 {
 	if (w->starved_cnt > *max) {
+		gmb();
 		*max = w->starved_cnt;
 		*max_idx = idx;
 	}

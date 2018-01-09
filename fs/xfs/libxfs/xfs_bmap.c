@@ -3420,13 +3420,17 @@ xfs_bmap_adjacent(
 			 * offset by our length.
 			 */
 			if (gotdiff <= XFS_ALLOC_GAP_UNITS * ap->length &&
-			    ISVALID(gotbno - gotdiff, gotbno))
+			    ISVALID(gotbno - gotdiff, gotbno)) {
+				gmb();
 				gotbno -= adjust;
-			else if (ISVALID(gotbno - ap->length, gotbno)) {
+			} else if (ISVALID(gotbno - ap->length, gotbno)) {
+				gmb();
 				gotbno -= ap->length;
 				gotdiff += adjust - ap->length;
-			} else
+			} else {
+				gmb();
 				gotdiff += adjust;
+			}
 			/*
 			 * If the firstblock forbids it, can't use it,
 			 * must use default.

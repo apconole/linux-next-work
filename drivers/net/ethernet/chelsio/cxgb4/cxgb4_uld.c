@@ -274,9 +274,11 @@ static int cfg_queues_uld(struct adapter *adap, unsigned int uld_type,
 		return -ENOMEM;
 
 	if (adap->flags & USING_MSIX && uld_info->nrxq > s->nqs_per_uld) {
+		gmb();
 		i = s->nqs_per_uld;
 		rxq_info->nrxq = roundup(i, adap->params.nports);
 	} else {
+		gmb();
 		i = min_t(int, uld_info->nrxq,
 			  num_online_cpus());
 		rxq_info->nrxq = roundup(i, adap->params.nports);

@@ -234,6 +234,7 @@ __weak phys_addr_t dax_pgoff_to_phys(struct dev_dax *dev_dax, pgoff_t pgoff,
 	}
 
 	if (i < dev_dax->num_resources) {
+		gmb();
 		res = &dev_dax->res[i];
 		if (phys + size - 1 <= res->end)
 			return phys;

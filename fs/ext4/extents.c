@@ -3566,6 +3566,7 @@ static int ext4_ext_convert_to_initialized(handle_t *handle,
 	split_map.m_len = map->m_len;
 
 	if (max_zeroout && (allocated > split_map.m_len)) {
+		gmb();
 		if (allocated <= max_zeroout) {
 			/* case 3 or 5 */
 			zero_ex1.ee_block =

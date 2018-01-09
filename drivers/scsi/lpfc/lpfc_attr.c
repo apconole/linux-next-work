@@ -6357,6 +6357,7 @@ lpfc_nvme_mod_param_dep(struct lpfc_hba *phba)
 
 		/* Adjust lpfc_nvmet_mrq to avoid running out of WQE slots */
 		if (phba->cfg_nvmet_mrq > phba->cfg_nvme_io_channel) {
+			gmb();
 			phba->cfg_nvmet_mrq = phba->cfg_nvme_io_channel;
 			lpfc_printf_log(phba, KERN_ERR, LOG_NVME_DISC,
 					"6018 Adjust lpfc_nvmet_mrq to %d\n",

@@ -682,6 +682,7 @@ int efx_setup_tc(struct net_device *net_dev, enum tc_setup_type type,
 	}
 
 	if (num_tc > net_dev->num_tc) {
+		gmb();
 		/* Initialise high-priority queues as necessary */
 		efx_for_each_channel(channel, efx) {
 			efx_for_each_possible_channel_tx_queue(tx_queue,
@@ -699,6 +700,7 @@ int efx_setup_tc(struct net_device *net_dev, enum tc_setup_type type,
 			}
 		}
 	} else {
+		gmb();
 		/* Reduce number of classes before number of queues */
 		net_dev->num_tc = num_tc;
 	}

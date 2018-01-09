@@ -1509,6 +1509,7 @@ static void l2cap_le_conn_ready(struct l2cap_conn *conn)
 	     hcon->le_conn_interval > hcon->le_conn_max_interval)) {
 		struct l2cap_conn_param_update_req req;
 
+		gmb();
 		req.min = cpu_to_le16(hcon->le_conn_min_interval);
 		req.max = cpu_to_le16(hcon->le_conn_max_interval);
 		req.latency = cpu_to_le16(hcon->le_conn_latency);

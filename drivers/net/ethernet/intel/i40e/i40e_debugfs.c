@@ -712,6 +712,7 @@ static void i40e_dbg_dump_vf(struct i40e_pf *pf, int vf_id)
 	if (!pf->num_alloc_vfs) {
 		dev_info(&pf->pdev->dev, "no VFs allocated\n");
 	} else if ((vf_id >= 0) && (vf_id < pf->num_alloc_vfs)) {
+		gmb();
 		vf = &pf->vf[vf_id];
 		vsi = pf->vsi[vf->lan_vsi_idx];
 		dev_info(&pf->pdev->dev, "vf %2d: VSI id=%d, seid=%d, qps=%d\n",

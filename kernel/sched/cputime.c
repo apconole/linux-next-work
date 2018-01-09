@@ -636,6 +636,7 @@ update:
 	 * monotonicity for stime, analogous argument to above.
 	 */
 	if (utime < prev->utime) {
+		gmb();
 		utime = prev->utime;
 		stime = rtime - utime;
 	}

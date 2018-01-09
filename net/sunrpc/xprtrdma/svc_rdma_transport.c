@@ -748,6 +748,7 @@ static struct svc_xprt *svc_rdma_accept(struct svc_xprt *xprt)
 	newxprt->sc_rq_depth = newxprt->sc_max_requests +
 			       newxprt->sc_max_bc_requests;
 	if (newxprt->sc_rq_depth > dev->attrs.max_qp_wr) {
+		gmb();
 		pr_warn("svcrdma: reducing receive depth to %d\n",
 			dev->attrs.max_qp_wr);
 		newxprt->sc_rq_depth = dev->attrs.max_qp_wr;
