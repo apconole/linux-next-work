@@ -554,7 +554,8 @@ ovs_ct_expect_find(struct net *net, const struct nf_conntrack_zone *zone,
 		if (h) {
 			struct nf_conn *ct = nf_ct_tuplehash_to_ctrack(h);
 
-			nf_ct_delete(ct, 0, 0);
+			if (del_timer(&ct->timeout))
+				nf_ct_delete(ct, 0, 0);
 			nf_conntrack_put(&ct->ct_general);
 		}
 	}
@@ -705,7 +706,8 @@ static bool skb_nfct_cached(struct net *net,
 		 * the reference.
 		 */
 		if (nf_ct_is_confirmed(ct))
-			nf_ct_delete(ct, 0, 0);
+			if (del_timer(&ct->timeout))
+				nf_ct_delete(ct, 0, 0);
 
 		nf_conntrack_put(&ct->ct_general);
 		nf_ct_set(skb, NULL, 0);
