@@ -462,6 +462,16 @@ extern bool acpi_driver_match_device(struct device *dev,
 struct platform_device *acpi_create_platform_device(struct acpi_device *);
 #define ACPI_PTR(_ptr)	(_ptr)
 
+static inline void acpi_device_set_enumerated(struct acpi_device *adev)
+{
+	adev->flags.visited = true;
+}
+
+static inline void acpi_device_clear_enumerated(struct acpi_device *adev)
+{
+	adev->flags.visited = false;
+}
+
 #else	/* !CONFIG_ACPI */
 
 #define acpi_disabled 1
@@ -588,6 +598,14 @@ static inline bool acpi_driver_match_device(struct device *dev,
 }
 
 #define ACPI_PTR(_ptr)	(NULL)
+
+static inline void acpi_device_set_enumerated(struct acpi_device *adev)
+{
+}
+
+static inline void acpi_device_clear_enumerated(struct acpi_device *adev)
+{
+}
 
 #endif	/* !CONFIG_ACPI */
 
