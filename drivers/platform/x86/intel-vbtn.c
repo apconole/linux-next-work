@@ -74,8 +74,8 @@ static void notify_handler(acpi_handle handle, u32 event, void *context)
 	struct intel_vbtn_priv *priv = dev_get_drvdata(&device->dev);
 
 	if (!sparse_keymap_report_event(priv->input_dev, event, 1, true))
-		dev_info(&device->dev, "unknown event index 0x%x\n",
-			 event);
+		dev_dbg(&device->dev, "unknown event index 0x%x\n",
+			event);
 }
 
 static int intel_vbtn_probe(struct platform_device *device)
