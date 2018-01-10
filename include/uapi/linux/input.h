@@ -710,6 +710,8 @@ struct input_keymap_entry {
 #define KEY_ATTENDANT_TOGGLE	0x21d	/* Attendant call on or off */
 #define KEY_LIGHTS_TOGGLE	0x21e	/* Reading light on or off */
 
+#define KEY_ROTATE_LOCK_TOGGLE	0x231	/* Display rotation lock */
+
 #define KEY_BUTTONCONFIG		0x240	/* AL Button Configuration */
 #define KEY_CONTROLPANEL		0x243
 #define KEY_VOICECOMMAND		0x246	/* Listening Voice Command */
