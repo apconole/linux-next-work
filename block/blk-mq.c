@@ -1871,7 +1871,8 @@ static void blk_mq_exit_hctx(struct request_queue *q,
 
 	blk_mq_debugfs_unregister_hctx(hctx);
 
-	blk_mq_tag_idle(hctx);
+	if (blk_mq_hw_queue_mapped(hctx))
+		blk_mq_tag_idle(hctx);
 
 	if (set->ops->exit_request)
 		set->ops->exit_request(set->driver_data,
