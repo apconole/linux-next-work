@@ -1071,10 +1071,14 @@ static void detect_art(void)
 	cpuid(ART_CPUID_LEAF, &art_to_tsc_denominator,
 	      &art_to_tsc_numerator, unused, unused+1);
 
-	/* Don't enable ART in a VM, non-stop TSC required */
+	/*
+	 * Don't enable ART in a VM, non-stop TSC required,
+	 * and the TSC counter resets must not occur asynchronously.
+	 */
 	if (boot_cpu_has(X86_FEATURE_HYPERVISOR) ||
 	    !boot_cpu_has(X86_FEATURE_NONSTOP_TSC) ||
-	    art_to_tsc_denominator < ART_MIN_DENOMINATOR)
+	    art_to_tsc_denominator < ART_MIN_DENOMINATOR ||
+	    tsc_async_resets)
 		return;
 
 	if (rdmsrl_safe(MSR_IA32_TSC_ADJUST, &art_to_tsc_offset))
