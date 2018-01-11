@@ -287,7 +287,8 @@ static inline int cpu_has_spec_ctrl(void)
 
 static __always_inline void __spec_ctrl_vm_ibrs(u64 vcpu_ibrs, bool vmenter)
 {
-	u64 host_ibrs = 0;
+	u64 host_ibrs = 0, val;
+	bool write_spec_ctrl;
 	if (__this_cpu_read(spec_ctrl_pcp) & (SPEC_CTRL_PCP_IBRS_USER |
 					      SPEC_CTRL_PCP_IBRS)) {
 		/*
@@ -297,17 +298,19 @@ static __always_inline void __spec_ctrl_vm_ibrs(u64 vcpu_ibrs, bool vmenter)
 		 */
 		host_ibrs = FEATURE_ENABLE_IBRS;
 	}
-	else
-		/* rmb to prevent wrong speculation for security */
-		rmb();
+
+	val = vmenter ? vcpu_ibrs : host_ibrs;
+	write_spec_ctrl = (!vmenter && host_ibrs) || (vcpu_ibrs != host_ibrs);
 
 	/*
 	 * IBRS may have barrier semantics so it must be set to
 	 * satisfy those semantics during vmexit.
 	 */
-	if ((!vmenter && host_ibrs) || (vcpu_ibrs != host_ibrs))
-		native_wrmsrl(MSR_IA32_SPEC_CTRL,
-			      vmenter ? vcpu_ibrs : host_ibrs);
+	if (write_spec_ctrl)
+		native_wrmsrl(MSR_IA32_SPEC_CTRL, val);
+	else
+		/* rmb to prevent wrong speculation for security */
+		rmb();
 }
 
 static inline void spec_ctrl_vmenter_ibrs(u64 vcpu_ibrs)
