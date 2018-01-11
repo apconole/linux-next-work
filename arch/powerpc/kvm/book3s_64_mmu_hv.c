@@ -161,8 +161,6 @@ long kvmppc_alloc_reset_hpt(struct kvm *kvm, int order)
 		 * Reset all the reverse-mapping chains for all memslots
 		 */
 		kvmppc_rmap_reset(kvm);
-		/* Ensure that each vcpu will flush its TLB on next entry. */
-		cpumask_setall(&kvm->arch.need_tlb_flush);
 		err = 0;
 		goto out;
 	}
@@ -178,6 +176,10 @@ long kvmppc_alloc_reset_hpt(struct kvm *kvm, int order)
 	kvmppc_set_hpt(kvm, &info);
 
 out:
+	if (err == 0)
+		/* Ensure that each vcpu will flush its TLB on next entry. */
+		cpumask_setall(&kvm->arch.need_tlb_flush);
+
 	mutex_unlock(&kvm->lock);
 	return err;
 }
