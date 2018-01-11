@@ -6,7 +6,8 @@
 #define SPEC_CTRL_PCP_IBRS_USER	(1<<2)
 #define SPEC_CTRL_PCP_ONLY_IBPB	(1<<3) /* use IBPB instead of IBRS */
 
-#define SPEC_CTRL_PCP_ENTRY (SPEC_CTRL_PCP_IBRS|SPEC_CTRL_PCP_ONLY_IBPB)
+#define SPEC_CTRL_PCP_ENTRY (SPEC_CTRL_PCP_IBRS|SPEC_CTRL_PCP_ONLY_IBPB|\
+			     SPEC_CTRL_PCP_IBRS_USER)
 
 #ifdef __ASSEMBLY__
 
@@ -300,7 +301,11 @@ static __always_inline void __spec_ctrl_vm_ibrs(u64 vcpu_ibrs, bool vmenter)
 		/* rmb to prevent wrong speculation for security */
 		rmb();
 
-	if (vcpu_ibrs != host_ibrs)
+	/*
+	 * IBRS may have barrier semantics so it must be set to
+	 * satisfy those semantics during vmexit.
+	 */
+	if ((!vmenter && host_ibrs) || (vcpu_ibrs != host_ibrs))
 		native_wrmsrl(MSR_IA32_SPEC_CTRL,
 			      vmenter ? vcpu_ibrs : host_ibrs);
 }
@@ -319,7 +324,8 @@ static inline void __spec_ctrl_vmexit_ibrs(u64 vcpu_ibrs)
 static inline void spec_ctrl_enable_ibrs(void)
 {
 	if (cpu_has_spec_ctrl()) {
-		if (__this_cpu_read(spec_ctrl_pcp) & SPEC_CTRL_PCP_IBRS)
+		if (__this_cpu_read(spec_ctrl_pcp) & (SPEC_CTRL_PCP_IBRS_USER |
+						      SPEC_CTRL_PCP_IBRS))
 			native_wrmsrl(MSR_IA32_SPEC_CTRL, FEATURE_ENABLE_IBRS);
 		else
 			/* rmb to prevent wrong speculation for security */
