@@ -83,6 +83,7 @@ struct aesni_lrw_ctx {
 struct generic_gcmaes_ctx {
 	u8 hash_subkey[16] AESNI_ALIGN_ATTR;
 	struct crypto_aes_ctx aes_key_expanded AESNI_ALIGN_ATTR;
+	struct cryptd_aead *cryptd_tfm;
 };
 
 struct aesni_xts_ctx {
@@ -1376,6 +1377,38 @@ slow:
 	return retval;
 }
 
+static int generic_gcmaes_init(struct crypto_tfm *tfm)
+{
+	struct cryptd_aead *cryptd_tfm;
+	struct generic_gcmaes_ctx *ctx = (struct generic_gcmaes_ctx *)
+		PTR_ALIGN((u8 *)crypto_tfm_ctx(tfm), AESNI_ALIGN);
+	struct crypto_aead *cryptd_child;
+	struct generic_gcmaes_ctx *child_ctx;
+	cryptd_tfm = cryptd_alloc_aead("__driver-generic-gcm-aes-aesni",
+				       CRYPTO_ALG_INTERNAL,
+				       CRYPTO_ALG_INTERNAL);
+	if (IS_ERR(cryptd_tfm))
+		return PTR_ERR(cryptd_tfm);
+
+	cryptd_child = cryptd_aead_child(cryptd_tfm);
+	child_ctx = generic_gcmaes_ctx_get(cryptd_child);
+	memcpy(child_ctx, ctx, sizeof(*ctx));
+	ctx->cryptd_tfm = cryptd_tfm;
+	tfm->crt_aead.reqsize = sizeof(struct aead_request)
+		+ crypto_aead_reqsize(&cryptd_tfm->base);
+	return 0;
+}
+
+static void generic_gcmaes_exit(struct crypto_tfm *tfm)
+{
+	struct generic_gcmaes_ctx *ctx =
+		(struct generic_gcmaes_ctx *)
+		PTR_ALIGN((u8 *)crypto_tfm_ctx(tfm), AESNI_ALIGN);
+	if (!IS_ERR(ctx->cryptd_tfm))
+		cryptd_free_aead(ctx->cryptd_tfm);
+	return;
+}
+
 static int generic_gcmaes_set_key(struct crypto_aead *aead, const u8 *key,
 				  unsigned int key_len)
 {
@@ -1386,7 +1419,7 @@ static int generic_gcmaes_set_key(struct crypto_aead *aead, const u8 *key,
 	       rfc4106_set_hash_subkey(ctx->hash_subkey, key, key_len);
 }
 
-static int generic_gcmaes_encrypt(struct aead_request *req)
+static int __generic_gcmaes_encrypt(struct aead_request *req)
 {
 	struct crypto_aead *tfm = crypto_aead_reqtfm(req);
 	struct generic_gcmaes_ctx *ctx = generic_gcmaes_ctx_get(tfm);
@@ -1401,7 +1434,7 @@ static int generic_gcmaes_encrypt(struct aead_request *req)
 			      aes_ctx);
 }
 
-static int generic_gcmaes_decrypt(struct aead_request *req)
+static int __generic_gcmaes_decrypt(struct aead_request *req)
 {
 	__be32 counter = cpu_to_be32(1);
 	struct crypto_aead *tfm = crypto_aead_reqtfm(req);
@@ -1414,6 +1447,48 @@ static int generic_gcmaes_decrypt(struct aead_request *req)
 
 	return gcmaes_decrypt(req, req->assoclen, ctx->hash_subkey, iv,
 			      aes_ctx);
+}
+
+static int generic_gcmaes_encrypt(struct aead_request *req)
+{
+	int ret;
+	struct crypto_aead *tfm = crypto_aead_reqtfm(req);
+	struct generic_gcmaes_ctx *ctx = generic_gcmaes_ctx_get(tfm);
+
+	if (!irq_fpu_usable()) {
+		struct aead_request *cryptd_req =
+			(struct aead_request *) aead_request_ctx(req);
+		memcpy(cryptd_req, req, sizeof(*req));
+		aead_request_set_tfm(cryptd_req, &ctx->cryptd_tfm->base);
+		return crypto_aead_encrypt(cryptd_req);
+	} else {
+		struct crypto_aead *cryptd_child = cryptd_aead_child(ctx->cryptd_tfm);
+		kernel_fpu_begin();
+		ret = cryptd_child->base.crt_aead.encrypt(req);
+		kernel_fpu_end();
+		return ret;
+	}
+}
+
+static int generic_gcmaes_decrypt(struct aead_request *req)
+{
+	int ret;
+	struct crypto_aead *tfm = crypto_aead_reqtfm(req);
+	struct generic_gcmaes_ctx *ctx = generic_gcmaes_ctx_get(tfm);
+
+	if (!irq_fpu_usable()) {
+		struct aead_request *cryptd_req =
+			(struct aead_request *) aead_request_ctx(req);
+		memcpy(cryptd_req, req, sizeof(*req));
+		aead_request_set_tfm(cryptd_req, &ctx->cryptd_tfm->base);
+		return crypto_aead_decrypt(cryptd_req);
+	} else {
+		struct crypto_aead *cryptd_child = cryptd_aead_child(ctx->cryptd_tfm);
+		kernel_fpu_begin();
+		ret = cryptd_child->base.crt_aead.decrypt(req);
+		kernel_fpu_end();
+		return ret;
+	}
 }
 #endif
 
@@ -1628,6 +1703,23 @@ static struct crypto_alg aesni_algs[] = { {
 		},
 	},
 }, {
+	.cra_name		= "__generic-gcm-aes-aesni",
+	.cra_driver_name	= "__driver-generic-gcm-aes-aesni",
+	.cra_priority		= 0,
+	.cra_flags		= CRYPTO_ALG_TYPE_AEAD | CRYPTO_ALG_INTERNAL,
+	.cra_blocksize		= 1,
+	.cra_ctxsize		= sizeof(struct generic_gcmaes_ctx) +
+				  AESNI_ALIGN,
+	.cra_alignmask		= 0,
+	.cra_type		= &crypto_aead_type,
+	.cra_module		= THIS_MODULE,
+	.cra_u = {
+		.aead = {
+			.encrypt	= __generic_gcmaes_encrypt,
+			.decrypt	= __generic_gcmaes_decrypt,
+		},
+	},
+}, {
 	.cra_name		= "gcm(aes)",
 	.cra_driver_name	= "generic-gcm-aesni",
 	.cra_priority		= 400,
@@ -1638,6 +1730,8 @@ static struct crypto_alg aesni_algs[] = { {
 	.cra_alignmask		= 0,
 	.cra_type		= &crypto_nivaead_type,
 	.cra_module		= THIS_MODULE,
+	.cra_init		= generic_gcmaes_init,
+	.cra_exit		= generic_gcmaes_exit,
 	.cra_u = {
 		.aead = {
 			.setkey		= generic_gcmaes_set_key,
