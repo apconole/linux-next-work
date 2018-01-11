@@ -898,7 +898,7 @@ int do_huge_pmd_anonymous_page(struct vm_fault *vmf)
 	return __do_huge_pmd_anonymous_page(vmf, page);
 }
 
-static void insert_pfn_pmd(struct vm_area_struct *vma, unsigned long addr,
+static int insert_pfn_pmd(struct vm_area_struct *vma, unsigned long addr,
 		pmd_t *pmd, pfn_t pfn, pgprot_t prot, bool write)
 {
 	struct mm_struct *mm = vma->vm_mm;
@@ -906,6 +906,15 @@ static void insert_pfn_pmd(struct vm_area_struct *vma, unsigned long addr,
 	spinlock_t *ptl;
 
 	ptl = pmd_lock(mm, pmd);
+	/*
+	 * RHEL-only: return VM_FAULT_FALLBACK if our hugepage PMD insertion
+	 * collided with a PMD that is a parent of PTEs.  This is a failure
+	 * case for filesystem DAX but should never happen for device DAX.
+	 */
+	if (!pmd_none(*pmd) && !pmd_trans_huge(*pmd) && !pmd_devmap(*pmd)) {
+		spin_unlock(ptl);
+		return VM_FAULT_FALLBACK;
+	}
 	entry = pmd_mkhuge(pfn_t_pmd(pfn, prot));
 	if (pfn_t_devmap(pfn))
 		entry = pmd_mkdevmap(entry);
@@ -916,6 +925,7 @@ static void insert_pfn_pmd(struct vm_area_struct *vma, unsigned long addr,
 	set_pmd_at(mm, addr, pmd, entry);
 	update_mmu_cache_pmd(vma, addr, pmd);
 	spin_unlock(ptl);
+	return VM_FAULT_NOPAGE;
 }
 
 int vmf_insert_pfn_pmd(struct vm_area_struct *vma, unsigned long addr,
@@ -937,8 +947,7 @@ int vmf_insert_pfn_pmd(struct vm_area_struct *vma, unsigned long addr,
 		return VM_FAULT_SIGBUS;
 	if (track_pfn_insert(vma, &pgprot, pfn))
 		return VM_FAULT_SIGBUS;
-	insert_pfn_pmd(vma, addr, pmd, pfn, pgprot, write);
-	return VM_FAULT_NOPAGE;
+	return insert_pfn_pmd(vma, addr, pmd, pfn, pgprot, write);
 }
 EXPORT_SYMBOL_GPL(vmf_insert_pfn_pmd);
 

@@ -295,6 +295,7 @@ static int __dev_dax_pmd_fault(struct dev_dax *dev_dax, struct vm_fault *vmf)
 	pgoff_t pgoff;
 	pfn_t pfn;
 	unsigned int fault_size = PMD_SIZE;
+	int ret;
 
 	if (check_vma(dev_dax, vmf->vma, __func__))
 		return VM_FAULT_SIGBUS;
@@ -332,8 +333,18 @@ static int __dev_dax_pmd_fault(struct dev_dax *dev_dax, struct vm_fault *vmf)
 
 	pfn = phys_to_pfn_t(phys, dax_region->pfn_flags);
 
-	return vmf_insert_pfn_pmd(vmf->vma, address, vmf->pmd, pfn,
+	ret = vmf_insert_pfn_pmd(vmf->vma, address, vmf->pmd, pfn,
 			vmf->flags & FAULT_FLAG_WRITE);
+	/*
+	 * RHEL-only: vmf_insert_pfn_pmd() returns VM_FAULT_FALLBACK if our
+	 * hugepage PMD insertion collided with a PMD that is a parent of
+	 * PTEs.  This is a failure case for filesystem DAX but should never
+	 * happen for device DAX.  If it does, SIGBUS because device DAX
+	 * doesn't mix page sizes in a given namespace.
+	 */
+	if (ret == VM_FAULT_FALLBACK)
+		ret = VM_FAULT_SIGBUS;
+	return ret;
 }
 
 #ifdef CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD
