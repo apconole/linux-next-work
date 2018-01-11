@@ -29,6 +29,7 @@
 #include <linux/hyperv.h>
 #include <linux/slab.h>
 #include <linux/cpu.h>
+#include <linux/kaiser.h>
 
 #ifdef CONFIG_HYPERV_TSCPAGE
 
@@ -190,6 +191,8 @@ void hyperv_init(void)
 		__set_fixmap(HVCLOCK_TSC_PAGE,
 			     tsc_msr.guest_physical_address << PAGE_SHIFT,
 			     PAGE_KERNEL_VVAR);
+		kaiser_add_mapping(__fix_to_virt(HVCLOCK_TSC_PAGE), PAGE_SIZE,
+				   __PAGE_KERNEL_VVAR | _PAGE_GLOBAL);
 		/* set fixmap before switching vclock mode */
 		wmb();
 		hyperv_cs_tsc.archdata.vclock_mode = VCLOCK_HVCLOCK;
