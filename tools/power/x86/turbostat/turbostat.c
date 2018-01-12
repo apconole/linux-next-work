@@ -49,7 +49,7 @@ FILE *outf;
 int *fd_percpu;
 struct timespec interval_ts = {5, 0};
 unsigned int debug;
-unsigned int quiet;
+unsigned int quiet = 1;
 unsigned int sums_need_wide_columns;
 unsigned int rapl_joules;
 unsigned int summary_only;
@@ -5013,7 +5013,7 @@ void cmdline(int argc, char **argv)
 
 	progname = argv[0];
 
-	while ((opt = getopt_long_only(argc, argv, "+C:c:Ddhi:JM:m:o:qST:v",
+	while ((opt = getopt_long_only(argc, argv, "+C:c:Ddvhi:JM:m:o:qST:V",
 				long_options, &option_index)) != -1) {
 		switch (opt) {
 		case 'a':
@@ -5027,6 +5027,7 @@ void cmdline(int argc, char **argv)
 			break;
 		case 'd':
 		case 'v':
+			quiet = 0;
 			debug++;
 			break;
 		case 'H':
