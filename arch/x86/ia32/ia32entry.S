@@ -481,7 +481,10 @@ ENTRY(ia32_syscall)
 	ja ia32_badsys
 ia32_do_call:
 	IA32_ARG_FIXUP
+	SAVE_REST
 	call *ia32_sys_call_table(,%rax,8) # xxx: rip relative
+ia32_ptregsret:
+	RESTORE_REST
 ia32_sysret:
 	movq %rax,RAX-ARGOFFSET(%rsp)
 ia32_ret_from_sys_call:
@@ -531,6 +534,11 @@ GLOBAL(stub32_clone)
 
 	ALIGN
 ia32_ptregs_common:
+	/* ia32_syscall? already has the full frame */
+	cmpq $ia32_ptregsret, (%rsp)
+	jne  1f
+	jmp  *%rax
+1:
 	popq %r11
 	CFI_ENDPROC
 	CFI_STARTPROC32	simple
