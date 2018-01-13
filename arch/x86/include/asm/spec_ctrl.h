@@ -263,6 +263,15 @@
 	xorq %r8, %r8
 .endm
 
+.macro CLEAR_R10_TO_R15
+	xorq %r15, %r15
+	xorq %r14, %r14
+	xorq %r13, %r13
+	xorq %r12, %r12
+	xorq %r11, %r11
+	xorq %r10, %r10
+.endm
+
 #else /* __ASSEMBLY__ */
 
 #include <linux/ptrace.h>

@@ -461,7 +461,6 @@ ENTRY(ia32_syscall)
 	movq %r9, %rcx
 
 	ENABLE_IBRS
-	CLEAR_R8_TO_R15
 	STUFF_RSB /* no ret allowed before stuffing the RSB */
 
 	/*
@@ -482,6 +481,7 @@ ENTRY(ia32_syscall)
 ia32_do_call:
 	IA32_ARG_FIXUP
 	SAVE_REST
+	CLEAR_R10_TO_R15
 	call *ia32_sys_call_table(,%rax,8) # xxx: rip relative
 ia32_ptregsret:
 	RESTORE_REST
