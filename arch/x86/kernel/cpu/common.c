@@ -1511,9 +1511,16 @@ void cpu_init(void)
 	BUG_ON(me->mm);
 	enter_lazy_tlb(&init_mm, me);
 
-	__this_cpu_write(init_tss.x86_tss.sp0,
-			 (unsigned long) t + offsetofend(struct tss_struct,
-							 stack));
+	/*
+	 * load_sp0() is required for paravirt establishment of the vCPU sp0.
+	 */
+	v = current->thread.sp0;
+	current->thread.sp0 = (unsigned long)t +
+			      offsetofend(struct tss_struct, stack);
+	load_sp0(t, &current->thread);
+	/* x86_tss.sp0 is used by the stack trampoline TSS_sp0 */
+	__this_cpu_write(init_tss.x86_tss.sp0, current->thread.sp0);
+	current->thread.sp0 = v;	/* Restore original value */
 	set_tss_desc(cpu, t);
 	load_TR_desc();
 	load_LDT(&init_mm.context);
