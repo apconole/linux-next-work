@@ -290,6 +290,34 @@ static inline int op_from_rq_bits(u64 flags)
 		return REQ_OP_READ;
 }
 
+/**
+ * blk_path_error - returns true if error may be path related
+ * @error: status the request was completed with
+ *
+ * Description:
+ *     This classifies block error status into non-retryable errors and ones
+ *     that may be successful if retried on a failover path.
+ *
+ * Return:
+ *     %false - retrying failover path will not help
+ *     %true  - may succeed if retried
+ */
+static inline bool blk_path_error(int error)
+{
+	switch (error) {
+	case -EBADE:
+	case -EOPNOTSUPP:
+	case -ENOSPC:
+	case -EREMOTEIO:
+	case -ENODATA:
+	case -EILSEQ:
+		return false;
+	}
+
+	/* Anything else could be a path failure, so should be retried */
+	return true;
+}
+
 struct blk_issue_stat {
 	u64 time;
 };

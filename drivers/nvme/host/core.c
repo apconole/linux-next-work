@@ -100,6 +100,27 @@ static int nvme_error_status(struct request *req)
 		return 0;
 	case NVME_SC_CAP_EXCEEDED:
 		return -ENOSPC;
+	case NVME_SC_LBA_RANGE:
+		return -EREMOTEIO;
+	case NVME_SC_BAD_ATTRIBUTES:
+	case NVME_SC_INVALID_OPCODE:
+	case NVME_SC_INVALID_FIELD:
+	case NVME_SC_INVALID_NS:
+		return -EOPNOTSUPP;
+	case NVME_SC_WRITE_FAULT:
+	case NVME_SC_READ_ERROR:
+	case NVME_SC_UNWRITTEN_BLOCK:
+	case NVME_SC_ACCESS_DENIED:
+	case NVME_SC_READ_ONLY:
+	case NVME_SC_COMPARE_FAILED:
+		return -ENODATA;
+	case NVME_SC_GUARD_CHECK:
+	case NVME_SC_APPTAG_CHECK:
+	case NVME_SC_REFTAG_CHECK:
+	case NVME_SC_INVALID_PI:
+		return -EILSEQ;
+	case NVME_SC_RESERVATION_CONFLICT:
+		return -EBADE;
 	default:
 		return -EIO;
 	}

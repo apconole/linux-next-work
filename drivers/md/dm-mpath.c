@@ -1536,29 +1536,6 @@ static void activate_path_work(struct work_struct *work)
 	activate_or_offline_path(pgpath);
 }
 
-static int noretry_error(int error)
-{
-	switch (error) {
-	case -EBADE:
-		/*
-		 * EBADE signals an reservation conflict.
-		 * We shouldn't fail the path here as we can communicate with
-		 * the target.  We should failover to the next path, but in
-		 * doing so we might be causing a ping-pong between paths.
-		 * So just return the reservation conflict error.
-		 */
-	case -EOPNOTSUPP:
-	case -EREMOTEIO:
-	case -EILSEQ:
-	case -ENODATA:
-	case -ENOSPC:
-		return 1;
-	}
-
-	/* Anything else could be a path failure, so should be retried */
-	return 0;
-}
-
 /*
  * end_io handling
  */
@@ -1581,7 +1558,7 @@ static int do_end_io(struct multipath *m, struct request *clone,
 	if (!error && !clone->errors)
 		return 0;	/* I/O complete */
 
-	if (noretry_error(error))
+	if (!blk_path_error(error))
 		return error;
 
 	if (mpio->pgpath)
@@ -1625,7 +1602,7 @@ static int do_end_io_bio(struct multipath *m, struct bio *clone,
 	if (!error)
 		return 0;	/* I/O complete */
 
-	if (noretry_error(error))
+	if (!blk_path_error(error))
 		return error;
 
 	if (mpio->pgpath)
