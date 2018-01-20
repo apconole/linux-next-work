@@ -541,7 +541,11 @@ static ssize_t blk_mq_debugfs_write(struct file *file, const char __user *buf,
 	const struct blk_mq_debugfs_attr *attr = para->attr;
 	void *data = d_inode(file->f_path.dentry->d_parent)->i_private;
 
-	if (!attr->write)
+	/*
+	 * If 'para' is same with 'data', it means that this attribute
+	 * only implements .seq_ops which is read-only
+	 */
+	if (para == data || !attr->write)
 		return -EPERM;
 
 	return attr->write(data, buf, count, ppos);
