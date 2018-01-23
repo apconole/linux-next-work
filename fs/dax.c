@@ -1090,7 +1090,7 @@ dax_iomap_actor(int rw, struct inode *inode, loff_t pos, loff_t length, void *da
 			map_len = end - pos;
 
 		if (rw & WRITE)
-			map_len = memcpy_fromiovecend_partial_nocache(
+			map_len = memcpy_fromiovecend_partial_flushcache(
 					kaddr, iter->iov,
 					iter->iov_offset, map_len);
 		else
