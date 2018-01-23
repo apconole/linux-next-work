@@ -3312,6 +3312,7 @@ static int init_one(struct pci_dev *pdev, const struct pci_device_id *ent)
 
 		netdev->netdev_ops = &cxgb_netdev_ops;
 		SET_ETHTOOL_OPS(netdev, &cxgb_ethtool_ops);
+		netdev->dev_port = pi->port_id;
 	}
 
 	pci_set_drvdata(pdev, adapter);
