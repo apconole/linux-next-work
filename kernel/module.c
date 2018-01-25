@@ -138,12 +138,8 @@ bool check_module_rhelversion(struct module *mod, char *version)
 	return ret;
 }
 
-#ifdef CONFIG_MODULE_SIG
-#ifdef CONFIG_MODULE_SIG_FORCE
-static bool sig_enforce = true;
-#else
-static bool sig_enforce = false;
-
+static bool sig_enforce = IS_ENABLED(CONFIG_MODULE_SIG_FORCE);
+#ifndef CONFIG_MODULE_SIG_FORCE
 static int param_set_bool_enable_only(const char *val,
 				      const struct kernel_param *kp)
 {
@@ -174,7 +170,6 @@ static const struct kernel_param_ops param_ops_bool_enable_only = {
 
 module_param(sig_enforce, bool_enable_only, 0644);
 #endif /* !CONFIG_MODULE_SIG_FORCE */
-#endif /* CONFIG_MODULE_SIG */
 
 /*
  * Export sig_enforce kernel cmdline parameter to allow other subsystems rely
