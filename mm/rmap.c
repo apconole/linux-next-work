@@ -1912,6 +1912,8 @@ static int rmap_walk_anon(struct page *page, int (*rmap_one)(struct page *,
 		ret = rmap_one(page, vma, address, arg);
 		if (ret != SWAP_AGAIN)
 			break;
+
+		cond_resched();
 	}
 	anon_vma_unlock_read(anon_vma);
 	return ret;
@@ -1934,6 +1936,8 @@ static int rmap_walk_file(struct page *page, int (*rmap_one)(struct page *,
 		ret = rmap_one(page, vma, address, arg);
 		if (ret != SWAP_AGAIN)
 			break;
+
+		cond_resched();
 	}
 	/*
 	 * No nonlinear handling: being always shared, nonlinear vmas
