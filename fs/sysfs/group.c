@@ -214,7 +214,8 @@ void sysfs_remove_group(struct kobject *kobj,
 	if (grp->name) {
 		kn = kernfs_find_and_get(parent, grp->name);
 		if (!kn) {
-			WARN(!kn, KERN_WARNING
+			WARN(atomic_read(&parent->active) != KN_DEACTIVATED_BIAS,
+			     KERN_WARNING
 			     "sysfs group %p not found for kobject '%s'\n",
 			     grp, kobject_name(kobj));
 			return;

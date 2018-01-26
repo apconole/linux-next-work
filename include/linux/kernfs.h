@@ -30,6 +30,9 @@ struct kernfs_iattrs;
 
 #ifndef __GENKSYMS__
 
+/* +1 to avoid triggering overflow warning when negating it */
+#define KN_DEACTIVATED_BIAS		(INT_MIN + 1)
+
 enum kernfs_node_type {
 	KERNFS_DIR		= 0x0001,
 	KERNFS_FILE		= 0x0002,
