@@ -816,12 +816,18 @@ static void nvme_rdma_error_recovery_work(struct work_struct *work)
 	blk_mq_start_stopped_hw_queues(ctrl->ctrl.admin_q, true);
 	nvme_start_queues(&ctrl->ctrl);
 
+	if (!nvme_change_ctrl_state(&ctrl->ctrl, NVME_CTRL_RECONNECTING)) {
+		/* state change failure should never happen */
+		WARN_ON_ONCE(1);
+		return;
+	}
+
 	nvme_rdma_reconnect_or_remove(ctrl);
 }
 
 static void nvme_rdma_error_recovery(struct nvme_rdma_ctrl *ctrl)
 {
-	if (!nvme_change_ctrl_state(&ctrl->ctrl, NVME_CTRL_RECONNECTING))
+	if (!nvme_change_ctrl_state(&ctrl->ctrl, NVME_CTRL_RESETTING))
 		return;
 
 	queue_work(nvme_wq, &ctrl->err_work);
@@ -1722,6 +1728,12 @@ static void nvme_rdma_reset_ctrl_work(struct work_struct *work)
 
 	nvme_stop_ctrl(&ctrl->ctrl);
 	nvme_rdma_shutdown_ctrl(ctrl);
+
+	if (!nvme_change_ctrl_state(&ctrl->ctrl, NVME_CTRL_RECONNECTING)) {
+		/* state change failure should never happen */
+		WARN_ON_ONCE(1);
+		return;
+	}
 
 	ret = nvme_rdma_configure_admin_queue(ctrl);
 	if (ret) {
