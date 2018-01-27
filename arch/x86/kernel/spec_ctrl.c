@@ -203,6 +203,9 @@ void spec_ctrl_rescan_cpuid(void)
 				set_cpu_cap(&cpu_data(cpu),
 					    X86_FEATURE_IBPB_SUPPORT);
 
+		/* print the changed IBRS/IBPB features */
+		spec_ctrl_print_features();
+
 		/*
 		 * Re-execute the v2 mitigation logic based on any new CPU
 		 * features.  Note that any debugfs-based changes the user may
