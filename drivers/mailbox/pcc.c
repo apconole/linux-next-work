@@ -294,10 +294,8 @@ static int __init acpi_pcc_probe(void)
 			&pcct_tbl,
 			&pcct_tbl_header_size);
 
-	if (ACPI_FAILURE(status) || !pcct_tbl) {
-		pr_warn("PCCT header not found.\n");
+	if (ACPI_FAILURE(status) || !pcct_tbl)
 		return -ENODEV;
-	}
 
 	count = acpi_table_parse_entries(ACPI_SIG_PCCT,
 			sizeof(struct acpi_table_pcct),
