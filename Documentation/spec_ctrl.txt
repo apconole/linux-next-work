@@ -18,7 +18,7 @@ Some CPUs only have IBPB_SUPPORT in which case this will be printed:
 	FEATURE SPEC_CTRL Not Present
 	FEATURE IBPB_SUPPORT Present
 
-Some CPUs can only disable IBP but have no IBPB support in which case
+Some CPUs can only disable IBP but have no IBRS/IBPB support in which case
 these lines are printed and a special use_ibp_disable mode is
 used.
 
@@ -27,13 +27,16 @@ used.
 
 == How to tune Speculation Control ==
 
-There are two main control knobs:
+There is one main control knob:
 
 /sys/kernel/debug/x86/ibrs_enabled
-/sys/kernel/debug/x86/ibpb_enabled
 
-If the features aren't present both are set to 0 and cannot be
-changed.
+The is also a read-only informational debugfs entry:
+
+/sys/kernel/debug/x86/ibpb_enabled (read-only)
+
+If the features aren't present, both are set to 0 and ibrs_enabled
+cannot be changed.
 
 If the features are present the ibrs_enabled and ibpb_enabled show the
 current kernel usage of the respective feature.
@@ -72,10 +75,8 @@ ibpb_enabled 1: IBPB IBP barrier is used to flush the IBP across mm
 		This doesn't protect against hyperthreading and
                 simultaneous multithreading effects.
 
-		This has to be used in combination with ibrs_enabled 1
-                or 2 to protect the kernel too, and ibrs_enabled 1 or
-                2 will protect the kernel against hyperthreading and
-                simultaneous multithreading effects too.
+		This option is read-only.  It is automatically selected
+		when ibrs_enabled is 1 or 2.
 
 		requires IBPB_SUPPORT present
 
@@ -83,7 +84,7 @@ ibpb_enabled 1: IBPB IBP barrier is used to flush the IBP across mm
 
 Results follows (with kpti enabled) on Broadwell Xeon(R) CPU E7-8860.
 
-ibrs_enabled 0 ibpb_enabled 0
+ibrs_enabled 0
 
  Performance counter stats for 'dd if=/dev/zero of=/dev/null bs=1024M count=1' (3 runs):
 
@@ -139,7 +140,7 @@ ibrs_enabled 0 ibpb_enabled 0
 
      128.286610130 seconds time elapsed                                          ( +-  0.51% )
 
-ibrs_enabled 1 ibpb_enabled 1
+ibrs_enabled 1
 
  Performance counter stats for 'dd if=/dev/zero of=/dev/null bs=1024M count=1' (3 runs):
 
@@ -193,7 +194,7 @@ ibrs_enabled 1 ibpb_enabled 1
 
      148.114462795 seconds time elapsed                                          ( +-  0.19% )
 
-ibrs_enabled 2 ibpb_enabled 1
+ibrs_enabled 2
 
  Performance counter stats for 'dd if=/dev/zero of=/dev/null bs=1024M count=1' (3 runs):
 
@@ -255,8 +256,8 @@ The reason ibrs_enabled 2 is faster at the syscall test is because it
 doesn't need to turn on and off IBRS: IBRS is left set in user and
 kernel space. No change is required when entering and exiting kernel.
 
-ibrs_enabled 1 ibpb_enabled 1 is the fastest protection for syscall or
-irq intensive workloads.
+ibrs_enabled 1 is the fastest protection for syscall or irq intensive
+workloads.
 
-ibrs_enabled 2 ibpb_enabled 1 protects user mode from SMT/HT
-effects and in addition it protects user mode from guest mode too.
+ibrs_enabled 2 also protects user mode from SMT/HT effects and in
+addition it protects user mode from guest mode too.
