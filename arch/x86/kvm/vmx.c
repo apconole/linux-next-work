@@ -48,6 +48,7 @@
 #include <asm/debugreg.h>
 #include <asm/kexec.h>
 #include <asm/irq_remapping.h>
+#include <asm/nospec-branch.h>
 
 #include "trace.h"
 #include "pmu.h"
@@ -9071,7 +9072,9 @@ static void __noclone vmx_vcpu_run(struct kvm_vcpu *vcpu)
 		rdmsrl(MSR_IA32_SPEC_CTRL, vmx->spec_ctrl);
 		__spec_ctrl_vmexit_ibrs(vmx->spec_ctrl);
 	}
-	stuff_RSB();
+
+	/* Eliminate branch target predictions from guest mode */
+	vmexit_fill_RSB();
 
 	/* MSR_IA32_DEBUGCTLMSR is zeroed on vmexit. Restore it if needed */
 	if (debugctlmsr)

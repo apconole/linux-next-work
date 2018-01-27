@@ -6,11 +6,75 @@
 #include <asm/alternative.h>
 #include <asm/alternative-asm.h>
 #include <asm/cpufeatures.h>
+#include <asm/bitsperlong.h>
 #include <asm/percpu.h>
 #include <asm/nops.h>
 #include <asm/jump_label.h>
 
+/*
+ * Fill the CPU return stack buffer.
+ *
+ * Each entry in the RSB, if used for a speculative 'ret', contains an
+ * infinite 'pause; jmp' loop to capture speculative execution.
+ *
+ * This is required in various cases for retpoline and IBRS-based
+ * mitigations for the Spectre variant 2 vulnerability. Sometimes to
+ * eliminate potentially bogus entries from the RSB, and sometimes
+ * purely to ensure that it doesn't get empty, which on some CPUs would
+ * allow predictions from other (unwanted!) sources to be used.
+ *
+ * We define a CPP macro such that it can be used from both .S files and
+ * inline assembly. It's possible to do a .macro and then include that
+ * from C via asm(".include <asm/nospec-branch.h>") but let's not go there.
+ */
+
+#define RSB_CLEAR_LOOPS		32	/* To forcibly overwrite all entries */
+#define RSB_FILL_LOOPS		16	/* To avoid underflow */
+
+/*
+ * Google experimented with loop-unrolling and this turned out to be
+ * the optimal version — two calls, each with their own speculation
+ * trap should their return address end up getting used, in a loop.
+ */
+#define __FILL_RETURN_BUFFER(reg, nr, sp)	\
+	mov	$(nr/2), reg;			\
+771:						\
+	call	772f;				\
+773:	/* speculation trap */			\
+	pause;					\
+	jmp	773b;				\
+772:						\
+	call	774f;				\
+775:	/* speculation trap */			\
+	pause;					\
+	jmp	775b;				\
+774:						\
+	dec	reg;				\
+	jnz	771b;				\
+	add	$(BITS_PER_LONG/8) * nr, sp;
+
 #ifdef __ASSEMBLY__
+
+ /*
+  * A simpler FILL_RETURN_BUFFER macro. Don't make people use the CPP
+  * monstrosity above, manually.
+  */
+.macro FILL_RETURN_BUFFER reg:req nr:req ftr:req
+	ANNOTATE_NOSPEC_ALTERNATIVE
+	661:
+		jmp .Lskip_rsb_\@
+		ASM_NOP8; ASM_NOP8; ASM_NOP8; ASM_NOP8; ASM_NOP8; ASM_NOP1
+	662:
+	.pushsection .altinstr_replacement, "ax"
+	663:
+		__FILL_RETURN_BUFFER(\reg, \nr, %_ASM_SP)
+	664:
+	.popsection
+	.pushsection .altinstructions, "a"
+	altinstruction_entry 661b, 663b, ftr, 662b-661b, 664b-663b
+	.popsection
+.Lskip_rsb_\@:
+.endm
 
 /*
  * These are the bare retpoline primitives for indirect jmp and call.
@@ -122,6 +186,23 @@ static inline bool retp_compiler(void)
 #else
 	return false;
 #endif
+}
+
+/*
+ * On VMEXIT we must ensure that no RSB predictions learned in the guest
+ * can be followed in the host, by overwriting the RSB completely. Both
+ * retpoline and IBRS mitigations for Spectre v2 need this; only on future
+ * CPUs with IBRS_ATT *might* it be avoided.
+ */
+static inline void vmexit_fill_RSB(void)
+{
+	unsigned long loops = RSB_CLEAR_LOOPS / 2;
+	register unsigned long sp asm(_ASM_SP);
+
+	asm volatile (__stringify(__FILL_RETURN_BUFFER(%0, RSB_CLEAR_LOOPS, %1))
+		      : "=&r" (loops), "+r" (sp)
+		      : "r" (loops) : "memory" );
+}
 
 #endif /* __ASSEMBLY__ */
 #endif /* __NOSPEC_BRANCH_H__ */
