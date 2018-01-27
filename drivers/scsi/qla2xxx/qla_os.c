@@ -3631,6 +3631,8 @@ qla2x00_remove_one(struct pci_dev *pdev)
 
 	ha->flags.host_shutting_down = 1;
 
+	qla2x00_wait_for_sess_deletion(base_vha);
+
 	/*
 	 * if UNLOAD flag is already set, then continue unload,
 	 * where it was set first.
