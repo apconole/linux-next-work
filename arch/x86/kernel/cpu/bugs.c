@@ -22,6 +22,7 @@
 #include <asm/alternative.h>
 #include <asm/pgtable.h>
 #include <asm/cacheflush.h>
+#include <asm/spec_ctrl.h>
 
 static void __init spectre_v2_select_mitigation(void);
 

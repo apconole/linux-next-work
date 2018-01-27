@@ -6,7 +6,6 @@
 #include <asm/alternative.h>
 #include <asm/alternative-asm.h>
 #include <asm/cpufeatures.h>
-#include <asm/spec_ctrl.h>
 #include <asm/percpu.h>
 #include <asm/nops.h>
 #include <asm/jump_label.h>
