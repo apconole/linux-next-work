@@ -268,7 +268,7 @@ ENDPROC(native_usergs_sysret64)
 	SWITCH_TO_KERNEL_CR3
 	IBRS_ENTRY_CLOBBER /* no indirect jump allowed before IBRS */
 	movq PER_CPU_VAR(kernel_stack), %rsp
-	STUFF_RSB /* no ret allowed before stuffing the RSB */
+	FILL_RETURN_BUFFER_CLOBBER /* no ret allowed before stuffing the RSB */
 	movq %rsi, %rsp
 1:
 	/* Check to see if we're on the trampoline stack. */
@@ -359,7 +359,7 @@ ENTRY(save_paranoid)
 1:
 	SAVE_AND_SWITCH_TO_KERNEL_CR3 scratch_reg=%rax save_reg=%r14
 	IBRS_ENTRY_SAVE_AND_CLOBBER save_reg=%r13d /* no indirect jump allowed before IBRS */
-	STUFF_RSB /* no ret allowed before stuffing the RSB */
+	FILL_RETURN_BUFFER_CLOBBER /* no ret allowed before stuffing the RSB */
 	ret
 	CFI_ENDPROC
 END(save_paranoid)
@@ -459,7 +459,7 @@ GLOBAL(system_call_after_swapgs)
 	movq	%rsp,PER_CPU_VAR(old_rsp)
 	movq	PER_CPU_VAR(kernel_stack),%rsp
 	IBRS_ENTRY /* no indirect jump allowed before IBRS */
-	STUFF_RSB /* no ret allowed before stuffing the RSB */
+	FILL_RETURN_BUFFER /* no ret allowed before stuffing the RSB */
 	/*
 	 * No need to follow this irqs off/on section - it's straight
 	 * and short:
@@ -1505,7 +1505,7 @@ error_swapgs:
 	movq %rsp, %rsi
 	movq PER_CPU_VAR(kernel_stack), %rsp
 	IBRS_ENTRY_CLOBBER /* no indirect jump allowed before IBRS */
-	STUFF_RSB /* no ret allowed before stuffing the RSB */
+	FILL_RETURN_BUFFER_CLOBBER /* no ret allowed before stuffing the RSB */
 	movq %rsi, %rsp
 error_sti:
 	/* Check to see if we're on the trampoline stack. */
@@ -1689,7 +1689,7 @@ ENTRY(nmi)
 	pushq	%r15		/* pt_regs->r15 */
 
 	IBRS_ENTRY_CLOBBER /* no indirect jump allowed before IBRS */
-	STUFF_RSB /* no ret allowed before stuffing the RSB */
+	FILL_RETURN_BUFFER_CLOBBER /* no ret allowed before stuffing the RSB */
 
 	/*
 	 * At this point we no longer need to worry about stack damage

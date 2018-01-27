@@ -129,7 +129,7 @@ ENTRY(ia32_sysenter_target)
 	addq	$(KERNEL_STACK_OFFSET),%rsp
 	IBRS_ENTRY
 	CLEAR_R8_TO_R15
-	STUFF_RSB /* no ret allowed before stuffing the RSB */
+	FILL_RETURN_BUFFER /* no ret allowed before stuffing the RSB */
 	/*
 	 * No need to follow this irqs on/off section: the syscall
 	 * disabled irqs, here we enable it straight after entry:
@@ -299,7 +299,7 @@ ENTRY(ia32_cstar_target)
 	CFI_REGISTER	rsp,r8
 	movq	PER_CPU_VAR(kernel_stack),%rsp
 	IBRS_ENTRY
-	STUFF_RSB /* no ret allowed before stuffing the RSB */
+	FILL_RETURN_BUFFER /* no ret allowed before stuffing the RSB */
 	/*
 	 * No need to follow this irqs on/off section: the syscall
 	 * disabled irqs and here we enable it straight after entry:
@@ -472,7 +472,7 @@ ENTRY(ia32_syscall)
 	movq %r9, %rcx
 
 	IBRS_ENTRY
-	STUFF_RSB /* no ret allowed before stuffing the RSB */
+	FILL_RETURN_BUFFER /* no ret allowed before stuffing the RSB */
 
 	/*
 	 * No need to follow this irqs on/off section: the syscall
