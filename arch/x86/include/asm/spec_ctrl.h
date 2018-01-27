@@ -246,6 +246,15 @@ extern void spec_ctrl_rescan_cpuid(void);
 extern void spec_ctrl_init(struct cpuinfo_x86 *c);
 extern void spec_ctrl_cpu_init(void);
 
+enum {
+	IBRS_DISABLED,
+	/* in host kernel, disabled in guest and userland */
+	IBRS_ENABLED,
+	/* in host kernel and host userland, disabled in guest */
+	IBRS_ENABLED_USER,
+	IBRS_MAX = IBRS_ENABLED_USER,
+};
+
 static inline int cpu_has_spec_ctrl(void)
 {
 	if (boot_cpu_has(X86_FEATURE_SPEC_CTRL))
@@ -256,12 +265,24 @@ static inline int cpu_has_spec_ctrl(void)
 	return 0;
 }
 
+static inline int ibrs_enabled(void)
+{
+	if (cpu_has_spec_ctrl()) {
+		 if (__this_cpu_read(spec_ctrl_pcp) & SPEC_CTRL_PCP_IBRS)
+			 return IBRS_ENABLED;
+		 if (__this_cpu_read(spec_ctrl_pcp) & SPEC_CTRL_PCP_IBRS_USER)
+			 return IBRS_ENABLED_USER;
+	}
+
+	 return IBRS_DISABLED;
+}
+
 static __always_inline void __spec_ctrl_vm_ibrs(u64 vcpu_ibrs, bool vmenter)
 {
 	u64 host_ibrs = 0, val;
 	bool write_spec_ctrl;
-	if (__this_cpu_read(spec_ctrl_pcp) & (SPEC_CTRL_PCP_IBRS_USER |
-					      SPEC_CTRL_PCP_IBRS)) {
+
+	if (ibrs_enabled()) {
 		/*
 		 * If IBRS is enabled for host kernel mode or
 		 * host user mode we must set
@@ -295,27 +316,22 @@ static inline void __spec_ctrl_vmexit_ibrs(u64 vcpu_ibrs)
 	__spec_ctrl_vm_ibrs(vcpu_ibrs, false);
 }
 
-static inline void spec_ctrl_enable_ibrs(void)
+static inline void spec_ctrl_ibrs_on(void)
 {
-	if (cpu_has_spec_ctrl()) {
-		if (__this_cpu_read(spec_ctrl_pcp) & (SPEC_CTRL_PCP_IBRS_USER |
-						      SPEC_CTRL_PCP_IBRS))
-			native_wrmsrl(MSR_IA32_SPEC_CTRL, FEATURE_ENABLE_IBRS);
-		else
-			/* rmb to prevent wrong speculation for security */
-			rmb();
-	}
+	if (ibrs_enabled())
+		native_wrmsrl(MSR_IA32_SPEC_CTRL, FEATURE_ENABLE_IBRS);
+	else
+		/* rmb to prevent wrong speculation for security */
+		rmb();
 }
 
-static inline void spec_ctrl_disable_ibrs(void)
+static inline void spec_ctrl_ibrs_off(void)
 {
-	if (cpu_has_spec_ctrl()) {
-		if (__this_cpu_read(spec_ctrl_pcp) & SPEC_CTRL_PCP_IBRS)
-			native_wrmsrl(MSR_IA32_SPEC_CTRL, 0);
-		else
-			/* rmb to prevent wrong speculation for security */
-			rmb();
-	}
+	if (ibrs_enabled())
+		native_wrmsrl(MSR_IA32_SPEC_CTRL, 0);
+	else
+		/* rmb to prevent wrong speculation for security */
+		rmb();
 }
 
 static inline void __spec_ctrl_ibpb(void)

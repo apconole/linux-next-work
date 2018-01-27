@@ -13,17 +13,7 @@
 
 static DEFINE_MUTEX(spec_ctrl_mutex);
 
-enum {
-	IBRS_DISABLED,
-	/* in host kernel, disabled in guest and userland */
-	IBRS_ENABLED,
-	/* in host kernel and host userland, disabled in guest */
-	IBRS_ENABLED_USER,
-	IBRS_MAX = IBRS_ENABLED_USER,
-};
-
 static bool noibrs_cmdline __read_mostly;
-static unsigned int ibrs_enabled __read_mostly;
 static bool ibp_disabled __read_mostly;
 
 static void set_spec_ctrl_pcp(bool enable, int flag)
@@ -165,10 +155,9 @@ void spec_ctrl_init(struct cpuinfo_x86 *c)
 	 */
 	if (cpu_has_spec_ctrl()) {
 		setup_force_cpu_cap(X86_FEATURE_IBPB_SUPPORT);
-		if (!ibrs_enabled && !noibrs_cmdline) {
+		if (!ibrs_enabled() && !noibrs_cmdline) {
 			set_spec_ctrl_pcp_ibrs(true);
 			set_spec_ctrl_pcp_ibpb(true);
-			ibrs_enabled = IBRS_ENABLED;
 		}
 		printk_once(KERN_INFO "FEATURE SPEC_CTRL Present\n");
 		spec_ctrl_cpu_init();
@@ -228,7 +217,7 @@ static ssize_t __enabled_read(struct file *file, char __user *user_buf,
 static ssize_t ibrs_enabled_read(struct file *file, char __user *user_buf,
 				 size_t count, loff_t *ppos)
 {
-	unsigned int enabled = ibrs_enabled;
+	unsigned int enabled = ibrs_enabled();
 
 	if (ibp_disabled)
 		enabled = IBRS_ENABLED_USER;
@@ -256,7 +245,7 @@ static ssize_t ibrs_enabled_write(struct file *file,
 		return -EINVAL;
 
 	mutex_lock(&spec_ctrl_mutex);
-	if ((!ibp_disabled && enable == ibrs_enabled) ||
+	if ((!ibp_disabled && enable == ibrs_enabled()) ||
 	    (ibp_disabled && enable == IBRS_ENABLED_USER))
 		goto out_unlock;
 
@@ -299,7 +288,6 @@ static ssize_t ibrs_enabled_write(struct file *file,
 			sync_all_cpus_ibrs(true);
 		}
 	}
-	WRITE_ONCE(ibrs_enabled, enable);
 
 out_unlock:
 	mutex_unlock(&spec_ctrl_mutex);
