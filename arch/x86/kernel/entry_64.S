@@ -401,8 +401,16 @@ ENTRY(ret_from_fork)
 	subq $REST_SKIP, %rsp	# leave space for volatiles
 	CFI_ADJUST_CFA_OFFSET	REST_SKIP
 	movq %rbp, %rdi
+
+	/* RHEL-specific hack to make livepatch work with spectre retpolines */
+	.global ret_from_fork_nospec_begin
+	.global ret_from_fork_nospec_end
+
+ret_from_fork_nospec_begin:
 	CALL_NOSPEC %rbx
 	UNWIND_END_OF_STACK
+ret_from_fork_nospec_end:
+
 	movl $0, RAX(%rsp)
 	RESTORE_REST
 	jmp int_ret_from_sys_call

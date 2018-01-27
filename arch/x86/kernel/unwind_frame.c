@@ -58,7 +58,9 @@ static bool unwind_unsafe(struct unwind_state *state)
 	return false;
 }
 extern const unsigned long __start___unwind_end_of_stack[],
-			   __stop___unwind_end_of_stack[];
+			   __stop___unwind_end_of_stack[],
+			   ret_from_fork_nospec_begin[],
+			   ret_from_fork_nospec_end[];
 
 static bool unwind_end(struct unwind_state *state)
 {
@@ -68,6 +70,15 @@ static bool unwind_end(struct unwind_state *state)
 	     addr < __stop___unwind_end_of_stack; addr++)
 		if (*addr == state->ip)
 			return true;
+
+	/*
+	 * The UNWIND_END_OF_STACK macro doesn't work after CALL_NOSPEC in all
+	 * cases (non-retpoline and AMD retpoline), so we need to manually
+	 * check the end of stack location in ret_from_fork().
+	 */
+	if (state->ip > (unsigned long)ret_from_fork_nospec_begin &&
+	    state->ip <= (unsigned long)ret_from_fork_nospec_end)
+		return true;
 
 	return false;
 }
