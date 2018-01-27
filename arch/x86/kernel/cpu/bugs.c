@@ -102,7 +102,7 @@ static const char *spectre_v2_strings[] = {
 enum spectre_v2_mitigation_cmd spectre_v2_cmd = SPECTRE_V2_CMD_AUTO;
 
 #undef pr_fmt
-#define pr_fmt(fmt)     "Spectre V2 mitigation: " fmt
+#define pr_fmt(fmt)     "Spectre V2 : " fmt
 
 static inline bool match_option(const char *arg, int arglen, const char *opt)
 {
