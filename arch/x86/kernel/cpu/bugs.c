@@ -9,6 +9,7 @@
  */
 #include <linux/init.h>
 #include <linux/utsname.h>
+#include <linux/cpu.h>
 #include <asm/bugs.h>
 #include <asm/processor.h>
 #include <asm/processor-flags.h>
@@ -63,3 +64,27 @@ void __init check_bugs(void)
 		set_memory_4k((unsigned long)__va(0), 1);
 #endif
 }
+
+#ifdef CONFIG_SYSFS
+ssize_t cpu_show_meltdown(struct device *dev,
+			  struct device_attribute *attr, char *buf)
+{
+	if (boot_cpu_data.x86_vendor == X86_VENDOR_AMD)
+		return sprintf(buf, "Not affected\n");
+	if (kaiser_enabled)
+		return sprintf(buf, "Mitigation: PTI\n");
+	return sprintf(buf, "Vulnerable\n");
+}
+
+ssize_t cpu_show_spectre_v1(struct device *dev,
+			    struct device_attribute *attr, char *buf)
+{
+	return sprintf(buf, "Mitigation: Load fences\n");
+}
+
+ssize_t cpu_show_spectre_v2(struct device *dev,
+			    struct device_attribute *attr, char *buf)
+{
+	return sprintf(buf, "Vulnerable\n");
+}
+#endif
