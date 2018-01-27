@@ -81,6 +81,7 @@ enum spectre_v2_mitigation_cmd {
 	SPECTRE_V2_CMD_FORCE,
 	SPECTRE_V2_CMD_AUTO,
 	SPECTRE_V2_CMD_RETPOLINE,
+	SPECTRE_V2_CMD_RETPOLINE_IBRS_USER,
 	SPECTRE_V2_CMD_IBRS,
 	SPECTRE_V2_CMD_IBRS_ALWAYS,
 };
@@ -92,6 +93,7 @@ static const char *spectre_v2_strings[] = {
 	[SPECTRE_V2_RETPOLINE_SKYLAKE]		= "Vulnerable: Retpoline on Skylake+",
 	[SPECTRE_V2_RETPOLINE_UNSAFE_MODULE]	= "Vulnerable: Retpoline with unsafe module(s)",
 	[SPECTRE_V2_RETPOLINE]			= "Mitigation: Full retpoline",
+	[SPECTRE_V2_RETPOLINE_IBRS_USER]	= "Mitigation: Full retpoline and IBRS (user space)",
 	[SPECTRE_V2_IBRS]			= "Mitigation: IBRS (kernel)",
 	[SPECTRE_V2_IBRS_ALWAYS]		= "Mitigation: IBRS (kernel and user space)",
 	[SPECTRE_V2_IBP_DISABLED]		= "Mitigation: IBP disabled",
@@ -123,6 +125,8 @@ static enum spectre_v2_mitigation_cmd spectre_v2_parse_cmdline(void)
 			return SPECTRE_V2_CMD_FORCE;
 		} else if (match_option(arg, ret, "retpoline")) {
 			return SPECTRE_V2_CMD_RETPOLINE;
+		} else if (match_option(arg, ret, "retpoline,ibrs_user")) {
+			return SPECTRE_V2_CMD_RETPOLINE_IBRS_USER;
 		} else if (match_option(arg, ret, "ibrs")) {
 			return SPECTRE_V2_CMD_IBRS;
 		} else if (match_option(arg, ret, "ibrs_always")) {
@@ -163,6 +167,11 @@ void __spectre_v2_select_mitigation(void)
 	case SPECTRE_V2_CMD_IBRS_ALWAYS:
 		if (spec_ctrl_enable_ibrs_always() ||
 		    spec_ctrl_force_enable_ibp_disabled())
+			return;
+		break;
+
+	case SPECTRE_V2_CMD_RETPOLINE_IBRS_USER:
+		if (spec_ctrl_enable_retpoline_ibrs_user())
 			return;
 		break;
 	}

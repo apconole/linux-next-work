@@ -34,14 +34,37 @@ static void set_spec_ctrl_pcp(bool enable, int flag)
 		WRITE_ONCE(per_cpu(spec_ctrl_pcp, cpu), val);
 }
 
-void set_spec_ctrl_pcp_ibrs(bool enable)
+/*
+ * The following values are written to IBRS on kernel entry/exit:
+ *
+ *		entry	exit
+ * ibrs		  1	 0
+ * ibrs_always	  1	 1
+ * ibrs_user	  0	 1
+ */
+
+static void set_spec_ctrl_pcp_ibrs(void)
 {
-	set_spec_ctrl_pcp(enable, SPEC_CTRL_PCP_IBRS);
+	set_spec_ctrl_pcp(true, SPEC_CTRL_PCP_IBRS_ENTRY);
+	set_spec_ctrl_pcp(false, SPEC_CTRL_PCP_IBRS_EXIT);
 }
 
-void set_spec_ctrl_pcp_ibrs_user(bool enable)
+static void set_spec_ctrl_pcp_ibrs_always(void)
 {
-	set_spec_ctrl_pcp(enable, SPEC_CTRL_PCP_IBRS_USER);
+	set_spec_ctrl_pcp(true, SPEC_CTRL_PCP_IBRS_ENTRY);
+	set_spec_ctrl_pcp(true, SPEC_CTRL_PCP_IBRS_EXIT);
+}
+
+static void set_spec_ctrl_pcp_ibrs_user(void)
+{
+	set_spec_ctrl_pcp(false, SPEC_CTRL_PCP_IBRS_ENTRY);
+	set_spec_ctrl_pcp(true, SPEC_CTRL_PCP_IBRS_EXIT);
+}
+
+void clear_spec_ctrl_pcp(void)
+{
+	set_spec_ctrl_pcp(false, SPEC_CTRL_PCP_IBRS_ENTRY);
+	set_spec_ctrl_pcp(false, SPEC_CTRL_PCP_IBRS_EXIT);
 }
 
 static void spec_ctrl_sync_all_cpus(u32 msr_nr, u64 val)
@@ -143,7 +166,7 @@ static bool retp_enabled_full(void)
 bool spec_ctrl_force_enable_ibrs(void)
 {
 	if (cpu_has_spec_ctrl()) {
-		set_spec_ctrl_pcp_ibrs(true);
+		set_spec_ctrl_pcp_ibrs();
 		return true;
 	}
 
@@ -154,7 +177,7 @@ bool spec_ctrl_cond_enable_ibrs(bool full_retp)
 {
 	if (cpu_has_spec_ctrl() && (is_skylake_era() || !full_retp) &&
 	    !noibrs_cmdline) {
-		set_spec_ctrl_pcp_ibrs(true);
+		set_spec_ctrl_pcp_ibrs();
 		return true;
 	}
 
@@ -164,7 +187,7 @@ bool spec_ctrl_cond_enable_ibrs(bool full_retp)
 bool spec_ctrl_enable_ibrs_always(void)
 {
 	if (cpu_has_spec_ctrl()) {
-		set_spec_ctrl_pcp_ibrs_user(true);
+		set_spec_ctrl_pcp_ibrs_always();
 		return true;
 	}
 
@@ -203,6 +226,16 @@ void spec_ctrl_enable_retpoline(void)
 	set_spec_ctrl_retp(true);
 }
 
+bool spec_ctrl_enable_retpoline_ibrs_user(void)
+{
+	if (!cpu_has_spec_ctrl())
+		return false;
+
+	set_spec_ctrl_retp(true);
+	set_spec_ctrl_pcp_ibrs_user();
+	return true;
+}
+
 void spec_ctrl_report_unsafe_module(struct module *mod)
 {
 	if (retp_compiler() && !is_skylake_era())
@@ -218,7 +251,7 @@ enum spectre_v2_mitigation spec_ctrl_get_mitigation(void)
 
 	if (ibp_disabled)
 		mode = SPECTRE_V2_IBP_DISABLED;
-	else if (ibrs_enabled() == IBRS_ENABLED_USER)
+	else if (ibrs_enabled() == IBRS_ENABLED_ALWAYS)
 		mode = SPECTRE_V2_IBRS_ALWAYS;
 	else if (ibrs_enabled() == IBRS_ENABLED)
 		mode = SPECTRE_V2_IBRS;
@@ -231,6 +264,8 @@ enum spectre_v2_mitigation spec_ctrl_get_mitigation(void)
 			mode = SPECTRE_V2_RETPOLINE_SKYLAKE;
 		else if (unsafe_module)
 			mode = SPECTRE_V2_RETPOLINE_UNSAFE_MODULE;
+		else if (ibrs_enabled() == IBRS_ENABLED_USER)
+			mode = SPECTRE_V2_RETPOLINE_IBRS_USER;
 		else
 			mode = SPECTRE_V2_RETPOLINE;
 	}
@@ -265,7 +300,7 @@ void spec_ctrl_cpu_init(void)
 		return;
 	}
 
-	if (ibrs_enabled() == IBRS_ENABLED_USER)
+	if (ibrs_enabled() == IBRS_ENABLED_ALWAYS)
 		native_wrmsrl(MSR_IA32_SPEC_CTRL, FEATURE_ENABLE_IBRS);
 }
 
@@ -276,7 +311,7 @@ static void spec_ctrl_reinit_all_cpus(void)
 		return;
 	}
 
-	if (ibrs_enabled() == IBRS_ENABLED_USER)
+	if (ibrs_enabled() == IBRS_ENABLED_ALWAYS)
 		sync_all_cpus_ibrs(true);
 	else if (ibrs_enabled() == IBRS_DISABLED)
 		sync_all_cpus_ibrs(false);
@@ -365,7 +400,7 @@ static ssize_t ibrs_enabled_read(struct file *file, char __user *user_buf,
 	unsigned int enabled = ibrs_enabled();
 
 	if (ibp_disabled)
-		enabled = IBRS_ENABLED_USER;
+		enabled = IBRS_ENABLED_ALWAYS;
 
 	return __enabled_read(file, user_buf, count, ppos, &enabled);
 }
@@ -391,22 +426,22 @@ static ssize_t ibrs_enabled_write(struct file *file,
 
 	mutex_lock(&spec_ctrl_mutex);
 	if ((!ibp_disabled && enable == ibrs_enabled()) ||
-	    (ibp_disabled && enable == IBRS_ENABLED_USER))
+	    (ibp_disabled && enable == IBRS_ENABLED_ALWAYS))
 		goto out_unlock;
 
 	if (boot_cpu_has(X86_FEATURE_IBP_DISABLE)) {
-		if (enable == IBRS_ENABLED) {
+		if (enable == IBRS_ENABLED || enable == IBRS_ENABLED_USER) {
 			count = -EINVAL;
 			goto out_unlock;
+		}
+
+		if (enable == IBRS_DISABLED) {
+			sync_all_cpus_ibp(true);
+			ibp_disabled = false;
 		} else {
-			if (enable == IBRS_DISABLED) {
-				sync_all_cpus_ibp(true);
-				ibp_disabled = false;
-			} else {
-				WARN_ON(enable != IBRS_ENABLED_USER);
-				sync_all_cpus_ibp(false);
-				ibp_disabled = true;
-			}
+			WARN_ON(enable != IBRS_ENABLED_ALWAYS);
+			sync_all_cpus_ibp(false);
+			ibp_disabled = true;
 		}
 		goto out_unlock;
 	}
@@ -416,19 +451,17 @@ static ssize_t ibrs_enabled_write(struct file *file,
 		goto out_unlock;
 	}
 
-	if (enable == IBRS_ENABLED) {
-		set_spec_ctrl_pcp_ibrs_user(false);
-		set_spec_ctrl_pcp_ibrs(true);
+	if (enable == IBRS_DISABLED) {
+		clear_spec_ctrl_pcp();
+		sync_all_cpus_ibrs(false);
+	} else if (enable == IBRS_ENABLED) {
+		set_spec_ctrl_pcp_ibrs();
+	} else if (enable == IBRS_ENABLED_ALWAYS) {
+		set_spec_ctrl_pcp_ibrs_always();
+		sync_all_cpus_ibrs(true);
 	} else {
-		set_spec_ctrl_pcp_ibrs(false);
-		if (enable == IBRS_DISABLED) {
-			set_spec_ctrl_pcp_ibrs_user(false);
-			sync_all_cpus_ibrs(false);
-		} else {
-			WARN_ON(enable != IBRS_ENABLED_USER);
-			set_spec_ctrl_pcp_ibrs_user(true);
-			sync_all_cpus_ibrs(true);
-		}
+		WARN_ON(enable != IBRS_ENABLED_USER);
+		set_spec_ctrl_pcp_ibrs_user();
 	}
 
 out_unlock:

@@ -1,26 +1,31 @@
 #ifndef _ASM_X86_SPEC_CTRL_H
 #define _ASM_X86_SPEC_CTRL_H
 
-#define SPEC_CTRL_PCP_IBRS	(1<<0)
-#define SPEC_CTRL_PCP_IBRS_USER	(1<<1)
+#define SPEC_CTRL_PCP_IBRS_ENTRY	(1<<0)
+#define SPEC_CTRL_PCP_IBRS_EXIT		(1<<1)
 
-#define SPEC_CTRL_PCP_ENTRY (SPEC_CTRL_PCP_IBRS|SPEC_CTRL_PCP_IBRS_USER)
+#define SPEC_CTRL_PCP_IBRS (SPEC_CTRL_PCP_IBRS_ENTRY|SPEC_CTRL_PCP_IBRS_EXIT)
 
 #ifdef __ASSEMBLY__
 
 #include <asm/msr-index.h>
 
-.macro ENABLE_IBRS
-	testl $SPEC_CTRL_PCP_ENTRY, PER_CPU_VAR(spec_ctrl_pcp)
+.macro __IBRS_ENTRY
+	movl $0, %edx
+	movl $MSR_IA32_SPEC_CTRL, %ecx
+	movl PER_CPU_VAR(spec_ctrl_pcp), %eax
+	andl $1, %eax
+	wrmsr
+.endm
+
+.macro IBRS_ENTRY
+	testl $SPEC_CTRL_PCP_IBRS, PER_CPU_VAR(spec_ctrl_pcp)
 	jz .Lskip_\@
 
 	pushq %rax
 	pushq %rcx
 	pushq %rdx
-	movl $0, %edx
-	movl $MSR_IA32_SPEC_CTRL, %ecx
-	movl $FEATURE_ENABLE_IBRS, %eax
-	wrmsr
+	__IBRS_ENTRY
 	popq %rdx
 	popq %rcx
 	popq %rax
@@ -31,14 +36,11 @@
 .Lend_\@:
 .endm
 
-.macro ENABLE_IBRS_CLOBBER
-	testl $SPEC_CTRL_PCP_ENTRY, PER_CPU_VAR(spec_ctrl_pcp)
+.macro IBRS_ENTRY_CLOBBER
+	testl $SPEC_CTRL_PCP_IBRS, PER_CPU_VAR(spec_ctrl_pcp)
 	jz .Lskip_\@
 
-	movl $0, %edx
-	movl $MSR_IA32_SPEC_CTRL, %ecx
-	movl $FEATURE_ENABLE_IBRS, %eax
-	wrmsr
+	__IBRS_ENTRY
 	jmp .Lend_\@
 
 .Lskip_\@:
@@ -46,17 +48,15 @@
 .Lend_\@:
 .endm
 
-.macro ENABLE_IBRS_SAVE_AND_CLOBBER save_reg:req
-	testl $SPEC_CTRL_PCP_ENTRY, PER_CPU_VAR(spec_ctrl_pcp)
+.macro IBRS_ENTRY_SAVE_AND_CLOBBER save_reg:req
+	testl $SPEC_CTRL_PCP_IBRS, PER_CPU_VAR(spec_ctrl_pcp)
 	jz .Lskip_\@
 
 	movl $MSR_IA32_SPEC_CTRL, %ecx
 	rdmsr
 	movl %eax, \save_reg
 
-	movl $0, %edx
-	movl $FEATURE_ENABLE_IBRS, %eax
-	wrmsr
+	__IBRS_ENTRY
 	jmp .Lend_\@
 
 .Lskip_\@:
@@ -72,17 +72,23 @@
 .Lend_\@:
 .endm
 
-.macro DISABLE_IBRS
+.macro __IBRS_EXIT
+	movl $0, %edx
+	movl $MSR_IA32_SPEC_CTRL, %ecx
+	movl PER_CPU_VAR(spec_ctrl_pcp), %eax
+	shrl $1, %eax
+	andl $1, %eax
+	wrmsr
+.endm
+
+.macro IBRS_EXIT
 	testl $SPEC_CTRL_PCP_IBRS, PER_CPU_VAR(spec_ctrl_pcp)
 	jz .Lskip_\@
 
 	pushq %rax
 	pushq %rcx
 	pushq %rdx
-	movl $MSR_IA32_SPEC_CTRL, %ecx
-	movl $0, %edx
-	movl $0, %eax
-	wrmsr
+	__IBRS_EXIT
 	popq %rdx
 	popq %rcx
 	popq %rax
@@ -90,7 +96,7 @@
 .Lskip_\@:
 .endm
 
-.macro RESTORE_IBRS_CLOBBER save_reg:req
+.macro IBRS_EXIT_RESTORE_CLOBBER save_reg:req
 	testl $SPEC_CTRL_PCP_IBRS, PER_CPU_VAR(spec_ctrl_pcp)
 	jz .Lskip_\@
 
@@ -105,14 +111,11 @@
 .Lskip_\@:
 .endm
 
-.macro DISABLE_IBRS_CLOBBER
+.macro IBRS_EXIT_CLOBBER
 	testl $SPEC_CTRL_PCP_IBRS, PER_CPU_VAR(spec_ctrl_pcp)
 	jz .Lskip_\@
 
-	movl $MSR_IA32_SPEC_CTRL, %ecx
-	movl $0, %edx
-	movl $0, %eax
-	wrmsr
+	__IBRS_EXIT
 
 .Lskip_\@:
 .endm
@@ -250,15 +253,22 @@ bool spec_ctrl_enable_ibrs_always(void);
 bool spec_ctrl_force_enable_ibp_disabled(void);
 bool spec_ctrl_cond_enable_ibp_disabled(void);
 void spec_ctrl_enable_retpoline(void);
+bool spec_ctrl_enable_retpoline_ibrs_user(void);
 
 enum spectre_v2_mitigation spec_ctrl_get_mitigation(void);
 
 enum {
 	IBRS_DISABLED,
+
 	/* in host kernel, disabled in guest and userland */
 	IBRS_ENABLED,
+
 	/* in host kernel and host userland, disabled in guest */
+	IBRS_ENABLED_ALWAYS,
+
+	/* in host userland, disabled in kernel and guest */
 	IBRS_ENABLED_USER,
+
 	IBRS_MAX = IBRS_ENABLED_USER,
 };
 
@@ -272,16 +282,32 @@ static inline int cpu_has_spec_ctrl(void)
 	return 0;
 }
 
-static inline int ibrs_enabled(void)
+static inline unsigned int ibrs_enabled(void)
 {
 	if (cpu_has_spec_ctrl()) {
-		 if (__this_cpu_read(spec_ctrl_pcp) & SPEC_CTRL_PCP_IBRS)
-			 return IBRS_ENABLED;
-		 if (__this_cpu_read(spec_ctrl_pcp) & SPEC_CTRL_PCP_IBRS_USER)
-			 return IBRS_ENABLED_USER;
+		unsigned int ibrs = __this_cpu_read(spec_ctrl_pcp);
+
+		if ((ibrs & SPEC_CTRL_PCP_IBRS_ENTRY) &&
+		    !(ibrs & SPEC_CTRL_PCP_IBRS_EXIT))
+			return IBRS_ENABLED;
+
+		if ((ibrs & SPEC_CTRL_PCP_IBRS_ENTRY) &&
+		    (ibrs & SPEC_CTRL_PCP_IBRS_EXIT))
+			return IBRS_ENABLED_ALWAYS;
+
+		if (!(ibrs & SPEC_CTRL_PCP_IBRS_ENTRY) &&
+		    (ibrs & SPEC_CTRL_PCP_IBRS_EXIT))
+			return IBRS_ENABLED_USER;
 	}
 
 	 return IBRS_DISABLED;
+}
+
+static bool ibrs_enabled_kernel(void)
+{
+	unsigned int ibrs = ibrs_enabled();
+
+	return ibrs == IBRS_ENABLED || ibrs == IBRS_ENABLED_ALWAYS;
 }
 
 static inline bool retp_enabled(void)
@@ -292,7 +318,7 @@ static inline bool retp_enabled(void)
 static inline bool ibpb_enabled(void)
 {
 	return (boot_cpu_has(X86_FEATURE_IBPB_SUPPORT) &&
-		(ibrs_enabled() || retp_enabled()));
+		(ibrs_enabled_kernel() || retp_enabled()));
 }
 
 static __always_inline void __spec_ctrl_vm_ibrs(u64 vcpu_ibrs, bool vmenter)
@@ -300,10 +326,10 @@ static __always_inline void __spec_ctrl_vm_ibrs(u64 vcpu_ibrs, bool vmenter)
 	u64 host_ibrs = 0, val;
 	bool write_spec_ctrl;
 
-	if (ibrs_enabled()) {
+	if (ibrs_enabled_kernel()) {
 		/*
 		 * If IBRS is enabled for host kernel mode or
-		 * host user mode we must set
+		 * host always mode we must set
 		 * FEATURE_ENABLE_IBRS at vmexit.
 		 */
 		host_ibrs = FEATURE_ENABLE_IBRS;
@@ -336,7 +362,7 @@ static inline void __spec_ctrl_vmexit_ibrs(u64 vcpu_ibrs)
 
 static inline void spec_ctrl_ibrs_on(void)
 {
-	if (ibrs_enabled())
+	if (ibrs_enabled_kernel())
 		native_wrmsrl(MSR_IA32_SPEC_CTRL, FEATURE_ENABLE_IBRS);
 	else
 		/* rmb to prevent wrong speculation for security */
@@ -345,7 +371,7 @@ static inline void spec_ctrl_ibrs_on(void)
 
 static inline void spec_ctrl_ibrs_off(void)
 {
-	if (ibrs_enabled())
+	if (ibrs_enabled_kernel())
 		native_wrmsrl(MSR_IA32_SPEC_CTRL, 0);
 	else
 		/* rmb to prevent wrong speculation for security */

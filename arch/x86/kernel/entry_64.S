@@ -266,7 +266,7 @@ ENDPROC(native_usergs_sysret64)
 	je 1f
 	SWAPGS
 	SWITCH_TO_KERNEL_CR3
-	ENABLE_IBRS_CLOBBER /* no indirect jump allowed before IBRS */
+	IBRS_ENTRY_CLOBBER /* no indirect jump allowed before IBRS */
 	movq PER_CPU_VAR(kernel_stack), %rsp
 	STUFF_RSB /* no ret allowed before stuffing the RSB */
 	movq %rsi, %rsp
@@ -358,7 +358,7 @@ ENTRY(save_paranoid)
 	xorl %ebx,%ebx
 1:
 	SAVE_AND_SWITCH_TO_KERNEL_CR3 scratch_reg=%rax save_reg=%r14
-	ENABLE_IBRS_SAVE_AND_CLOBBER save_reg=%r13d /* no indirect jump allowed before IBRS */
+	IBRS_ENTRY_SAVE_AND_CLOBBER save_reg=%r13d /* no indirect jump allowed before IBRS */
 	STUFF_RSB /* no ret allowed before stuffing the RSB */
 	ret
 	CFI_ENDPROC
@@ -458,7 +458,7 @@ GLOBAL(system_call_after_swapgs)
 	SWITCH_TO_KERNEL_CR3
 	movq	%rsp,PER_CPU_VAR(old_rsp)
 	movq	PER_CPU_VAR(kernel_stack),%rsp
-	ENABLE_IBRS /* no indirect jump allowed before IBRS */
+	IBRS_ENTRY /* no indirect jump allowed before IBRS */
 	STUFF_RSB /* no ret allowed before stuffing the RSB */
 	/*
 	 * No need to follow this irqs off/on section - it's straight
@@ -511,7 +511,7 @@ sysret_check:
 	 * sysretq will re-enable interrupts:
 	 */
 	TRACE_IRQS_ON
-	DISABLE_IBRS_CLOBBER
+	IBRS_EXIT_CLOBBER
 	movq RIP(%rsp),%rcx
 	CFI_REGISTER	rip,rcx
 	RESTORE_REST
@@ -890,7 +890,7 @@ retint_swapgs:		/* return to user-space */
 	TRACE_IRQS_IRETQ
 
 retint_userspace_restore_args:
-	DISABLE_IBRS_CLOBBER
+	IBRS_EXIT_CLOBBER
 	/*
 	 * Returning from an interrupt/NMI/exception to user space, currently
 	 * on the kernel task stack, which is not user-mapped.  Copy the iret
@@ -1432,14 +1432,14 @@ ENTRY(paranoid_exit)
 	jnz   paranoid_userspace
 paranoid_swapgs_restore:
 	/* return to kernel with swapgs */
-	RESTORE_IBRS_CLOBBER save_reg=%r13d
+	IBRS_EXIT_RESTORE_CLOBBER save_reg=%r13d
 	RESTORE_CR3 scratch_reg=%rax save_reg=%r14
 	RESTORE_ALL 8
 	SWAPGS
 	jmp irq_return
 paranoid_noswapgs_restore:
 	/* return to kernel */
-	RESTORE_IBRS_CLOBBER save_reg=%r13d
+	IBRS_EXIT_RESTORE_CLOBBER save_reg=%r13d
 	RESTORE_CR3 scratch_reg=%rax save_reg=%r14
 	RESTORE_ALL 8
 	jmp irq_return
@@ -1504,7 +1504,7 @@ error_swapgs:
 	SWITCH_TO_KERNEL_CR3
 	movq %rsp, %rsi
 	movq PER_CPU_VAR(kernel_stack), %rsp
-	ENABLE_IBRS_CLOBBER /* no indirect jump allowed before IBRS */
+	IBRS_ENTRY_CLOBBER /* no indirect jump allowed before IBRS */
 	STUFF_RSB /* no ret allowed before stuffing the RSB */
 	movq %rsi, %rsp
 error_sti:
@@ -1688,7 +1688,7 @@ ENTRY(nmi)
 	pushq	%r14		/* pt_regs->r14 */
 	pushq	%r15		/* pt_regs->r15 */
 
-	ENABLE_IBRS_CLOBBER /* no indirect jump allowed before IBRS */
+	IBRS_ENTRY_CLOBBER /* no indirect jump allowed before IBRS */
 	STUFF_RSB /* no ret allowed before stuffing the RSB */
 
 	/*
@@ -1917,7 +1917,7 @@ end_repeat_nmi:
 	call do_nmi
 	UNWIND_UNSAFE_STACK
 
-	RESTORE_IBRS_CLOBBER save_reg=%r13d
+	IBRS_EXIT_RESTORE_CLOBBER save_reg=%r13d
 
 	RESTORE_CR3 scratch_reg=%rax save_reg=%r14
 
