@@ -19,6 +19,7 @@
 #include <asm/alternative.h>
 #include <asm/pgtable.h>
 #include <asm/cacheflush.h>
+#include <asm/spec_ctrl.h>
 
 void __init check_bugs(void)
 {
@@ -28,6 +29,9 @@ void __init check_bugs(void)
 		pr_info("CPU: ");
 		print_cpu_info(&boot_cpu_data);
 	}
+
+	spec_ctrl_init();
+	spec_ctrl_cpu_init();
 
 #ifdef CONFIG_X86_32
 	/*

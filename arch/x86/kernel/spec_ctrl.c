@@ -79,6 +79,14 @@ static void sync_all_cpus_ibp(bool enable)
 	put_online_cpus();
 }
 
+static void spec_ctrl_disable_all(void)
+{
+	int cpu;
+
+	for_each_possible_cpu(cpu)
+		WRITE_ONCE(per_cpu(spec_ctrl_pcp, cpu), 0);
+}
+
 static int __init noibrs(char *str)
 {
 	noibrs_cmdline = true;
@@ -94,7 +102,39 @@ static int __init noibpb(char *str)
 }
 early_param("noibpb", noibpb);
 
-/* this is called when secondary CPUs come online */
+static void spec_ctrl_print_features(void)
+{
+	if (boot_cpu_has(X86_FEATURE_IBP_DISABLE)) {
+		printk(KERN_INFO "FEATURE SPEC_CTRL Present (Implicit)\n");
+		printk(KERN_INFO "FEATURE IBPB_SUPPORT Present (Implicit)\n");
+		return;
+	}
+
+	if (cpu_has_spec_ctrl())
+		printk(KERN_INFO "FEATURE SPEC_CTRL Present\n");
+	else
+		printk(KERN_INFO "FEATURE SPEC_CTRL Not Present\n");
+
+	if (boot_cpu_has(X86_FEATURE_IBPB_SUPPORT))
+		printk(KERN_INFO "FEATURE IBPB_SUPPORT Present\n");
+	else
+		printk(KERN_INFO "FEATURE IBPB_SUPPORT Not Present\n");
+}
+
+static void spec_ctrl_enable(void)
+{
+	if (boot_cpu_has(X86_FEATURE_IBP_DISABLE) && !noibrs_cmdline) {
+		/* default enabled */
+		ibp_disabled = true;
+		return;
+	}
+
+	WARN_ON(cpu_has_spec_ctrl() && !boot_cpu_has(X86_FEATURE_IBPB_SUPPORT));
+
+	if (cpu_has_spec_ctrl() && !noibrs_cmdline)
+		set_spec_ctrl_pcp_ibrs(true);
+}
+
 void spec_ctrl_cpu_init(void)
 {
 	if (boot_cpu_has(X86_FEATURE_IBP_DISABLE)) {
@@ -103,64 +143,32 @@ void spec_ctrl_cpu_init(void)
 		return;
 	}
 
-	/*
-	 * If ibrs_enabled == 2 kernel entry points won't set IBRS so
-	 * set it during secondary CPU startup.
-	 */
-	if (cpu_has_spec_ctrl() &&
-	    __this_cpu_read(spec_ctrl_pcp) & SPEC_CTRL_PCP_IBRS_USER)
+	if (ibrs_enabled() == IBRS_ENABLED_USER)
 		native_wrmsrl(MSR_IA32_SPEC_CTRL, FEATURE_ENABLE_IBRS);
 }
 
-void spec_ctrl_init(struct cpuinfo_x86 *c)
+static void spec_ctrl_reinit_all_cpus(void)
 {
-	if (c->x86_vendor != X86_VENDOR_INTEL &&
-	    c->x86_vendor != X86_VENDOR_AMD)
-		return;
-
-	if (c != &boot_cpu_data) {
-		spec_ctrl_cpu_init();
-		return;
-	}
-
-	/*
-	 * Some AMD CPUs don't need IBPB or IBRS CPUID bits, because
-	 * they can just disable indirect branch predictor
-	 * support (MSR 0xc0011021[14]).
-	 */
 	if (boot_cpu_has(X86_FEATURE_IBP_DISABLE)) {
-		if (!noibrs_cmdline) {
-			/* default enabled */
-			ibp_disabled = true;
-		}
-
-		printk_once("FEATURE SPEC_CTRL Present (Implicit)\n");
-		printk_once("FEATURE IBPB_SUPPORT Present (Implicit)\n");
-		spec_ctrl_cpu_init();
+		sync_all_cpus_ibp(!ibrs_enabled());
 		return;
 	}
 
-	/*
-	 * On both Intel and AMD, SPEC_CTRL implies IBPB.
-	 */
-	if (cpu_has_spec_ctrl()) {
-		if (!ibrs_enabled() && !noibrs_cmdline) {
-			set_spec_ctrl_pcp_ibrs(true);
-		}
-		printk_once(KERN_INFO "FEATURE SPEC_CTRL Present\n");
-		spec_ctrl_cpu_init();
-	} else {
-		printk_once(KERN_INFO "FEATURE SPEC_CTRL Not Present\n");
-	}
+	if (ibrs_enabled() == IBRS_ENABLED_USER)
+		sync_all_cpus_ibrs(true);
+	else if (ibrs_enabled() == IBRS_DISABLED)
+		sync_all_cpus_ibrs(false);
+}
 
-	if (boot_cpu_has(X86_FEATURE_IBPB_SUPPORT))
-		printk_once(KERN_INFO "FEATURE IBPB_SUPPORT Present\n");
-	else
-		printk_once(KERN_INFO "FEATURE IBPB_SUPPORT Not Present\n");
+void spec_ctrl_init(void)
+{
+	spec_ctrl_print_features();
+	spec_ctrl_enable();
 }
 
 void spec_ctrl_rescan_cpuid(void)
 {
+	bool old_spec, old_ibpb;
 	int cpu;
 
 	if (boot_cpu_has(X86_FEATURE_IBP_DISABLE))
@@ -169,16 +177,22 @@ void spec_ctrl_rescan_cpuid(void)
 	mutex_lock(&spec_ctrl_mutex);
 	if (boot_cpu_data.x86_vendor == X86_VENDOR_INTEL ||
 	    boot_cpu_data.x86_vendor == X86_VENDOR_AMD) {
+
+		old_spec = boot_cpu_has(X86_FEATURE_SPEC_CTRL);
+		old_ibpb = boot_cpu_has(X86_FEATURE_IBPB_SUPPORT);
+
 		/* detect spec ctrl related cpuid additions */
 		init_scattered_cpuid_features(&boot_cpu_data);
-		spec_ctrl_init(&boot_cpu_data);
+
+		/* if there were no spec ctrl related changes, we're done */
+		if (old_spec == boot_cpu_has(X86_FEATURE_SPEC_CTRL) &&
+		    old_ibpb == boot_cpu_has(X86_FEATURE_IBPB_SUPPORT))
+			goto done;
 
 		/*
 		 * The SPEC_CTRL and IBPB_SUPPORT cpuid bits may have
 		 * just been set in the boot_cpu_data, transfer them
-		 * to the per-cpu data too. This must run after
-		 * spec_ctrl_init() to take care of
-		 * setup_force_cpu_cap() too.
+		 * to the per-cpu data too.
 		 */
 		if (cpu_has_spec_ctrl())
 			for_each_online_cpu(cpu)
@@ -188,7 +202,20 @@ void spec_ctrl_rescan_cpuid(void)
 			for_each_online_cpu(cpu)
 				set_cpu_cap(&cpu_data(cpu),
 					    X86_FEATURE_IBPB_SUPPORT);
+
+		/*
+		 * Re-execute the v2 mitigation logic based on any new CPU
+		 * features.  Note that any debugfs-based changes the user may
+		 * have made will be overwritten, because new features are now
+		 * available, so any previous changes may no longer be
+		 * relevant.  Go back to the defaults unless they're overridden
+		 * by the cmdline.
+		 */
+		spec_ctrl_disable_all();
+		spec_ctrl_enable();
+		spec_ctrl_reinit_all_cpus();
 	}
+done:
 	mutex_unlock(&spec_ctrl_mutex);
 }
 

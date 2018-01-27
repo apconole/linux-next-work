@@ -242,7 +242,7 @@ extern void set_spec_ctrl_pcp_ibrs(bool enable);
 extern void set_spec_ctrl_pcp_ibpb(bool enable);
 
 extern void spec_ctrl_rescan_cpuid(void);
-extern void spec_ctrl_init(struct cpuinfo_x86 *c);
+extern void spec_ctrl_init(void);
 extern void spec_ctrl_cpu_init(void);
 
 enum {
