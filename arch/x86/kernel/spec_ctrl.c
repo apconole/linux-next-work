@@ -155,7 +155,6 @@ void spec_ctrl_init(struct cpuinfo_x86 *c)
 		switch (c->x86) {
 		case 0x10:
 		case 0x12:
-		case 0x16:
 			if (!use_ibp_disable) {
 				use_ibp_disable = true;
 				if (USE_IBP_DISABLE_DEFAULT) {
