@@ -344,10 +344,9 @@ static inline void spec_ctrl_ibpb(void)
 
 static inline void spec_ctrl_ibpb_if_different_creds(struct task_struct *next)
 {
-	struct task_struct *prev = current;
-
 	if (ibpb_enabled() &&
-	    (!next || ___ptrace_may_access(next, NULL, prev, PTRACE_MODE_IBPB))) {
+	    (!next || ___ptrace_may_access(current, current_cred(), next,
+					   PTRACE_MODE_IBPB))) {
 		__spec_ctrl_ibpb();
 
 		if (static_cpu_has(X86_FEATURE_SMEP))
