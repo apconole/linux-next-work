@@ -8,6 +8,7 @@
 #include <linux/percpu.h>
 #include <linux/debugfs.h>
 #include <linux/uaccess.h>
+#include <linux/module.h>
 #include <asm/spec_ctrl.h>
 #include <asm/cpufeature.h>
 #include <asm/nospec-branch.h>
@@ -17,6 +18,7 @@ static DEFINE_MUTEX(spec_ctrl_mutex);
 
 static bool noibrs_cmdline __read_mostly;
 static bool ibp_disabled __read_mostly;
+static bool unsafe_module __read_mostly;
 
 struct static_key retp_enabled_key = STATIC_KEY_INIT_FALSE;
 EXPORT_SYMBOL(retp_enabled_key);
@@ -201,6 +203,15 @@ void spec_ctrl_enable_retpoline(void)
 	set_spec_ctrl_retp(true);
 }
 
+void spec_ctrl_report_unsafe_module(struct module *mod)
+{
+	if (retp_compiler() && !is_skylake_era())
+		pr_warn_once("WARNING: module '%s' built without retpoline-enabled compiler, may affect Spectre v2 mitigation\n",
+			     mod->name);
+
+	unsafe_module = true;
+}
+
 enum spectre_v2_mitigation spec_ctrl_get_mitigation(void)
 {
 	enum spectre_v2_mitigation mode = SPECTRE_V2_NONE;
@@ -218,6 +229,8 @@ enum spectre_v2_mitigation spec_ctrl_get_mitigation(void)
 			mode = SPECTRE_V2_RETPOLINE_NO_IBPB;
 		else if (is_skylake_era())
 			mode = SPECTRE_V2_RETPOLINE_SKYLAKE;
+		else if (unsafe_module)
+			mode = SPECTRE_V2_RETPOLINE_UNSAFE_MODULE;
 		else
 			mode = SPECTRE_V2_RETPOLINE;
 	}
