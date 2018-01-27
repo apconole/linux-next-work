@@ -144,7 +144,6 @@ void spec_ctrl_init(struct cpuinfo_x86 *c)
 	 * On both Intel and AMD, SPEC_CTRL implies IBPB.
 	 */
 	if (cpu_has_spec_ctrl()) {
-		setup_force_cpu_cap(X86_FEATURE_IBPB_SUPPORT);
 		if (!ibrs_enabled() && !noibrs_cmdline) {
 			set_spec_ctrl_pcp_ibrs(true);
 		}

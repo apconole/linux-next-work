@@ -59,6 +59,9 @@ void init_scattered_cpuid_features(struct cpuinfo_x86 *c)
 		if (regs[cb->reg] & (1 << cb->bit))
 			set_cpu_cap(c, cb->feature);
 	}
+
+	if (cpu_has(c, X86_FEATURE_SPEC_CTRL))
+		set_cpu_cap(c, X86_FEATURE_IBPB_SUPPORT);
 }
 
 u32 get_scattered_cpuid_leaf(unsigned int level, unsigned int sub_leaf,
