@@ -25,7 +25,6 @@ static unsigned int ibrs_enabled __read_mostly;
 static bool noibrs_cmdline __read_mostly;
 
 #define USE_IBP_DISABLE_DEFAULT 1
-static bool use_ibp_disable __read_mostly;
 
 static void set_spec_ctrl_pcp(bool enable, int flag)
 {
@@ -118,7 +117,7 @@ bool ibpb_enabled(void)
 /* this is called when secondary CPUs come online */
 void spec_ctrl_cpu_init(void)
 {
-	if (use_ibp_disable) {
+	if (boot_cpu_has(X86_FEATURE_IBP_DISABLE)) {
 		bool enabled = !ibrs_enabled;
 		__sync_this_cpu_ibp(&enabled);
 		return;
@@ -149,31 +148,17 @@ void spec_ctrl_init(struct cpuinfo_x86 *c)
 	 * they can just disable indirect branch predictor
 	 * support (MSR 0xc0011021[14]).
 	 */
-	if (c->x86_vendor == X86_VENDOR_AMD &&
-	    !(boot_cpu_has(X86_FEATURE_IBPB_SUPPORT) || cpu_has_spec_ctrl()) &&
-	    !noibrs_cmdline) {
-		switch (c->x86) {
-		case 0x10:
-		case 0x12:
-			if (!use_ibp_disable) {
-				use_ibp_disable = true;
-				if (USE_IBP_DISABLE_DEFAULT) {
-					/* default enabled */
-					ibrs_enabled = IBRS_ENABLED_USER;
-				}
-
-				printk("FEATURE SPEC_CTRL Present "
-				       "(Implicit)\n");
-				printk("FEATURE IBPB_SUPPORT Present "
-				       "(Implicit)\n");
-			}
-			spec_ctrl_cpu_init();
-			break;
+	if (boot_cpu_has(X86_FEATURE_IBP_DISABLE)) {
+		if (!noibrs_cmdline && USE_IBP_DISABLE_DEFAULT) {
+			/* default enabled */
+			ibrs_enabled = IBRS_ENABLED_USER;
 		}
-	}
 
-	if (use_ibp_disable)
+		printk_once("FEATURE SPEC_CTRL Present (Implicit)\n");
+		printk_once("FEATURE IBPB_SUPPORT Present (Implicit)\n");
+		spec_ctrl_cpu_init();
 		return;
+	}
 
 	/*
 	 * On both Intel and AMD, SPEC_CTRL implies IBPB.
@@ -201,7 +186,7 @@ void spec_ctrl_rescan_cpuid(void)
 {
 	int cpu;
 
-	if (use_ibp_disable)
+	if (boot_cpu_has(X86_FEATURE_IBP_DISABLE))
 		return;
 	mutex_lock(&spec_ctrl_mutex);
 	if (boot_cpu_data.x86_vendor == X86_VENDOR_INTEL ||
@@ -268,7 +253,7 @@ static ssize_t ibrs_enabled_write(struct file *file,
 	if (ibrs_enabled == enable)
 		goto out_unlock;
 
-	if (use_ibp_disable) {
+	if (boot_cpu_has(X86_FEATURE_IBP_DISABLE)) {
 		if (enable == IBRS_ENABLED) {
 			count = -EINVAL;
 			goto out_unlock;

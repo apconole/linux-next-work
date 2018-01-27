@@ -821,6 +821,9 @@ static void init_amd(struct cpuinfo_x86 *c)
 	if (cpu_has_amd_erratum(c, amd_erratum_400))
 		set_cpu_bug(c, X86_BUG_AMD_APIC_C1E);
 
+	if (c->x86 == 0x10 || c->x86 == 0x12)
+		set_cpu_cap(c, X86_FEATURE_IBP_DISABLE);
+
 }
 
 #ifdef CONFIG_X86_32
