@@ -8938,12 +8938,12 @@ static void __noclone vmx_vcpu_run(struct kvm_vcpu *vcpu)
 	    vcpu->arch.pkru != vmx->host_pkru)
 		__write_pkru(vcpu->arch.pkru);
 
-	spec_ctrl_vmenter_ibrs(vmx->spec_ctrl);
-
 	atomic_switch_perf_msrs(vmx);
 	debugctlmsr = get_debugctlmsr();
 
 	vmx_arm_hv_timer(vcpu);
+
+	spec_ctrl_vmenter_ibrs(vmx->spec_ctrl);
 
 	vmx->__launched = vmx->loaded_vmcs->launched;
 	asm(

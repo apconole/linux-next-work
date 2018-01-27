@@ -189,7 +189,7 @@ enum {
 	IBRS_MAX = IBRS_ENABLED_USER,
 };
 
-static inline int cpu_has_spec_ctrl(void)
+static __always_inline int cpu_has_spec_ctrl(void)
 {
 	if (boot_cpu_has(X86_FEATURE_SPEC_CTRL))
 		return 1;
@@ -199,7 +199,7 @@ static inline int cpu_has_spec_ctrl(void)
 	return 0;
 }
 
-static inline unsigned int ibrs_enabled(void)
+static __always_inline unsigned int ibrs_enabled(void)
 {
 	if (cpu_has_spec_ctrl()) {
 		unsigned int ibrs = __this_cpu_read(spec_ctrl_pcp);
@@ -220,7 +220,7 @@ static inline unsigned int ibrs_enabled(void)
 	 return IBRS_DISABLED;
 }
 
-static bool ibrs_enabled_kernel(void)
+static __always_inline bool ibrs_enabled_kernel(void)
 {
 	unsigned int ibrs = ibrs_enabled();
 
@@ -266,18 +266,18 @@ static __always_inline void __spec_ctrl_vm_ibrs(u64 vcpu_ibrs, bool vmenter)
 		rmb();
 }
 
-static inline void spec_ctrl_vmenter_ibrs(u64 vcpu_ibrs)
+static __always_inline void spec_ctrl_vmenter_ibrs(u64 vcpu_ibrs)
 {
 	if (cpu_has_spec_ctrl())
 		__spec_ctrl_vm_ibrs(vcpu_ibrs, true);
 }
 
-static inline void __spec_ctrl_vmexit_ibrs(u64 vcpu_ibrs)
+static __always_inline void __spec_ctrl_vmexit_ibrs(u64 vcpu_ibrs)
 {
 	__spec_ctrl_vm_ibrs(vcpu_ibrs, false);
 }
 
-static inline void spec_ctrl_ibrs_on(void)
+static __always_inline void spec_ctrl_ibrs_on(void)
 {
 	if (ibrs_enabled_kernel())
 		native_wrmsrl(MSR_IA32_SPEC_CTRL, FEATURE_ENABLE_IBRS);
@@ -286,7 +286,7 @@ static inline void spec_ctrl_ibrs_on(void)
 		rmb();
 }
 
-static inline void spec_ctrl_ibrs_off(void)
+static __always_inline void spec_ctrl_ibrs_off(void)
 {
 	if (ibrs_enabled_kernel())
 		native_wrmsrl(MSR_IA32_SPEC_CTRL, 0);
