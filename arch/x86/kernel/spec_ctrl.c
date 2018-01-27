@@ -21,10 +21,10 @@ enum {
 	IBRS_ENABLED_USER,
 	IBRS_MAX = IBRS_ENABLED_USER,
 };
-static unsigned int ibrs_enabled __read_mostly;
-static bool noibrs_cmdline __read_mostly;
 
-#define USE_IBP_DISABLE_DEFAULT 1
+static bool noibrs_cmdline __read_mostly;
+static unsigned int ibrs_enabled __read_mostly;
+static bool ibp_disabled __read_mostly;
 
 static void set_spec_ctrl_pcp(bool enable, int flag)
 {
@@ -118,7 +118,7 @@ bool ibpb_enabled(void)
 void spec_ctrl_cpu_init(void)
 {
 	if (boot_cpu_has(X86_FEATURE_IBP_DISABLE)) {
-		bool enabled = !ibrs_enabled;
+		bool enabled = !ibp_disabled;
 		__sync_this_cpu_ibp(&enabled);
 		return;
 	}
@@ -149,9 +149,9 @@ void spec_ctrl_init(struct cpuinfo_x86 *c)
 	 * support (MSR 0xc0011021[14]).
 	 */
 	if (boot_cpu_has(X86_FEATURE_IBP_DISABLE)) {
-		if (!noibrs_cmdline && USE_IBP_DISABLE_DEFAULT) {
+		if (!noibrs_cmdline) {
 			/* default enabled */
-			ibrs_enabled = IBRS_ENABLED_USER;
+			ibp_disabled = true;
 		}
 
 		printk_once("FEATURE SPEC_CTRL Present (Implicit)\n");
@@ -188,6 +188,7 @@ void spec_ctrl_rescan_cpuid(void)
 
 	if (boot_cpu_has(X86_FEATURE_IBP_DISABLE))
 		return;
+
 	mutex_lock(&spec_ctrl_mutex);
 	if (boot_cpu_data.x86_vendor == X86_VENDOR_INTEL ||
 	    boot_cpu_data.x86_vendor == X86_VENDOR_AMD) {
@@ -227,7 +228,12 @@ static ssize_t __enabled_read(struct file *file, char __user *user_buf,
 static ssize_t ibrs_enabled_read(struct file *file, char __user *user_buf,
 				 size_t count, loff_t *ppos)
 {
-	return __enabled_read(file, user_buf, count, ppos, &ibrs_enabled);
+	unsigned int enabled = ibrs_enabled;
+
+	if (ibp_disabled)
+		enabled = IBRS_ENABLED_USER;
+
+	return __enabled_read(file, user_buf, count, ppos, &enabled);
 }
 
 static ssize_t ibrs_enabled_write(struct file *file,
@@ -250,7 +256,8 @@ static ssize_t ibrs_enabled_write(struct file *file,
 		return -EINVAL;
 
 	mutex_lock(&spec_ctrl_mutex);
-	if (ibrs_enabled == enable)
+	if ((!ibp_disabled && enable == ibrs_enabled) ||
+	    (ibp_disabled && enable == IBRS_ENABLED_USER))
 		goto out_unlock;
 
 	if (boot_cpu_has(X86_FEATURE_IBP_DISABLE)) {
@@ -260,12 +267,13 @@ static ssize_t ibrs_enabled_write(struct file *file,
 		} else {
 			if (enable == IBRS_DISABLED) {
 				sync_all_cpus_ibp(true);
+				ibp_disabled = false;
 			} else {
 				WARN_ON(enable != IBRS_ENABLED_USER);
 				sync_all_cpus_ibp(false);
+				ibp_disabled = true;
 			}
 		}
-		WRITE_ONCE(ibrs_enabled, enable);
 		goto out_unlock;
 	}
 
@@ -308,6 +316,9 @@ static ssize_t ibpb_enabled_read(struct file *file, char __user *user_buf,
 				 size_t count, loff_t *ppos)
 {
 	unsigned int enabled = ibpb_enabled();
+
+	if (ibp_disabled)
+		enabled = 1;
 
 	return __enabled_read(file, user_buf, count, ppos, &enabled);
 }
