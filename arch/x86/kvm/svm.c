@@ -5021,7 +5021,7 @@ static void svm_vcpu_run(struct kvm_vcpu *vcpu)
 	}
 
 	/* Eliminate branch target predictions from guest mode */
-	vmexit_fill_RSB();
+	fill_RSB();
 
 	reload_tss(vcpu);
 

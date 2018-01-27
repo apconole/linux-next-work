@@ -197,7 +197,7 @@ static inline bool retp_compiler(void)
  * retpoline and IBRS mitigations for Spectre v2 need this; only on future
  * CPUs with IBRS_ATT *might* it be avoided.
  */
-static inline void vmexit_fill_RSB(void)
+static inline void fill_RSB(void)
 {
 	unsigned long loops = RSB_CLEAR_LOOPS / 2;
 	register unsigned long sp asm(_ASM_SP);
