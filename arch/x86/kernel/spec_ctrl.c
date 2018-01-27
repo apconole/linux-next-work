@@ -37,11 +37,6 @@ void set_spec_ctrl_pcp_ibrs_user(bool enable)
 	set_spec_ctrl_pcp(enable, SPEC_CTRL_PCP_IBRS_USER);
 }
 
-void set_spec_ctrl_pcp_ibpb(bool enable)
-{
-	set_spec_ctrl_pcp(enable, SPEC_CTRL_PCP_IBPB);
-}
-
 static void spec_ctrl_sync_all_cpus(u32 msr_nr, u64 val)
 {
 	int cpu;
@@ -99,11 +94,6 @@ static int __init noibpb(char *str)
 }
 early_param("noibpb", noibpb);
 
-bool ibpb_enabled(void)
-{
-	return (__this_cpu_read(spec_ctrl_pcp) & SPEC_CTRL_PCP_IBPB);
-}
-
 /* this is called when secondary CPUs come online */
 void spec_ctrl_cpu_init(void)
 {
@@ -157,7 +147,6 @@ void spec_ctrl_init(struct cpuinfo_x86 *c)
 		setup_force_cpu_cap(X86_FEATURE_IBPB_SUPPORT);
 		if (!ibrs_enabled() && !noibrs_cmdline) {
 			set_spec_ctrl_pcp_ibrs(true);
-			set_spec_ctrl_pcp_ibpb(true);
 		}
 		printk_once(KERN_INFO "FEATURE SPEC_CTRL Present\n");
 		spec_ctrl_cpu_init();
@@ -274,17 +263,14 @@ static ssize_t ibrs_enabled_write(struct file *file,
 	if (enable == IBRS_ENABLED) {
 		set_spec_ctrl_pcp_ibrs_user(false);
 		set_spec_ctrl_pcp_ibrs(true);
-		set_spec_ctrl_pcp_ibpb(true);
 	} else {
 		set_spec_ctrl_pcp_ibrs(false);
 		if (enable == IBRS_DISABLED) {
 			set_spec_ctrl_pcp_ibrs_user(false);
-			set_spec_ctrl_pcp_ibpb(false);
 			sync_all_cpus_ibrs(false);
 		} else {
 			WARN_ON(enable != IBRS_ENABLED_USER);
 			set_spec_ctrl_pcp_ibrs_user(true);
-			set_spec_ctrl_pcp_ibpb(true);
 			sync_all_cpus_ibrs(true);
 		}
 	}

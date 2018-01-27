@@ -2,8 +2,7 @@
 #define _ASM_X86_SPEC_CTRL_H
 
 #define SPEC_CTRL_PCP_IBRS	(1<<0)
-#define SPEC_CTRL_PCP_IBPB	(1<<1)
-#define SPEC_CTRL_PCP_IBRS_USER	(1<<2)
+#define SPEC_CTRL_PCP_IBRS_USER	(1<<1)
 
 #define SPEC_CTRL_PCP_ENTRY (SPEC_CTRL_PCP_IBRS|SPEC_CTRL_PCP_IBRS_USER)
 
@@ -277,6 +276,11 @@ static inline int ibrs_enabled(void)
 	 return IBRS_DISABLED;
 }
 
+static inline bool ibpb_enabled(void)
+{
+	return (boot_cpu_has(X86_FEATURE_IBPB_SUPPORT) && ibrs_enabled());
+}
+
 static __always_inline void __spec_ctrl_vm_ibrs(u64 vcpu_ibrs, bool vmenter)
 {
 	u64 host_ibrs = 0, val;
@@ -341,22 +345,17 @@ static inline void __spec_ctrl_ibpb(void)
 
 static inline void spec_ctrl_ibpb(void)
 {
-	if (boot_cpu_has(X86_FEATURE_IBPB_SUPPORT)) {
-		if (__this_cpu_read(spec_ctrl_pcp) & SPEC_CTRL_PCP_IBPB)
-			__spec_ctrl_ibpb();
-	}
+	if (ibpb_enabled())
+		__spec_ctrl_ibpb();
 }
 
 static inline void spec_ctrl_ibpb_if_different_creds(struct task_struct *next)
 {
 	struct task_struct *prev = current;
 
-	if (boot_cpu_has(X86_FEATURE_IBPB_SUPPORT)) {
-		if (__this_cpu_read(spec_ctrl_pcp) & SPEC_CTRL_PCP_IBPB &&
-		    (!next || ___ptrace_may_access(next, NULL, prev,
-						   PTRACE_MODE_IBPB)))
-			__spec_ctrl_ibpb();
-	}
+	if (ibpb_enabled() &&
+	    (!next || ___ptrace_may_access(next, NULL, prev, PTRACE_MODE_IBPB)))
+		__spec_ctrl_ibpb();
 }
 
 static __always_inline void stuff_RSB(void)
