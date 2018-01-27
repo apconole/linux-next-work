@@ -24,12 +24,10 @@ enum {
 static unsigned int ibrs_enabled __read_mostly;
 static bool noibrs_cmdline __read_mostly;
 
-#define IBPB_ENABLED_ONLY_DEFAULT 1
 enum {
 	IBPB_DISABLED,
 	IBPB_ENABLED,
-	IBPB_ENABLED_ONLY, /* use only IBPB instead of IBRS */
-	IBPB_MAX = IBPB_ENABLED_ONLY,
+	IBPB_MAX = IBPB_ENABLED,
 };
 static unsigned int ibpb_enabled __read_mostly;
 static bool noibpb_cmdline __read_mostly;
@@ -61,11 +59,6 @@ void set_spec_ctrl_pcp_ibrs_user(bool enable)
 void set_spec_ctrl_pcp_ibpb(bool enable)
 {
 	set_spec_ctrl_pcp(enable, SPEC_CTRL_PCP_IBPB);
-}
-
-void set_spec_ctrl_pcp_only_ibpb(bool enable)
-{
-	set_spec_ctrl_pcp(enable, SPEC_CTRL_PCP_ONLY_IBPB);
 }
 
 static void spec_ctrl_sync_all_cpus(u32 msr_nr, u64 val)
@@ -208,11 +201,6 @@ void spec_ctrl_init(struct cpuinfo_x86 *c)
 		if (!ibpb_enabled && !noibpb_cmdline) {
 			set_spec_ctrl_pcp_ibpb(true);
 			ibpb_enabled = IBPB_ENABLED;
-			if (IBPB_ENABLED_ONLY_DEFAULT &&
-			    !cpu_has_spec_ctrl() && !ibrs_enabled) {
-				set_spec_ctrl_pcp_only_ibpb(true);
-				ibpb_enabled = IBPB_ENABLED_ONLY;
-			}
 		}
 		printk_once(KERN_INFO "FEATURE IBPB_SUPPORT Present\n");
 	} else {
@@ -314,11 +302,6 @@ static ssize_t ibrs_enabled_write(struct file *file,
 		goto out_unlock;
 	}
 
-	if (ibpb_enabled == IBPB_ENABLED_ONLY) {
-		count = -EINVAL;
-		goto out_unlock;
-	}
-
 	if (enable == IBRS_ENABLED) {
 		set_spec_ctrl_pcp_ibrs_user(false);
 		set_spec_ctrl_pcp_ibrs(true);
@@ -380,22 +363,11 @@ static ssize_t ibpb_enabled_write(struct file *file,
 		goto out_unlock;
 	}
 
-	if (enable == IBPB_ENABLED) {
+	if (enable == IBPB_ENABLED)
 		set_spec_ctrl_pcp_ibpb(true);
-		set_spec_ctrl_pcp_only_ibpb(false);
-	} else if (enable == IBPB_DISABLED) {
+	else if (enable == IBPB_DISABLED)
 		set_spec_ctrl_pcp_ibpb(false);
-		set_spec_ctrl_pcp_only_ibpb(false);
-	} else {
-		WARN_ON(enable != IBPB_ENABLED_ONLY);
-		set_spec_ctrl_pcp_ibpb(true);
-		set_spec_ctrl_pcp_only_ibpb(true);
 
-		set_spec_ctrl_pcp_ibrs(false);
-		set_spec_ctrl_pcp_ibrs_user(false);
-		sync_all_cpus_ibrs(false);
-		WRITE_ONCE(ibrs_enabled, IBRS_DISABLED);
-	}
 	WRITE_ONCE(ibpb_enabled, enable);
 
 out_unlock:
