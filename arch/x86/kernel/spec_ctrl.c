@@ -442,6 +442,7 @@ static ssize_t ibrs_enabled_write(struct file *file,
 			WARN_ON(enable != IBRS_ENABLED_ALWAYS);
 			sync_all_cpus_ibp(false);
 			ibp_disabled = true;
+			set_spec_ctrl_retp(false);
 		}
 		goto out_unlock;
 	}
@@ -456,12 +457,15 @@ static ssize_t ibrs_enabled_write(struct file *file,
 		sync_all_cpus_ibrs(false);
 	} else if (enable == IBRS_ENABLED) {
 		set_spec_ctrl_pcp_ibrs();
+		set_spec_ctrl_retp(false);
 	} else if (enable == IBRS_ENABLED_ALWAYS) {
 		set_spec_ctrl_pcp_ibrs_always();
+		set_spec_ctrl_retp(false);
 		sync_all_cpus_ibrs(true);
 	} else {
 		WARN_ON(enable != IBRS_ENABLED_USER);
 		set_spec_ctrl_pcp_ibrs_user();
+		set_spec_ctrl_retp(true);
 	}
 
 out_unlock:
@@ -523,6 +527,17 @@ static ssize_t retp_enabled_write(struct file *file,
 		goto out_unlock;
 
 	set_spec_ctrl_retp(enable);
+
+	if (enable) {
+		/* enforce sane combinations */
+		if (ibp_disabled) {
+			sync_all_cpus_ibp(true);
+			ibp_disabled = false;
+		} else if (ibrs_enabled() == IBRS_ENABLED)
+			clear_spec_ctrl_pcp();
+		else if (ibrs_enabled() == IBRS_ENABLED_ALWAYS)
+			set_spec_ctrl_pcp_ibrs_user();
+	}
 
 out_unlock:
 	mutex_unlock(&spec_ctrl_mutex);
