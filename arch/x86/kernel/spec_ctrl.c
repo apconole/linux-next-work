@@ -11,11 +11,15 @@
 #include <asm/spec_ctrl.h>
 #include <asm/cpufeature.h>
 #include <asm/nospec-branch.h>
+#include <asm/intel-family.h>
 
 static DEFINE_MUTEX(spec_ctrl_mutex);
 
 static bool noibrs_cmdline __read_mostly;
 static bool ibp_disabled __read_mostly;
+
+struct static_key retp_enabled_key = STATIC_KEY_INIT_FALSE;
+EXPORT_SYMBOL(retp_enabled_key);
 
 static void set_spec_ctrl_pcp(bool enable, int flag)
 {
@@ -80,12 +84,22 @@ static void sync_all_cpus_ibp(bool enable)
 	put_online_cpus();
 }
 
+static void set_spec_ctrl_retp(bool enable)
+{
+	if (!retp_enabled() && enable)
+		static_key_slow_inc(&retp_enabled_key);
+	else if (retp_enabled() && !enable)
+		static_key_slow_dec(&retp_enabled_key);
+}
+
 static void spec_ctrl_disable_all(void)
 {
 	int cpu;
 
 	for_each_possible_cpu(cpu)
 		WRITE_ONCE(per_cpu(spec_ctrl_pcp, cpu), 0);
+
+	set_spec_ctrl_retp(false);
 }
 
 static int __init noibrs(char *str)
@@ -103,6 +117,27 @@ static int __init noibpb(char *str)
 }
 early_param("noibpb", noibpb);
 
+static bool is_skylake_era(void)
+{
+	if (boot_cpu_data.x86_vendor == X86_VENDOR_INTEL &&
+	    boot_cpu_data.x86 == 6) {
+		switch (boot_cpu_data.x86_model) {
+		case INTEL_FAM6_SKYLAKE_MOBILE:
+		case INTEL_FAM6_SKYLAKE_DESKTOP:
+		case INTEL_FAM6_SKYLAKE_X:
+		case INTEL_FAM6_KABYLAKE_MOBILE:
+		case INTEL_FAM6_KABYLAKE_DESKTOP:
+			return true;
+		}
+	}
+	return false;
+}
+
+static bool retp_enabled_full(void)
+{
+	return retp_enabled() && retp_compiler();
+}
+
 bool spec_ctrl_force_enable_ibrs(void)
 {
 	if (cpu_has_spec_ctrl()) {
@@ -113,9 +148,10 @@ bool spec_ctrl_force_enable_ibrs(void)
 	return false;
 }
 
-bool spec_ctrl_cond_enable_ibrs(void)
+bool spec_ctrl_cond_enable_ibrs(bool full_retp)
 {
-	if (cpu_has_spec_ctrl() && !noibrs_cmdline) {
+	if (cpu_has_spec_ctrl() && (is_skylake_era() || !full_retp) &&
+	    !noibrs_cmdline) {
 		set_spec_ctrl_pcp_ibrs(true);
 		return true;
 	}
@@ -160,6 +196,11 @@ bool spec_ctrl_cond_enable_ibp_disabled(void)
 	return false;
 }
 
+void spec_ctrl_enable_retpoline(void)
+{
+	set_spec_ctrl_retp(true);
+}
+
 enum spectre_v2_mitigation spec_ctrl_get_mitigation(void)
 {
 	enum spectre_v2_mitigation mode = SPECTRE_V2_NONE;
@@ -170,6 +211,16 @@ enum spectre_v2_mitigation spec_ctrl_get_mitigation(void)
 		mode = SPECTRE_V2_IBRS_ALWAYS;
 	else if (ibrs_enabled() == IBRS_ENABLED)
 		mode = SPECTRE_V2_IBRS;
+	else if (retp_enabled()) {
+		if (!retp_enabled_full())
+			mode = SPECTRE_V2_RETPOLINE_MINIMAL;
+		else if (!boot_cpu_has(X86_FEATURE_IBPB_SUPPORT))
+			mode = SPECTRE_V2_RETPOLINE_NO_IBPB;
+		else if (is_skylake_era())
+			mode = SPECTRE_V2_RETPOLINE_SKYLAKE;
+		else
+			mode = SPECTRE_V2_RETPOLINE;
+	}
 
 	return mode;
 }
@@ -394,12 +445,59 @@ static const struct file_operations fops_ibpb_enabled = {
 	.llseek = default_llseek,
 };
 
+static ssize_t retp_enabled_read(struct file *file, char __user *user_buf,
+				 size_t count, loff_t *ppos)
+{
+	unsigned int enabled = retp_enabled();
+	return __enabled_read(file, user_buf, count, ppos, &enabled);
+}
+
+static ssize_t retp_enabled_write(struct file *file,
+				  const char __user *user_buf,
+				  size_t count, loff_t *ppos)
+{
+	char buf[32];
+	ssize_t len;
+	unsigned int enable;
+
+	len = min(count, sizeof(buf) - 1);
+	if (copy_from_user(buf, user_buf, len))
+		return -EFAULT;
+
+	buf[len] = '\0';
+	if (kstrtouint(buf, 0, &enable))
+		return -EINVAL;
+
+	if (enable > 1)
+		return -EINVAL;
+
+	mutex_lock(&spec_ctrl_mutex);
+
+	if (enable == retp_enabled())
+		goto out_unlock;
+
+	set_spec_ctrl_retp(enable);
+
+out_unlock:
+	mutex_unlock(&spec_ctrl_mutex);
+	return count;
+}
+
+
+static const struct file_operations fops_retp_enabled = {
+	.read = retp_enabled_read,
+	.write = retp_enabled_write,
+	.llseek = default_llseek,
+};
+
 static int __init debugfs_spec_ctrl(void)
 {
 	debugfs_create_file("ibrs_enabled", S_IRUSR | S_IWUSR,
 			    arch_debugfs_dir, NULL, &fops_ibrs_enabled);
 	debugfs_create_file("ibpb_enabled", S_IRUSR,
 			    arch_debugfs_dir, NULL, &fops_ibpb_enabled);
+	debugfs_create_file("retp_enabled", S_IRUSR | S_IWUSR,
+			    arch_debugfs_dir, NULL, &fops_retp_enabled);
 	return 0;
 }
 late_initcall(debugfs_spec_ctrl);

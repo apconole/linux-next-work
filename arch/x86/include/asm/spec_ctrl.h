@@ -238,15 +238,18 @@
 #include <linux/ptrace.h>
 #include <asm/microcode.h>
 
+extern struct static_key retp_enabled_key;
+
 extern void spec_ctrl_rescan_cpuid(void);
 extern void spec_ctrl_init(void);
 extern void spec_ctrl_cpu_init(void);
 
 bool spec_ctrl_force_enable_ibrs(void);
-bool spec_ctrl_cond_enable_ibrs(void);
+bool spec_ctrl_cond_enable_ibrs(bool full_retpoline);
 bool spec_ctrl_enable_ibrs_always(void);
 bool spec_ctrl_force_enable_ibp_disabled(void);
 bool spec_ctrl_cond_enable_ibp_disabled(void);
+void spec_ctrl_enable_retpoline(void);
 
 enum spectre_v2_mitigation spec_ctrl_get_mitigation(void);
 
@@ -281,9 +284,15 @@ static inline int ibrs_enabled(void)
 	 return IBRS_DISABLED;
 }
 
+static inline bool retp_enabled(void)
+{
+	return static_key_enabled(&retp_enabled_key);
+}
+
 static inline bool ibpb_enabled(void)
 {
-	return (boot_cpu_has(X86_FEATURE_IBPB_SUPPORT) && ibrs_enabled());
+	return (boot_cpu_has(X86_FEATURE_IBPB_SUPPORT) &&
+		(ibrs_enabled() || retp_enabled()));
 }
 
 static __always_inline void __spec_ctrl_vm_ibrs(u64 vcpu_ibrs, bool vmenter)

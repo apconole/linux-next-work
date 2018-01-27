@@ -3217,6 +3217,7 @@ bytes respectively. Such letter suffixes can also be entirely omitted.
 
 			Specific mitigations can also be selected manually:
 
+			retpoline	  - replace indirect branches
 			ibrs		  - Intel: Indirect Branch Restricted Speculation (kernel)
 			ibrs_always	  - Intel: Indirect Branch Restricted Speculation (kernel and user space)
 
