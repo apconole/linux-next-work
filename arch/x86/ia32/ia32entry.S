@@ -16,6 +16,7 @@
 #include <asm/asm.h>
 #include <asm/smap.h>
 #include <asm/spec_ctrl.h>
+#include <asm/nospec-branch.h>
 #include <linux/linkage.h>
 #include <linux/err.h>
 #include "../kernel/kaiser.h"
@@ -166,7 +167,12 @@ ENTRY(ia32_sysenter_target)
 sysenter_do_call:
 	IA32_ARG_FIXUP
 sysenter_dispatch:
+#ifdef CONFIG_RETPOLINE
+	mov	ia32_sys_call_table(,%rax,8), %rax
+	call	__x86_indirect_thunk_rax
+#else
 	call	*ia32_sys_call_table(,%rax,8)
+#endif
 	movq	%rax,RAX-ARGOFFSET(%rsp)
 	DISABLE_INTERRUPTS(CLBR_NONE)
 	TRACE_IRQS_OFF
@@ -330,7 +336,12 @@ ENTRY(ia32_cstar_target)
 cstar_do_call:
 	IA32_ARG_FIXUP 1
 cstar_dispatch:
+#ifdef CONFIG_RETPOLINE
+	mov ia32_sys_call_table(,%rax,8), %rax
+	call __x86_indirect_thunk_rax
+#else
 	call *ia32_sys_call_table(,%rax,8)
+#endif
 	movq %rax,RAX-ARGOFFSET(%rsp)
 	DISABLE_INTERRUPTS(CLBR_NONE)
 	TRACE_IRQS_OFF
@@ -482,7 +493,12 @@ ia32_do_call:
 	IA32_ARG_FIXUP
 	SAVE_REST
 	CLEAR_R10_TO_R15
+#ifdef CONFIG_RETPOLINE
+	mov ia32_sys_call_table(,%rax,8), %rax
+	call __x86_indirect_thunk_rax
+#else
 	call *ia32_sys_call_table(,%rax,8) # xxx: rip relative
+#endif
 ia32_ptregsret:
 	RESTORE_REST
 ia32_sysret:
@@ -537,7 +553,7 @@ ia32_ptregs_common:
 	/* ia32_syscall? already has the full frame */
 	cmpq $ia32_ptregsret, (%rsp)
 	jne  1f
-	jmp  *%rax
+	JMP_NOSPEC %rax
 1:
 	popq %r11
 	CFI_ENDPROC
@@ -555,7 +571,7 @@ ia32_ptregs_common:
 	CFI_REL_OFFSET	rsp,RSP-ARGOFFSET
 /*	CFI_REL_OFFSET	ss,SS-ARGOFFSET*/
 	SAVE_REST
-	call *%rax
+	CALL_NOSPEC %rax
 	RESTORE_REST
 	jmp  ia32_sysret	/* misbalances the return cache */
 	CFI_ENDPROC

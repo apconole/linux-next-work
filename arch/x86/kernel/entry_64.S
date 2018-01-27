@@ -58,6 +58,7 @@
 #include <asm/context_tracking.h>
 #include <asm/smap.h>
 #include <asm/spec_ctrl.h>
+#include <asm/nospec-branch.h>
 #include <linux/err.h>
 #include "kaiser.h"
 
@@ -400,7 +401,7 @@ ENTRY(ret_from_fork)
 	subq $REST_SKIP, %rsp	# leave space for volatiles
 	CFI_ADJUST_CFA_OFFSET	REST_SKIP
 	movq %rbp, %rdi
-	call *%rbx
+	CALL_NOSPEC %rbx
 	UNWIND_END_OF_STACK
 	movl $0, RAX(%rsp)
 	RESTORE_REST
@@ -481,7 +482,14 @@ system_call_fastpath:
 #endif
 	ja badsys
 	movq %r10,%rcx
-	call *sys_call_table(,%rax,8)  # XXX:	 rip relative
+
+#ifdef CONFIG_RETPOLINE
+	movq sys_call_table(, %rax, 8), %rax
+	call __x86_indirect_thunk_rax
+#else
+	call *sys_call_table(, %rax, 8)  # XXX:	 rip relative
+#endif
+
 	UNWIND_END_OF_STACK
 	movq %rax,RAX(%rsp)
 /*
@@ -602,7 +610,14 @@ tracesys:
 #endif
 	ja   1f		/* RAX(%rsp) set to -ENOSYS above */
 	movq %r10,%rcx	/* fixup for C */
-	call *sys_call_table(,%rax,8)
+
+#ifdef CONFIG_RETPOLINE
+	movq sys_call_table(, %rax, 8), %rax
+	call __x86_indirect_thunk_rax
+#else
+	call *sys_call_table(, %rax, 8)  # XXX:	 rip relative
+#endif
+
 	UNWIND_END_OF_STACK
 	movq %rax,RAX(%rsp)
 1:	RESTORE_REST
