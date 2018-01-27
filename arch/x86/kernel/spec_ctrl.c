@@ -10,6 +10,7 @@
 #include <linux/uaccess.h>
 #include <asm/spec_ctrl.h>
 #include <asm/cpufeature.h>
+#include <asm/nospec-branch.h>
 
 static DEFINE_MUTEX(spec_ctrl_mutex);
 
@@ -102,6 +103,77 @@ static int __init noibpb(char *str)
 }
 early_param("noibpb", noibpb);
 
+bool spec_ctrl_force_enable_ibrs(void)
+{
+	if (cpu_has_spec_ctrl()) {
+		set_spec_ctrl_pcp_ibrs(true);
+		return true;
+	}
+
+	return false;
+}
+
+bool spec_ctrl_cond_enable_ibrs(void)
+{
+	if (cpu_has_spec_ctrl() && !noibrs_cmdline) {
+		set_spec_ctrl_pcp_ibrs(true);
+		return true;
+	}
+
+	return false;
+}
+
+bool spec_ctrl_enable_ibrs_always(void)
+{
+	if (cpu_has_spec_ctrl()) {
+		set_spec_ctrl_pcp_ibrs_user(true);
+		return true;
+	}
+
+	return false;
+}
+
+bool spec_ctrl_force_enable_ibp_disabled(void)
+{
+	/*
+	 * Some AMD CPUs don't need IBPB or IBRS CPUID bits, because
+	 * they can just disable indirect branch predictor
+	 * support (MSR 0xc0011021[14]).
+	 */
+	if (boot_cpu_has(X86_FEATURE_IBP_DISABLE)) {
+		ibp_disabled = true;
+		return true;
+	}
+
+	ibp_disabled = false;
+	return false;
+}
+
+bool spec_ctrl_cond_enable_ibp_disabled(void)
+{
+	if (boot_cpu_has(X86_FEATURE_IBP_DISABLE) && !noibrs_cmdline) {
+		ibp_disabled = true;
+		return true;
+	}
+
+	ibp_disabled = false;
+	return false;
+}
+
+enum spectre_v2_mitigation spec_ctrl_get_mitigation(void)
+{
+	enum spectre_v2_mitigation mode = SPECTRE_V2_NONE;
+
+	if (ibp_disabled)
+		mode = SPECTRE_V2_IBP_DISABLED;
+	else if (ibrs_enabled() == IBRS_ENABLED_USER)
+		mode = SPECTRE_V2_IBRS_ALWAYS;
+	else if (ibrs_enabled() == IBRS_ENABLED)
+		mode = SPECTRE_V2_IBRS;
+
+	return mode;
+}
+
 static void spec_ctrl_print_features(void)
 {
 	if (boot_cpu_has(X86_FEATURE_IBP_DISABLE)) {
@@ -119,20 +191,6 @@ static void spec_ctrl_print_features(void)
 		printk(KERN_INFO "FEATURE IBPB_SUPPORT Present\n");
 	else
 		printk(KERN_INFO "FEATURE IBPB_SUPPORT Not Present\n");
-}
-
-static void spec_ctrl_enable(void)
-{
-	if (boot_cpu_has(X86_FEATURE_IBP_DISABLE) && !noibrs_cmdline) {
-		/* default enabled */
-		ibp_disabled = true;
-		return;
-	}
-
-	WARN_ON(cpu_has_spec_ctrl() && !boot_cpu_has(X86_FEATURE_IBPB_SUPPORT));
-
-	if (cpu_has_spec_ctrl() && !noibrs_cmdline)
-		set_spec_ctrl_pcp_ibrs(true);
 }
 
 void spec_ctrl_cpu_init(void)
@@ -163,11 +221,11 @@ static void spec_ctrl_reinit_all_cpus(void)
 void spec_ctrl_init(void)
 {
 	spec_ctrl_print_features();
-	spec_ctrl_enable();
 }
 
 void spec_ctrl_rescan_cpuid(void)
 {
+	enum spectre_v2_mitigation old_mode;
 	bool old_spec, old_ibpb;
 	int cpu;
 
@@ -180,6 +238,7 @@ void spec_ctrl_rescan_cpuid(void)
 
 		old_spec = boot_cpu_has(X86_FEATURE_SPEC_CTRL);
 		old_ibpb = boot_cpu_has(X86_FEATURE_IBPB_SUPPORT);
+		old_mode = spec_ctrl_get_mitigation();
 
 		/* detect spec ctrl related cpuid additions */
 		init_scattered_cpuid_features(&boot_cpu_data);
@@ -215,8 +274,12 @@ void spec_ctrl_rescan_cpuid(void)
 		 * by the cmdline.
 		 */
 		spec_ctrl_disable_all();
-		spec_ctrl_enable();
+		__spectre_v2_select_mitigation();
 		spec_ctrl_reinit_all_cpus();
+
+		/* print any mitigation changes */
+		if (old_mode != spec_ctrl_get_mitigation())
+			spectre_v2_print_mitigation();
 	}
 done:
 	mutex_unlock(&spec_ctrl_mutex);

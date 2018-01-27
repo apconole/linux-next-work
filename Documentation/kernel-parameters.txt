@@ -2203,6 +2203,11 @@ bytes respectively. Such letter suffixes can also be entirely omitted.
 
 	nohugeiomap	[KNL,x86] Disable kernel huge I/O mappings.
 
+	nospectre_v2	[X86] Disable all mitigations for the Spectre variant 2
+			(indirect branch prediction) vulnerability. System may
+			allow data leaks with this option, which is equivalent
+			to spectre_v2=off.
+
 	noxsave		[BUGS=X86] Disables x86 extended register state save
 			and restore using xsave. The kernel will fallback to
 			enabling legacy floating-point and sse state.
@@ -3195,6 +3200,28 @@ bytes respectively. Such letter suffixes can also be entirely omitted.
 
 	specialix=	[HW,SERIAL] Specialix multi-serial port adapter
 			See Documentation/serial/specialix.txt.
+
+	spectre_v2=	[X86] Control mitigation of Spectre variant 2
+			(indirect branch speculation) vulnerability.
+
+			on   - unconditionally enable
+			off  - unconditionally disable
+			auto - kernel detects whether your CPU model is
+			       vulnerable
+
+			Selecting 'on' will, and 'auto' may, choose a
+			mitigation method at run time according to the
+			CPU, the available microcode, the setting of the
+			CONFIG_RETPOLINE configuration option, and the
+			compiler with which the kernel was built.
+
+			Specific mitigations can also be selected manually:
+
+			ibrs		  - Intel: Indirect Branch Restricted Speculation (kernel)
+			ibrs_always	  - Intel: Indirect Branch Restricted Speculation (kernel and user space)
+
+			Not specifying this option is equivalent to
+			spectre_v2=auto.
 
 	spia_io_base=	[HW,MTD]
 	spia_fio_base=

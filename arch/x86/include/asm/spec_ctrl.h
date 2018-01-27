@@ -238,12 +238,17 @@
 #include <linux/ptrace.h>
 #include <asm/microcode.h>
 
-extern void set_spec_ctrl_pcp_ibrs(bool enable);
-extern void set_spec_ctrl_pcp_ibpb(bool enable);
-
 extern void spec_ctrl_rescan_cpuid(void);
 extern void spec_ctrl_init(void);
 extern void spec_ctrl_cpu_init(void);
+
+bool spec_ctrl_force_enable_ibrs(void);
+bool spec_ctrl_cond_enable_ibrs(void);
+bool spec_ctrl_enable_ibrs_always(void);
+bool spec_ctrl_force_enable_ibp_disabled(void);
+bool spec_ctrl_cond_enable_ibp_disabled(void);
+
+enum spectre_v2_mitigation spec_ctrl_get_mitigation(void);
 
 enum {
 	IBRS_DISABLED,
