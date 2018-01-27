@@ -171,6 +171,9 @@ bool spec_ctrl_enable_retpoline_ibrs_user(void);
 
 enum spectre_v2_mitigation spec_ctrl_get_mitigation(void);
 
+bool unprotected_firmware_begin(void);
+void unprotected_firmware_end(bool ibrs_on);
+
 enum {
 	IBRS_DISABLED,
 
@@ -286,6 +289,42 @@ static inline void spec_ctrl_ibrs_on(void)
 static inline void spec_ctrl_ibrs_off(void)
 {
 	if (ibrs_enabled_kernel())
+		native_wrmsrl(MSR_IA32_SPEC_CTRL, 0);
+	else
+		/* rmb to prevent wrong speculation for security */
+		rmb();
+}
+
+/*
+ * These functions are called before calling into firmware.  Firmware might
+ * have indirect branches, so if we're running with retpolines, we need to
+ * enable IBRS to protect the kernel from spectre v2.
+ *
+ * The 'ibrs_on' variable is used to prevent race conditions.  Otherwise, if
+ * the admin disabled IBRS while a CPU was running in firmware, IBRS could get
+ * stuck on indefinitely.
+ *
+ * There are still other race conditions possible, but they're generally not a
+ * problem because they'll get corrected on the next kernel exit.
+ */
+static inline bool spec_ctrl_ibrs_on_firmware(void)
+{
+	bool ibrs_on = false;
+
+	if (cpu_has_spec_ctrl() && retp_enabled() && !ibrs_enabled_kernel()) {
+		native_wrmsrl(MSR_IA32_SPEC_CTRL, FEATURE_ENABLE_IBRS);
+		ibrs_on = true;
+	} else {
+		/* rmb to prevent wrong speculation for security */
+		rmb();
+	}
+
+	return ibrs_on;
+}
+
+static inline void spec_ctrl_ibrs_off_firmware(bool ibrs_on)
+{
+	if (ibrs_on)
 		native_wrmsrl(MSR_IA32_SPEC_CTRL, 0);
 	else
 		/* rmb to prevent wrong speculation for security */

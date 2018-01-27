@@ -562,3 +562,32 @@ static int __init debugfs_spec_ctrl(void)
 	return 0;
 }
 late_initcall(debugfs_spec_ctrl);
+
+#if defined(RETPOLINE)
+/*
+ * RETPOLINE does not protect against indirect speculation
+ * in firmware code.  Enable IBRS to protect firmware execution.
+ */
+bool unprotected_firmware_begin(void)
+{
+	return spec_ctrl_ibrs_on_firmware();
+}
+EXPORT_SYMBOL_GPL(unprotected_firmware_begin);
+
+void unprotected_firmware_end(bool ibrs_on)
+{
+	spec_ctrl_ibrs_off_firmware(ibrs_on);
+}
+EXPORT_SYMBOL_GPL(unprotected_firmware_end);
+
+#else
+bool unprotected_firmware_begin(void)
+{
+}
+EXPORT_SYMBOL_GPL(unprotected_firmware_begin);
+
+void unprotected_firmware_end(bool ibrs_on)
+{
+}
+EXPORT_SYMBOL_GPL(unprotected_firmware_end);
+#endif

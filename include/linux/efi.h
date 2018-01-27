@@ -1301,14 +1301,15 @@ extern void efi_call_virt_check_flags(unsigned long flags, const char *call);
 ({									\
 	efi_status_t __s;						\
 	unsigned long __flags;						\
+	bool ibrs_on;							\
 									\
-	arch_efi_call_virt_setup();					\
+	ibrs_on = arch_efi_call_virt_setup();				\
 									\
 	local_save_flags(__flags);					\
 	__s = arch_efi_call_virt(p, f, args);				\
 	efi_call_virt_check_flags(__flags, __stringify(f));		\
 									\
-	arch_efi_call_virt_teardown();					\
+	arch_efi_call_virt_teardown(ibrs_on);				\
 									\
 	__s;								\
 })
@@ -1316,14 +1317,15 @@ extern void efi_call_virt_check_flags(unsigned long flags, const char *call);
 #define __efi_call_virt_pointer(p, f, args...)				\
 ({									\
 	unsigned long __flags;						\
+	bool ibrs_on;							\
 									\
-	arch_efi_call_virt_setup();					\
+	ibrs_on = arch_efi_call_virt_setup();				\
 									\
 	local_save_flags(__flags);					\
 	arch_efi_call_virt(p, f, args);					\
 	efi_call_virt_check_flags(__flags, __stringify(f));		\
 									\
-	arch_efi_call_virt_teardown();					\
+	arch_efi_call_virt_teardown(ibrs_on);				\
 })
 
 #endif /* _LINUX_EFI_H */

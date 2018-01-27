@@ -5,6 +5,7 @@
 #include <asm/pgtable.h>
 #include <asm/processor-flags.h>
 #include <asm/tlb.h>
+#include <asm/spec_ctrl.h>
 
 /*
  * We map the EFI regions needed for runtime services non-contiguously,
@@ -33,8 +34,20 @@
 
 extern unsigned long asmlinkage efi_call_phys(void *, ...);
 
-#define arch_efi_call_virt_setup()	kernel_fpu_begin()
-#define arch_efi_call_virt_teardown()	kernel_fpu_end()
+#define arch_efi_call_virt_setup()					\
+{(									\
+	bool ibrs_on;							\
+	kernel_fpu_begin();						\
+	ibrs_on = unprotected_firmware_begin();				\
+	ibrs_on;							\
+)}
+
+#define arch_efi_call_virt_teardown(ibrs_on)				\
+{(									\
+	unprotected_firmware_end(ibrs_on);				\
+	kernel_fpu_end();						\
+)}
+
 
 /*
  * Wrap all the virtual calls in a way that forces the parameters on the stack.
@@ -67,26 +80,30 @@ struct efi_scratch {
 
 #define arch_efi_call_virt_setup()					\
 ({									\
+	bool ibrs_on;							\
 	efi_sync_low_kernel_mappings();					\
 	preempt_disable();						\
+	ibrs_on = unprotected_firmware_begin();				\
 									\
 	if (efi_scratch.use_pgd) {					\
 		efi_scratch.prev_cr3 = read_cr3();			\
 		write_cr3((unsigned long)efi_scratch.efi_pgt);		\
 		__flush_tlb_all();					\
 	}								\
+	ibrs_on;							\
 })
 
 #define arch_efi_call_virt(p, f, args...)				\
 	efi_call((void *)p->f, args)					\
 
-#define arch_efi_call_virt_teardown()					\
+#define arch_efi_call_virt_teardown(ibrs_on)				\
 ({									\
 	if (efi_scratch.use_pgd) {					\
 		write_cr3(efi_scratch.prev_cr3);			\
 		__flush_tlb_all();					\
 	}								\
 									\
+	unprotected_firmware_end(ibrs_on);				\
 	preempt_enable();						\
 })
 
