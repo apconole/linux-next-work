@@ -199,12 +199,12 @@ static inline bool retp_compiler(void)
  */
 static inline void fill_RSB(void)
 {
-	unsigned long loops = RSB_CLEAR_LOOPS / 2;
+	unsigned long loops;
 	register unsigned long sp asm(_ASM_SP);
 
 	asm volatile (__stringify(__FILL_RETURN_BUFFER(%0, RSB_CLEAR_LOOPS, %1))
-		      : "=&r" (loops), "+r" (sp)
-		      : "r" (loops) : "memory" );
+		      : "=r" (loops), "+r" (sp)
+		      : : "memory" );
 }
 
 #endif /* __ASSEMBLY__ */
