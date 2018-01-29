@@ -118,25 +118,6 @@ static void failsafe_emulate_mmio_rw(struct intel_vgpu *vgpu, uint64_t pa,
 		else
 			memcpy(pt, p_data, bytes);
 
-	} else if (atomic_read(&vgpu->gtt.n_tracked_guest_page)) {
-		struct intel_vgpu_page_track *t;
-
-		/* Since we enter the failsafe mode early during guest boot,
-		 * guest may not have chance to set up its ppgtt table, so
-		 * there should not be any wp pages for guest. Keep the wp
-		 * related code here in case we need to handle it in furture.
-		 */
-		t = intel_vgpu_find_tracked_page(vgpu, pa >> PAGE_SHIFT);
-		if (t) {
-			/* remove write protection to prevent furture traps */
-			intel_vgpu_clean_page_track(vgpu, t);
-			if (read)
-				intel_gvt_hypervisor_read_gpa(vgpu, pa,
-						p_data, bytes);
-			else
-				intel_gvt_hypervisor_write_gpa(vgpu, pa,
-						p_data, bytes);
-		}
 	}
 	mutex_unlock(&gvt->lock);
 }
@@ -169,24 +150,6 @@ int intel_vgpu_emulate_mmio_read(struct intel_vgpu *vgpu, uint64_t pa,
 		ret = vgpu_aperture_rw(vgpu, pa, p_data, bytes, true);
 		mutex_unlock(&gvt->lock);
 		return ret;
-	}
-
-	if (atomic_read(&vgpu->gtt.n_tracked_guest_page)) {
-		struct intel_vgpu_page_track *t;
-
-		t = intel_vgpu_find_tracked_page(vgpu, pa >> PAGE_SHIFT);
-		if (t) {
-			ret = intel_gvt_hypervisor_read_gpa(vgpu, pa,
-					p_data, bytes);
-			if (ret) {
-				gvt_vgpu_err("guest page read error %d, "
-					"gfn 0x%lx, pa 0x%llx, var 0x%x, len %d\n",
-					ret, t->gfn, pa, *(u32 *)p_data,
-					bytes);
-			}
-			mutex_unlock(&gvt->lock);
-			return ret;
-		}
 	}
 
 	offset = intel_vgpu_gpa_to_mmio_offset(vgpu, pa);
@@ -266,24 +229,6 @@ int intel_vgpu_emulate_mmio_write(struct intel_vgpu *vgpu, uint64_t pa,
 		ret = vgpu_aperture_rw(vgpu, pa, p_data, bytes, false);
 		mutex_unlock(&gvt->lock);
 		return ret;
-	}
-
-	if (atomic_read(&vgpu->gtt.n_tracked_guest_page)) {
-		struct intel_vgpu_page_track *t;
-
-		t = intel_vgpu_find_tracked_page(vgpu, pa >> PAGE_SHIFT);
-		if (t) {
-			ret = t->handler(t, pa, p_data, bytes);
-			if (ret) {
-				gvt_err("guest page write error %d, "
-					"gfn 0x%lx, pa 0x%llx, "
-					"var 0x%x, len %d\n",
-					ret, t->gfn, pa,
-					*(u32 *)p_data, bytes);
-			}
-			mutex_unlock(&gvt->lock);
-			return ret;
-		}
 	}
 
 	offset = intel_vgpu_gpa_to_mmio_offset(vgpu, pa);

@@ -507,6 +507,8 @@ struct intel_gvt_ops {
 	void (*vgpu_reset)(struct intel_vgpu *);
 	void (*vgpu_activate)(struct intel_vgpu *);
 	void (*vgpu_deactivate)(struct intel_vgpu *);
+	int (*write_protect_handler)(struct intel_vgpu *, u64, void *,
+				     unsigned int);
 };
 
 
