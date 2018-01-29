@@ -141,7 +141,7 @@ void nvme_complete_rq(struct request *req)
 {
 	if (unlikely(nvme_req(req)->status && nvme_req_needs_retry(req))) {
 		nvme_req(req)->retries++;
-		blk_mq_requeue_request(req, !blk_mq_queue_stopped(req->q));
+		blk_mq_requeue_request(req, true);
 		return;
 	}
 
@@ -2561,9 +2561,6 @@ void nvme_kill_queues(struct nvme_ctrl *ctrl)
 		 * when the final removal happens.
 		 */
 		blk_mq_start_hw_queues(ns->queue);
-
-		/* draining requests in requeue list */
-		blk_mq_kick_requeue_list(ns->queue);
 	}
 	mutex_unlock(&ctrl->namespaces_mutex);
 }
@@ -2640,7 +2637,6 @@ void nvme_start_queues(struct nvme_ctrl *ctrl)
 	list_for_each_entry(ns, &ctrl->namespaces, list) {
 		queue_flag_clear_unlocked(QUEUE_FLAG_STOPPED, ns->queue);
 		blk_mq_start_stopped_hw_queues(ns->queue, true);
-		blk_mq_kick_requeue_list(ns->queue);
 	}
 	mutex_unlock(&ctrl->namespaces_mutex);
 }
