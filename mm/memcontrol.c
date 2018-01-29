@@ -58,6 +58,7 @@
 #include <net/sock.h>
 #include <net/ip.h>
 #include <net/tcp_memcontrol.h>
+#include "slab.h"
 
 #include <asm/uaccess.h>
 
@@ -3071,16 +3072,6 @@ static void memcg_uncharge_kmem(struct mem_cgroup *memcg,
 		mem_cgroup_put(memcg);
 }
 
-void memcg_cache_list_add(struct mem_cgroup *memcg, struct kmem_cache *cachep)
-{
-	if (!memcg)
-		return;
-
-	mutex_lock(&memcg->slab_caches_mutex);
-	list_add(&cachep->memcg_params->list, &memcg->memcg_slab_caches);
-	mutex_unlock(&memcg->slab_caches_mutex);
-}
-
 /*
  * helper for acessing a memcg's index. It will be used as an index in the
  * child cache array in kmem_cache, and also to derive its name. This function
@@ -3246,7 +3237,32 @@ void memcg_free_cache_params(struct kmem_cache *s)
 	kfree(s->memcg_params);
 }
 
-void memcg_release_cache(struct kmem_cache *s)
+void memcg_register_cache(struct kmem_cache *s)
+{
+	struct kmem_cache *root;
+	struct mem_cgroup *memcg;
+	int id;
+
+	if (is_root_cache(s))
+		return;
+
+	root = s->memcg_params->root_cache;
+	memcg = s->memcg_params->memcg;
+	id = memcg_cache_id(memcg);
+
+	mutex_lock(&memcg->slab_caches_mutex);
+	list_add(&s->memcg_params->list, &memcg->memcg_slab_caches);
+	mutex_unlock(&memcg->slab_caches_mutex);
+
+	root->memcg_params->memcg_caches[id] = s;
+	/*
+	 * the readers won't lock, make sure everybody sees the updated value,
+	 * so they won't put stuff in the queue again for no reason
+	 */
+	wmb();
+}
+
+void memcg_unregister_cache(struct kmem_cache *s)
 {
 	struct kmem_cache *root;
 	struct mem_cgroup *memcg;
@@ -3260,7 +3276,7 @@ void memcg_release_cache(struct kmem_cache *s)
 		return;
 
 	if (s->memcg_params->is_root_cache)
-		goto out;
+		return;
 
 	memcg = s->memcg_params->memcg;
 	id  = memcg_cache_id(memcg);
@@ -3273,8 +3289,6 @@ void memcg_release_cache(struct kmem_cache *s)
 	mutex_unlock(&memcg->slab_caches_mutex);
 
 	mem_cgroup_put(memcg);
-out:
-	memcg_free_cache_params(s);
 }
 
 /*
@@ -3442,14 +3456,6 @@ static struct kmem_cache *memcg_create_kmem_cache(struct mem_cgroup *memcg,
 	}
 
 	mem_cgroup_get(memcg);
-	atomic_set(&new_cachep->memcg_params->nr_pages , 0);
-
-	cachep->memcg_params->memcg_caches[idx] = new_cachep;
-	/*
-	 * the readers won't lock, make sure everybody sees the updated value,
-	 * so they won't put stuff in the queue again for no reason
-	 */
-	wmb();
 out:
 	mutex_unlock(&memcg_cache_mutex);
 	return new_cachep;
