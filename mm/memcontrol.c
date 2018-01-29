@@ -3246,6 +3246,12 @@ void memcg_register_cache(struct kmem_cache *s)
 	if (is_root_cache(s))
 		return;
 
+	/*
+	 * Holding the slab_mutex assures nobody will touch the memcg_caches
+	 * array while we are modifying it.
+	 */
+	lockdep_assert_held(&slab_mutex);
+
 	root = s->memcg_params->root_cache;
 	memcg = s->memcg_params->memcg;
 	id = memcg_cache_id(memcg);
@@ -3254,6 +3260,7 @@ void memcg_register_cache(struct kmem_cache *s)
 	list_add(&s->memcg_params->list, &memcg->memcg_slab_caches);
 	mutex_unlock(&memcg->slab_caches_mutex);
 
+	VM_BUG_ON(root->memcg_params->memcg_caches[id]);
 	root->memcg_params->memcg_caches[id] = s;
 	/*
 	 * the readers won't lock, make sure everybody sees the updated value,
@@ -3278,10 +3285,17 @@ void memcg_unregister_cache(struct kmem_cache *s)
 	if (s->memcg_params->is_root_cache)
 		return;
 
+	/*
+	 * Holding the slab_mutex assures nobody will touch the memcg_caches
+	 * array while we are modifying it.
+	 */
+	lockdep_assert_held(&slab_mutex);
+
 	memcg = s->memcg_params->memcg;
 	id  = memcg_cache_id(memcg);
 
 	root = s->memcg_params->root_cache;
+	VM_BUG_ON(!root->memcg_params->memcg_caches[id]);
 	root->memcg_params->memcg_caches[id] = NULL;
 
 	mutex_lock(&memcg->slab_caches_mutex);
@@ -3438,16 +3452,10 @@ static struct kmem_cache *memcg_create_kmem_cache(struct mem_cgroup *memcg,
 						  struct kmem_cache *cachep)
 {
 	struct kmem_cache *new_cachep;
-	int idx;
 
 	BUG_ON(!memcg_can_account_kmem(memcg));
 
-	idx = memcg_cache_id(memcg);
-
 	mutex_lock(&memcg_cache_mutex);
-	new_cachep = cachep->memcg_params->memcg_caches[idx];
-	if (new_cachep)
-		goto out;
 
 	new_cachep = kmem_cache_dup(memcg, cachep);
 	if (new_cachep == NULL) {
