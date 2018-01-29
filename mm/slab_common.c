@@ -219,14 +219,15 @@ kmem_cache_create_memcg(struct mem_cgroup *memcg, const char *name, size_t size,
 		s->align = calculate_alignment(flags, align, size);
 		s->ctor = ctor;
 
-		if (memcg_register_cache(memcg, s, parent_cache)) {
+		err = memcg_alloc_cache_params(memcg, s, parent_cache);
+		if (err) {
 			kmem_cache_free(kmem_cache, s);
-			err = -ENOMEM;
 			goto out_locked;
 		}
 
 		s->name = kstrdup(name, GFP_KERNEL);
 		if (!s->name) {
+			memcg_free_cache_params(s);
 			kmem_cache_free(kmem_cache, s);
 			err = -ENOMEM;
 			goto out_locked;
@@ -238,6 +239,7 @@ kmem_cache_create_memcg(struct mem_cgroup *memcg, const char *name, size_t size,
 			list_add(&s->list, &slab_caches);
 			memcg_cache_list_add(memcg, s);
 		} else {
+			memcg_free_cache_params(s);
 			kfree(s->name);
 			kmem_cache_free(kmem_cache, s);
 		}
