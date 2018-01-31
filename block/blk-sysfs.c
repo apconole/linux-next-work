@@ -660,6 +660,7 @@ unlock:
 	mutex_unlock(&q->sysfs_lock);
 	return ret;
 }
+EXPORT_SYMBOL_GPL(blk_register_queue);
 
 /**
  * blk_unregister_queue - counterpart of blk_register_queue()
@@ -673,6 +674,10 @@ void blk_unregister_queue(struct gendisk *disk)
 	struct request_queue *q = disk->queue;
 
 	if (WARN_ON(!q))
+		return;
+
+	/* Return early if disk->queue was never registered. */
+	if (!test_bit(QUEUE_FLAG_REGISTERED, &q->queue_flags))
 		return;
 
 	/*
