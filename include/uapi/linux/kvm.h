@@ -712,6 +712,7 @@ struct kvm_ppc_resize_hpt {
 #define KVM_CAP_MAX_VCPU_ID 128
 #define KVM_CAP_X2APIC_API 129
 #define KVM_CAP_SPAPR_RESIZE_HPT 133
+#define KVM_CAP_PPC_GET_CPU_CHAR 151
 
 #ifdef KVM_CAP_IRQ_ROUTING
 
@@ -1002,6 +1003,8 @@ struct kvm_s390_ucas_mapping {
 /* Available with KVM_CAP_SPAPR_RESIZE_HPT */
 #define KVM_PPC_RESIZE_HPT_PREPARE _IOR(KVMIO, 0xad, struct kvm_ppc_resize_hpt)
 #define KVM_PPC_RESIZE_HPT_COMMIT  _IOR(KVMIO, 0xae, struct kvm_ppc_resize_hpt)
+/* Available with KVM_CAP_PPC_GET_CPU_CHAR */
+#define KVM_PPC_GET_CPU_CHAR	  _IOR(KVMIO,  0xb1, struct kvm_ppc_cpu_char)
 
 /* ioctl for vm fd */
 #define KVM_CREATE_DEVICE	  _IOWR(KVMIO,  0xe0, struct kvm_create_device)
