@@ -204,6 +204,7 @@ extern void *kexec_purgatory_get_symbol_addr(struct kimage *image,
 extern void __crash_kexec(struct pt_regs *);
 extern void crash_kexec(struct pt_regs *);
 int kexec_should_crash(struct task_struct *);
+int kexec_crash_loaded(void);
 void crash_save_cpu(struct pt_regs *regs, int cpu);
 
 extern struct kimage *kexec_image;
@@ -265,5 +266,6 @@ struct task_struct;
 static inline void __crash_kexec(struct pt_regs *regs) { }
 static inline void crash_kexec(struct pt_regs *regs) { }
 static inline int kexec_should_crash(struct task_struct *p) { return 0; }
+static inline int kexec_crash_loaded(void) { return 0; }
 #endif /* CONFIG_KEXEC_CORE */
 #endif /* LINUX_KEXEC_H */
