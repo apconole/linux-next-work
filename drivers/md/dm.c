@@ -1783,7 +1783,7 @@ static struct mapped_device *alloc_dev(int minor)
 		goto bad;
 	md->dax_dev = dax_dev;
 
-	add_disk(md->disk);
+	add_disk_no_queue_reg(md->disk);
 	format_dev_t(md->name, MKDEV(_major, minor));
 
 	md->wq = alloc_workqueue("kdmflush", WQ_MEM_RECLAIM, 0);
@@ -2105,6 +2105,8 @@ EXPORT_SYMBOL_GPL(dm_get_queue_limits);
 int dm_setup_md_queue(struct mapped_device *md, struct dm_table *t)
 {
 	int r;
+	struct queue_limits limits;
+	struct queue_limits_aux limits_aux;
 	enum dm_queue_mode type = dm_get_md_type(md);
 
 	switch (type) {
@@ -2135,6 +2137,15 @@ int dm_setup_md_queue(struct mapped_device *md, struct dm_table *t)
 		WARN_ON_ONCE(true);
 		break;
 	}
+
+	limits.limits_aux = &limits_aux;
+	r = dm_calculate_queue_limits(t, &limits);
+	if (r) {
+		DMERR("Cannot calculate initial queue limits");
+		return r;
+	}
+	dm_table_set_restrictions(t, md->queue, &limits);
+	blk_register_queue(md->disk);
 
 	return 0;
 }
