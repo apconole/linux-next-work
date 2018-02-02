@@ -702,11 +702,14 @@ static void update_curr(struct cfs_rq *cfs_rq)
 	struct sched_entity *curr = cfs_rq->curr;
 	u64 now = rq_clock_task(rq_of(cfs_rq));
 	u64 delta_exec;
-	//struct rq *rq = rq_of(cfs_rq);
-	//int cpu = cpu_of(rq);
+	struct rq *rq = rq_of(cfs_rq);
+	int cpu = cpu_of(rq);
 
 	if (unlikely(!curr))
 		return;
+
+	if (cpu == smp_processor_id())
+		cpufreq_trigger_update(now);
 
 	delta_exec = now - curr->exec_start;
 	if (unlikely((s64)delta_exec <= 0))

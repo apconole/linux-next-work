@@ -1677,7 +1677,7 @@ static inline int32_t get_target_pstate_use_cpu_load(struct cpudata *cpu)
 	cpu_load = div64_u64(int_tofp(100) * mperf, sample->tsc);
 	cpu->sample.busy_scaled = cpu_load;
 
-	return get_avg_pstate(cpu) - pid_calc(&cpu->pid, cpu_load);
+	return cpu->pstate.current_pstate - pid_calc(&cpu->pid, cpu_load);
 }
 
 static inline int32_t get_target_pstate_use_performance(struct cpudata *cpu)
@@ -1851,7 +1851,7 @@ static int intel_pstate_init_cpu(unsigned int cpunum)
 			intel_pstate_disable_ee(cpunum);
 
 		intel_pstate_hwp_enable(cpu);
-	} else if (pstate_funcs.get_target_pstate == get_target_pstate_use_performance) {
+	} else {
 		intel_pstate_pid_reset(cpu);
 	}
 
