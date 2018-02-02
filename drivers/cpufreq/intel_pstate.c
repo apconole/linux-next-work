@@ -2324,19 +2324,6 @@ static int intel_pstate_msrs_not_valid(void)
 	return 0;
 }
 
-#ifdef CONFIG_ACPI
-static void intel_pstate_use_acpi_profile(void)
-{
-	if (acpi_gbl_FADT.preferred_profile == PM_MOBILE)
-		pstate_funcs.get_target_pstate =
-				get_target_pstate_use_cpu_load;
-}
-#else
-static void intel_pstate_use_acpi_profile(void)
-{
-}
-#endif
-
 static void copy_cpu_funcs(struct pstate_funcs *funcs)
 {
 	pstate_funcs.get_max   = funcs->get_max;
@@ -2348,8 +2335,6 @@ static void copy_cpu_funcs(struct pstate_funcs *funcs)
 	pstate_funcs.get_vid   = funcs->get_vid;
 	pstate_funcs.get_target_pstate = funcs->get_target_pstate;
 	pstate_funcs.get_aperf_mperf_shift = funcs->get_aperf_mperf_shift;
-
-	intel_pstate_use_acpi_profile();
 }
 
 #ifdef CONFIG_ACPI
@@ -2494,9 +2479,7 @@ static int __init intel_pstate_init(void)
 
 	if (x86_match_cpu(hwp_support_ids)) {
 		copy_cpu_funcs(&core_funcs);
-		if (no_hwp) {
-			pstate_funcs.get_target_pstate = get_target_pstate_use_cpu_load;
-		} else {
+		if (!no_hwp) {
 			hwp_active++;
 			intel_pstate.attr = hwp_cpufreq_attrs;
 			pid_params.sample_rate_ns = 50 * NSEC_PER_MSEC;
