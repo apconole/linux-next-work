@@ -2327,15 +2327,9 @@ static int intel_pstate_msrs_not_valid(void)
 #ifdef CONFIG_ACPI
 static void intel_pstate_use_acpi_profile(void)
 {
-	switch (acpi_gbl_FADT.preferred_profile) {
-	case PM_MOBILE:
-	case PM_TABLET:
-	case PM_APPLIANCE_PC:
-	case PM_DESKTOP:
-	case PM_WORKSTATION:
+	if (acpi_gbl_FADT.preferred_profile == PM_MOBILE)
 		pstate_funcs.get_target_pstate =
 				get_target_pstate_use_cpu_load;
-	}
 }
 #else
 static void intel_pstate_use_acpi_profile(void)
