@@ -78,6 +78,7 @@ S:	Maintained
 F:	drivers/net/ethernet/realtek/8139too.c
 
 ACPI SUBSYSTEM
+M:	Al Stone <ahs3@redhat.com>
 M:	Lenny Szubowicz <lszubowi@redhat.com>
 M:	Prarit Bhargava <prarit@redhat.com>
 S:	Maintained
@@ -146,6 +147,7 @@ S:	Maintained
 F:	drivers/net/ethernet/emulex/benet/
 
 BIOS ISSUES
+M:	Al Stone <ahs3@redhat.com>
 M:	Lenny Szubowicz <lszubowi@redhat.com>
 M:	Prarit Bhargava <prarit@redhat.com>
 
@@ -238,6 +240,7 @@ S:	Maintained
 F:	drivers/net/ethernet/cisco/enic/
 
 CPU FREQUENCY DRIVERS
+M:	Al Stone <ahs3@redhat.com>
 M:	Lenny Szubowicz <lszubowi@redhat.com>
 M:	Prarit Bhargava <prarit@redhat.com>
 S:	Maintained
@@ -871,6 +874,7 @@ S:	Maintained
 F:	net/sunrpc/
 
 SUSPEND/RESUME
+M:	Al Stone <ahs3@redhat.com>
 M:	Lenny Szubowicz <lszubowi@redhat.com>
 S:	Maintained
 
@@ -898,6 +902,7 @@ S:	Maintained
 F:	drivers/staging/unisys
 
 UNIVERSAL EXTENSIBLE FIRMWARE INTERFACE (UEFI/EFI)
+M:	Al Stone <ahs3@redhat.com>
 M:	Lenny Szubowicz <lszubowi@redhat.com>
 M:	Myron Stowe	<mstowe@redhat.com>
 M:	Prarit Bhargava <prarit@redhat.com>
