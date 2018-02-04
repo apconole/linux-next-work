@@ -179,19 +179,18 @@ static void init_thread_xstate(void)
  * We parse fpu parameters early because fpu_init() is executed
  * before parse_early_param().
  */
-static void fpu__init_parse_early_param(void)
+static int __init x86_clearcpuid_setup(char *s)
 {
-	char arg[32];
-	char *argptr = arg;
 	int bit;
 
-	if (cmdline_find_option(boot_command_line, "clearcpuid", arg,
-				sizeof(arg)) &&
-	    get_option(&argptr, &bit) &&
+	if (get_option(&s, &bit) &&
 	    bit >= 0 &&
 	    bit < NCAPINTS * 32)
 		setup_clear_cpu_cap(bit);
+
+	return 0;
 }
+early_param("clearcpuid", x86_clearcpuid_setup);
 
 /*
  * Called at bootup to set up the initial FPU state that is later cloned
@@ -202,8 +201,6 @@ void fpu_init(void)
 {
 	unsigned long cr0;
 	unsigned long cr4_mask = 0;
-
-	fpu__init_parse_early_param();
 
 	if (cpu_has_fxsr)
 		cr4_mask |= X86_CR4_OSFXSR;
