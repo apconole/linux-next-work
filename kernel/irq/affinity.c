@@ -64,7 +64,8 @@ irq_create_affinity_masks(int nvecs, const struct irq_affinity *affd)
 	int last_affv = affv + affd->pre_vectors;
 	nodemask_t nodemsk = NODE_MASK_NONE;
 	struct cpumask *masks;
-	cpumask_var_t nmsk;
+	cpumask_var_t nmsk, cpu_mask;
+	bool lock;
 
 	/*
 	 * If there aren't any vectors left after applying the pre/post
@@ -75,18 +76,23 @@ irq_create_affinity_masks(int nvecs, const struct irq_affinity *affd)
 
 	if (!zalloc_cpumask_var(&nmsk, GFP_KERNEL))
 		return NULL;
+	if (!zalloc_cpumask_var(&cpu_mask, GFP_KERNEL)) {
+		masks = NULL;
+		goto out;
+	}
 
 	masks = kcalloc(nvecs, sizeof(*masks), GFP_KERNEL);
 	if (!masks)
-		goto out;
+		goto out_free_cpu_mask;
 
 	/* Fill out vectors at the beginning that don't need affinity */
 	for (curvec = 0; curvec < affd->pre_vectors; curvec++)
 		cpumask_copy(masks + curvec, irq_default_affinity);
 
-	/* Stabilize the cpumasks */
-	get_online_cpus();
-	nodes = get_nodes_in_cpumask(cpu_online_mask, &nodemsk);
+	/* Try to Stabilize the cpumasks */
+	lock = try_get_online_cpus();
+	cpumask_copy(cpu_mask, cpu_online_mask);
+	nodes = get_nodes_in_cpumask(cpu_mask, &nodemsk);
 
 	/*
 	 * If the number of nodes in the mask is greater than or equal the
@@ -108,7 +114,7 @@ irq_create_affinity_masks(int nvecs, const struct irq_affinity *affd)
 		vecs_per_node = (affv - (curvec - affd->pre_vectors)) / nodes;
 
 		/* Get the cpus on this node which are in the mask */
-		cpumask_and(nmsk, cpu_online_mask, cpumask_of_node(n));
+		cpumask_and(nmsk, cpu_mask, cpumask_of_node(n));
 
 		/* Calculate the number of cpus per vector */
 		ncpus = cpumask_weight(nmsk);
@@ -135,11 +141,14 @@ irq_create_affinity_masks(int nvecs, const struct irq_affinity *affd)
 	}
 
 done:
-	put_online_cpus();
+	if (lock)
+		put_online_cpus();
 
 	/* Fill out vectors at the end that don't need affinity */
 	for (; curvec < nvecs; curvec++)
 		cpumask_copy(masks + curvec, irq_default_affinity);
+out_free_cpu_mask:
+	free_cpumask_var(cpu_mask);
 out:
 	free_cpumask_var(nmsk);
 	return masks;
@@ -156,14 +165,16 @@ int irq_calc_affinity_vectors(int minvec, int maxvec, const struct irq_affinity 
 	int resv = affd->pre_vectors + affd->post_vectors;
 	int vecs = maxvec - resv;
 	int cpus;
+	bool lock;
 
 	if (resv > minvec)
 		return 0;
 
-	/* Stabilize the cpumasks */
-	get_online_cpus();
+	/* Try to stabilize the cpumasks */
+	lock = try_get_online_cpus();
 	cpus = cpumask_weight(cpu_online_mask);
-	put_online_cpus();
+	if (lock)
+		put_online_cpus();
 
 	return min(cpus, vecs) + resv;
 }
