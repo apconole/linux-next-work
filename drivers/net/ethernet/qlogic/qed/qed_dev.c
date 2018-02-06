@@ -2095,7 +2095,7 @@ static void qed_hw_set_feat(struct qed_hwfn *p_hwfn)
 	}
 
 	if (QED_IS_FCOE_PERSONALITY(p_hwfn))
-		feat_num[QED_FCOE_CQ] =  min_t(u32, RESC_NUM(p_hwfn, QED_SB),
+		feat_num[QED_FCOE_CQ] =  min_t(u32, sb_cnt.cnt,
 					       RESC_NUM(p_hwfn,
 							QED_CMDQS_CQS));
 
