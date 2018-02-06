@@ -3197,6 +3197,7 @@ nvme_fc_init_ctrl(struct device *dev, struct nvmf_ctrl_options *opts,
 		ret = PTR_ERR(ctrl->ctrl.admin_q);
 		goto out_free_admin_tag_set;
 	}
+	ctrl->ctrl.admin_q->tail_queue = 1;
 
 	/*
 	 * Would have been nice to init io queues tag set as well.

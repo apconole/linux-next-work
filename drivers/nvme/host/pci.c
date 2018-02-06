@@ -1299,6 +1299,7 @@ static int nvme_alloc_admin_tags(struct nvme_dev *dev)
 			dev->ctrl.admin_q = NULL;
 			return -ENODEV;
 		}
+		dev->ctrl.admin_q->tail_queue = 1;
 	} else
 		blk_mq_start_stopped_hw_queues(dev->ctrl.admin_q, true);
 

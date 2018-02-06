@@ -1586,6 +1586,7 @@ static int nvme_rdma_configure_admin_queue(struct nvme_rdma_ctrl *ctrl)
 		error = PTR_ERR(ctrl->ctrl.admin_q);
 		goto out_free_tagset;
 	}
+	ctrl->ctrl.admin_q->tail_queue = 1;
 
 	error = nvmf_connect_admin_queue(&ctrl->ctrl);
 	if (error)

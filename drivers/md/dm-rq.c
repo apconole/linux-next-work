@@ -952,6 +952,7 @@ int dm_mq_init_request_queue(struct mapped_device *md, struct dm_table *t)
 		err = PTR_ERR(q);
 		goto out_tag_set;
 	}
+	q->front_queue = 1;
 	dm_init_md_queue(md);
 
 	return 0;

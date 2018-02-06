@@ -552,6 +552,22 @@ struct request_queue {
 	RH_KABI_EXTEND(struct blk_rq_stat	poll_stat[2])
 	RH_KABI_EXTEND(atomic_t		shared_hctx_restart)
 	RH_KABI_EXTEND(unsigned int		queue_depth)
+
+	/*
+	 * The flag need to be set if this queue is blk-mq queue and at
+	 * the top of other blk-mq queues, such as DM/MPATH. We don't know
+	 * if there are such 3rd party queues, and if there are, they
+	 * need to set this flag too. This flag is for avoiding IO hang
+	 * in blk_mq_queue_reinit_notify().
+	 */
+	RH_KABI_EXTEND(unsigned int         front_queue:1)
+
+	/*
+	 * The flag need to be set for queues which are depended by other
+	 * IO queues, so far, the only one is NVMe's admin queue. This flag
+	 * is for avoiding IO hang in blk_mq_queue_reinit_notify().
+	 */
+	RH_KABI_EXTEND(unsigned int         tail_queue:1)
 #ifdef CONFIG_BLK_DEBUG_FS
 	RH_KABI_EXTEND(struct dentry		*debugfs_dir)
 	RH_KABI_EXTEND(struct dentry		*sched_debugfs_dir)

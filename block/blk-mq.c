@@ -2436,6 +2436,69 @@ static void blk_mq_queue_reinit(struct request_queue *q,
 	blk_mq_debugfs_register_hctxs(q);
 }
 
+static void blk_mq_freeze_queue_list(struct list_head *list)
+{
+	struct request_queue *q;
+
+	/*
+	 * We need to freeze and reinit all existing queues.  Freezing
+	 * involves synchronous wait for an RCU grace period and doing it
+	 * one by one may take a long time.  Start freezing all queues in
+	 * one swoop and then wait for the completions so that freezing can
+	 * take place in parallel.
+	 */
+	list_for_each_entry(q, list, all_q_node)
+		blk_freeze_queue_start(q);
+	list_for_each_entry(q, list, all_q_node) {
+		blk_mq_freeze_queue_wait(q);
+
+		/*
+		 * timeout handler can't touch hw queue during the
+		 * reinitialization
+		 */
+		del_timer_sync(&q->timeout);
+	}
+}
+
+/*
+ * When freezing queues in blk_mq_queue_reinit_notify(), we have to freeze
+ * queues in order from the list of 'all_q_list' for avoid IO deadlock:
+ *
+ * 1) DM queue or other queue which is at the top of usual queues, it
+ * has to be frozen before the underlying queues, otherwise once the
+ * underlying queue is frozen, any IO from upper layer queue can't be
+ * drained up, and blk_mq_freeze_queue_wait() will wait for ever on this
+ * kind of queue
+ *
+ * 2) NVMe admin queue is used in NVMe's reset handler, and IO queue is
+ * frozen and quiesced before resetting controller, if there is any pending
+ * IO before sending requests to admin queue, IO hang is caused because admin
+ * queue may has been frozon, so reset can't move on, and finally
+ * blk_mq_freeze_queue_wait() waits for ever on NVMe IO queue in
+ * blk_mq_queue_reinit_notify(). Avoid this issue by freezing admin queue
+ * after NVMe namespace queue is frozen.
+ */
+static void __blk_mq_freeze_all_queue_list(void)
+{
+	struct request_queue *q, *next;
+	LIST_HEAD(front);
+	LIST_HEAD(tail);
+
+	list_for_each_entry_safe(q, next, &all_q_list, all_q_node) {
+		if (q->front_queue)
+			list_move(&q->all_q_node, &front);
+		else if (q->tail_queue)
+			list_move(&q->all_q_node, &tail);
+	}
+
+	blk_mq_freeze_queue_list(&front);
+	blk_mq_freeze_queue_list(&all_q_list);
+	blk_mq_freeze_queue_list(&tail);
+
+	list_splice(&front, &all_q_list);
+	list_splice_tail(&tail, &all_q_list);
+}
+
 static int blk_mq_queue_reinit_notify(struct notifier_block *nb,
 				      unsigned long action, void *hcpu)
 {
@@ -2480,24 +2543,7 @@ static int blk_mq_queue_reinit_notify(struct notifier_block *nb,
 
 	mutex_lock(&all_q_mutex);
 
-	/*
-	 * We need to freeze and reinit all existing queues.  Freezing
-	 * involves synchronous wait for an RCU grace period and doing it
-	 * one by one may take a long time.  Start freezing all queues in
-	 * one swoop and then wait for the completions so that freezing can
-	 * take place in parallel.
-	 */
-	list_for_each_entry(q, &all_q_list, all_q_node)
-		blk_freeze_queue_start(q);
-	list_for_each_entry(q, &all_q_list, all_q_node) {
-		blk_mq_freeze_queue_wait(q);
-
-		/*
-		 * timeout handler can't touch hw queue during the
-		 * reinitialization
-		 */
-		del_timer_sync(&q->timeout);
-	}
+	__blk_mq_freeze_all_queue_list();
 
 	list_for_each_entry(q, &all_q_list, all_q_node)
 		blk_mq_queue_reinit(q, &online_new);
