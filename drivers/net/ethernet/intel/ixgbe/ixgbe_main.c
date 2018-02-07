@@ -1567,7 +1567,8 @@ static bool ixgbe_alloc_mapped_page(struct ixgbe_ring *rx_ring,
 	}
 
 	/* map page for use */
-	dma_set_attr(IXGBE_RX_DMA_ATTR, &attrs);
+	dma_set_attr(DMA_ATTR_SKIP_CPU_SYNC, &attrs);
+	dma_set_attr(DMA_ATTR_WEAK_ORDERING, &attrs);
 	dma = dma_map_page_attrs(rx_ring->dev, page, 0,
 				 ixgbe_rx_pg_size(rx_ring),
 				 DMA_FROM_DEVICE,
@@ -1843,7 +1844,8 @@ static void ixgbe_dma_sync_frag(struct ixgbe_ring *rx_ring,
 
 	/* if the page was released unmap it, else just sync our portion */
 	if (unlikely(IXGBE_CB(skb)->page_released)) {
-		dma_set_attr(IXGBE_RX_DMA_ATTR, &attrs);
+		dma_set_attr(DMA_ATTR_SKIP_CPU_SYNC, &attrs);
+		dma_set_attr(DMA_ATTR_WEAK_ORDERING, &attrs);
 		dma_unmap_page_attrs(rx_ring->dev, IXGBE_CB(skb)->dma,
 				     ixgbe_rx_pg_size(rx_ring),
 				     DMA_FROM_DEVICE,
@@ -2065,7 +2067,8 @@ static void ixgbe_put_rx_buffer(struct ixgbe_ring *rx_ring,
 			IXGBE_CB(skb)->page_released = true;
 		} else {
 			/* we are not reusing the buffer so unmap it */
-			dma_set_attr(IXGBE_RX_DMA_ATTR, &attrs);
+			dma_set_attr(DMA_ATTR_SKIP_CPU_SYNC, &attrs);
+			dma_set_attr(DMA_ATTR_WEAK_ORDERING, &attrs);
 			dma_unmap_page_attrs(rx_ring->dev, rx_buffer->dma,
 					     ixgbe_rx_pg_size(rx_ring),
 					     DMA_FROM_DEVICE,
@@ -5039,7 +5042,8 @@ static void ixgbe_clean_rx_ring(struct ixgbe_ring *rx_ring)
 	DEFINE_DMA_ATTRS(attrs);
 
 
-	dma_set_attr(IXGBE_RX_DMA_ATTR, &attrs);
+	dma_set_attr(DMA_ATTR_SKIP_CPU_SYNC, &attrs);
+	dma_set_attr(DMA_ATTR_WEAK_ORDERING, &attrs);
 	/* Free all the Rx ring sk_buffs */
 	while (i != rx_ring->next_to_alloc) {
 		if (rx_buffer->skb) {
