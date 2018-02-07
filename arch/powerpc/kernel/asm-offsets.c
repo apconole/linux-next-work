@@ -226,8 +226,7 @@ int main(void)
 	DEFINE(PACA_AUX_PTR, offsetof(struct paca_struct, exslb[EX_DAR/8]));
 	OFFSET(PACA_AUX_RFI_FLUSH_FALLBACK_AREA, paca_aux_struct, rfi_flush_fallback_area);
 	OFFSET(PACA_AUX_EXRFI, paca_aux_struct, exrfi);
-	OFFSET(PACA_AUX_L1D_FLUSH_CONGRUENCE, paca_aux_struct, l1d_flush_congruence);
-	OFFSET(PACA_AUX_L1D_FLUSH_SETS, paca_aux_struct, l1d_flush_sets);
+	OFFSET(PACA_AUX_L1D_FLUSH_SIZE, paca_aux_struct, l1d_flush_size);
 #endif
 	DEFINE(PACALPPACAPTR, offsetof(struct paca_struct, lppaca_ptr));
 	DEFINE(PACA_SLBSHADOWPTR, offsetof(struct paca_struct, slb_shadow_ptr));
