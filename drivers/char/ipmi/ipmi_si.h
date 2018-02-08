@@ -6,6 +6,7 @@
  */
 
 #include <linux/interrupt.h>
+#include <linux/device.h>
 #include "ipmi_si_sm.h"
 
 #define IPMI_IO_ADDR_SPACE  0
@@ -44,3 +45,6 @@ void ipmi_si_parisc_shutdown(void);
 static inline void ipmi_si_parisc_init(void) { }
 static inline void ipmi_si_parisc_shutdown(void) { }
 #endif
+
+int ipmi_si_port_setup(struct si_sm_io *io);
+int ipmi_si_mem_setup(struct si_sm_io *io);
