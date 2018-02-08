@@ -281,7 +281,10 @@ int ipmi_validate_addr(struct ipmi_addr *addr, int len);
  */
 enum ipmi_addr_src {
 	SI_INVALID = 0, SI_HOTMOD, SI_HARDCODED, SI_SPMI, SI_ACPI, SI_SMBIOS,
-	SI_PCI,	SI_DEVICETREE, RH_KABI_RENAME(SI_DEFAULT, SI_LAST)
+	SI_PCI,	SI_DEVICETREE, SI_DEFAULT
+#ifndef __GENKSYMS__
+	, SI_PLATFORM = SI_DEFAULT, SI_LAST
+#endif
 };
 const char *ipmi_addr_src_to_str(enum ipmi_addr_src src);
 
