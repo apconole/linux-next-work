@@ -243,9 +243,14 @@ struct seq_table {
 
 #define NEXT_SEQID(seqid) (((seqid) + 1) & 0x3fffff)
 
+#define IPMI_MAX_CHANNELS       16
 struct ipmi_channel {
 	unsigned char medium;
 	unsigned char protocol;
+};
+
+struct ipmi_channel_set {
+	struct ipmi_channel c[IPMI_MAX_CHANNELS];
 };
 
 struct ipmi_my_addrinfo {
@@ -399,7 +404,6 @@ enum ipmi_stat_indexes {
 
 
 #define IPMI_IPMB_NUM_SEQ	64
-#define IPMI_MAX_CHANNELS       16
 struct ipmi_smi {
 	/* What interface number are we? */
 	int intf_num;
@@ -552,6 +556,16 @@ struct ipmi_smi {
 	RH_KABI_EXTEND(atomic_t         event_waiters)
 	RH_KABI_EXTEND(unsigned int     ticks_to_req_ev)
 	RH_KABI_EXTEND(int              last_needs_timer)
+
+	/*
+	 * Extensions from upstream commit:
+	 * 31b0b07 ipmi: Rescan channel list on BMC changes
+	 */
+	RH_KABI_EXTEND(struct ipmi_channel_set *channel_list)
+	/* First index into the following. */
+	RH_KABI_EXTEND(unsigned int curr_working_cset)
+	RH_KABI_EXTEND(struct ipmi_channel_set wchannels[2])
+	RH_KABI_EXTEND(bool channels_ready)
 };
 #define to_si_intf_from_dev(device) container_of(device, struct ipmi_smi, dev)
 
@@ -567,6 +581,7 @@ static void __ipmi_bmc_unregister(ipmi_smi_t intf);
 static int __ipmi_bmc_register(ipmi_smi_t intf,
 			       struct ipmi_device_id *id,
 			       bool guid_set, u8 *guid, int intf_num);
+static int __scan_channels(ipmi_smi_t intf, struct ipmi_device_id *id);
 
 
 /**
@@ -1798,6 +1813,7 @@ static int i_ipmi_request(ipmi_user_t          user,
 		unsigned char         ipmb_seq;
 		long                  seqid;
 		int                   broadcast = 0;
+		struct ipmi_channel   *chans;
 
 		if (addr->channel >= IPMI_MAX_CHANNELS) {
 			ipmi_inc_stat(intf, sent_invalid_commands);
@@ -1805,8 +1821,9 @@ static int i_ipmi_request(ipmi_user_t          user,
 			goto out_err;
 		}
 
-		if (intf->channels[addr->channel].medium
-					!= IPMI_CHANNEL_MEDIUM_IPMB) {
+		chans = READ_ONCE(intf->channel_list)->c;
+
+		if (chans[addr->channel].medium != IPMI_CHANNEL_MEDIUM_IPMB) {
 			ipmi_inc_stat(intf, sent_invalid_commands);
 			rv = -EINVAL;
 			goto out_err;
@@ -1928,6 +1945,7 @@ static int i_ipmi_request(ipmi_user_t          user,
 		struct ipmi_lan_addr  *lan_addr;
 		unsigned char         ipmb_seq;
 		long                  seqid;
+		struct ipmi_channel   *chans;
 
 		if (addr->channel >= IPMI_MAX_CHANNELS) {
 			ipmi_inc_stat(intf, sent_invalid_commands);
@@ -1935,9 +1953,11 @@ static int i_ipmi_request(ipmi_user_t          user,
 			goto out_err;
 		}
 
-		if ((intf->channels[addr->channel].medium
+		chans = READ_ONCE(intf->channel_list)->c;
+
+		if ((chans[addr->channel].medium
 				!= IPMI_CHANNEL_MEDIUM_8023LAN)
-		    && (intf->channels[addr->channel].medium
+		    && (chans[addr->channel].medium
 				!= IPMI_CHANNEL_MEDIUM_ASYNC)) {
 			ipmi_inc_stat(intf, sent_invalid_commands);
 			rv = -EINVAL;
@@ -2305,6 +2325,9 @@ retry_bmc_lock:
 		memcpy(intf->bmc->guid, guid, 16);
 		if (__ipmi_bmc_register(intf, &id, guid_set, guid, intf_num))
 			need_waiter(intf); /* Retry later on an error. */
+		else
+			__scan_channels(intf, &id);
+
 
 		if (!intf_set) {
 			/*
@@ -2321,7 +2344,9 @@ retry_bmc_lock:
 		bmc = intf->bmc;
 		mutex_lock(&bmc->dyn_mutex);
 		goto out_noprocessing;
-	}
+	} else if (memcmp(&bmc->fetch_id, &bmc->id, sizeof(bmc->id)))
+		/* Version info changes, scan the channels again. */
+		__scan_channels(intf, &bmc->fetch_id);
 
 	bmc->dyn_id_expiry = jiffies + IPMI_DYN_DEV_ID_EXPIRY;
 
@@ -3235,7 +3260,9 @@ static void
 channel_handler(ipmi_smi_t intf, struct ipmi_recv_msg *msg)
 {
 	int rv = 0;
-	int chan;
+	int ch;
+	unsigned int set = intf->curr_working_cset;
+	struct ipmi_channel *chans;
 
 	if ((msg->addr.addr_type == IPMI_SYSTEM_INTERFACE_ADDR_TYPE)
 	    && (msg->msg.netfn == IPMI_NETFN_APP_RESPONSE)
@@ -3251,13 +3278,13 @@ channel_handler(ipmi_smi_t intf, struct ipmi_recv_msg *msg)
 				 * assume it has one IPMB at channel
 				 * zero.
 				 */
-				intf->channels[0].medium
+				intf->wchannels[set].c[0].medium
 					= IPMI_CHANNEL_MEDIUM_IPMB;
-				intf->channels[0].protocol
+				intf->wchannels[set].c[0].protocol
 					= IPMI_CHANNEL_PROTOCOL_IPMB;
-				rv = -ENOSYS;
 
-				intf->curr_channel = IPMI_MAX_CHANNELS;
+				intf->channel_list = intf->wchannels + set;
+				intf->channels_ready = true;
 				wake_up(&intf->waitq);
 				goto out;
 			}
@@ -3267,29 +3294,83 @@ channel_handler(ipmi_smi_t intf, struct ipmi_recv_msg *msg)
 			/* Message not big enough, just go on. */
 			goto next_channel;
 		}
-		chan = intf->curr_channel;
-		intf->channels[chan].medium = msg->msg.data[2] & 0x7f;
-		intf->channels[chan].protocol = msg->msg.data[3] & 0x1f;
+		ch = intf->curr_channel;
+		chans = intf->wchannels[set].c;
+		chans[ch].medium = msg->msg.data[2] & 0x7f;
+		chans[ch].protocol = msg->msg.data[3] & 0x1f;
 
  next_channel:
 		intf->curr_channel++;
-		if (intf->curr_channel >= IPMI_MAX_CHANNELS)
+		if (intf->curr_channel >= IPMI_MAX_CHANNELS) {
+			intf->channel_list = intf->wchannels + set;
+			intf->channels_ready = true;
 			wake_up(&intf->waitq);
-		else
+		} else {
+			intf->channel_list = intf->wchannels + set;
+			intf->channels_ready = true;
 			rv = send_channel_info_cmd(intf, intf->curr_channel);
+		}
 
 		if (rv) {
 			/* Got an error somehow, just give up. */
-			intf->curr_channel = IPMI_MAX_CHANNELS;
-			wake_up(&intf->waitq);
-
 			printk(KERN_WARNING PFX
-			       "Error sending channel information: %d\n",
-			       rv);
+			       "Error sending channel information for channel"
+			       " %d: %d\n", intf->curr_channel, rv);
+
+			intf->channel_list = intf->wchannels + set;
+			intf->channels_ready = true;
+			wake_up(&intf->waitq);
 		}
 	}
  out:
 	return;
+}
+
+/*
+ * Must be holding intf->bmc_reg_mutex to call this.
+ */
+static int __scan_channels(ipmi_smi_t intf, struct ipmi_device_id *id)
+{
+	int rv;
+
+	if (ipmi_version_major(id) > 1
+			|| (ipmi_version_major(id) == 1
+			    && ipmi_version_minor(id) >= 5)) {
+		unsigned int set;
+
+		/*
+		 * Start scanning the channels to see what is
+		 * available.
+		 */
+		set = !intf->curr_working_cset;
+		intf->curr_working_cset = set;
+		memset(&intf->wchannels[set], 0,
+		       sizeof(struct ipmi_channel_set));
+
+		intf->null_user_handler = channel_handler;
+		intf->curr_channel = 0;
+		rv = send_channel_info_cmd(intf, 0);
+		if (rv) {
+			dev_warn(intf->si_dev,
+				 "Error sending channel information for channel 0, %d\n",
+				 rv);
+			return -EIO;
+		}
+
+		/* Wait for the channel info to be read. */
+		wait_event(intf->waitq, intf->channels_ready);
+		intf->null_user_handler = NULL;
+	} else {
+		unsigned int set = intf->curr_working_cset;
+
+		/* Assume a single IPMB channel at zero. */
+		intf->wchannels[set].c[0].medium = IPMI_CHANNEL_MEDIUM_IPMB;
+		intf->wchannels[set].c[0].protocol = IPMI_CHANNEL_PROTOCOL_IPMB;
+		intf->channel_list = intf->wchannels + set;
+		intf->channels_ready = true;
+	}
+
+	return 0;
 }
 
 static void ipmi_poll(ipmi_smi_t intf)
@@ -3428,31 +3509,11 @@ int ipmi_register_smi(struct ipmi_smi_handlers *handlers,
 		goto out;
 	}
 
-	if (ipmi_version_major(&id) > 1
-			|| (ipmi_version_major(&id) == 1
-			    && ipmi_version_minor(&id) >= 5)) {
-		/*
-		 * Start scanning the channels to see what is
-		 * available.
-		 */
-		mutex_lock(&intf->bmc_reg_mutex);
-		intf->null_user_handler = channel_handler;
-		intf->curr_channel = 0;
-		rv = send_channel_info_cmd(intf, 0);
-		if (rv)
-			goto out;
-
-		/* Wait for the channel info to be read. */
-		wait_event(intf->waitq,
-			   intf->curr_channel >= IPMI_MAX_CHANNELS);
-		intf->null_user_handler = NULL;
-		mutex_unlock(&intf->bmc_reg_mutex);
-	} else {
-		/* Assume a single IPMB channel at zero. */
-		intf->channels[0].medium = IPMI_CHANNEL_MEDIUM_IPMB;
-		intf->channels[0].protocol = IPMI_CHANNEL_PROTOCOL_IPMB;
-		intf->curr_channel = IPMI_MAX_CHANNELS;
-	}
+	mutex_lock(&intf->bmc_reg_mutex);
+	rv = __scan_channels(intf, &id);
+	mutex_unlock(&intf->bmc_reg_mutex);
+	if (rv)
+		goto out;
 
 	rv = add_proc_entries(intf, i);
 
@@ -4281,6 +4342,8 @@ static int handle_one_recv_msg(ipmi_smi_t          intf,
 		deliver_response(recv_msg);
 	} else if ((msg->rsp[0] == ((IPMI_NETFN_APP_REQUEST|1) << 2))
 		   && (msg->rsp[1] == IPMI_GET_MSG_CMD)) {
+		struct ipmi_channel   *chans;
+
 		/* It's from the receive queue. */
 		chan = msg->rsp[3] & 0xf;
 		if (chan >= IPMI_MAX_CHANNELS) {
@@ -4295,12 +4358,14 @@ static int handle_one_recv_msg(ipmi_smi_t          intf,
 		 * equal to or greater than IPMI_MAX_CHANNELS when all the
 		 * channels for this interface have been initialized.
 		 */
-		if (intf->curr_channel < IPMI_MAX_CHANNELS) {
+		if (!intf->channels_ready) {
 			requeue = 0; /* Throw the message away */
 			goto out;
 		}
 
-		switch (intf->channels[chan].medium) {
+		chans = READ_ONCE(intf->channel_list)->c;
+
+		switch (chans[chan].medium) {
 		case IPMI_CHANNEL_MEDIUM_IPMB:
 			if (msg->rsp[4] & 0x04) {
 				/*
@@ -4337,9 +4402,8 @@ static int handle_one_recv_msg(ipmi_smi_t          intf,
 		default:
 			/* Check for OEM Channels.  Clients had better
 			   register for these commands. */
-			if ((intf->channels[chan].medium
-			     >= IPMI_CHANNEL_MEDIUM_OEM_MIN)
-			    && (intf->channels[chan].medium
+			if ((chans[chan].medium >= IPMI_CHANNEL_MEDIUM_OEM_MIN)
+			    && (chans[chan].medium
 				<= IPMI_CHANNEL_MEDIUM_OEM_MAX)) {
 				requeue = handle_oem_get_msg_cmd(intf, msg);
 			} else {
@@ -4501,15 +4565,14 @@ void ipmi_smi_msg_received(ipmi_smi_t          intf,
 		    && (msg->rsp[2] != IPMI_LOST_ARBITRATION_ERR)
 		    && (msg->rsp[2] != IPMI_BUS_ERR)
 		    && (msg->rsp[2] != IPMI_NAK_ON_WRITE_ERR)) {
-			int chan = msg->rsp[3] & 0xf;
+			int ch = msg->rsp[3] & 0xf;
+			struct ipmi_channel *chans;
 
 			/* Got an error sending the message, handle it. */
-			if (chan >= IPMI_MAX_CHANNELS)
-				; /* This shouldn't happen */
-			else if ((intf->channels[chan].medium
-				  == IPMI_CHANNEL_MEDIUM_8023LAN)
-				 || (intf->channels[chan].medium
-				     == IPMI_CHANNEL_MEDIUM_ASYNC))
+
+			chans = READ_ONCE(intf->channel_list)->c;
+			if ((chans[ch].medium == IPMI_CHANNEL_MEDIUM_8023LAN)
+			    || (chans[ch].medium == IPMI_CHANNEL_MEDIUM_ASYNC))
 				ipmi_inc_stat(intf, sent_lan_command_errs);
 			else
 				ipmi_inc_stat(intf, sent_ipmb_command_errs);
