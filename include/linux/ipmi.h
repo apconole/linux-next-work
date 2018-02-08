@@ -112,6 +112,11 @@ int ipmi_create_user(unsigned int          if_num,
 int ipmi_destroy_user(ipmi_user_t user);
 
 /* Get the IPMI version of the BMC we are talking to. */
+int __ipmi_get_version(ipmi_user_t   user,
+		       unsigned char *major,
+		       unsigned char *minor);
+
+/* RHEL7 kABI wrapper for __ipmi_get_version */
 void ipmi_get_version(ipmi_user_t   user,
 		      unsigned char *major,
 		      unsigned char *minor);
