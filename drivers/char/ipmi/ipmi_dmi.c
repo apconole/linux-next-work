@@ -3,6 +3,7 @@
  * allow autoloading of the IPMI drive based on SMBIOS entries.
  */
 
+#include <linux/slab.h>
 #include <linux/ipmi.h>
 #include <linux/init.h>
 #include <linux/dmi.h>
