@@ -583,6 +583,7 @@ EXPORT_SYMBOL_GPL(unprotected_firmware_end);
 #else
 bool unprotected_firmware_begin(void)
 {
+	return false;
 }
 EXPORT_SYMBOL_GPL(unprotected_firmware_begin);
 
