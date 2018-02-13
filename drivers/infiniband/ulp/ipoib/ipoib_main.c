@@ -63,11 +63,15 @@ MODULE_LICENSE("Dual BSD/GPL");
 
 int ipoib_sendq_size __read_mostly = IPOIB_TX_RING_SIZE;
 int ipoib_recvq_size __read_mostly = IPOIB_RX_RING_SIZE;
+int ipoib_enhanced_enabled = 1;
 
 module_param_named(send_queue_size, ipoib_sendq_size, int, 0444);
 MODULE_PARM_DESC(send_queue_size, "Number of descriptors in send queue");
 module_param_named(recv_queue_size, ipoib_recvq_size, int, 0444);
 MODULE_PARM_DESC(recv_queue_size, "Number of descriptors in receive queue");
+module_param_named(ipoib_enhanced, ipoib_enhanced_enabled, int, 0444);
+MODULE_PARM_DESC(ipoib_enhanced, "Enable IPoIB enhanced for capable devices (default = 1) (0-1)");
+
 
 #ifdef CONFIG_INFINIBAND_IPOIB_DEBUG
 int ipoib_debug_level;
@@ -1962,9 +1966,9 @@ static struct net_device
 static struct net_device *ipoib_get_netdev(struct ib_device *hca, u8 port,
 					   const char *name)
 {
-	struct net_device *dev;
+	struct net_device *dev = NULL;
 
-	if (hca->alloc_rdma_netdev) {
+	if (hca->alloc_rdma_netdev && ipoib_enhanced_enabled) {
 		dev = hca->alloc_rdma_netdev(hca, port,
 					     RDMA_NETDEV_IPOIB, name,
 					     0,		/* NET_NAME_UNKNOWN */
@@ -1973,7 +1977,8 @@ static struct net_device *ipoib_get_netdev(struct ib_device *hca, u8 port,
 			return NULL;
 	}
 
-	if (!hca->alloc_rdma_netdev || PTR_ERR(dev) == -EOPNOTSUPP)
+	if (!hca->alloc_rdma_netdev || PTR_ERR(dev) == -EOPNOTSUPP ||
+	    !ipoib_enhanced_enabled)
 		dev = ipoib_create_netdev_default(hca, name, 0, /* NET_NAME_UNKNOWN, */
 						  ipoib_setup_common);
 
