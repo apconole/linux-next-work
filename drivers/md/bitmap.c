@@ -1938,6 +1938,14 @@ int bitmap_resize(struct bitmap *bitmap, sector_t blocks,
 		block += old_blocks;
 	}
 
+	if (bitmap->counts.bp != old_counts.bp) {
+		unsigned long k;
+		for (k = 0; k < old_counts.pages; k++)
+			if (!old_counts.bp[k].hijacked)
+				kfree(old_counts.bp[k].map);
+		kfree(old_counts.bp);
+	}
+
 	if (!init) {
 		int i;
 		while (block < (chunks << chunkshift)) {
