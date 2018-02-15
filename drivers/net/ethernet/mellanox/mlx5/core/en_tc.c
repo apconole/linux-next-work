@@ -234,7 +234,6 @@ mlx5e_tc_add_nic_flow(struct mlx5e_priv *priv,
 		.action = attr->action,
 		.flow_tag = attr->flow_tag,
 		.encap_id = 0,
-		.modify_id = attr->mod_hdr_id,
 	};
 	struct mlx5_fc *counter = NULL;
 	struct mlx5_flow_handle *rule;
@@ -1960,6 +1959,16 @@ static int parse_tc_fdb_actions(struct mlx5e_priv *priv, struct tcf_exts *exts,
 				continue;
 
 			return -EOPNOTSUPP;
+		}
+
+		if (is_tcf_pedit(a)) {
+			err = parse_tc_pedit_action(priv, a, MLX5_FLOW_NAMESPACE_FDB,
+						    parse_attr);
+			if (err)
+				return err;
+
+			attr->action |= MLX5_FLOW_CONTEXT_ACTION_MOD_HDR;
+			continue;
 		}
 
 		if (is_tcf_mirred_egress_redirect(a)) {
