@@ -50,7 +50,6 @@ extern pmdval_t early_pmd_flags;
 #define set_pte(ptep, pte)		native_set_pte(ptep, pte)
 #define set_pte_at(mm, addr, ptep, pte)	native_set_pte_at(mm, addr, ptep, pte)
 #define set_pmd_at(mm, addr, pmdp, pmd)	native_set_pmd_at(mm, addr, pmdp, pmd)
-#define set_pud_at(mm, addr, pudp, pud)	native_set_pud_at(mm, addr, pudp, pud)
 
 #define set_pte_atomic(ptep, pte)					\
 	native_set_pte_atomic(ptep, pte)
@@ -922,8 +921,8 @@ static inline void native_set_pmd_at(struct mm_struct *mm, unsigned long addr,
 	native_set_pmd(pmdp, pmd);
 }
 
-static inline void native_set_pud_at(struct mm_struct *mm, unsigned long addr,
-				     pud_t *pudp, pud_t pud)
+static inline void set_pud_at(struct mm_struct *mm, unsigned long addr,
+			      pud_t *pudp, pud_t pud)
 {
 	native_set_pud(pudp, pud);
 }
