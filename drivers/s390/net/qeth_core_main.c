@@ -3780,7 +3780,7 @@ int qeth_get_elements_for_frags(struct sk_buff *skb)
 		data = (char *)page_to_phys(skb_frag_page(frag)) +
 			frag->page_offset;
 		length = frag->size;
-		e = PFN_UP((unsigned long)data + length - 1) -
+		e = PFN_UP((unsigned long)data + length) -
 			PFN_DOWN((unsigned long)data);
 		elements += e;
 	}
@@ -3792,7 +3792,7 @@ int qeth_get_elements_no(struct qeth_card *card,
 		     struct sk_buff *skb, int elems, int data_offset)
 {
 	int dlen = skb->len - skb->data_len;
-	int elements_needed = PFN_UP((unsigned long)skb->data + dlen - 1) -
+	int elements_needed = PFN_UP((unsigned long)skb->data + dlen) -
 		PFN_DOWN((unsigned long)skb->data + data_offset);
 
 	elements_needed += qeth_get_elements_for_frags(skb);
