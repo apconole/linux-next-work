@@ -85,6 +85,7 @@ enum perf_output_field {
 	PERF_OUTPUT_INSNLEN	    = 1U << 22,
 	PERF_OUTPUT_BRSTACKINSN	    = 1U << 23,
 	PERF_OUTPUT_BRSTACKOFF	    = 1U << 24,
+	PERF_OUTPUT_SYNTH           = 1U << 25,
 };
 
 struct output_option {
@@ -115,6 +116,7 @@ struct output_option {
 	{.str = "insnlen", .field = PERF_OUTPUT_INSNLEN},
 	{.str = "brstackinsn", .field = PERF_OUTPUT_BRSTACKINSN},
 	{.str = "brstackoff", .field = PERF_OUTPUT_BRSTACKOFF},
+	{.str = "synth", .field = PERF_OUTPUT_SYNTH},
 };
 
 enum {
@@ -194,7 +196,8 @@ static struct {
 		.fields = PERF_OUTPUT_COMM | PERF_OUTPUT_TID |
 			      PERF_OUTPUT_CPU | PERF_OUTPUT_TIME |
 			      PERF_OUTPUT_EVNAME | PERF_OUTPUT_IP |
-			      PERF_OUTPUT_SYM | PERF_OUTPUT_DSO,
+			      PERF_OUTPUT_SYM | PERF_OUTPUT_DSO |
+			      PERF_OUTPUT_SYNTH,
 
 		.invalid_fields = PERF_OUTPUT_TRACE,
 	},
@@ -1120,6 +1123,15 @@ static void print_sample_flags(u32 flags)
 		printf("  %-11s ", str);
 }
 
+static void print_sample_synth(struct perf_sample *sample __maybe_unused,
+			       struct perf_evsel *evsel)
+{
+	switch (evsel->attr.config) {
+	default:
+		break;
+	}
+}
+
 struct perf_script {
 	struct perf_tool	tool;
 	struct perf_session	*session;
@@ -1203,6 +1215,10 @@ static void process_event(struct perf_script *script,
 	if (PRINT_FIELD(TRACE))
 		event_format__print(evsel->tp_format, sample->cpu,
 				    sample->raw_data, sample->raw_size);
+
+	if (attr->type == PERF_TYPE_SYNTH && PRINT_FIELD(SYNTH))
+		print_sample_synth(sample, evsel);
+
 	if (PRINT_FIELD(ADDR))
 		print_sample_addr(sample, thread, attr);
 
@@ -2484,7 +2500,7 @@ int cmd_script(int argc, const char **argv)
 		     "Valid types: hw,sw,trace,raw,synth. "
 		     "Fields: comm,tid,pid,time,cpu,event,trace,ip,sym,dso,"
 		     "addr,symoff,period,iregs,brstack,brstacksym,flags,"
-		     "callindent,insn,insnlen,brstackinsn",
+		     "callindent,insn,insnlen,brstackinsn,synth",
 		     parse_output_fields),
 	OPT_BOOLEAN('a', "all-cpus", &system_wide,
 		    "system-wide collection from all CPUs"),
