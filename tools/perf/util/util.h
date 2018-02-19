@@ -49,8 +49,6 @@ int hex2u64(const char *ptr, u64 *val);
 extern unsigned int page_size;
 extern int cacheline_size;
 
-bool find_process(const char *name);
-
 const char *perf_tip(const char *dirpath);
 
 #ifndef HAVE_SCHED_GETCPU_SUPPORT
