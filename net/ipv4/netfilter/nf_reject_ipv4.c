@@ -104,7 +104,9 @@ void nf_send_reset(struct sk_buff *oldskb, int hook)
 	struct iphdr *niph;
 	const struct tcphdr *oth;
 	struct tcphdr _oth;
-	struct net *net = dev_net(oldskb->dev);
+	struct net_device *dev = oldskb->dev ? oldskb->dev :
+					       skb_dst(oldskb)->dev;
+	struct net *net = dev_net(dev);
 
 	oth = nf_reject_ip_tcphdr_get(oldskb, &_oth, hook);
 	if (!oth)
