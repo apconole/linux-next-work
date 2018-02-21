@@ -823,6 +823,9 @@ struct perf_sample_data {
 	 * on arch details.
 	 */
 	RH_KABI_EXTEND(struct pt_regs			regs_user_copy)
+
+	RH_KABI_EXTEND(u64				phys_addr)
+
 } ____cacheline_aligned;
 
 /* default value for data source */
