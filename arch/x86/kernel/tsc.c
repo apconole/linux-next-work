@@ -721,6 +721,9 @@ unsigned long native_calibrate_tsc(void)
 		}
 	}
 
+	if (crystal_khz == 0)
+		return 0;
+
 	return crystal_khz * ebx_numerator / eax_denominator;
 }
 
