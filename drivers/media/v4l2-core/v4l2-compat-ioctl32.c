@@ -76,11 +76,12 @@ static int get_v4l2_window32(struct v4l2_window __user *kp,
 		if (get_user(p, &up->clips))
 			return -EFAULT;
 		uclips = compat_ptr(p);
+		if (aux_space < clipcount * sizeof(*kclips))
+			return -EFAULT;
 		kclips = aux_buf;
 		if (put_user(kclips, &kp->clips))
 			return -EFAULT;
 
-		kp->clips = kclips;
 		while (--clipcount >= 0) {
 			if (copy_in_user(&kclips->c, &uclips->c, sizeof(uclips->c)))
 				return -EFAULT;
@@ -124,15 +125,16 @@ static inline int get_v4l2_pix_format_mplane(struct v4l2_pix_format_mplane __use
 	return 0;
 }
 
-static inline int put_v4l2_pix_format(struct v4l2_pix_format *kp, struct v4l2_pix_format __user *up)
+static inline int put_v4l2_pix_format(struct v4l2_pix_format __user *kp,
+				      struct v4l2_pix_format __user *up)
 {
 	if (copy_in_user(up, kp, sizeof(struct v4l2_pix_format)))
 		return -EFAULT;
 	return 0;
 }
 
-static inline int put_v4l2_pix_format_mplane(struct v4l2_pix_format_mplane *kp,
-				struct v4l2_pix_format_mplane __user *up)
+static inline int put_v4l2_pix_format_mplane(struct v4l2_pix_format_mplane __user *kp,
+					     struct v4l2_pix_format_mplane __user *up)
 {
 	if (copy_in_user(up, kp, sizeof(struct v4l2_pix_format_mplane)))
 		return -EFAULT;
@@ -147,7 +149,8 @@ static inline int get_v4l2_vbi_format(struct v4l2_vbi_format __user *kp,
 	return 0;
 }
 
-static inline int put_v4l2_vbi_format(struct v4l2_vbi_format *kp, struct v4l2_vbi_format __user *up)
+static inline int put_v4l2_vbi_format(struct v4l2_vbi_format __user *kp,
+				      struct v4l2_vbi_format __user *up)
 {
 	if (copy_in_user(up, kp, sizeof(struct v4l2_vbi_format)))
 		return -EFAULT;
@@ -162,7 +165,8 @@ static inline int get_v4l2_sliced_vbi_format(struct v4l2_sliced_vbi_format __use
 	return 0;
 }
 
-static inline int put_v4l2_sliced_vbi_format(struct v4l2_sliced_vbi_format *kp, struct v4l2_sliced_vbi_format __user *up)
+static inline int put_v4l2_sliced_vbi_format(struct v4l2_sliced_vbi_format __user *kp,
+					     struct v4l2_sliced_vbi_format __user *up)
 {
 	if (copy_in_user(up, kp, sizeof(struct v4l2_sliced_vbi_format)))
 		return -EFAULT;
@@ -523,8 +527,10 @@ static int get_v4l2_buffer32(struct v4l2_buffer __user *kp,
 		u32 num_planes = length;
 
 		if (num_planes == 0) {
-			/* num_planes == 0 is legal, e.g. when userspace doesn't
-			 * need planes array on DQBUF*/
+			/*
+			 * num_planes == 0 is legal, e.g. when userspace doesn't
+			 * need planes array on DQBUF
+			 */
 			return put_user(NULL, &kp->m.planes);
 		}
 		if (num_planes > VIDEO_MAX_PLANES)
@@ -535,7 +541,7 @@ static int get_v4l2_buffer32(struct v4l2_buffer __user *kp,
 
 		uplane32 = compat_ptr(p);
 		if (!access_ok(VERIFY_READ, uplane32,
-				num_planes * sizeof(struct v4l2_plane32)))
+			       num_planes * sizeof(struct v4l2_plane32)))
 			return -EFAULT;
 
 		/*
@@ -813,6 +819,7 @@ static int get_v4l2_ext_controls32(struct v4l2_ext_controls __user *kp,
 	if (put_user((__force struct v4l2_ext_control *)kcontrols,
 		     &kp->controls))
 		return -EFAULT;
+
 	for (n = 0; n < count; n++) {
 		u32 id;
 
@@ -874,6 +881,7 @@ static int put_v4l2_ext_controls32(struct v4l2_ext_controls __user *kp,
 		    copy_in_user(&ucontrols->reserved2, &kcontrols->reserved2,
 				 sizeof(ucontrols->reserved2)))
 			return -EFAULT;
+
 		/*
 		 * Do not modify the pointer when copying a pointer control.
 		 * The contents of the pointer was changed, not the pointer
@@ -881,8 +889,10 @@ static int put_v4l2_ext_controls32(struct v4l2_ext_controls __user *kp,
 		 */
 		if (ctrl_is_pointer(id))
 			size -= sizeof(ucontrols->value64);
+
 		if (copy_in_user(ucontrols, kcontrols, size))
 			return -EFAULT;
+
 		ucontrols++;
 		kcontrols++;
 	}
