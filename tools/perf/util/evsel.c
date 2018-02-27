@@ -32,7 +32,6 @@
 #include "debug.h"
 #include "trace-event.h"
 #include "stat.h"
-#include "memswap.h"
 #include "util/parse-branch-options.h"
 
 #include "sane_ctype.h"
@@ -1920,27 +1919,14 @@ int perf_evsel__parse_sample(struct perf_evsel *evsel, union perf_event *event,
 	if (type & PERF_SAMPLE_RAW) {
 		OVERFLOW_CHECK_u64(array);
 		u.val64 = *array;
-
-		/*
-		 * Undo swap of u64, then swap on individual u32s,
-		 * get the size of the raw area and undo all of the
-		 * swap. The pevent interface handles endianity by
-		 * itself.
-		 */
-		if (swapped) {
+		if (WARN_ONCE(swapped,
+			      "Endianness of raw data not corrected!\n")) {
+			/* undo swap of u64, then swap on individual u32s */
 			u.val64 = bswap_64(u.val64);
 			u.val32[0] = bswap_32(u.val32[0]);
 			u.val32[1] = bswap_32(u.val32[1]);
 		}
 		data->raw_size = u.val32[0];
-
-		/*
-		 * The raw data is aligned on 64bits including the
-		 * u32 size, so it's safe to use mem_bswap_64.
-		 */
-		if (swapped)
-			mem_bswap_64((void *) array, data->raw_size);
-
 		array = (void *)array + sizeof(u32);
 
 		OVERFLOW_CHECK(array, data->raw_size, max_size);
