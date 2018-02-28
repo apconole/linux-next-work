@@ -161,11 +161,6 @@ static bool is_skylake_era(void)
 	return false;
 }
 
-static bool retp_enabled_full(void)
-{
-	return retp_enabled() && retp_compiler();
-}
-
 bool spec_ctrl_force_enable_ibrs(void)
 {
 	if (cpu_has_spec_ctrl()) {

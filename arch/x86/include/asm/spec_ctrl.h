@@ -232,6 +232,11 @@ static inline bool retp_enabled(void)
 	return static_key_false(&retp_enabled_key);
 }
 
+static inline bool retp_enabled_full(void)
+{
+	return retp_enabled() && retp_compiler();
+}
+
 static inline bool ibpb_enabled(void)
 {
 	return (boot_cpu_has(X86_FEATURE_IBPB) &&
@@ -258,11 +263,17 @@ static __always_inline u64 spec_ctrl_vmenter_ibrs(u64 vcpu_ibrs)
 static __always_inline void __spec_ctrl_vmexit_ibrs(u64 host_ibrs, u64 vcpu_ibrs)
 {
 	/* IBRS may have barrier semantics so it must be set during vmexit.  */
-	if (unlikely(host_ibrs || vcpu_ibrs != host_ibrs))
+	if (unlikely(host_ibrs || vcpu_ibrs != host_ibrs)) {
 		native_wrmsrl(MSR_IA32_SPEC_CTRL, host_ibrs);
-	else
-		/* rmb to prevent wrong speculation for security */
-		rmb();
+		return;
+	}
+
+	/* This is an unconditional jump, no wrong speculation is possible.  */
+	if (retp_enabled_full())
+		return;
+
+	/* rmb to prevent wrong speculation for security */
+	rmb();
 }
 
 static __always_inline void spec_ctrl_ibrs_on(void)
@@ -271,11 +282,17 @@ static __always_inline void spec_ctrl_ibrs_on(void)
 	 * IBRS may have barrier semantics so it must be set even for ALWAYS
 	 * mode.
 	 */
-	if (ibrs_enabled_kernel())
+	if (ibrs_enabled_kernel()) {
 		native_wrmsrl(MSR_IA32_SPEC_CTRL, FEATURE_ENABLE_IBRS);
-	else
-		/* rmb to prevent wrong speculation for security */
-		rmb();
+		return;
+	}
+
+	/* This is an unconditional jump, no wrong speculation is possible.  */
+	if (retp_enabled_full())
+		return;
+
+	/* rmb to prevent wrong speculation for security */
+	rmb();
 }
 
 static __always_inline void spec_ctrl_ibrs_off(void)
