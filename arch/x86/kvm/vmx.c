@@ -1793,6 +1793,29 @@ static void update_exception_bitmap(struct kvm_vcpu *vcpu)
 }
 
 /*
+ * Check if MSR is intercepted for currently loaded MSR bitmap.
+ */
+static bool msr_write_intercepted(struct kvm_vcpu *vcpu, u32 msr)
+{
+	unsigned long *msr_bitmap;
+	int f = sizeof(unsigned long);
+
+	if (!cpu_has_vmx_msr_bitmap())
+		return true;
+
+	msr_bitmap = to_vmx(vcpu)->loaded_vmcs->msr_bitmap;
+
+	if (msr <= 0x1fff) {
+		return !!test_bit(msr, msr_bitmap + 0x800 / f);
+	} else if ((msr >= 0xc0000000) && (msr <= 0xc0001fff)) {
+		msr &= 0x1fff;
+		return !!test_bit(msr, msr_bitmap + 0xc00 / f);
+	}
+
+	return true;
+}
+
+/*
  * Check if MSR is intercepted for L01 MSR bitmap.
  */
 static bool msr_write_intercepted_l01(struct kvm_vcpu *vcpu, u32 msr)
@@ -2924,6 +2947,11 @@ static int vmx_get_msr(struct kvm_vcpu *vcpu, struct msr_data *msr_info)
 		msr_info->data = guest_read_tsc(vcpu);
 		break;
 	case MSR_IA32_SPEC_CTRL:
+		if (!msr_info->host_initiated &&
+		    !guest_cpuid_has(vcpu, X86_FEATURE_IBRS) &&
+		    !guest_cpuid_has(vcpu, X86_FEATURE_SPEC_CTRL))
+			return 1;
+
 		msr_info->data = to_vmx(vcpu)->spec_ctrl;
 		break;
 	case MSR_IA32_SYSENTER_CS:
@@ -3030,7 +3058,35 @@ static int vmx_set_msr(struct kvm_vcpu *vcpu, struct msr_data *msr_info)
 		kvm_write_tsc(vcpu, msr_info);
 		break;
 	case MSR_IA32_SPEC_CTRL:
-		to_vmx(vcpu)->spec_ctrl = msr_info->data;
+		if (!msr_info->host_initiated &&
+		    !guest_cpuid_has(vcpu, X86_FEATURE_IBRS) &&
+		    !guest_cpuid_has(vcpu, X86_FEATURE_SPEC_CTRL))
+			return 1;
+
+		/* The STIBP bit doesn't fault even if it's not advertised */
+		if (data & ~(FEATURE_ENABLE_IBRS | FEATURE_ENABLE_STIBP))
+			return 1;
+
+		vmx->spec_ctrl = data;
+
+		if (!data)
+			break;
+
+		/*
+		 * For non-nested:
+		 * When it's written (to non-zero) for the first time, pass
+		 * it through.
+		 *
+		 * For nested:
+		 * The handling of the MSR bitmap for L2 guests is done in
+		 * nested_vmx_merge_msr_bitmap. We should not touch the
+		 * vmcs02.msr_bitmap here since it gets completely overwritten
+		 * in the merging. We update the vmcs01 here for L1 as well
+		 * since it will end up touching the MSR anyway now.
+		 */
+		vmx_disable_intercept_for_msr(vmx->vmcs01.msr_bitmap,
+					      MSR_IA32_SPEC_CTRL,
+					      MSR_TYPE_RW);
 		break;
 	case MSR_IA32_PRED_CMD:
 		if (!msr_info->host_initiated &&
@@ -5230,6 +5286,7 @@ static void vmx_vcpu_reset(struct kvm_vcpu *vcpu, bool init_event)
 	u64 cr0;
 
 	vmx->rmode.vm86_active = 0;
+	vmx->spec_ctrl = 0;
 
 	vmx->soft_vnmi_blocked = 0;
 
@@ -8999,7 +9056,9 @@ static void __noclone vmx_vcpu_run(struct kvm_vcpu *vcpu)
 	      );
 
 	if (cpu_has_spec_ctrl()) {
-		rdmsrl(MSR_IA32_SPEC_CTRL, vmx->spec_ctrl);
+		/* lfence is included in __spec_ctrl_vmexit_ibrs.  */
+		if (!msr_write_intercepted(vcpu, MSR_IA32_SPEC_CTRL))
+			rdmsrl(MSR_IA32_SPEC_CTRL, vmx->spec_ctrl);
 		__spec_ctrl_vmexit_ibrs(vmx->spec_ctrl);
 	}
 
@@ -9162,7 +9221,6 @@ static struct kvm_vcpu *vmx_create_vcpu(struct kvm *kvm, unsigned int id)
 	vmx_disable_intercept_for_msr(msr_bitmap, MSR_IA32_SYSENTER_CS, MSR_TYPE_RW);
 	vmx_disable_intercept_for_msr(msr_bitmap, MSR_IA32_SYSENTER_ESP, MSR_TYPE_RW);
 	vmx_disable_intercept_for_msr(msr_bitmap, MSR_IA32_SYSENTER_EIP, MSR_TYPE_RW);
- 	vmx_disable_intercept_for_msr(msr_bitmap, MSR_IA32_SPEC_CTRL, MSR_TYPE_RW);
 	vmx->msr_bitmap_mode = 0;
 
 	vmx->loaded_vmcs = &vmx->vmcs01;
@@ -9575,7 +9633,7 @@ static inline bool nested_vmx_merge_msr_bitmap(struct kvm_vcpu *vcpu,
 	unsigned long *msr_bitmap_l1;
 	unsigned long *msr_bitmap_l0 = to_vmx(vcpu)->nested.vmcs02.msr_bitmap;
 	/*
-	 * pred_cmd is trying to verify two things:
+	 * pred_cmd & spec_ctrl are trying to verify two things:
 	 *
 	 * 1. L0 gave a permission to L1 to actually passthrough the MSR. This
 	 *    ensures that we do not accidentally generate an L02 MSR bitmap
@@ -9588,9 +9646,10 @@ static inline bool nested_vmx_merge_msr_bitmap(struct kvm_vcpu *vcpu,
 	 *    the MSR.
 	 */
 	bool pred_cmd = msr_write_intercepted_l01(vcpu, MSR_IA32_PRED_CMD);
+	bool spec_ctrl = msr_write_intercepted_l01(vcpu, MSR_IA32_SPEC_CTRL);
 
 	if (!nested_cpu_has_virt_x2apic_mode(vmcs12) &&
-	    !pred_cmd)
+	    !pred_cmd && !spec_ctrl)
 		return false;
 
 	page = nested_get_page(vcpu, vmcs12->msr_bitmap);
@@ -9623,6 +9682,12 @@ static inline bool nested_vmx_merge_msr_bitmap(struct kvm_vcpu *vcpu,
 				MSR_TYPE_W);
 		}
 	}
+
+	if (spec_ctrl)
+		nested_vmx_disable_intercept_for_msr(
+					msr_bitmap_l1, msr_bitmap_l0,
+					MSR_IA32_SPEC_CTRL,
+					MSR_TYPE_R | MSR_TYPE_W);
 
 	if (pred_cmd)
 		nested_vmx_disable_intercept_for_msr(
