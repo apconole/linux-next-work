@@ -259,7 +259,7 @@ enum spectre_v2_mitigation spec_ctrl_get_mitigation(void)
 	else if (retp_enabled()) {
 		if (!retp_enabled_full())
 			mode = SPECTRE_V2_RETPOLINE_MINIMAL;
-		else if (!boot_cpu_has(X86_FEATURE_IBPB_SUPPORT))
+		else if (!boot_cpu_has(X86_FEATURE_IBPB))
 			mode = SPECTRE_V2_RETPOLINE_NO_IBPB;
 		else if (is_skylake_era())
 			mode = SPECTRE_V2_RETPOLINE_SKYLAKE;
@@ -287,7 +287,7 @@ static void spec_ctrl_print_features(void)
 	else
 		printk(KERN_INFO "FEATURE SPEC_CTRL Not Present\n");
 
-	if (boot_cpu_has(X86_FEATURE_IBPB_SUPPORT))
+	if (boot_cpu_has(X86_FEATURE_IBPB))
 		printk(KERN_INFO "FEATURE IBPB_SUPPORT Present\n");
 	else
 		printk(KERN_INFO "FEATURE IBPB_SUPPORT Not Present\n");
@@ -326,7 +326,7 @@ void spec_ctrl_init(void)
 void spec_ctrl_rescan_cpuid(void)
 {
 	enum spectre_v2_mitigation old_mode;
-	bool old_spec, old_ibpb;
+	bool old_ibrs, old_ibpb;
 	int cpu;
 
 	if (boot_cpu_has(X86_FEATURE_IBP_DISABLE))
@@ -336,31 +336,31 @@ void spec_ctrl_rescan_cpuid(void)
 	if (boot_cpu_data.x86_vendor == X86_VENDOR_INTEL ||
 	    boot_cpu_data.x86_vendor == X86_VENDOR_AMD) {
 
-		old_spec = boot_cpu_has(X86_FEATURE_SPEC_CTRL);
-		old_ibpb = boot_cpu_has(X86_FEATURE_IBPB_SUPPORT);
+		old_ibrs = boot_cpu_has(X86_FEATURE_IBRS);
+		old_ibpb = boot_cpu_has(X86_FEATURE_IBPB);
 		old_mode = spec_ctrl_get_mitigation();
 
 		/* detect spec ctrl related cpuid additions */
 		get_cpu_cap(&boot_cpu_data);
 
 		/* if there were no spec ctrl related changes, we're done */
-		if (old_spec == boot_cpu_has(X86_FEATURE_SPEC_CTRL) &&
-		    old_ibpb == boot_cpu_has(X86_FEATURE_IBPB_SUPPORT))
+		if (old_ibrs == boot_cpu_has(X86_FEATURE_IBRS) &&
+		    old_ibpb == boot_cpu_has(X86_FEATURE_IBPB))
 			goto done;
 
 		/*
-		 * The SPEC_CTRL and IBPB_SUPPORT cpuid bits may have
+		 * The SPEC_CTRL and IBPB cpuid bits may have
 		 * just been set in the boot_cpu_data, transfer them
 		 * to the per-cpu data too.
 		 */
 		if (cpu_has_spec_ctrl())
 			for_each_online_cpu(cpu)
 				set_cpu_cap(&cpu_data(cpu),
-					    X86_FEATURE_SPEC_CTRL);
-		if (boot_cpu_has(X86_FEATURE_IBPB_SUPPORT))
+					    X86_FEATURE_IBRS);
+		if (boot_cpu_has(X86_FEATURE_IBPB))
 			for_each_online_cpu(cpu)
 				set_cpu_cap(&cpu_data(cpu),
-					    X86_FEATURE_IBPB_SUPPORT);
+					    X86_FEATURE_IBPB);
 
 		/* print the changed IBRS/IBPB features */
 		spec_ctrl_print_features();

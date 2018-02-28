@@ -191,7 +191,7 @@ enum {
 
 static __always_inline int cpu_has_spec_ctrl(void)
 {
-	if (boot_cpu_has(X86_FEATURE_SPEC_CTRL))
+	if (boot_cpu_has(X86_FEATURE_IBRS))
 		return 1;
 
 	/* rmb to prevent wrong speculation for security */
@@ -234,7 +234,7 @@ static inline bool retp_enabled(void)
 
 static inline bool ibpb_enabled(void)
 {
-	return (boot_cpu_has(X86_FEATURE_IBPB_SUPPORT) &&
+	return (boot_cpu_has(X86_FEATURE_IBPB) &&
 		(ibrs_enabled_kernel() || retp_enabled()));
 }
 

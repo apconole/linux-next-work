@@ -206,7 +206,6 @@
 #define X86_FEATURE_INTEL_PT	( 7*32+15) /* Intel Processor Trace */
 
 #define X86_FEATURE_MBA		( 7*32+18) /* Memory Bandwidth Allocation */
-#define X86_FEATURE_IBPB_SUPPORT (7*32+20) /* Indirect Branch Prediction Barrier Support */
 #define X86_FEATURE_IBP_DISABLE ( 7*32+21) /* Old AMD Indirect Branch Predictor Disable */
 
 /* Virtualization flags: Linux defined, word 8 */
@@ -264,9 +263,9 @@
 #define X86_FEATURE_CLZERO              (13*32+ 0) /* CLZERO instruction */
 #define X86_FEATURE_IRPERF              (13*32+ 1) /* Instructions Retired Count */
 #define X86_FEATURE_XSAVEERPTR          (13*32+ 2) /* Always save/restore FP error pointers */
-#define X86_FEATURE_AMD_PRED_CMD	(13*32+12) /* Prediction Command MSR (AMD) */
-#define X86_FEATURE_AMD_SPEC_CTRL	(13*32+14) /* Speculation Control MSR only (AMD) */
-#define X86_FEATURE_AMD_STIBP		(13*32+15) /* Single Thread Indirect Branch Predictors (AMD) */
+#define X86_FEATURE_IBPB		(13*32+12) /* Indirect Branch Prediction Barrier */
+#define X86_FEATURE_IBRS		(13*32+14) /* Indirect Branch Restricted Speculation */
+#define X86_FEATURE_STIBP		(13*32+15) /* Single Thread Indirect Branch Predictors */
 
 /* AMD-defined CPU features, CPUID level 0x80000007 (ebx), word 17 */
 #define X86_FEATURE_OVERFLOW_RECOV (17*32+0) /* MCA overflow recovery support */
@@ -310,7 +309,7 @@
 #define X86_FEATURE_AVX512_4VNNIW	(18*32+ 2) /* AVX-512 Neural Network Instructions */
 #define X86_FEATURE_AVX512_4FMAPS	(18*32+ 3) /* AVX-512 Multiply Accumulation Single precision */
 #define X86_FEATURE_SPEC_CTRL		(18*32+26) /* Speculation Control (IBRS + IBPB) */
-#define X86_FEATURE_STIBP		(18*32+27) /* Single Thread Indirect Branch Predictors */
+#define X86_FEATURE_INTEL_STIBP		(18*32+27) /* Single Thread Indirect Branch Predictors */
 #define X86_FEATURE_ARCH_CAPABILITIES	(18*32+29) /* IA32_ARCH_CAPABILITIES MSR (Intel) */
 
 /*
