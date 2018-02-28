@@ -6482,7 +6482,6 @@ static __init int hardware_setup(void)
 	vmx_disable_intercept_for_msr(MSR_IA32_SYSENTER_CS, false);
 	vmx_disable_intercept_for_msr(MSR_IA32_SYSENTER_ESP, false);
 	vmx_disable_intercept_for_msr(MSR_IA32_SYSENTER_EIP, false);
-	vmx_disable_intercept_for_msr(MSR_IA32_BNDCFGS, true);
 	vmx_disable_intercept_for_msr(MSR_IA32_SPEC_CTRL, false);
 	vmx_disable_intercept_for_msr(MSR_IA32_PRED_CMD, false);
 
