@@ -265,6 +265,9 @@
 #define X86_FEATURE_CLZERO              (13*32+ 0) /* CLZERO instruction */
 #define X86_FEATURE_IRPERF              (13*32+ 1) /* Instructions Retired Count */
 #define X86_FEATURE_XSAVEERPTR          (13*32+ 2) /* Always save/restore FP error pointers */
+#define X86_FEATURE_AMD_PRED_CMD	(13*32+12) /* Prediction Command MSR (AMD) */
+#define X86_FEATURE_AMD_SPEC_CTRL	(13*32+14) /* Speculation Control MSR only (AMD) */
+#define X86_FEATURE_AMD_STIBP		(13*32+15) /* Single Thread Indirect Branch Predictors (AMD) */
 
 /* AMD-defined CPU features, CPUID level 0x80000007 (ebx), word 17 */
 #define X86_FEATURE_OVERFLOW_RECOV (17*32+0) /* MCA overflow recovery support */

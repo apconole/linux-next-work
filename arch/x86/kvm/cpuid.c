@@ -75,9 +75,6 @@ u64 kvm_supported_xcr0(void)
 #define KVM_CPUID_BIT_SPEC_CTRL		26
 #define KVM_CPUID_BIT_STIBP		27
 
-/* CPUID[eax=0x80000008].ebx */
-#define KVM_CPUID_BIT_IBPB_SUPPORT	12
-
 #define KF(x) bit(KVM_CPUID_BIT_##x)
 
 int kvm_update_cpuid(struct kvm_vcpu *vcpu)
@@ -397,8 +394,8 @@ static inline int __do_cpuid_ent(struct kvm_cpuid_entry2 *entry, u32 function,
 		KF(SPEC_CTRL) | KF(STIBP);
 
 	/* cpuid 0x80000008.ebx */
-	const u32 kvm_cpuid_80000008_ebx_x86_features =
-		KF(IBPB_SUPPORT);
+	const u32 kvm_cpuid_8000_0008_ebx_x86_features =
+		F(AMD_PRED_CMD) | F(AMD_SPEC_CTRL) | F(AMD_STIBP);
 
 	/* all calls to cpuid_count() should be made on the same cpu */
 	get_cpu();
@@ -633,8 +630,8 @@ static inline int __do_cpuid_ent(struct kvm_cpuid_entry2 *entry, u32 function,
 		if (!g_phys_as)
 			g_phys_as = phys_as;
 		entry->eax = g_phys_as | (virt_as << 8);
-		entry->ebx &= kvm_cpuid_80000008_ebx_x86_features;
-		entry->ebx &= get_scattered_cpuid_leaf(0x80000008, 0, CPUID_EBX);
+		entry->ebx &= kvm_cpuid_8000_0008_ebx_x86_features;
+		cpuid_mask(&entry->ecx, CPUID_8000_0008_EBX);
 		entry->edx = 0;
 		break;
 	}
