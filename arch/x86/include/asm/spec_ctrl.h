@@ -222,9 +222,13 @@ static __always_inline unsigned int ibrs_enabled(void)
 
 static __always_inline bool ibrs_enabled_kernel(void)
 {
-	unsigned int ibrs = ibrs_enabled();
+	if (cpu_has_spec_ctrl()) {
+		unsigned int ibrs = __this_cpu_read(spec_ctrl_pcp);
 
-	return ibrs == IBRS_ENABLED || ibrs == IBRS_ENABLED_ALWAYS;
+		return (ibrs & SPEC_CTRL_PCP_IBRS_ENTRY);
+	}
+
+	return false;
 }
 
 static inline bool retp_enabled(void)
@@ -238,47 +242,39 @@ static inline bool ibpb_enabled(void)
 		(ibrs_enabled_kernel() || retp_enabled()));
 }
 
-static __always_inline void __spec_ctrl_vm_ibrs(u64 vcpu_ibrs, bool vmenter)
+static __always_inline u64 spec_ctrl_vmenter_ibrs(u64 vcpu_ibrs)
 {
-	u64 host_ibrs = 0, val;
-	bool write_spec_ctrl;
-
-	if (ibrs_enabled_kernel()) {
-		/*
-		 * If IBRS is enabled for host kernel mode or
-		 * host always mode we must set
-		 * FEATURE_ENABLE_IBRS at vmexit.
-		 */
-		host_ibrs = FEATURE_ENABLE_IBRS;
-	}
-
-	val = vmenter ? vcpu_ibrs : host_ibrs;
-	write_spec_ctrl = (!vmenter && host_ibrs) || (vcpu_ibrs != host_ibrs);
-
 	/*
-	 * IBRS may have barrier semantics so it must be set to
-	 * satisfy those semantics during vmexit.
+	 * If IBRS is enabled for host kernel mode or host always mode
+	 * we must set FEATURE_ENABLE_IBRS at vmexit.  This is performance
+	 * critical code so we pass host_ibrs back to KVM.  Preemption is
+	 * disabled, so we cannot race with sysfs writes.
 	 */
-	if (write_spec_ctrl)
-		native_wrmsrl(MSR_IA32_SPEC_CTRL, val);
+	u64 host_ibrs = ibrs_enabled_kernel() ? FEATURE_ENABLE_IBRS : 0;
+
+	if (unlikely(vcpu_ibrs != host_ibrs))
+		native_wrmsrl(MSR_IA32_SPEC_CTRL, vcpu_ibrs);
+
+	/* rmb not needed when disabling IBRS */
+	return host_ibrs;
+}
+
+static __always_inline void __spec_ctrl_vmexit_ibrs(u64 host_ibrs, u64 vcpu_ibrs)
+{
+	/* IBRS may have barrier semantics so it must be set during vmexit.  */
+	if (unlikely(host_ibrs || vcpu_ibrs != host_ibrs))
+		native_wrmsrl(MSR_IA32_SPEC_CTRL, host_ibrs);
 	else
 		/* rmb to prevent wrong speculation for security */
 		rmb();
 }
 
-static __always_inline void spec_ctrl_vmenter_ibrs(u64 vcpu_ibrs)
-{
-	if (cpu_has_spec_ctrl())
-		__spec_ctrl_vm_ibrs(vcpu_ibrs, true);
-}
-
-static __always_inline void __spec_ctrl_vmexit_ibrs(u64 vcpu_ibrs)
-{
-	__spec_ctrl_vm_ibrs(vcpu_ibrs, false);
-}
-
 static __always_inline void spec_ctrl_ibrs_on(void)
 {
+	/*
+	 * IBRS may have barrier semantics so it must be set even for ALWAYS
+	 * mode.
+	 */
 	if (ibrs_enabled_kernel())
 		native_wrmsrl(MSR_IA32_SPEC_CTRL, FEATURE_ENABLE_IBRS);
 	else
@@ -290,9 +286,7 @@ static __always_inline void spec_ctrl_ibrs_off(void)
 {
 	if (ibrs_enabled_kernel())
 		native_wrmsrl(MSR_IA32_SPEC_CTRL, 0);
-	else
-		/* rmb to prevent wrong speculation for security */
-		rmb();
+	/* rmb not needed when disabling IBRS */
 }
 
 /*

@@ -8880,7 +8880,7 @@ static void vmx_arm_hv_timer(struct kvm_vcpu *vcpu)
 static void __noclone vmx_vcpu_run(struct kvm_vcpu *vcpu)
 {
 	struct vcpu_vmx *vmx = to_vmx(vcpu);
-	unsigned long debugctlmsr, cr4;
+	unsigned long debugctlmsr, cr4, host_ibrs;
 
 	/* Record the guest's net vcpu time for enforced NMI injections. */
 	if (unlikely(!cpu_has_virtual_nmis() && vmx->soft_vnmi_blocked))
@@ -8930,7 +8930,7 @@ static void __noclone vmx_vcpu_run(struct kvm_vcpu *vcpu)
 
 	vmx_arm_hv_timer(vcpu);
 
-	spec_ctrl_vmenter_ibrs(vmx->spec_ctrl);
+	host_ibrs = spec_ctrl_vmenter_ibrs(vmx->spec_ctrl);
 
 	vmx->__launched = vmx->loaded_vmcs->launched;
 	asm(
@@ -9059,7 +9059,7 @@ static void __noclone vmx_vcpu_run(struct kvm_vcpu *vcpu)
 		/* lfence is included in __spec_ctrl_vmexit_ibrs.  */
 		if (unlikely(!msr_write_intercepted(vcpu, MSR_IA32_SPEC_CTRL)))
 			vmx->spec_ctrl = native_read_msr(MSR_IA32_SPEC_CTRL);
-		__spec_ctrl_vmexit_ibrs(vmx->spec_ctrl);
+		__spec_ctrl_vmexit_ibrs(host_ibrs, vmx->spec_ctrl);
 	}
 
 	/* Eliminate branch target predictions from guest mode */
