@@ -233,7 +233,7 @@ static __always_inline bool ibrs_enabled_kernel(void)
 
 static inline bool retp_enabled(void)
 {
-	return static_key_enabled(&retp_enabled_key);
+	return static_key_false(&retp_enabled_key);
 }
 
 static inline bool ibpb_enabled(void)

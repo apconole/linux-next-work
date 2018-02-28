@@ -112,9 +112,9 @@ static void sync_all_cpus_ibp(bool enable)
 
 static void set_spec_ctrl_retp(bool enable)
 {
-	if (!retp_enabled() && enable)
+	if (!static_key_enabled(&retp_enabled_key) && enable)
 		static_key_slow_inc(&retp_enabled_key);
-	else if (retp_enabled() && !enable)
+	else if (static_key_enabled(&retp_enabled_key) && !enable)
 		static_key_slow_dec(&retp_enabled_key);
 }
 
