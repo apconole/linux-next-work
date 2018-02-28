@@ -5103,7 +5103,7 @@ static void svm_vcpu_run(struct kvm_vcpu *vcpu)
 #endif
 
 	if (cpu_has_spec_ctrl()) {
-		rdmsrl(MSR_IA32_SPEC_CTRL, svm->spec_ctrl);
+		svm->spec_ctrl = native_read_msr(MSR_IA32_SPEC_CTRL);
 		__spec_ctrl_vmexit_ibrs(svm->spec_ctrl);
 	}
 

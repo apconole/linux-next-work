@@ -9058,7 +9058,7 @@ static void __noclone vmx_vcpu_run(struct kvm_vcpu *vcpu)
 	if (cpu_has_spec_ctrl()) {
 		/* lfence is included in __spec_ctrl_vmexit_ibrs.  */
 		if (!msr_write_intercepted(vcpu, MSR_IA32_SPEC_CTRL))
-			rdmsrl(MSR_IA32_SPEC_CTRL, vmx->spec_ctrl);
+			vmx->spec_ctrl = native_read_msr(MSR_IA32_SPEC_CTRL);
 		__spec_ctrl_vmexit_ibrs(vmx->spec_ctrl);
 	}
 
