@@ -13,6 +13,7 @@
 #include <asm/cpufeature.h>
 #include <asm/nospec-branch.h>
 #include <asm/intel-family.h>
+#include "cpu/cpu.h"
 
 static DEFINE_MUTEX(spec_ctrl_mutex);
 
@@ -340,7 +341,7 @@ void spec_ctrl_rescan_cpuid(void)
 		old_mode = spec_ctrl_get_mitigation();
 
 		/* detect spec ctrl related cpuid additions */
-		init_scattered_cpuid_features(&boot_cpu_data);
+		get_cpu_cap(&boot_cpu_data);
 
 		/* if there were no spec ctrl related changes, we're done */
 		if (old_spec == boot_cpu_has(X86_FEATURE_SPEC_CTRL) &&
