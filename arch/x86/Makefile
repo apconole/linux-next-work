@@ -163,7 +163,7 @@ ifdef CONFIG_RETPOLINE
     ifneq ($(RETPOLINE_CFLAGS),)
         KBUILD_CFLAGS += $(RETPOLINE_CFLAGS) -DRETPOLINE
     else
-        $(error CONFIG_RETPOLINE=y, but not supported by the compiler. Toolchain update recommended.)
+        $(error CONFIG_RETPOLINE=y, but not supported by the compiler. Compiler update recommended.)
     endif
 endif
 
