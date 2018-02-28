@@ -67,14 +67,7 @@ u64 kvm_supported_xcr0(void)
 
 #define F(x) bit(X86_FEATURE_##x)
 
-/* These are scattered features in cpufeatures.h. */
-
-/* CPUID[eax=7,ecx=0].edx */
-#define KVM_CPUID_BIT_AVX512_4VNNIW     2
-#define KVM_CPUID_BIT_AVX512_4FMAPS     3
-#define KVM_CPUID_BIT_SPEC_CTRL		26
-#define KVM_CPUID_BIT_INTEL_STIBP	27
-
+/* For scattered features from cpufeatures.h; we currently expose none */
 #define KF(x) bit(KVM_CPUID_BIT_##x)
 
 int kvm_update_cpuid(struct kvm_vcpu *vcpu)
@@ -390,8 +383,8 @@ static inline int __do_cpuid_ent(struct kvm_cpuid_entry2 *entry, u32 function,
 
 	/* cpuid 7.0.edx*/
 	const u32 kvm_cpuid_7_0_edx_x86_features =
-		KF(AVX512_4VNNIW) | KF(AVX512_4FMAPS) |
-		KF(SPEC_CTRL) | KF(INTEL_STIBP);
+		F(AVX512_4VNNIW) | F(AVX512_4FMAPS) |
+		F(SPEC_CTRL) | F(INTEL_STIBP);
 
 	/* cpuid 0x80000008.ebx */
 	const u32 kvm_cpuid_8000_0008_ebx_x86_features =
@@ -480,7 +473,7 @@ static inline int __do_cpuid_ent(struct kvm_cpuid_entry2 *entry, u32 function,
 			if (!tdp_enabled || !boot_cpu_has(X86_FEATURE_OSPKE))
 				entry->ecx &= ~F(PKU);
 			entry->edx &= kvm_cpuid_7_0_edx_x86_features;
-			entry->edx &= get_scattered_cpuid_leaf(7, 0, CPUID_EDX);
+			cpuid_mask(&entry->edx, CPUID_7_EDX);
 		} else {
 			entry->ebx = 0;
 			entry->ecx = 0;
