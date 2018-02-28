@@ -262,6 +262,11 @@
 #define X86_FEATURE_CQM_MBM_TOTAL (12*32+ 1) /* LLC Total MBM monitoring */
 #define X86_FEATURE_CQM_MBM_LOCAL (12*32+ 2) /* LLC Local MBM monitoring */
 
+/* AMD-defined CPU features, CPUID level 0x80000008 (EBX), word 13 */
+#define X86_FEATURE_CLZERO              (13*32+ 0) /* CLZERO instruction */
+#define X86_FEATURE_IRPERF              (13*32+ 1) /* Instructions Retired Count */
+#define X86_FEATURE_XSAVEERPTR          (13*32+ 2) /* Always save/restore FP error pointers */
+
 /* AMD-defined CPU features, CPUID level 0x80000007 (ebx), word 17 */
 #define X86_FEATURE_OVERFLOW_RECOV (17*32+0) /* MCA overflow recovery support */
 #define X86_FEATURE_SUCCOR	(17*32+1) /* Uncorrectable error containment and recovery */
