@@ -251,7 +251,7 @@ static const struct svm_direct_access_msrs {
 	{ .index = MSR_SYSCALL_MASK,			.always = true  },
 #endif
 	{ .index = MSR_IA32_SPEC_CTRL,			.always = true  },
-	{ .index = MSR_IA32_PRED_CMD,			.always = true  },
+	{ .index = MSR_IA32_PRED_CMD,			.always = false },
 	{ .index = MSR_IA32_LASTBRANCHFROMIP,		.always = false },
 	{ .index = MSR_IA32_LASTBRANCHTOIP,		.always = false },
 	{ .index = MSR_IA32_LASTINTFROMIP,		.always = false },
@@ -3728,6 +3728,22 @@ static int svm_set_msr(struct kvm_vcpu *vcpu, struct msr_data *msr)
 		break;
 	case MSR_IA32_TSC:
 		kvm_write_tsc(vcpu, msr);
+		break;
+	case MSR_IA32_PRED_CMD:
+		if (!msr->host_initiated &&
+		    !guest_cpuid_has(vcpu, X86_FEATURE_IBPB))
+			return 1;
+
+		if (data & ~FEATURE_SET_IBPB)
+			return 1;
+
+		if (!data)
+			break;
+
+		wrmsrl(MSR_IA32_PRED_CMD, FEATURE_SET_IBPB);
+		if (is_guest_mode(vcpu))
+			break;
+		set_msr_interception(svm->msrpm, MSR_IA32_PRED_CMD, 0, 1);
 		break;
 	case MSR_STAR:
 		svm->vmcb->save.star = data;
