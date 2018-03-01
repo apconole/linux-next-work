@@ -446,16 +446,6 @@ void *kvmalloc_node(size_t size, gfp_t flags, int node)
 	 */
 	WARN_ON_ONCE((flags & GFP_KERNEL) != GFP_KERNEL);
 
-#ifdef CONFIG_DEBUG_VM
-	/*
-	 * When building a debugging kernel, we use vmalloc more often, so that
-	 * we can catch bugs where virt_to_page or DMA API is used on the result
-	 * of kvmalloc.
-	 */
-	if (hweight64(ktime_get_raw_ns()) & 1)
-		return __vmalloc_node_flags(size, node, flags | __GFP_HIGHMEM);
-#endif
-
 	/*
 	 * Make sure that larger requests are not too disruptive - no OOM
 	 * killer and no allocation failure warnings as we have a fallback
