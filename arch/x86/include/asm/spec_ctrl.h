@@ -156,6 +156,7 @@
 #include <asm/nospec-branch.h>
 
 extern struct static_key retp_enabled_key;
+extern struct static_key ibrs_present_key;
 
 extern void spec_ctrl_rescan_cpuid(void);
 extern void spec_ctrl_init(void);
@@ -191,12 +192,7 @@ enum {
 
 static __always_inline int cpu_has_spec_ctrl(void)
 {
-	if (boot_cpu_has(X86_FEATURE_IBRS))
-		return 1;
-
-	/* rmb to prevent wrong speculation for security */
-	rmb();
-	return 0;
+	return static_key_false(&ibrs_present_key);
 }
 
 static __always_inline unsigned int ibrs_enabled(void)

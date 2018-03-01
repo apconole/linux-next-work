@@ -22,7 +22,9 @@ static bool ibp_disabled __read_mostly;
 static bool unsafe_module __read_mostly;
 
 struct static_key retp_enabled_key = STATIC_KEY_INIT_FALSE;
+struct static_key ibrs_present_key = STATIC_KEY_INIT_FALSE;
 EXPORT_SYMBOL(retp_enabled_key);
+EXPORT_SYMBOL(ibrs_present_key);
 
 static void set_spec_ctrl_pcp(bool enable, int flag)
 {
@@ -282,7 +284,7 @@ static void spec_ctrl_print_features(void)
 		return;
 	}
 
-	if (cpu_has_spec_ctrl())
+	if (boot_cpu_has(X86_FEATURE_IBRS))
 		printk(KERN_INFO "FEATURE SPEC_CTRL Present\n");
 	else
 		printk(KERN_INFO "FEATURE SPEC_CTRL Not Present\n");
@@ -320,6 +322,10 @@ static void spec_ctrl_reinit_all_cpus(void)
 
 void spec_ctrl_init(void)
 {
+	if (!static_key_enabled(&ibrs_present_key) && boot_cpu_has(X86_FEATURE_IBRS))
+		static_key_slow_inc(&ibrs_present_key);
+	else if (static_key_enabled(&ibrs_present_key) && !boot_cpu_has(X86_FEATURE_IBRS))
+		static_key_slow_dec(&ibrs_present_key);
 	spec_ctrl_print_features();
 }
 
@@ -353,7 +359,7 @@ void spec_ctrl_rescan_cpuid(void)
 		 * just been set in the boot_cpu_data, transfer them
 		 * to the per-cpu data too.
 		 */
-		if (cpu_has_spec_ctrl())
+		if (boot_cpu_has(X86_FEATURE_IBRS))
 			for_each_online_cpu(cpu)
 				set_cpu_cap(&cpu_data(cpu),
 					    X86_FEATURE_IBRS);
@@ -362,8 +368,8 @@ void spec_ctrl_rescan_cpuid(void)
 				set_cpu_cap(&cpu_data(cpu),
 					    X86_FEATURE_IBPB);
 
-		/* print the changed IBRS/IBPB features */
-		spec_ctrl_print_features();
+		/* update static key, print the changed IBRS/IBPB features */
+		spec_ctrl_init();
 
 		/*
 		 * Re-execute the v2 mitigation logic based on any new CPU
