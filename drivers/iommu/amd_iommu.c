@@ -4208,8 +4208,11 @@ static int set_affinity(struct irq_data *data, const struct cpumask *mask,
 		return err;
 	}
 
-	iommu->irte_ops->set_affinity(irte_info->ir_data->entry, irte_info->devid,
-			    irte_info->index, cfg->vector, dest);
+	if (irte_info->ir_data)
+		iommu->irte_ops->set_affinity(irte_info->ir_data->entry,
+					      irte_info->devid,
+					      irte_info->index,
+					      cfg->vector, dest);
 
 	if (cfg->move_in_progress)
 		send_cleanup_vector(cfg);
@@ -4231,6 +4234,8 @@ static int free_irq(int irq)
 	irte_info = &cfg->irq_2_irte;
 
 	free_irte(irte_info->devid, irte_info->index);
+	if (irte_info->ir_data)
+		kfree(irte_info->ir_data->entry);
 	kfree(irte_info->ir_data);
 
 	return 0;
