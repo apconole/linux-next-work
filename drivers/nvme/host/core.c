@@ -1980,22 +1980,14 @@ nvme_show_str_function(serial);
 nvme_show_str_function(firmware_rev);
 nvme_show_int_function(cntlid);
 
-static void nvme_sysfs_store_delete_callback(struct device *dev)
-{
-	struct nvme_ctrl *ctrl = dev_get_drvdata(dev);
-
-	ctrl->ops->delete_ctrl(ctrl);
-}
 static ssize_t nvme_sysfs_delete(struct device *dev,
 				struct device_attribute *attr, const char *buf,
 				size_t count)
 {
-	int rc;
+	struct nvme_ctrl *ctrl = dev_get_drvdata(dev);
 
-	rc = device_schedule_callback(dev, nvme_sysfs_store_delete_callback);
-	if (rc)
-		count = rc;
-
+	if (device_remove_file_self(dev, attr))
+		ctrl->ops->delete_ctrl(ctrl);
 	return count;
 }
 static DEVICE_ATTR(delete_controller, S_IWUSR, NULL, nvme_sysfs_delete);
