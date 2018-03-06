@@ -281,11 +281,11 @@ module_param(avic, int, S_IRUGO);
 #endif
 
 /* enable/disable Virtual VMLOAD VMSAVE */
-static int vls = true;
+static int vls = false;
 module_param(vls, int, 0444);
 
 /* enable/disable Virtual GIF */
-static int vgif = true;
+static int vgif = false;
 module_param(vgif, int, 0444);
 
 /* AVIC VM ID bit masks and lock */
