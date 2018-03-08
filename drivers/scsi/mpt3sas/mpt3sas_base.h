@@ -1217,11 +1217,7 @@ struct MPT3SAS_ADAPTER {
 	void		*device_remove_in_progress;
 	u16		device_remove_in_progress_sz;
 	u8		is_gen35_ioc;
-	u8		atomic_desc_capable;
 	PUT_SMID_IO_FP_HIP put_smid_scsi_io;
-	PUT_SMID_IO_FP_HIP put_smid_fast_path;
-	PUT_SMID_IO_FP_HIP put_smid_hi_priority;
-	PUT_SMID_DEFAULT put_smid_default;
 
 };
 
@@ -1261,6 +1257,12 @@ __le32 mpt3sas_base_get_sense_buffer_dma(struct MPT3SAS_ADAPTER *ioc,
 
 void mpt3sas_base_sync_reply_irqs(struct MPT3SAS_ADAPTER *ioc);
 
+void mpt3sas_base_put_smid_fast_path(struct MPT3SAS_ADAPTER *ioc, u16 smid,
+	u16 handle);
+void mpt3sas_base_put_smid_hi_priority(struct MPT3SAS_ADAPTER *ioc, u16 smid,
+	u16 msix_task);
+void mpt3sas_base_put_smid_nvme_encap(struct MPT3SAS_ADAPTER *ioc, u16 smid);
+void mpt3sas_base_put_smid_default(struct MPT3SAS_ADAPTER *ioc, u16 smid);
 /* hi-priority queue */
 u16 mpt3sas_base_get_smid_hpr(struct MPT3SAS_ADAPTER *ioc, u8 cb_idx);
 u16 mpt3sas_base_get_smid_scsiio(struct MPT3SAS_ADAPTER *ioc, u8 cb_idx,
