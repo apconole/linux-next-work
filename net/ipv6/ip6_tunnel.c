@@ -1747,6 +1747,7 @@ static int ip6_tnl_newlink(struct net *src_net, struct net_device *dev,
 {
 	struct net *net = dev_net(dev);
 	struct ip6_tnl *nt, *t;
+	int err;
 
 	nt = netdev_priv(dev);
 	ip6_tnl_netlink_parms(data, &nt->parms);
@@ -1755,7 +1756,11 @@ static int ip6_tnl_newlink(struct net *src_net, struct net_device *dev,
 	if (!IS_ERR(t))
 		return -EEXIST;
 
-	return ip6_tnl_create2(dev);
+	err = ip6_tnl_create2(dev);
+	if (!err && tb[IFLA_MTU])
+		ip6_tnl_change_mtu(dev, nla_get_u32(tb[IFLA_MTU]));
+
+	return err;
 }
 
 static int ip6_tnl_changelink(struct net_device *dev, struct nlattr *tb[],
