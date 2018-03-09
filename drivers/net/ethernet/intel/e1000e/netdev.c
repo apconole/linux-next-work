@@ -631,6 +631,7 @@ static void e1000e_update_rdt_wa(struct e1000_ring *rx_ring, unsigned int i)
 
 	if (unlikely(!ret_val && (i != readl(rx_ring->tail)))) {
 		u32 rctl = er32(RCTL);
+
 		ew32(RCTL, rctl & ~E1000_RCTL_EN);
 		e_err("ME firmware caused invalid RDT - resetting\n");
 		schedule_work(&adapter->reset_task);
@@ -647,6 +648,7 @@ static void e1000e_update_tdt_wa(struct e1000_ring *tx_ring, unsigned int i)
 
 	if (unlikely(!ret_val && (i != readl(tx_ring->tail)))) {
 		u32 tctl = er32(TCTL);
+
 		ew32(TCTL, tctl & ~E1000_TCTL_EN);
 		e_err("ME firmware caused invalid TDT - resetting\n");
 		schedule_work(&adapter->reset_task);
@@ -1243,6 +1245,7 @@ static bool e1000_clean_tx_irq(struct e1000_ring *tx_ring)
 	while ((eop_desc->upper.data & cpu_to_le32(E1000_TXD_STAT_DD)) &&
 	       (count < tx_ring->count)) {
 		bool cleaned = false;
+
 		dma_rmb();		/* read buffer_info after eop_desc */
 		for (; !cleaned; count++) {
 			tx_desc = E1000_TX_DESC(*tx_ring, i);
@@ -1792,6 +1795,7 @@ static irqreturn_t e1000_intr_msi(int __always_unused irq, void *data)
 		    adapter->flags & FLAG_RX_NEEDS_RESTART) {
 			/* disable receives */
 			u32 rctl = er32(RCTL);
+
 			ew32(RCTL, rctl & ~E1000_RCTL_EN);
 			adapter->flags |= FLAG_RESTART_NOW;
 		}
@@ -1989,6 +1993,7 @@ static void e1000_configure_msix(struct e1000_adapter *adapter)
 	/* Workaround issue with spurious interrupts on 82574 in MSI-X mode */
 	if (hw->mac.type == e1000_82574) {
 		u32 rfctl = er32(RFCTL);
+
 		rfctl |= E1000_RFCTL_ACK_DIS;
 		ew32(RFCTL, rfctl);
 	}
@@ -2230,6 +2235,7 @@ static void e1000_irq_disable(struct e1000_adapter *adapter)
 
 	if (adapter->msix_entries) {
 		int i;
+
 		for (i = 0; i < adapter->num_vectors; i++)
 			synchronize_irq(adapter->msix_entries[i].vector);
 	} else {
@@ -2947,6 +2953,7 @@ static void e1000_configure_tx(struct e1000_adapter *adapter)
 
 	if (adapter->flags2 & FLAG2_DMA_BURST) {
 		u32 txdctl = er32(TXDCTL(0));
+
 		txdctl &= ~(E1000_TXDCTL_PTHRESH | E1000_TXDCTL_HTHRESH |
 			    E1000_TXDCTL_WTHRESH);
 		/* set up some performance related parameters to encourage the
@@ -3281,6 +3288,7 @@ static void e1000_configure_rx(struct e1000_adapter *adapter)
 
 		if (adapter->flags & FLAG_IS_ICH) {
 			u32 rxdctl = er32(RXDCTL(0));
+
 			ew32(RXDCTL(0), rxdctl | 0x3);
 		}
 
@@ -4997,6 +5005,7 @@ static void e1000e_update_stats(struct e1000_adapter *adapter)
 	/* Correctable ECC Errors */
 	if (hw->mac.type >= e1000_pch_lpt) {
 		u32 pbeccsts = er32(PBECCSTS);
+
 		adapter->corr_errors +=
 		    pbeccsts & E1000_PBECCSTS_CORR_ERR_CNT_MASK;
 		adapter->uncorr_errors +=
@@ -5110,6 +5119,7 @@ static void e1000e_enable_receives(struct e1000_adapter *adapter)
 	    (adapter->flags & FLAG_RESTART_NOW)) {
 		struct e1000_hw *hw = &adapter->hw;
 		u32 rctl = er32(RCTL);
+
 		ew32(RCTL, rctl | E1000_RCTL_EN);
 		adapter->flags &= ~FLAG_RESTART_NOW;
 	}
@@ -5232,6 +5242,7 @@ static void e1000_watchdog_task(struct work_struct *work)
 			if ((adapter->flags & FLAG_TARC_SPEED_MODE_BIT) &&
 			    !txb2b) {
 				u32 tarc0;
+
 				tarc0 = er32(TARC(0));
 				tarc0 &= ~SPEED_MODE_BIT;
 				ew32(TARC(0), tarc0);
@@ -6583,6 +6594,7 @@ static int __e1000_resume(struct pci_dev *pdev)
 		e1e_wphy(&adapter->hw, BM_WUS, ~0);
 	} else {
 		u32 wus = er32(WUS);
+
 		if (wus) {
 			e_info("MAC Wakeup cause - %s\n",
 			       wus & E1000_WUS_EX ? "Unicast Packet" :
