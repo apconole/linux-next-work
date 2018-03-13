@@ -1801,6 +1801,7 @@ static int ip_route_input_slow(struct sk_buff *skb, __be32 daddr, __be32 saddr,
 	   by fib_lookup.
 	 */
 
+	memset(&fl4, 0, sizeof(fl4));
 	tun_info = skb_tunnel_info(skb);
 	if (tun_info && !(tun_info->mode & IP_TUNNEL_INFO_TX))
 		flowi4_tun_id_set(&fl4, tun_info->key.tun_id);

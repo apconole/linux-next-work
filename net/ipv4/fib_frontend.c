@@ -305,6 +305,7 @@ static int __fib_validate_source(struct sk_buff *skb, __be32 src, __be32 dst,
 	fl4.saddr = dst;
 	fl4.flowi4_tos = tos;
 	fl4.flowi4_scope = RT_SCOPE_UNIVERSE;
+	fl4.flowi4_flags = 0;
 	flowi4_tun_id_set(&fl4, 0);
 
 	no_addr = idev->ifa_list == NULL;
