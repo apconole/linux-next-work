@@ -1,7 +1,7 @@
 /*
  * Linux driver for VMware's vmxnet3 ethernet NIC.
  *
- * Copyright (C) 2008-2009, VMware, Inc. All Rights Reserved.
+ * Copyright (C) 2008-2016, VMware, Inc. All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -20,7 +20,7 @@
  * The full GNU General Public License is included in this distribution in
  * the file called "COPYING".
  *
- * Maintained by: Shreyas Bhatewara <pv-drivers@vmware.com>
+ * Maintained by: pv-drivers@vmware.com
  *
  */
 
@@ -3329,10 +3329,10 @@ vmxnet3_probe_device(struct pci_dev *pdev,
 	ver = VMXNET3_READ_BAR1_REG(adapter, VMXNET3_REG_VRRS);
 	if (ver & 2) {
 		VMXNET3_WRITE_BAR1_REG(adapter, VMXNET3_REG_VRRS, 2);
-		adapter->version = 2;
+		adapter->version = VMXNET3_REV_3 + 1;
 	} else if (ver & 1) {
 		VMXNET3_WRITE_BAR1_REG(adapter, VMXNET3_REG_VRRS, 1);
-		adapter->version = 1;
+		adapter->version = VMXNET3_REV_2 + 1;
 	} else {
 		dev_err(&pdev->dev,
 			"Incompatible h/w version (0x%x) for adapter\n", ver);
