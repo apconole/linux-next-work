@@ -44,8 +44,6 @@ struct dax_operations {
 	 */
 	long (*direct_access)(struct dax_device *, pgoff_t, long,
 			void **, pfn_t *);
-	/* flush: optional driver-specific cache management after writes */
-	void (*flush)(struct dax_device *, pgoff_t, void *, size_t);
 };
 
 extern struct attribute_group dax_attribute_group;
@@ -87,8 +85,7 @@ void kill_dax(struct dax_device *dax_dev);
 void *dax_get_private(struct dax_device *dax_dev);
 long dax_direct_access(struct dax_device *dax_dev, pgoff_t pgoff, long nr_pages,
 		void **kaddr, pfn_t *pfn);
-void dax_flush(struct dax_device *dax_dev, pgoff_t pgoff, void *addr,
-		size_t size);
+void dax_flush(struct dax_device *dax_dev, void *addr, size_t size);
 void dax_write_cache(struct dax_device *dax_dev, bool wc);
 
 ssize_t dax_iomap_rw(int rw, struct kiocb *iocb, const struct iovec *iov,

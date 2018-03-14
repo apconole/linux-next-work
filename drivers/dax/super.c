@@ -191,8 +191,10 @@ static umode_t dax_visible(struct kobject *kobj, struct attribute *a, int n)
 	if (!dax_dev)
 		return 0;
 
-	if (a == &dev_attr_write_cache.attr && !dax_dev->ops->flush)
+#ifndef CONFIG_ARCH_HAS_PMEM_API
+	if (a == &dev_attr_write_cache.attr)
 		return 0;
+#endif
 	return a->mode;
 }
 
@@ -247,18 +249,23 @@ long dax_direct_access(struct dax_device *dax_dev, pgoff_t pgoff, long nr_pages,
 }
 EXPORT_SYMBOL_GPL(dax_direct_access);
 
-void dax_flush(struct dax_device *dax_dev, pgoff_t pgoff, void *addr,
-		size_t size)
+#ifdef CONFIG_ARCH_HAS_PMEM_API
+void arch_wb_cache_pmem(void *addr, size_t size);
+void dax_flush(struct dax_device *dax_dev, void *addr, size_t size)
 {
-	if (!dax_alive(dax_dev))
+	if (unlikely(!dax_alive(dax_dev)))
 		return;
 
-	if (!test_bit(DAXDEV_WRITE_CACHE, &dax_dev->flags))
+	if (unlikely(!test_bit(DAXDEV_WRITE_CACHE, &dax_dev->flags)))
 		return;
 
-	if (dax_dev->ops->flush)
-		dax_dev->ops->flush(dax_dev, pgoff, addr, size);
+	arch_wb_cache_pmem(addr, size);
 }
+#else
+void dax_flush(struct dax_device *dax_dev, void *addr, size_t size)
+{
+}
+#endif
 EXPORT_SYMBOL_GPL(dax_flush);
 
 void dax_write_cache(struct dax_device *dax_dev, bool wc)
