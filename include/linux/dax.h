@@ -48,6 +48,8 @@ struct dax_operations {
 	void (*flush)(struct dax_device *, pgoff_t, void *, size_t);
 };
 
+extern struct attribute_group dax_attribute_group;
+
 int bdev_dax_pgoff(struct block_device *, sector_t, size_t, pgoff_t *pgoff);
 #if IS_ENABLED(CONFIG_FS_DAX)
 int __bdev_dax_supported(struct super_block *sb, int blocksize);
@@ -87,6 +89,7 @@ long dax_direct_access(struct dax_device *dax_dev, pgoff_t pgoff, long nr_pages,
 		void **kaddr, pfn_t *pfn);
 void dax_flush(struct dax_device *dax_dev, pgoff_t pgoff, void *addr,
 		size_t size);
+void dax_write_cache(struct dax_device *dax_dev, bool wc);
 
 ssize_t dax_iomap_rw(int rw, struct kiocb *iocb, const struct iovec *iov,
 		unsigned long nr_segs, loff_t pos,
