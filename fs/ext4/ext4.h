@@ -1404,6 +1404,7 @@ struct ext4_sb_info {
 	struct ratelimit_state s_err_ratelimit_state;
 	struct ratelimit_state s_warning_ratelimit_state;
 	struct ratelimit_state s_msg_ratelimit_state;
+	struct dax_device *s_daxdev;
 };
 
 static inline struct ext4_sb_info *EXT4_SB(struct super_block *sb)
