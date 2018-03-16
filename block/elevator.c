@@ -51,7 +51,7 @@ static LIST_HEAD(elv_aux_list);
  */
 #define rq_hash_key(rq)		(blk_rq_pos(rq) + blk_rq_sectors(rq))
 
-static struct elevator_type_aux *__elevator_aux_find(struct elevator_type *e)
+static struct elevator_type_aux *__elevator_aux_find(const struct elevator_type *e)
 {
 	struct elevator_type_aux *e_aux;
 
