@@ -669,6 +669,7 @@ static int __init deadline_init(void)
 	aux = elevator_aux_find(&mq_deadline);
 	memcpy(&aux->ops.mq, &dd_ops, sizeof(struct elevator_mq_ops));
 	aux->uses_mq = true;
+	aux->elevator_alias = "deadline",
 	aux->queue_debugfs_attrs = deadline_queue_debugfs_attrs;
 
 	return 0;
