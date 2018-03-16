@@ -51,6 +51,29 @@ static LIST_HEAD(elv_aux_list);
  */
 #define rq_hash_key(rq)		(blk_rq_pos(rq) + blk_rq_sectors(rq))
 
+static struct elevator_type_aux *__elevator_aux_find(struct elevator_type *e)
+{
+	struct elevator_type_aux *e_aux;
+
+	list_for_each_entry(e_aux, &elv_aux_list, list) {
+		if (e_aux->type == e)
+			return e_aux;
+	}
+	return NULL;
+}
+
+struct elevator_type_aux *elevator_aux_find(struct elevator_type *e)
+{
+	struct elevator_type_aux *e_aux;
+
+	spin_lock(&elv_list_lock);
+	e_aux = __elevator_aux_find(e);
+	spin_unlock(&elv_list_lock);
+
+	return e_aux;
+}
+EXPORT_SYMBOL(elevator_aux_find);
+
 /*
  * Query io scheduler to see if the current process issuing bio may be
  * merged with rq.
@@ -907,29 +930,6 @@ void elv_unregister_queue(struct request_queue *q)
 	}
 }
 EXPORT_SYMBOL(elv_unregister_queue);
-
-static struct elevator_type_aux *__elevator_aux_find(struct elevator_type *e)
-{
-	struct elevator_type_aux *e_aux;
-
-	list_for_each_entry(e_aux, &elv_aux_list, list) {
-		if (e_aux->type == e)
-			return e_aux;
-	}
-	return NULL;
-}
-
-struct elevator_type_aux *elevator_aux_find(struct elevator_type *e)
-{
-	struct elevator_type_aux *e_aux;
-
-	spin_lock(&elv_list_lock);
-	e_aux = __elevator_aux_find(e);
-	spin_unlock(&elv_list_lock);
-
-	return e_aux;
-}
-EXPORT_SYMBOL(elevator_aux_find);
 
 static int elv_aux_register(struct elevator_type *e)
 {
