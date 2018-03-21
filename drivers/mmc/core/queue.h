@@ -1,9 +1,13 @@
 #ifndef MMC_QUEUE_H
 #define MMC_QUEUE_H
 
+#include <linux/types.h>
+#include <linux/blkdev.h>
+#include <linux/mmc/core.h>
+#include <linux/mmc/host.h>
+
 #define MMC_REQ_SPECIAL_MASK	(REQ_DISCARD | REQ_FLUSH)
 
-struct request;
 struct task_struct;
 struct mmc_blk_data;
 
