@@ -1662,7 +1662,7 @@ static void mmc_blk_issue_rw_rq(struct mmc_queue *mq, struct request *new_req)
 			 * complete.
 			 */
 			if (status == MMC_BLK_NEW_REQUEST)
-				mq->flags |= MMC_QUEUE_NEW_REQUEST;
+				mq->new_request = true;
 			return;
 		}
 
@@ -1801,7 +1801,7 @@ void mmc_blk_issue_rq(struct mmc_queue *mq, struct request *req)
 		goto out;
 	}
 
-	mq->flags &= ~MMC_QUEUE_NEW_REQUEST;
+	mq->new_request = false;
 	if (cmd_flags & REQ_DISCARD) {
 		/* complete ongoing async transfer before issuing discard */
 		if (card->host->areq)
@@ -1820,7 +1820,7 @@ void mmc_blk_issue_rq(struct mmc_queue *mq, struct request *req)
 	}
 
 out:
-	if ((!req && !(mq->flags & MMC_QUEUE_NEW_REQUEST)) ||
+	if ((!req && !mq->new_request) ||
 	     (cmd_flags & MMC_REQ_SPECIAL_MASK))
 		/*
 		 * Release host when there are no more requests
