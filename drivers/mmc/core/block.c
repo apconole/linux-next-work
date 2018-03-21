@@ -1148,7 +1148,7 @@ int mmc_access_rpmb(struct mmc_queue *mq)
 	return false;
 }
 
-static int mmc_blk_issue_discard_rq(struct mmc_queue *mq, struct request *req)
+static void mmc_blk_issue_discard_rq(struct mmc_queue *mq, struct request *req)
 {
 	struct mmc_blk_data *md = mq->blkdata;
 	struct mmc_card *card = md->queue.card;
@@ -1186,11 +1186,9 @@ static int mmc_blk_issue_discard_rq(struct mmc_queue *mq, struct request *req)
 		mmc_blk_reset_success(md, type);
 fail:
 	blk_end_request(req, err, blk_rq_bytes(req));
-
-	return err ? 0 : 1;
 }
 
-static int mmc_blk_issue_secdiscard_rq(struct mmc_queue *mq,
+static void mmc_blk_issue_secdiscard_rq(struct mmc_queue *mq,
 				       struct request *req)
 {
 	struct mmc_blk_data *md = mq->blkdata;
@@ -1253,11 +1251,9 @@ out_retry:
 		mmc_blk_reset_success(md, type);
 out:
 	blk_end_request(req, err, blk_rq_bytes(req));
-
-	return err ? 0 : 1;
 }
 
-static int mmc_blk_issue_flush(struct mmc_queue *mq, struct request *req)
+static void mmc_blk_issue_flush(struct mmc_queue *mq, struct request *req)
 {
 	struct mmc_blk_data *md = mq->blkdata;
 	struct mmc_card *card = md->queue.card;
@@ -1268,8 +1264,6 @@ static int mmc_blk_issue_flush(struct mmc_queue *mq, struct request *req)
 		ret = -EIO;
 
 	blk_end_request_all(req, ret);
-
-	return ret ? 0 : 1;
 }
 
 /*
@@ -1624,7 +1618,7 @@ static void mmc_blk_rw_start_new(struct mmc_queue *mq, struct mmc_card *card,
 	}
 }
 
-static int mmc_blk_issue_rw_rq(struct mmc_queue *mq, struct request *rqc)
+static void mmc_blk_issue_rw_rq(struct mmc_queue *mq, struct request *rqc)
 {
 	struct mmc_blk_data *md = mq->blkdata;
 	struct mmc_card *card = md->queue.card;
@@ -1637,7 +1631,7 @@ static int mmc_blk_issue_rw_rq(struct mmc_queue *mq, struct request *rqc)
 	struct mmc_async_req *old_areq;
 
 	if (!rqc && !mq->mqrq_prev->req)
-		return 0;
+		return;
 
 	do {
 		if (rqc) {
@@ -1650,7 +1644,7 @@ static int mmc_blk_issue_rw_rq(struct mmc_queue *mq, struct request *rqc)
 				pr_err("%s: Transfer size is not 4KB sector size aligned\n",
 					rqc->rq_disk->disk_name);
 				mmc_blk_rw_cmd_abort(card, rqc);
-				return 0;
+				return;
 			}
 
 			mmc_blk_rw_rq_prep(mq->mqrq_cur, card, 0, mq);
@@ -1667,7 +1661,7 @@ static int mmc_blk_issue_rw_rq(struct mmc_queue *mq, struct request *rqc)
 			 */
 			if (status == MMC_BLK_NEW_REQUEST)
 				mq->flags |= MMC_QUEUE_NEW_REQUEST;
-			return 0;
+			return;
 		}
 
 		/*
@@ -1701,7 +1695,7 @@ static int mmc_blk_issue_rw_rq(struct mmc_queue *mq, struct request *rqc)
 				       __func__, blk_rq_bytes(req),
 				       brq->data.bytes_xfered);
 				mmc_blk_rw_cmd_abort(card, req);
-				return 0;
+				return;
 			}
 			break;
 		case MMC_BLK_CMD_ERR:
@@ -1769,18 +1763,16 @@ static int mmc_blk_issue_rw_rq(struct mmc_queue *mq, struct request *rqc)
 		}
 	} while (ret);
 
-	return 1;
+	return;
 
  cmd_abort:
 	mmc_blk_rw_cmd_abort(card, req);
 
  start_new_req:
 	mmc_blk_rw_start_new(mq, card, rqc);
-
-	return 0;
 }
 
-int mmc_blk_issue_rq(struct mmc_queue *mq, struct request *req)
+void mmc_blk_issue_rq(struct mmc_queue *mq, struct request *req)
 {
 	int ret;
 	struct mmc_blk_data *md = mq->blkdata;
@@ -1796,7 +1788,6 @@ int mmc_blk_issue_rq(struct mmc_queue *mq, struct request *req)
 		if (req) {
 			blk_end_request_all(req, -EIO);
 		}
-		ret = 0;
 		goto out;
 	}
 
@@ -1806,16 +1797,16 @@ int mmc_blk_issue_rq(struct mmc_queue *mq, struct request *req)
 		if (card->host->areq)
 			mmc_blk_issue_rw_rq(mq, NULL);
 		if (req->cmd_flags & REQ_SECURE)
-			ret = mmc_blk_issue_secdiscard_rq(mq, req);
+			mmc_blk_issue_secdiscard_rq(mq, req);
 		else
-			ret = mmc_blk_issue_discard_rq(mq, req);
+			mmc_blk_issue_discard_rq(mq, req);
 	} else if (cmd_flags & REQ_FLUSH) {
 		/* complete ongoing async transfer before issuing flush */
 		if (card->host->areq)
 			mmc_blk_issue_rw_rq(mq, NULL);
-		ret = mmc_blk_issue_flush(mq, req);
+		mmc_blk_issue_flush(mq, req);
 	} else {
-		ret = mmc_blk_issue_rw_rq(mq, req);
+		mmc_blk_issue_rw_rq(mq, req);
 	}
 
 out:
@@ -1828,7 +1819,6 @@ out:
 		 * the 'mmc_blk_issue_rq' with 'mqrq_prev->req'.
 		 */
 		mmc_put_card(card);
-	return ret;
 }
 
 static inline int mmc_blk_readonly(struct mmc_card *card)
