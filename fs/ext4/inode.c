@@ -3249,6 +3249,9 @@ static void ext4_end_io_dio(struct kiocb *iocb, loff_t offset,
 {
         ext4_io_end_t *io_end = iocb->private;
 
+	if (size <= 0)
+		return;
+
 	/* if not async direct IO just return */
 	if (!io_end)
 		return;

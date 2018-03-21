@@ -1473,11 +1473,8 @@ __xfs_end_io_direct_write(
 	if (XFS_FORCED_SHUTDOWN(mp) || ioend->io_error)
 		goto out_end_io;
 
-	/*
-	 * dio completion end_io functions are only called on writes if more
-	 * than 0 bytes was written.
-	 */
-	ASSERT(size > 0);
+	if (size <= 0)
+		return;
 
 	/*
 	 * The ioend only maps whole blocks, while the IO may be sector aligned.
