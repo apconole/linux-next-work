@@ -159,7 +159,7 @@ struct mmc_request {
 struct mmc_card;
 struct mmc_async_req;
 
-extern struct mmc_async_req *mmc_start_req(struct mmc_host *,
+extern struct mmc_async_req *mmc_start_areq(struct mmc_host *,
 					   struct mmc_async_req *,
 					   enum mmc_blk_status *);
 extern void mmc_wait_for_req(struct mmc_host *, struct mmc_request *);
