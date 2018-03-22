@@ -1434,15 +1434,6 @@ static inline int ext4_valid_inum(struct super_block *sb, unsigned long ino)
 		 ino <= le32_to_cpu(EXT4_SB(sb)->s_es->s_inodes_count));
 }
 
-static inline void ext4_set_io_unwritten_flag(struct inode *inode,
-					      struct ext4_io_end *io_end)
-{
-	if (!(io_end->flag & EXT4_IO_END_UNWRITTEN)) {
-		io_end->flag |= EXT4_IO_END_UNWRITTEN;
-		atomic_inc(&EXT4_I(inode)->i_unwritten);
-	}
-}
-
 static inline ext4_io_end_t *ext4_inode_aio(struct inode *inode)
 {
 	return inode->i_private;
@@ -2911,6 +2902,27 @@ static inline bool ext4_aligned_io(struct inode *inode, loff_t off, loff_t len)
 	int blksize = 1 << inode->i_blkbits;
 
 	return IS_ALIGNED(off, blksize) && IS_ALIGNED(len, blksize);
+}
+
+static inline void ext4_set_io_unwritten_flag(struct inode *inode,
+					      struct ext4_io_end *io_end)
+{
+	if (!(io_end->flag & EXT4_IO_END_UNWRITTEN)) {
+		io_end->flag |= EXT4_IO_END_UNWRITTEN;
+		atomic_inc(&EXT4_I(inode)->i_unwritten);
+	}
+}
+
+static inline void ext4_clear_io_unwritten_flag(ext4_io_end_t *io_end)
+{
+	struct inode *inode = io_end->inode;
+
+	if (io_end->flag & EXT4_IO_END_UNWRITTEN) {
+		io_end->flag &= ~EXT4_IO_END_UNWRITTEN;
+		/* Wake up anyone waiting on unwritten extent conversion */
+		if (atomic_dec_and_test(&EXT4_I(inode)->i_unwritten))
+			wake_up_all(ext4_ioend_wq(inode));
+	}
 }
 
 extern const struct iomap_ops ext4_iomap_ops;
