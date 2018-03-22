@@ -130,25 +130,32 @@ int handle_cls_matchall_rh74(struct net_device *dev,
 						  common->protocol, &tc74);
 }
 
+static bool tech_preview_marked = false;
+
 int __rh_call_ndo_setup_tc(struct net_device *dev, enum tc_setup_type type,
 			   void *type_data)
 {
 	const struct net_device_ops *ops = dev->netdev_ops;
+	int ret = -EOPNOTSUPP;
 
 	if (get_ndo_ext(ops, ndo_setup_tc_rh)) {
-		return get_ndo_ext(ops, ndo_setup_tc_rh)(dev, type, type_data);
+		ret = get_ndo_ext(ops, ndo_setup_tc_rh)(dev, type, type_data);
 	} else if (ops->ndo_setup_tc_rh74) {
 		switch (type) {
 		case TC_SETUP_MQPRIO:
-			return handle_sch_mqprio_rh74(dev, type_data);
+			ret = handle_sch_mqprio_rh74(dev, type_data);
+			break;
 		case TC_SETUP_CLSU32:
-			return handle_cls_u32_rh74(dev, type_data);
+			ret = handle_cls_u32_rh74(dev, type_data);
+			break;
 		case TC_SETUP_CLSFLOWER:
-			return handle_cls_flower_rh74(dev, type_data);
+			ret = handle_cls_flower_rh74(dev, type_data);
+			break;
 		case TC_SETUP_CLSMATCHALL:
-			return handle_cls_matchall_rh74(dev, type_data);
-		case TC_SETUP_CLSBPF:
-			return -EOPNOTSUPP;
+			ret = handle_cls_matchall_rh74(dev, type_data);
+			break;
+		default:
+			break;
 		}
 	} else if (ops->ndo_setup_tc_rh72 && type == TC_SETUP_MQPRIO) {
 		/* Drivers implementing .ndo_setup_tc_rh72()
@@ -158,9 +165,17 @@ int __rh_call_ndo_setup_tc(struct net_device *dev, enum tc_setup_type type,
 		 */
 		struct tc_mqprio_qopt *mqprio = type_data;
 
-		return ops->ndo_setup_tc_rh72(dev, mqprio->num_tc);
+		ret = ops->ndo_setup_tc_rh72(dev, mqprio->num_tc);
 	}
 
-	return -EOPNOTSUPP;
+	/* TC offloading is a Tech-Preview so inform an user in case that
+	 * offloading setup succeeded.
+	 */
+	if (!ret && !tech_preview_marked) {
+		mark_tech_preview("TC offloading", NULL);
+		tech_preview_marked = true;
+	}
+
+	return ret;
 }
 EXPORT_SYMBOL(__rh_call_ndo_setup_tc);
