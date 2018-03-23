@@ -41,6 +41,7 @@
 
 enum nvme_fc_queue_flags {
 	NVME_FC_Q_CONNECTED = (1 << 0),
+	NVME_FC_Q_LIVE = (1 << 1),
 };
 
 #define NVMEFC_QUEUE_DELAY	3		/* ms units */
@@ -1954,6 +1955,7 @@ nvme_fc_free_queue(struct nvme_fc_queue *queue)
 	if (!test_and_clear_bit(NVME_FC_Q_CONNECTED, &queue->flags))
 		return;
 
+	clear_bit(NVME_FC_Q_LIVE, &queue->flags);
 	/*
 	 * Current implementation never disconnects a single queue.
 	 * It always terminates a whole association. So there is never
@@ -1961,7 +1963,6 @@ nvme_fc_free_queue(struct nvme_fc_queue *queue)
 	 */
 
 	queue->connection_id = 0;
-	clear_bit(NVME_FC_Q_CONNECTED, &queue->flags);
 }
 
 static void
@@ -2040,6 +2041,8 @@ nvme_fc_connect_io_queues(struct nvme_fc_ctrl *ctrl, u16 qsize)
 		ret = nvmf_connect_io_queue(&ctrl->ctrl, i);
 		if (ret)
 			break;
+
+		set_bit(NVME_FC_Q_LIVE, &ctrl->queues[i].flags);
 	}
 
 	return ret;
@@ -2347,6 +2350,14 @@ busy:
 	return BLK_MQ_RQ_QUEUE_BUSY;
 }
 
+static inline int nvme_fc_is_ready(struct nvme_fc_queue *queue,
+		struct request *rq)
+{
+	if (unlikely(!test_bit(NVME_FC_Q_LIVE, &queue->flags)))
+		return nvmf_check_init_req(&queue->ctrl->ctrl, rq);
+	return 0;
+}
+
 static int
 nvme_fc_queue_rq(struct blk_mq_hw_ctx *hctx,
 			const struct blk_mq_queue_data *bd)
@@ -2361,6 +2372,10 @@ nvme_fc_queue_rq(struct blk_mq_hw_ctx *hctx,
 	enum nvmefc_fcp_datadir	io_dir;
 	u32 data_len;
 	int ret;
+
+	ret = nvme_fc_is_ready(queue, rq);
+	if (unlikely(ret))
+		return ret;
 
 	ret = nvme_setup_cmd(ns, rq, sqe);
 	if (ret)
@@ -2727,6 +2742,8 @@ nvme_fc_create_association(struct nvme_fc_ctrl *ctrl)
 	ret = nvmf_connect_admin_queue(&ctrl->ctrl);
 	if (ret)
 		goto out_disconnect_admin_queue;
+
+	set_bit(NVME_FC_Q_LIVE, &ctrl->queues[0].flags);
 
 	/*
 	 * Check controller capabilities
