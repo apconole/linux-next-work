@@ -1072,7 +1072,7 @@ static int nvme_suspend_queue(struct nvme_queue *nvmeq)
 	spin_unlock_irq(&nvmeq->q_lock);
 
 	if (!nvmeq->qid && nvmeq->dev->ctrl.admin_q)
-		blk_mq_stop_hw_queues(nvmeq->dev->ctrl.admin_q);
+		blk_mq_quiesce_queue(nvmeq->dev->ctrl.admin_q);
 
 	free_irq(vector, nvmeq);
 
@@ -1264,7 +1264,7 @@ static void nvme_dev_remove_admin(struct nvme_dev *dev)
 		 * user requests may be waiting on a stopped queue. Start the
 		 * queue to flush these to completion.
 		 */
-		blk_mq_start_stopped_hw_queues(dev->ctrl.admin_q, true);
+		blk_mq_unquiesce_queue(dev->ctrl.admin_q);
 		blk_cleanup_queue(dev->ctrl.admin_q);
 		blk_mq_free_tag_set(&dev->admin_tagset);
 	}
@@ -1302,7 +1302,7 @@ static int nvme_alloc_admin_tags(struct nvme_dev *dev)
 		}
 		dev->ctrl.admin_q->tail_queue = 1;
 	} else
-		blk_mq_start_stopped_hw_queues(dev->ctrl.admin_q, true);
+		blk_mq_unquiesce_queue(dev->ctrl.admin_q);
 
 	return 0;
 }
