@@ -2944,6 +2944,9 @@ nvme_fc_delete_ctrl_work(struct work_struct *work)
 	 */
 	nvme_fc_delete_association(ctrl);
 
+	/* resume the io queues so that things will fast fail */
+	nvme_start_queues(&ctrl->ctrl);
+
 	/*
 	 * tear down the controller
 	 * After the last reference on the nvme ctrl is removed,
