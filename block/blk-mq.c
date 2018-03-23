@@ -1266,6 +1266,15 @@ bool blk_mq_queue_stopped(struct request_queue *q)
 }
 EXPORT_SYMBOL(blk_mq_queue_stopped);
 
+/*
+ * This function is often used for pausing .queue_rq() by driver when
+ * there isn't enough resource or some conditions aren't satisfied, and
+ * BLK_MQ_RQ_QUEUE_BUSY is usually returned.
+ *
+ * We do not guarantee that dispatch can be drained or blocked
+ * after blk_mq_stop_hw_queue() returns. Please use
+ * blk_mq_quiesce_queue() for that requirement.
+ */
 void blk_mq_stop_hw_queue(struct blk_mq_hw_ctx *hctx)
 {
 	cancel_delayed_work(&hctx->run_work);
@@ -1274,6 +1283,15 @@ void blk_mq_stop_hw_queue(struct blk_mq_hw_ctx *hctx)
 }
 EXPORT_SYMBOL(blk_mq_stop_hw_queue);
 
+/*
+ * This function is often used for pausing .queue_rq() by driver when
+ * there isn't enough resource or some conditions aren't satisfied, and
+ * BLK_MQ_RQ_QUEUE_BUSY is usually returned.
+ *
+ * We do not guarantee that dispatch can be drained or blocked
+ * after blk_mq_stop_hw_queues() returns. Please use
+ * blk_mq_quiesce_queue() for that requirement.
+ */
 void blk_mq_stop_hw_queues(struct request_queue *q)
 {
 	struct blk_mq_hw_ctx *hctx;
