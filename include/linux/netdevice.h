@@ -814,6 +814,8 @@ enum tc_setup_type {
 	TC_SETUP_CLSFLOWER,
 	TC_SETUP_CLSMATCHALL,
 	TC_SETUP_CLSBPF,
+	__RH_RESERVED_TC_SETUP_BLOCK,
+	TC_SETUP_CBS,
 };
 
 /* Forward declaration of tc_to_netdev structure used by __rh_call_ndo_setup_tc
