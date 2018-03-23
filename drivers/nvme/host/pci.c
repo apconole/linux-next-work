@@ -2236,7 +2236,7 @@ static void nvme_reset_notify(struct pci_dev *pdev, bool prepare)
 	if (prepare)
 		nvme_dev_disable(dev, false);
 	else
-		nvme_reset_ctrl(&dev->ctrl);
+		nvme_reset_ctrl_sync(&dev->ctrl);
 }
 
 static void nvme_shutdown(struct pci_dev *pdev)
