@@ -46,12 +46,16 @@ struct tc_to_netdev_rh74 {
 
 static inline
 int handle_sch_mqprio_rh74(struct net_device *dev,
-			   const struct tc_mqprio_qopt *mqprio)
+			   const struct tc_mqprio_qopt_offload *mqprio)
 {
 	struct tc_to_netdev_rh74 tc74 = {
 		.type	= TC_SETUP_MQPRIO,
-		.tc	= mqprio->num_tc,
+		.tc	= mqprio->qopt.num_tc,
 	};
+
+	/* For RHEL7.4 only DCB mode is valid */
+	if (mqprio->mode != TC_MQPRIO_MODE_DCB)
+		return -ENOTSUPP;
 
 	return dev->netdev_ops->ndo_setup_tc_rh74(dev, 0, 0, &tc74);
 }
@@ -163,9 +167,13 @@ int __rh_call_ndo_setup_tc(struct net_device *dev, enum tc_setup_type type,
 		 * only support mqprio so this entry-point can be called
 		 * only for this type.
 		 */
-		struct tc_mqprio_qopt *mqprio = type_data;
+		struct tc_mqprio_qopt_offload *mqprio = type_data;
 
-		ret = ops->ndo_setup_tc_rh72(dev, mqprio->num_tc);
+		/* For RHEL7.2 only DCB mode is valid */
+		if (mqprio->mode != TC_MQPRIO_MODE_DCB)
+			return -ENOTSUPP;
+
+		ret = ops->ndo_setup_tc_rh72(dev, mqprio->qopt.num_tc);
 	}
 
 	/* TC offloading is a Tech-Preview so inform an user in case that
