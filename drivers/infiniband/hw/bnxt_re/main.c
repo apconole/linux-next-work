@@ -594,10 +594,11 @@ static struct bnxt_re_dev *bnxt_re_dev_add(struct net_device *netdev,
 	return rdev;
 }
 
-static int bnxt_re_aeq_handler(struct bnxt_qplib_rcfw *rcfw,
-			       struct creq_func_event *aeqe)
+
+static int bnxt_re_handle_unaffi_async_event(struct creq_func_event
+					     *unaffi_async)
 {
-	switch (aeqe->event) {
+	switch (unaffi_async->event) {
 	case CREQ_FUNC_EVENT_EVENT_TX_WQE_ERROR:
 		break;
 	case CREQ_FUNC_EVENT_EVENT_TX_DATA_ERROR:
@@ -624,6 +625,65 @@ static int bnxt_re_aeq_handler(struct bnxt_qplib_rcfw *rcfw,
 		return -EINVAL;
 	}
 	return 0;
+}
+
+
+static int bnxt_re_handle_qp_async_event(struct creq_qp_event *qp_event,
+					 struct bnxt_re_qp *qp)
+{
+	struct ib_event event;
+
+	memset(&event, 0, sizeof(event));
+	if (qp->qplib_qp.srq) {
+		event.device = &qp->rdev->ibdev;
+		event.element.qp = &qp->ib_qp;
+		event.event = IB_EVENT_QP_LAST_WQE_REACHED;
+	}
+
+	if (event.device && qp->ib_qp.event_handler)
+		qp->ib_qp.event_handler(&event, qp->ib_qp.qp_context);
+
+	return 0;
+}
+
+static int bnxt_re_handle_affi_async_event(struct creq_qp_event *affi_async,
+					   void *obj)
+{
+	int rc = 0;
+	u8 event;
+
+	if (!obj)
+		return rc; /* QP was already dead, still return success */
+
+	event = affi_async->event;
+	if (event == CREQ_QP_EVENT_EVENT_QP_ERROR_NOTIFICATION) {
+		struct bnxt_qplib_qp *lib_qp = obj;
+		struct bnxt_re_qp *qp = container_of(lib_qp, struct bnxt_re_qp,
+				qplib_qp);
+		rc = bnxt_re_handle_qp_async_event(affi_async, qp);
+	}
+	return rc;
+}
+
+
+static int bnxt_re_aeq_handler(struct bnxt_qplib_rcfw *rcfw,
+			       void *aeqe, void *obj)
+{
+	struct creq_qp_event *affi_async;
+	struct creq_func_event *unaffi_async;
+	u8 type;
+	int rc;
+
+	type = ((struct creq_base *)aeqe)->type;
+	if (type == CREQ_BASE_TYPE_FUNC_EVENT) {
+		unaffi_async = aeqe;
+		rc = bnxt_re_handle_unaffi_async_event(unaffi_async);
+	} else {
+		affi_async = aeqe;
+		rc = bnxt_re_handle_affi_async_event(affi_async, obj);
+	}
+
+	return rc;
 }
 
 static int bnxt_re_cqn_handler(struct bnxt_qplib_nq *nq,
