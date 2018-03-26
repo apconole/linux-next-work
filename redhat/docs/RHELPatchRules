@@ -360,7 +360,8 @@ e) Conflicts:
 
     If the submitted patch differs from the original upstream patch, a
 short description of those changes should be included to aid reviewers in
-understanding those specific changes.
+understanding those specific changes.  The Conflicts section must indicate
+why the use of KABI workarounds and/or macros is valid.
 
 IV.  CHANGELOG
 --------------
