@@ -609,6 +609,7 @@ struct request_queue {
 #define QUEUE_FLAG_STATS       26	/* track rq completion times */
 #define QUEUE_FLAG_POLL_STATS  27	/* collecting stats for hybrid polling */
 #define QUEUE_FLAG_PREEMPT_ONLY	28	/* only process REQ_PREEMPT requests */
+#define QUEUE_FLAG_QUIESCED    29	/* queue has been quiesced */
 
 #define QUEUE_FLAG_DEFAULT	((1 << QUEUE_FLAG_IO_STAT) |		\
 				 (1 << QUEUE_FLAG_STACKABLE)	|	\
@@ -709,6 +710,7 @@ extern void blk_clear_preempt_only(struct request_queue *q);
 #define blk_noretry_request(rq) \
 	((rq)->cmd_flags & (REQ_FAILFAST_DEV|REQ_FAILFAST_TRANSPORT| \
 			     REQ_FAILFAST_DRIVER))
+#define blk_queue_quiesced(q)	test_bit(QUEUE_FLAG_QUIESCED, &(q)->queue_flags)
 
 #define blk_account_rq(rq) \
 	(((rq)->cmd_flags & REQ_STARTED) && \

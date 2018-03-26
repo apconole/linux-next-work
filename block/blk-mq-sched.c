@@ -268,7 +268,8 @@ void blk_mq_sched_dispatch_requests(struct blk_mq_hw_ctx *hctx)
 	const bool has_sched_dispatch = e && e->aux->ops.mq.dispatch_request;
 	LIST_HEAD(rq_list);
 
-	if (unlikely(blk_mq_hctx_stopped(hctx)))
+	/* RCU or SRCU read lock is needed before checking quiesced flag */
+	if (unlikely(blk_mq_hctx_stopped(hctx) || blk_queue_quiesced(q)))
 		return;
 
 	hctx->run++;
