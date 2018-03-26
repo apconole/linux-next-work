@@ -869,9 +869,7 @@ static int gfs2_make_fs_ro(struct gfs2_sbd *sdp)
 	}
 
 	gfs2_meta_syncfs(sdp);
-	gfs2_log_shutdown(sdp);
-
-	clear_bit(SDF_JOURNAL_LIVE, &sdp->sd_flags);
+	gfs2_log_shutdown(sdp, 1);
 
 	if (gfs2_holder_initialized(&t_gh))
 		gfs2_glock_dq_uninit(&t_gh);
