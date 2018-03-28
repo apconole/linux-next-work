@@ -272,6 +272,20 @@ struct pci_sriov {
 	RH_KABI_EXTEND(u8 max_VF_buses)	/* max buses consumed by VFs */
 };
 
+/* pci_dev priv_flags */
+#define PCI_DEV_DISCONNECTED 0
+
+static inline int pci_dev_set_disconnected(struct pci_dev *dev, void *unused)
+{
+	set_bit(PCI_DEV_DISCONNECTED, &dev->pci_dev_rh->priv_flags);
+	return 0;
+}
+
+static inline bool pci_dev_is_disconnected(const struct pci_dev *dev)
+{
+	return test_bit(PCI_DEV_DISCONNECTED, &dev->pci_dev_rh->priv_flags);
+}
+
 #ifdef CONFIG_PCI_ATS
 void pci_restore_ats_state(struct pci_dev *dev);
 #else

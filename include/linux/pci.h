@@ -414,6 +414,7 @@ struct pci_dev_rh {
 	RH_KABI_EXTEND(u8 ats_stu)	/* ATS Smallest Translation Unit */
 	RH_KABI_EXTEND(atomic_t ats_ref_cnt)  /* num of VFs with ATS enabled */
 #endif
+	RH_KABI_EXTEND(unsigned long priv_flags) /* Private flags for the pci driver */
 };
 
 static inline struct pci_dev *pci_physfn(struct pci_dev *dev)
