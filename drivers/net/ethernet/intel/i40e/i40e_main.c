@@ -2853,6 +2853,10 @@ static void i40e_config_xps_tx_ring(struct i40e_ring *ring)
 	if (!ring->q_vector || !ring->netdev)
 		return;
 
+	/* RHEL7: we currently don't support TC and QoS simultaneously */
+	if (ring->vsi->tc_config.numtc > 1)
+		return;
+
 	/* We only initialize XPS once, so as not to overwrite user settings */
 	if (test_and_set_bit(__I40E_TX_XPS_INIT_DONE, ring->state))
 		return;
