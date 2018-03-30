@@ -875,8 +875,14 @@ F:	net/switchdev/
 
 THUNDERBOLT
 M:	Jeremy McNicoll <jeremymc@redhat.com>
+M:	Jarod Wilson <jarod@redhat.com>
 S:	Maintained
 F:	drivers/thunderbolt/
+
+THUNDERBOLT NETWORKING
+M:	Jarod Wilson <jarod@redhat.com>
+S:	Maintained
+F:	drivers/net/thunderbolt/
 
 X86 ARCHITECTURE
 M:	Prarit Bhargava <prarit@redhat.com>
