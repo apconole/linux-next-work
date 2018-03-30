@@ -119,6 +119,7 @@ config DELL_WMI
 	tristate "Dell WMI extras"
 	depends on ACPI_WMI
 	depends on INPUT
+	select DELL_WMI_DESCRIPTOR
 	depends on DELL_SMBIOS
 	select INPUT_SPARSEKMAP
 	---help---
@@ -126,6 +127,10 @@ config DELL_WMI
 
 	  To compile this driver as a module, choose M here: the module will
 	  be called dell-wmi.
+
+config DELL_WMI_DESCRIPTOR
+	tristate
+	depends on ACPI_WMI
 
 config DELL_WMI_AIO
 	tristate "WMI Hotkeys for Dell All-In-One series"
