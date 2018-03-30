@@ -16,15 +16,7 @@
 #ifndef _DELL_SMBIOS_H_
 #define _DELL_SMBIOS_H_
 
-/* This structure will be modified by the firmware when we enter
- * system management mode, hence the volatiles */
-
-struct calling_interface_buffer {
-	u16 cmd_class;
-	u16 cmd_select;
-	volatile u32 input[4];
-	volatile u32 output[4];
-} __packed;
+#include <uapi/linux/wmi.h>
 
 struct calling_interface_token {
 	u16 tokenID;
