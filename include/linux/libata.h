@@ -1370,7 +1370,8 @@ extern struct device_attribute *ata_common_sdev_attrs[];
 	.slave_destroy		= ata_scsi_slave_destroy,	\
 	.bios_param		= ata_std_bios_param,		\
 	.unlock_native_capacity	= ata_scsi_unlock_native_capacity, \
-	.sdev_attrs		= ata_common_sdev_attrs
+	.sdev_attrs		= ata_common_sdev_attrs,	\
+	.use_host_wide_tags	= 1
 
 #define ATA_NCQ_SHT(drv_name)					\
 	ATA_BASE_SHT(drv_name),					\
