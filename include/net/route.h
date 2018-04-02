@@ -107,13 +107,13 @@ struct in_device;
 extern int		ip_rt_init(void);
 extern void		rt_cache_flush(struct net *net);
 extern void		rt_flush_dev(struct net_device *dev);
-struct rtable *__ip_route_output_key_hash(struct net *, struct flowi4 *flp,
-					  int mp_hash);
+struct rtable *__ip_route_output_key_hash(struct net *net, struct flowi4 *flp,
+					  const struct sk_buff *skb);
 
 static inline struct rtable *__ip_route_output_key(struct net *net,
 						   struct flowi4 *flp)
 {
-	return __ip_route_output_key_hash(net, flp, -1);
+	return __ip_route_output_key_hash(net, flp, NULL);
 }
 
 extern struct rtable *ip_route_output_flow(struct net *, struct flowi4 *flp,

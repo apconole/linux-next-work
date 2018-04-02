@@ -186,6 +186,9 @@ struct net {
 	RH_KABI_EXTEND(struct fib_notifier_ops *ipv4_notifier_ops)
 	/* upstream has this as part of netns_ipv6 */
 	RH_KABI_EXTEND(struct fib_notifier_ops *ipv6_notifier_ops)
+#ifdef CONFIG_IP_ROUTE_MULTIPATH
+	RH_KABI_EXTEND(int ipv4_sysctl_fib_multipath_hash_policy)
+#endif
 };
 
 /*
