@@ -201,6 +201,8 @@ static int aq_pci_probe(struct pci_dev *pdev,
 	u32 bar;
 	u32 numvecs;
 
+	mark_tech_preview(AQ_CFG_DRV_NAME, THIS_MODULE);
+
 	err = pci_enable_device(pdev);
 	if (err)
 		return err;
