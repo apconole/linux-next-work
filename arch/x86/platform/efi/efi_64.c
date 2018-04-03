@@ -168,7 +168,7 @@ int __init efi_alloc_page_tables(void)
 		return 0;
 
 	gfp_mask = GFP_KERNEL | __GFP_NOTRACK | __GFP_REPEAT | __GFP_ZERO;
-	efi_pgd = (pgd_t *)__get_free_page(gfp_mask);
+	efi_pgd = (pgd_t *)__get_free_pages(gfp_mask, PGD_ALLOCATION_ORDER);
 	if (!efi_pgd)
 		return -ENOMEM;
 
@@ -176,7 +176,7 @@ int __init efi_alloc_page_tables(void)
 
 	pud = pud_alloc_one(NULL, 0);
 	if (!pud) {
-		free_page((unsigned long)efi_pgd);
+		free_pages((unsigned long)efi_pgd, PGD_ALLOCATION_ORDER);
 		return -ENOMEM;
 	}
 

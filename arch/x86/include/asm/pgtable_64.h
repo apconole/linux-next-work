@@ -223,15 +223,6 @@ static inline void kaiser_unpoison_pgd_atomic(pgd_t *pgd)
 static inline pgd_t kaiser_set_shadow_pgd(pgd_t *pgdp, pgd_t pgd)
 {
 #ifdef CONFIG_KAISER
-	extern bool in_efi_virtual_mode;
-
-	/*
-	 * EFI virtual mode doesn't use 8k PGD, so there is no user
-	 * page tables to set up.
-	 */
-	if (unlikely(in_efi_virtual_mode))
-		goto ret;
-
 	if (pgd_userspace_access(pgd)) {
 		if (pgdp_maps_userspace(pgdp)) {
 			VM_WARN_ON_ONCE(!is_kaiser_pgd(pgdp));
@@ -278,7 +269,6 @@ static inline pgd_t kaiser_set_shadow_pgd(pgd_t *pgdp, pgd_t pgd)
 		VM_WARN_ON_ONCE(system_state == SYSTEM_RUNNING &&
 				is_kaiser_pgd(pgdp));
 	}
-ret:
 #endif
 	/* return the copy of the PGD we want the kernel to use: */
 	return pgd;
