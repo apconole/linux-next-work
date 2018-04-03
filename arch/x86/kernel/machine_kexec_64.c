@@ -234,6 +234,14 @@ int machine_kexec_prepare(struct kimage *image)
 	if (result)
 		return result;
 
+#ifdef CONFIG_KAISER
+	/*
+	 * The second page of control_code_page may be corrupted by the
+	 * PTI code, so just clear the page for safety.
+	 */
+	clear_page(image->control_code_page + PAGE_SIZE);
+#endif
+
 	/* update purgatory as needed */
 	result = arch_update_purgatory(image);
 	if (result)
