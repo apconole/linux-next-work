@@ -29,6 +29,7 @@
 #include <asm/debugreg.h>
 #include <asm/nmi.h>
 #include <asm/mce.h>
+#include <asm/spec_ctrl.h>
 
 /*
  * per-CPU TSS segments. Threads are completely 'soft' on Linux,
@@ -301,9 +302,12 @@ void arch_cpu_idle_dead(void)
  */
 void arch_cpu_idle(void)
 {
-	if (cpuidle_idle_call())
+	if (cpuidle_idle_call()) {
+		/* The cpuidle call failed, fallback to a simpler idle */
+		spec_ctrl_ibrs_off();
 		x86_idle();
-	else
+		spec_ctrl_ibrs_on();
+	} else
 		local_irq_enable();
 }
 
