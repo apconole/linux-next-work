@@ -1326,6 +1326,16 @@ static struct bio *__bio_map_user_iov(struct request_queue *q,
 	bio = bio_kmalloc(gfp_mask, nr_pages);
 	if (!bio)
 		return ERR_PTR(-ENOMEM);
+	/*
+	 * set data direction and .bi_bdev for avoiding kernel oops, since
+	 * q->merge_bvec_fn from bio_add_pc_page() need that.
+	 *
+	 * But actual .bi_sector still can't be provided, so don't expect
+	 * .merge_bvec_fn to work well.
+	 */
+	if (!write_to_vm)
+		bio->bi_rw |= REQ_WRITE;
+	bio->bi_bdev = bdev;
 
 	ret = -ENOMEM;
 	pages = kcalloc(nr_pages, sizeof(struct page *), gfp_mask);
@@ -1391,13 +1401,6 @@ static struct bio *__bio_map_user_iov(struct request_queue *q,
 
 	kfree(pages);
 
-	/*
-	 * set data direction, and check if mapped pages need bouncing
-	 */
-	if (!write_to_vm)
-		bio->bi_rw |= REQ_WRITE;
-
-	bio->bi_bdev = bdev;
 	bio->bi_flags |= (1 << BIO_USER_MAPPED);
 	return bio;
 
