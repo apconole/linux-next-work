@@ -8,6 +8,7 @@
 #include <linux/compat.h>
 #include <uapi/linux/filter.h>
 #ifndef __GENKSYMS__
+#include <net/xdp.h>
 #include <net/sch_generic.h>
 #endif
 
@@ -44,6 +45,7 @@ struct xdp_buff {
 	void *data;
 	void *data_end;
 	void *data_hard_start;
+	struct xdp_rxq_info *rxq;
 };
 
 /* compute the linear packet data range [data, data_end) which
