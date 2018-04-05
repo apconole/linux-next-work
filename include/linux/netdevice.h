@@ -980,6 +980,8 @@ struct net_device_ops_extended {
 	int                     (*ndo_xdp_xmit)(struct net_device *dev,
 						struct xdp_buff *xdp);
 	void                    (*ndo_xdp_flush)(struct net_device *dev);
+	int                     (*ndo_bpf)(struct net_device *dev,
+					   struct netdev_bpf *bpf);
 };
 
 /* These structures hold the attributes of xdp state that are being passed
