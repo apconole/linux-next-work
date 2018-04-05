@@ -1,1 +1,4 @@
 kabi-dw
+*.tab.c
+*.tab.h
+*.yy.c

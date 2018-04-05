@@ -141,7 +141,7 @@ int check_is_directory(char *dir)
 static void safe_mkdir(char *path)
 {
 	if (mkdir(path, S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH) != 0)
-		fail(strerror(errno));
+		fail("%s", strerror(errno));
 }
 
 void rec_mkdir(char *path)
@@ -175,7 +175,7 @@ void rec_mkdir(char *path)
 			if (rv == ENOENT)
 				safe_mkdir(buf);
 			else
-				fail(strerror(rv));
+				fail("%s", strerror(rv));
 		}
 
 		if (pos != NULL)
@@ -353,6 +353,19 @@ char *path_normalize(char *path)
 /* Removes the two dashes at the end of the prefix */
 #define IS_PREFIX(s, prefix) !strncmp(s, prefix, strlen(prefix) - 2)
 
+static void split_filename(char *filename, char **prefix,
+			   char **name, int *version)
+{
+	char *base = basename(filename);
+
+	version = 0;
+
+	if ((sscanf(base, "%m[a-z]--%m[^.-].txt", prefix, name) != 2) &&
+	    (sscanf(base, "%m[a-z]--%m[^.-]-%i.txt",
+		    prefix, name, version) != 3))
+		fail("Unexpected file name: %s\n", filename);
+}
+
 /*
  * Get the type of a symbol from the name of the kabi file
  *
@@ -360,14 +373,10 @@ char *path_normalize(char *path)
  */
 char *filenametotype(char *filename)
 {
-	char *base = basename(filename);
 	char *prefix = NULL, *name = NULL, *type = NULL;
 	int version = 0;
 
-	if ((sscanf(base, "%m[a-z]--%m[^.-].txt", &prefix, &name) != 2) &&
-	     (sscanf(base, "%m[a-z]--%m[^.-]-%i.txt",
-		     &prefix, &name, &version) != 3))
-		fail("Unexpected file name: %s\n", filename);
+	split_filename(filename, &prefix, &name, &version);
 
 	if (IS_PREFIX(prefix, TYPEDEF_FILE))
 		type = name;
@@ -383,4 +392,20 @@ char *filenametotype(char *filename)
 		free(name);
 
 	return type;
+}
+
+/*
+ * Get the name of a symbol from the name of the kabi file
+ *
+ * It allocates the string which must be freed by the caller.
+ */
+char *filenametosymbol(char *filename)
+{
+	char *prefix = NULL, *name = NULL;
+	int version = 0;
+
+	split_filename(filename, &prefix, &name, &version);
+	free(prefix);
+
+	return name;
 }

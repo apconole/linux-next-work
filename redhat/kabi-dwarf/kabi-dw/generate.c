@@ -145,11 +145,6 @@ struct dwarf_type {
  * obj: pointer to the abstract type object, representing the toplevel type of
  *      the record.
  *
- * should_free_cu: usually we generate a string for the "cu" field,
- *                 and it must be then explicitly freed, but if the origin
- *                 is not tracked, it points to a static constat read only
- *                 string. This field help to disignate the situations.
- *
  * link: name of weak link alisas for the weak aliases.
  *
  * free: type specific function to free the record
@@ -166,7 +161,6 @@ struct record {
 	char *origin;
 	stack_t *stack;
 	obj_t *obj;
-	bool should_free_cu;
 	char *link;
 	void (*free)(struct record *);
 	void (*dump)(struct record *, FILE *);
@@ -467,7 +461,7 @@ static void record_free_regular(struct record *rec)
 
 	free(rec->base_file);
 	free(rec->origin);
-	if (rec->should_free_cu)
+	if (rec->cu)
 		free(rec->cu);
 
 	while ((data = stack_pop(rec->stack)) != NULL)
@@ -513,7 +507,6 @@ static struct record *record_new_regular(const char *key)
 	rec = record_alloc();
 	rec->key = safe_strdup(key);
 	rec->stack = stack_init();
-	rec->cu = "CU \"<nottracked>\"\n";
 	rec->free = record_free_regular;
 	rec->dump = record_dump_regular;
 	record_get(rec);
@@ -603,8 +596,7 @@ static void record_add_cu(struct record *rec, Dwarf_Die *cu_die)
 		return;
 
 	name = dwarf_diename(cu_die);
-	safe_asprintf(&rec->cu, "CU \"%s\"\n", name);
-	rec->should_free_cu = true;
+	safe_asprintf(&rec->cu, "CU: \"%s\"\n", name);
 }
 
 static void record_add_origin(struct record *rec,
@@ -617,7 +609,7 @@ static void record_add_origin(struct record *rec,
 	dec_file = get_file(cu_die, die);
 	dec_line = get_line(cu_die, die);
 
-	safe_asprintf(&rec->origin, "File %s:%lu\n", dec_file, dec_line);
+	safe_asprintf(&rec->origin, "File: %s:%lu\n", dec_file, dec_line);
 	free(dec_file);
 }
 
@@ -689,27 +681,35 @@ static void record_close(struct record *rec, obj_t *obj)
 
 static void record_stack_dump_and_clear(struct record *rec, FILE *f)
 {
-	char *data;
+	char *data = stack_pop(rec->stack);
 
-	while ((data = stack_pop(rec->stack)) != NULL) {
+	if (data == NULL)
+		return;
+
+	fprintf(f, "Stack:\n");
+	do {
 		fprintf(f, "-> \"%s\"\n", data);
 		free(data);
-	}
+	} while ((data = stack_pop(rec->stack)) != NULL);
 }
 
 static void record_dump_regular(struct record *rec, FILE *f)
 {
 	int rc;
 
-	rc = fputs(rec->cu, f);
-	if (rc == EOF)
-		fail("Could not put CU name");
+	fprintf(f, FILEFMT_VERSION_STRING);
+	if (rec->cu != NULL) {
+		rc = fputs(rec->cu, f);
+		if (rc == EOF)
+			fail("Could not put CU name");
+	}
 	rc = fputs(rec->origin, f);
 	if (rc == EOF)
 		fail("Could not put origin");
 
 	record_stack_dump_and_clear(rec, f);
 
+	fprintf(f, "Symbol:\n");
 	if (rec->obj->alignment != 0)
 		fprintf(f, "Alignment %u\n", rec->obj->alignment);
 
@@ -718,18 +718,23 @@ static void record_dump_regular(struct record *rec, FILE *f)
 
 static void record_dump_assembly(struct record *rec, FILE *f)
 {
+	char *name = filenametosymbol(rec->key);
 	int rc;
 
-	rc = fprintf(f, "assembly %s\n", rec->key);
+	rc = fprintf(f, FILEFMT_VERSION_STRING "Symbol:\nassembly %s\n", name);
+	free(name);
 	if (rc < 0)
 		fail("Could not put assembly\n");
 }
 
 static void record_dump_weak(struct record *rec, FILE *f)
 {
+	char *name = filenametosymbol(rec->key);
 	int rc;
 
-	rc = fprintf(f, "weak %s -> %s\n", rec->key, rec->link);
+	rc = fprintf(f, FILEFMT_VERSION_STRING "Symbol:\nweak %s -> %s\n",
+		     name, rec->link);
+	free(name);
 	if (rc < 0)
 		fail("Could not put weak link\n");
 }
@@ -1531,36 +1536,42 @@ static bool is_all_done(generate_config_t *conf)
 static void generate_assembly_record(generate_config_t *conf, const char *key)
 {
 	struct record *rec;
-	char *new_key;
+	char *new_key, *name;
 
 	if (conf->verbose)
 		printf("Generating assembly record for %s\n", key);
 
-	rec = record_new_assembly(key);
+	safe_asprintf(&name, "asm--%s.txt", key);
+
+	rec = record_new_assembly(name);
 	new_key = record_db_add(conf->db, rec);
 
 	record_put(rec);
+	free(name);
 	free(new_key);
 }
 
 static bool try_generate_alias(generate_config_t *conf, struct ksym *ksym)
 {
 	char *link = ksymtab_ksym_get_link(ksym);
-	const char *name = ksymtab_ksym_get_name(ksym);
+	const char *key = ksymtab_ksym_get_name(ksym);
 	struct record *rec;
-	char *new_key;
+	char *new_key, *name;
 
 	if (!link)
 		return false;
 
 	if (conf->verbose)
 		printf("Generating weak record %s -> %s\n",
-		       name, link);
+		       key, link);
+
+	safe_asprintf(&name, "weak--%s.txt", key);
 
 	rec = record_new_weak(name, link);
 	new_key = record_db_add(conf->db, rec);
 
 	record_put(rec);
+	free(name);
 	free(new_key);
 
 	return true;
@@ -1902,7 +1913,6 @@ static void parse_generate_opts(int argc, char **argv, generate_config_t *conf,
 
 void generate(int argc, char **argv)
 {
-	char *temp_path;
 	char *symbol_file;
 	generate_config_t *conf = safe_zmalloc(sizeof(*conf));
 
@@ -1916,18 +1926,7 @@ void generate(int argc, char **argv)
 			printf("Loaded %ld symbols\n", conf->symbol_cnt);
 	}
 
-	/* Create a place for temporary files */
-	safe_asprintf(&temp_path, "%s/%s", conf->kabi_dir, TEMP_PATH);
-	rec_mkdir(temp_path);
-
 	generate_symbol_defs(conf);
-
-	/* Delete the temporary space again */
-	if (rmdir(temp_path) != 0)
-		printf("WARNING: Failed to delete %s: %s\n", temp_path,
-		    strerror(errno));
-
-	free(temp_path);
 
 	if (symbol_file != NULL)
 		ksymtab_free(conf->symbols);

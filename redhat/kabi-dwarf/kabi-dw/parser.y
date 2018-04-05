@@ -27,6 +27,15 @@
 	YYABORT;				\
 }
 
+#define check_and_free_keyword(identifier, expected)			\
+{									\
+	if (strcmp(identifier, expected))				\
+		abort("Wrong keyword: %s expected, %s received\n",	\
+		      expected, identifier);				\
+	free(identifier);						\
+}
+
+
 %}
 
 %union {
@@ -47,17 +56,17 @@
 %token TYPEDEF
 %token CONST VOLATILE
 %token STRUCT UNION ENUM ELLIPSIS
-%token STACK
-%token ASSEMBLY
-%token WEAK
+%token VERSION_KW CU_KW FILE_KW STACK_KW SYMBOL_KW_NL
+%token ARROW UNKNOWN_FIELD
 
 %type <str> type_qualifier
 %type <obj> typed_type base_type reference_file array_type
 %type <obj> type ptr_type variable_var_list func_type elt enum_elt enum_type
 %type <obj> union_type struct_type struct_elt
-%type <obj> declaration_var declaration_typedef declaration kabi_dw_file
+%type <obj> declaration_var declaration_typedef declaration
+%type <obj> kabi_dw_file symbol
+%type <obj> asm_symbol weak_symbol
 %type <list> elt_list arg_list enum_list struct_list
-%type <obj> assembly_file weak_file
 %type <ul> alignment
 
 %parse-param {obj_t **root}
@@ -65,60 +74,50 @@
 %%
 
 kabi_dw_file:
-	assembly_file
+	fmt_version header SYMBOL_KW_NL symbol
 	{
-		$$ = *root = $assembly_file;
-	}
-        | weak_file
-	{
-		$$ = *root = $weak_file;
-	}
-	| cu_file source_file stack_list declaration NEWLINE
-	{
-	    $$ = *root = $declaration;
-	    obj_fill_parent(*root);
-	}
-	| cu_file source_file stack_list alignment declaration NEWLINE
-	{
-	    $$ = *root = $declaration;
-	    $$->alignment = $alignment;
-	    obj_fill_parent(*root);
+		$$ = *root = $symbol;
+		obj_fill_parent(*root);
 	}
 	;
 
-assembly_file:
-	ASSEMBLY IDENTIFIER NEWLINE
+fmt_version:
+	VERSION_KW CONSTANT '.' CONSTANT NEWLINE
 	{
-		$$ = obj_assembly_new($IDENTIFIER);
+		if (($2 != FILEFMT_VERSION_MAJOR) |
+		    ($4 > FILEFMT_VERSION_MINOR))
+			abort("Unsupported file version: %lu.%lu\n", $2, $4);
 	}
 	;
 
-weak_file:
-        WEAK IDENTIFIER STACK IDENTIFIER NEWLINE
-	{
-		$$ = obj_weak_new($2);
-		$$->link = $4;
-	}
+header:
+	/* empty */
+	| header header_field
 	;
 
-cu_file:
-	IDENTIFIER STRING NEWLINE
+header_field:
+	cu_field
+	| source_file_field
+	| stack_field
+	| UNKNOWN_FIELD
+	;
+
+cu_field:
+	CU_KW STRING NEWLINE
 	{
-	    if (strcmp($IDENTIFIER,"CU"))
-		abort("Wrong CU keyword: \"%s\"\n", $IDENTIFIER);
-	    free($IDENTIFIER);
 	    free($STRING);
 	}
 	;
 
-source_file:
-	IDENTIFIER SRCFILE ':' CONSTANT NEWLINE
+source_file_field:
+	FILE_KW SRCFILE ':' CONSTANT NEWLINE
 	{
-	    if (strcmp($IDENTIFIER,"File"))
-		abort("Wrong file keyword: \"%s\"\n", $IDENTIFIER);
-	    free($IDENTIFIER);
 	    free($SRCFILE);
 	}
+	;
+
+stack_field:
+	STACK_KW NEWLINE stack_list
 	;
 
 stack_list:
@@ -127,19 +126,28 @@ stack_list:
 	;
 
 stack_elt:
-	STACK STRING
+	ARROW STRING
 	{
 		free($STRING);
 	}
 	;
 
+symbol:
+	declaration NEWLINE
+	{
+		$$ = $declaration;
+	}
+	| alignment declaration NEWLINE
+	{
+		$$ = $declaration;
+		$$->alignment = $alignment;
+	}
+
 alignment:
         IDENTIFIER CONSTANT NEWLINE
 	{
-	    if (strcmp($IDENTIFIER,"Alignment"))
-		abort("Wrong alignment keyword: \"%s\"\n", $IDENTIFIER);
-	    free($IDENTIFIER);
-	    $$ = $CONSTANT;
+		check_and_free_keyword($IDENTIFIER, "Alignment");
+		$$ = $CONSTANT;
 	}
 
 /* Possible types are struct union enum func typedef and var */
@@ -150,6 +158,8 @@ declaration:
 	| func_type
 	| declaration_typedef
 	| declaration_var
+	| weak_symbol
+	| asm_symbol
 	;
 
 declaration_typedef:
@@ -162,9 +172,7 @@ declaration_typedef:
 declaration_var:
 	IDENTIFIER IDENTIFIER type
 	{
-	    if (strcmp($1,"var"))
-		abort("Wrong var keyword: \"%s\"\n", $1);
-	    free($1);
+	    check_and_free_keyword($1, "var");
 	    $$ = obj_var_new_add($2, $type);
 	}
 	;
@@ -287,9 +295,7 @@ enum_elt:
 func_type:
 	IDENTIFIER IDENTIFIER '(' NEWLINE arg_list ')' NEWLINE type
 	{
-	    if (strcmp($1,"func"))
-		abort("Wrong func keyword: \"%s\"\n", $1);
-	    free($1);
+	    check_and_free_keyword($1, "func");
 	    $$ = obj_func_new_add($2, $type);
 	    $$->member_list = $arg_list;
 	    if ($arg_list)
@@ -297,9 +303,7 @@ func_type:
 	}
 	| IDENTIFIER reference_file /* protype define as typedef */
 	{
-	    if (strcmp($IDENTIFIER,"func"))
-		abort("Wrong func keyword: \"%s\"\n", $IDENTIFIER);
-	    free($IDENTIFIER);
+	    check_and_free_keyword($IDENTIFIER, "func");
 	    $$ = obj_func_new_add(NULL, $reference_file);
 	}
 	;
@@ -398,6 +402,24 @@ reference_file:
 	    $$->base_type = $STRING;
 	    }
 	;
+
+asm_symbol:
+	IDENTIFIER IDENTIFIER
+	{
+		check_and_free_keyword($1, "assembly");
+		$$ = obj_assembly_new($2);
+	}
+	;
+
+weak_symbol:
+        IDENTIFIER IDENTIFIER ARROW IDENTIFIER
+	{
+		check_and_free_keyword($1, "weak");
+		$$ = obj_weak_new($2);
+		$$->link = $4;
+	}
+	;
+
 
 %%
 
