@@ -70,6 +70,8 @@ struct bpf_prog;
 struct xdp_buff;
 
 struct netdev_xdp;
+#define netdev_bpf netdev_xdp
+
 struct net_device_extended;
 					/* source back-compat hooks */
 #define SET_ETHTOOL_OPS(netdev,ops) \
