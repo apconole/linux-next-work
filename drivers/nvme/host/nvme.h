@@ -301,7 +301,6 @@ void nvme_remove_namespaces(struct nvme_ctrl *ctrl);
 
 void nvme_complete_async_event(struct nvme_ctrl *ctrl, __le16 status,
 		union nvme_result *res);
-void nvme_queue_async_events(struct nvme_ctrl *ctrl);
 
 void nvme_stop_queues(struct nvme_ctrl *ctrl);
 void nvme_start_queues(struct nvme_ctrl *ctrl);
