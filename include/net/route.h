@@ -37,7 +37,7 @@
 #include <linux/security.h>
 
 /* IPv4 datagram length is stored into 16bit field (tot_len) */
-#define IP_MAX_MTU	0xFFF0U
+#define IP_MAX_MTU	0xFFFFU
 
 #define RTO_ONLINK	0x01
 
