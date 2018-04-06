@@ -607,6 +607,7 @@ static void vti6_link_config(struct ip6_tnl *t)
 	struct net_device *dev = t->dev;
 	struct __ip6_tnl_parm *p = &t->parms;
 	struct net_device *tdev = NULL;
+	int mtu;
 
 	memcpy(dev->dev_addr, &p->laddr, sizeof(struct in6_addr));
 	memcpy(dev->broadcast, &p->raddr, sizeof(struct in6_addr));
@@ -636,8 +637,11 @@ static void vti6_link_config(struct ip6_tnl *t)
 		tdev = __dev_get_by_index(t->net, p->link);
 
 	if (tdev)
-		dev->mtu = max_t(int, tdev->mtu - dev->hard_header_len,
-				 IPV6_MIN_MTU);
+		mtu = tdev->mtu - sizeof(struct ipv6hdr);
+	else
+		mtu = ETH_DATA_LEN - LL_MAX_HEADER - sizeof(struct ipv6hdr);
+
+	dev->mtu = max_t(int, mtu, IPV6_MIN_MTU);
 }
 
 /**
@@ -860,8 +864,6 @@ static void vti6_dev_setup(struct net_device *dev)
 	dev->extended->priv_destructor = vti6_dev_free;
 
 	dev->type = ARPHRD_TUNNEL6;
-	dev->hard_header_len = LL_MAX_HEADER + sizeof(struct ipv6hdr);
-	dev->mtu = ETH_DATA_LEN;
 	dev->flags |= IFF_NOARP;
 	dev->addr_len = sizeof(struct in6_addr);
 	netif_keep_dst(dev);
