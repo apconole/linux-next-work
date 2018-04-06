@@ -30,15 +30,6 @@
 /* *************************** Data Structures/Defines ****************** */
 
 
-/*
- * We handle AEN commands ourselves and don't even let the
- * block layer know about them.
- */
-#define NVME_FC_NR_AEN_COMMANDS	1
-#define NVME_FC_AQ_BLKMQ_DEPTH	\
-	(NVME_AQ_DEPTH - NVME_FC_NR_AEN_COMMANDS)
-#define AEN_CMDID_BASE		(NVME_FC_AQ_BLKMQ_DEPTH + 1)
-
 enum nvme_fc_queue_flags {
 	NVME_FC_Q_CONNECTED = (1 << 0),
 	NVME_FC_Q_LIVE = (1 << 1),
@@ -171,7 +162,7 @@ struct nvme_fc_ctrl {
 	u32			iocnt;
 	wait_queue_head_t	ioabort_wait;
 
-	struct nvme_fc_fcp_op	aen_ops[NVME_FC_NR_AEN_COMMANDS];
+	struct nvme_fc_fcp_op	aen_ops[NVME_NR_AEN_COMMANDS];
 
 	struct nvme_ctrl	ctrl;
 };
@@ -1548,7 +1539,7 @@ nvme_fc_abort_aen_ops(struct nvme_fc_ctrl *ctrl)
 	unsigned long flags;
 	int i, ret;
 
-	for (i = 0; i < NVME_FC_NR_AEN_COMMANDS; i++, aen_op++) {
+	for (i = 0; i < NVME_NR_AEN_COMMANDS; i++, aen_op++) {
 		if (atomic_read(&aen_op->state) != FCPOP_STATE_ACTIVE)
 			continue;
 
@@ -1830,7 +1821,7 @@ nvme_fc_init_aen_ops(struct nvme_fc_ctrl *ctrl)
 	int i, ret;
 
 	aen_op = ctrl->aen_ops;
-	for (i = 0; i < NVME_FC_NR_AEN_COMMANDS; i++, aen_op++) {
+	for (i = 0; i < NVME_NR_AEN_COMMANDS; i++, aen_op++) {
 		private = kzalloc(ctrl->lport->ops->fcprqst_priv_sz,
 						GFP_KERNEL);
 		if (!private)
@@ -1840,7 +1831,7 @@ nvme_fc_init_aen_ops(struct nvme_fc_ctrl *ctrl)
 		sqe = &cmdiu->sqe;
 		ret = __nvme_fc_init_request(ctrl, &ctrl->queues[0],
 				aen_op, (struct request *)NULL,
-				(AEN_CMDID_BASE + i));
+				(NVME_AQ_BLK_MQ_DEPTH + i));
 		if (ret) {
 			kfree(private);
 			return ret;
@@ -1853,7 +1844,7 @@ nvme_fc_init_aen_ops(struct nvme_fc_ctrl *ctrl)
 		memset(sqe, 0, sizeof(*sqe));
 		sqe->common.opcode = nvme_admin_async_event;
 		/* Note: core layer may overwrite the sqe.command_id value */
-		sqe->common.command_id = AEN_CMDID_BASE + i;
+		sqe->common.command_id = NVME_AQ_BLK_MQ_DEPTH + i;
 	}
 	return 0;
 }
@@ -1865,7 +1856,7 @@ nvme_fc_term_aen_ops(struct nvme_fc_ctrl *ctrl)
 	int i;
 
 	aen_op = ctrl->aen_ops;
-	for (i = 0; i < NVME_FC_NR_AEN_COMMANDS; i++, aen_op++) {
+	for (i = 0; i < NVME_NR_AEN_COMMANDS; i++, aen_op++) {
 		if (!aen_op->fcp_req.private)
 			continue;
 
@@ -2398,7 +2389,7 @@ nvme_fc_submit_async_event(struct nvme_ctrl *arg, int aer_idx)
 	bool terminating = false;
 	int ret;
 
-	if (aer_idx > NVME_FC_NR_AEN_COMMANDS)
+	if (aer_idx > NVME_NR_AEN_COMMANDS)
 		return;
 
 	spin_lock_irqsave(&ctrl->lock, flags);
@@ -2721,16 +2712,16 @@ nvme_fc_create_association(struct nvme_fc_ctrl *ctrl)
 	 * Create the admin queue
 	 */
 
-	nvme_fc_init_queue(ctrl, 0, NVME_FC_AQ_BLKMQ_DEPTH);
+	nvme_fc_init_queue(ctrl, 0, NVME_AQ_BLK_MQ_DEPTH);
 
 	ret = __nvme_fc_create_hw_queue(ctrl, &ctrl->queues[0], 0,
-				NVME_FC_AQ_BLKMQ_DEPTH);
+				NVME_AQ_BLK_MQ_DEPTH);
 	if (ret)
 		goto out_free_queue;
 
 	ret = nvme_fc_connect_admin_queue(ctrl, &ctrl->queues[0],
-				NVME_FC_AQ_BLKMQ_DEPTH,
-				(NVME_FC_AQ_BLKMQ_DEPTH / 4));
+				NVME_AQ_BLK_MQ_DEPTH,
+				(NVME_AQ_BLK_MQ_DEPTH / 4));
 	if (ret)
 		goto out_delete_hw_queue;
 
@@ -3153,7 +3144,7 @@ nvme_fc_init_ctrl(struct device *dev, struct nvmf_ctrl_options *opts,
 
 	memset(&ctrl->admin_tag_set, 0, sizeof(ctrl->admin_tag_set));
 	ctrl->admin_tag_set.ops = &nvme_fc_admin_mq_ops;
-	ctrl->admin_tag_set.queue_depth = NVME_FC_AQ_BLKMQ_DEPTH;
+	ctrl->admin_tag_set.queue_depth = NVME_AQ_MQ_TAG_DEPTH;
 	ctrl->admin_tag_set.reserved_tags = 2; /* fabric connect + Keep-Alive */
 	ctrl->admin_tag_set.numa_node = NUMA_NO_NODE;
 	ctrl->admin_tag_set.cmd_size = sizeof(struct nvme_fc_fcp_op) +
