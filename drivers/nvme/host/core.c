@@ -2064,7 +2064,7 @@ static ssize_t eui_show(struct device *dev, struct device_attribute *attr,
 								char *buf)
 {
 	struct nvme_ns *ns = dev_to_disk(dev)->private_data;
-	return sprintf(buf, "%8phd\n", ns->eui);
+	return sprintf(buf, "%8ph\n", ns->eui);
 }
 static DEVICE_ATTR(eui, S_IRUGO, eui_show, NULL);
 
