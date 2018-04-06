@@ -602,7 +602,7 @@ static int vti6_err(struct sk_buff *skb, struct inet6_skb_parm *opt,
 	return 0;
 }
 
-static void vti6_link_config(struct ip6_tnl *t)
+static void vti6_link_config(struct ip6_tnl *t, bool keep_mtu)
 {
 	struct net_device *dev = t->dev;
 	struct __ip6_tnl_parm *p = &t->parms;
@@ -620,6 +620,13 @@ static void vti6_link_config(struct ip6_tnl *t)
 		dev->flags |= IFF_POINTOPOINT;
 	else
 		dev->flags &= ~IFF_POINTOPOINT;
+
+	if (keep_mtu && dev->mtu) {
+		dev->mtu = clamp(dev->mtu, (unsigned)IPV6_MIN_MTU,
+				 (unsigned)(IP_MAX_MTU -
+					    sizeof(struct ipv6hdr)));
+		return;
+	}
 
 	if (p->flags & IP6_TNL_F_CAP_XMIT) {
 		int strict = (ipv6_addr_type(&p->raddr) &
@@ -648,12 +655,14 @@ static void vti6_link_config(struct ip6_tnl *t)
  * vti6_tnl_change - update the tunnel parameters
  *   @t: tunnel to be changed
  *   @p: tunnel configuration parameters
+ *   @keep_mtu: MTU was set from userspace, don't re-compute it
  *
  * Description:
  *   vti6_tnl_change() updates the tunnel parameters
  **/
 static int
-vti6_tnl_change(struct ip6_tnl *t, const struct __ip6_tnl_parm *p)
+vti6_tnl_change(struct ip6_tnl *t, const struct __ip6_tnl_parm *p,
+		bool keep_mtu)
 {
 	t->parms.laddr = p->laddr;
 	t->parms.raddr = p->raddr;
@@ -662,11 +671,12 @@ vti6_tnl_change(struct ip6_tnl *t, const struct __ip6_tnl_parm *p)
 	t->parms.o_key = p->o_key;
 	t->parms.proto = p->proto;
 	dst_cache_reset(&t->dst_cache);
-	vti6_link_config(t);
+	vti6_link_config(t, keep_mtu);
 	return 0;
 }
 
-static int vti6_update(struct ip6_tnl *t, struct __ip6_tnl_parm *p)
+static int vti6_update(struct ip6_tnl *t, struct __ip6_tnl_parm *p,
+		       bool keep_mtu)
 {
 	struct net *net = dev_net(t->dev);
 	struct vti6_net *ip6n = net_generic(net, vti6_net_id);
@@ -674,7 +684,7 @@ static int vti6_update(struct ip6_tnl *t, struct __ip6_tnl_parm *p)
 
 	vti6_tnl_unlink(ip6n, t);
 	synchronize_net();
-	err = vti6_tnl_change(t, p);
+	err = vti6_tnl_change(t, p, keep_mtu);
 	vti6_tnl_link(ip6n, t);
 	netdev_state_change(t->dev);
 	return err;
@@ -783,7 +793,7 @@ vti6_ioctl(struct net_device *dev, struct ifreq *ifr, int cmd)
 			} else
 				t = netdev_priv(dev);
 
-			err = vti6_update(t, &p1);
+			err = vti6_update(t, &p1, false);
 		}
 		if (t) {
 			err = 0;
@@ -896,7 +906,7 @@ static int vti6_dev_init(struct net_device *dev)
 
 	if (err)
 		return err;
-	vti6_link_config(t);
+	vti6_link_config(t, true);
 	return 0;
 }
 
@@ -995,7 +1005,7 @@ static int vti6_changelink(struct net_device *dev, struct nlattr *tb[],
 	} else
 		t = netdev_priv(dev);
 
-	return vti6_update(t, &p);
+	return vti6_update(t, &p, tb && tb[IFLA_MTU]);
 }
 
 static size_t vti6_get_size(const struct net_device *dev)
