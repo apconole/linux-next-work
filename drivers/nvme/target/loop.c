@@ -203,7 +203,7 @@ static int nvme_loop_queue_rq(struct blk_mq_hw_ctx *hctx,
 	return BLK_MQ_RQ_QUEUE_OK;
 }
 
-static void nvme_loop_submit_async_event(struct nvme_ctrl *arg, int aer_idx)
+static void nvme_loop_submit_async_event(struct nvme_ctrl *arg)
 {
 	struct nvme_loop_ctrl *ctrl = to_loop_ctrl(arg);
 	struct nvme_loop_queue *queue = &ctrl->queues[0];
