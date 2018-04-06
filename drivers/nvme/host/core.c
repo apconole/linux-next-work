@@ -255,10 +255,6 @@ static void nvme_free_ns(struct kref *kref)
 {
 	struct nvme_ns *ns = container_of(kref, struct nvme_ns, kref);
 
-	spin_lock(&dev_list_lock);
-	ns->disk->private_data = NULL;
-	spin_unlock(&dev_list_lock);
-
 	put_disk(ns->disk);
 	ida_simple_remove(&ns->ctrl->ns_ida, ns->instance);
 	nvme_put_ctrl(ns->ctrl);
@@ -268,29 +264,6 @@ static void nvme_free_ns(struct kref *kref)
 static void nvme_put_ns(struct nvme_ns *ns)
 {
 	kref_put(&ns->kref, nvme_free_ns);
-}
-
-static struct nvme_ns *nvme_get_ns_from_disk(struct gendisk *disk)
-{
-	struct nvme_ns *ns;
-
-	spin_lock(&dev_list_lock);
-	ns = disk->private_data;
-	if (ns) {
-		if (!kref_get_unless_zero(&ns->kref))
-			goto fail;
-		if (!try_module_get(ns->ctrl->ops->module))
-			goto fail_put_ns;
-	}
-	spin_unlock(&dev_list_lock);
-
-	return ns;
-
-fail_put_ns:
-	kref_put(&ns->kref, nvme_free_ns);
-fail:
-	spin_unlock(&dev_list_lock);
-	return NULL;
 }
 
 struct request *nvme_alloc_request(struct request_queue *q,
@@ -996,7 +969,16 @@ static int nvme_compat_ioctl(struct block_device *bdev, fmode_t mode,
 
 static int nvme_open(struct block_device *bdev, fmode_t mode)
 {
-	return nvme_get_ns_from_disk(bdev->bd_disk) ? 0 : -ENXIO;
+	struct nvme_ns *ns = bdev->bd_disk->private_data;
+
+	if (!kref_get_unless_zero(&ns->kref))
+		return -ENXIO;
+	if (!try_module_get(ns->ctrl->ops->module)) {
+		kref_put(&ns->kref, nvme_free_ns);
+		return -ENXIO;
+	}
+
+	return 0;
 }
 
 static void nvme_release(struct gendisk *disk, fmode_t mode)
