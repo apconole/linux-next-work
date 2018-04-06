@@ -801,10 +801,15 @@ bl_cleanup_layoutcommit(struct nfs4_layoutcommit_data *lcdata)
 	ext_tree_mark_committed(&lcdata->args, lcdata->res.status);
 }
 
+static struct pnfs_layoutdriver_type blocklayout_type;
+
 static int
 bl_set_layoutdriver(struct nfs_server *server, const struct nfs_fh *fh)
 {
 	dprintk("%s enter\n", __func__);
+
+	if (server->pnfs_curr_ld == &blocklayout_type)
+		mark_tech_preview("NFSv4 Block Layout Driver", NULL);
 
 	if (server->pnfs_blksize == 0) {
 		dprintk("%s Server did not return blksize\n", __func__);
@@ -1021,12 +1026,10 @@ static int __init nfs4blocklayout_init(void)
 	ret = pnfs_register_layoutdriver(&blocklayout_type);
 	if (ret)
 		goto out_cleanup_pipe;
-	mark_tech_preview("NFSv4 Block Layout Driver", NULL);
 
 	ret = pnfs_register_layoutdriver(&scsilayout_type);
 	if (ret)
 		goto out_unregister_block;
-	mark_tech_preview("NFSv4 SCSI Layout Driver", NULL);
 
 	return 0;
 
