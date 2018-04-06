@@ -1987,7 +1987,7 @@ static umode_t nvme_ns_attrs_are_visible(struct kobject *kobj,
 	static const u8 null_uuid[16];
 
 	if (a == &dev_attr_uuid.attr) {
-	  if (!memcmp(ns->uuid, null_uuid, 16) ||
+	  if (!memcmp(ns->uuid, null_uuid, 16) &&
 		    !memchr_inv(ns->nguid, 0, sizeof(ns->nguid)))
 			return 0;
 	}
