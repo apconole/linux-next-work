@@ -2380,7 +2380,7 @@ static void nvme_get_fw_slot_info(struct nvme_ctrl *ctrl)
 		return;
 
 	c.common.opcode = nvme_admin_get_log_page;
-	c.common.nsid = cpu_to_le32(0xffffffff);
+	c.common.nsid = cpu_to_le32(NVME_NSID_ALL);
 	c.common.cdw10[0] = nvme_get_log_dw10(NVME_LOG_FW_SLOT, sizeof(*log));
 
 	if (!nvme_submit_sync_cmd(ctrl->admin_q, &c, log, sizeof(*log)))
