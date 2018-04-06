@@ -1068,8 +1068,7 @@ static int nvme_revalidate_disk(struct gendisk *disk)
 		return -ENODEV;
 	}
 	if (nvme_identify_ns(ns->ctrl, ns->ns_id, &id)) {
-		dev_warn(disk_to_dev(ns->disk), "%s: Identify failure\n",
-				__func__);
+		dev_warn(ns->ctrl->device, "Identify namespace failed\n");
 		return -ENODEV;
 	}
 	if (id->ncap == 0) {
