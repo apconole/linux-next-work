@@ -1755,7 +1755,7 @@ xfs_buftarg_shrink(
 		 * zero. If the value is already zero, we need to reclaim the
 		 * buffer, otherwise it gets another trip through the LRU.
 		 */
-		if (!atomic_add_unless(&bp->b_lru_ref, -1, 0)) {
+		if (atomic_add_unless(&bp->b_lru_ref, -1, 0)) {
 			spin_unlock(&bp->b_lock);
 			list_move_tail(&bp->b_lru, &btp->bt_lru);
 			continue;
