@@ -782,8 +782,7 @@ int pcibios_add_device(struct pci_dev *pdev)
 	pdev->dev.groups = zpci_attr_groups;
 	zpci_map_resources(pdev);
 
-	if (!pdev->dev.device_rh)
-		device_rh_alloc(&pdev->dev);
+	device_rh_alloc(&pdev->dev);
 
 	pdev->dev.device_rh->dma_ops = &s390_pci_dma_ops;
 

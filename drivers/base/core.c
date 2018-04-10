@@ -773,8 +773,7 @@ void device_initialize(struct device *dev)
 	 * use acpi, of, or pci invoke device_initialize()
 	 * and not device_register() or device_add().
 	 */
-	if (!dev->device_rh)
-		device_rh_alloc(dev);
+	device_rh_alloc(dev);
 	dev->kobj.kset = devices_kset;
 	kobject_init(&dev->kobj, &device_ktype);
 	INIT_LIST_HEAD(&dev->dma_pools);
@@ -1075,8 +1074,9 @@ int device_private_init(struct device *dev)
  */
 void device_rh_alloc(struct device *dev)
 {
-	dev->device_rh = kzalloc(sizeof(struct device_rh),
-				 GFP_KERNEL | __GFP_NOFAIL);
+	if (!dev->device_rh)
+		dev->device_rh = kzalloc(sizeof(struct device_rh),
+					 GFP_KERNEL | __GFP_NOFAIL);
 }
 EXPORT_SYMBOL(device_rh_alloc);
 
@@ -1122,8 +1122,7 @@ int device_add(struct device *dev)
 	 * Regardless of when allocated, the device_rh will be free'd at the
 	 * end of device_del().
 	 */
-	if (!dev->device_rh)
-		device_rh_alloc(dev);
+	device_rh_alloc(dev);
 
 	if (!dev->p) {
 		error = device_private_init(dev);
