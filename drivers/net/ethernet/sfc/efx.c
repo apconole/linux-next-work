@@ -340,7 +340,10 @@ static int efx_poll(struct napi_struct *napi, int budget)
 			efx_update_irq_mod(efx, channel);
 		}
 
-		efx_filter_rfs_expire(channel);
+#ifdef CONFIG_RFS_ACCEL
+		/* Perhaps expire some ARFS filters */
+		schedule_work(&channel->filter_work);
+#endif
 
 		/* There is no race here; although napi_disable() will
 		 * only wait for napi_complete(), this isn't a problem
@@ -470,10 +473,17 @@ efx_alloc_channel(struct efx_nic *efx, int i, struct efx_channel *old_channel)
 		tx_queue->channel = channel;
 	}
 
+#ifdef CONFIG_RFS_ACCEL
+	INIT_WORK(&channel->filter_work, efx_filter_rfs_expire);
+#endif
+
 	rx_queue = &channel->rx_queue;
 	rx_queue->efx = efx;
 	setup_timer(&rx_queue->slow_fill, efx_rx_slow_fill,
 		    (unsigned long)rx_queue);
+#ifdef CONFIG_RFS_ACCEL
+	INIT_WORK(&channel->filter_work, efx_filter_rfs_expire);
+#endif
 
 	return channel;
 }
@@ -3015,6 +3025,9 @@ static int efx_init_struct(struct efx_nic *efx,
 	efx->num_mac_stats = MC_CMD_MAC_NSTATS;
 	BUILD_BUG_ON(MC_CMD_MAC_NSTATS - 1 != MC_CMD_MAC_GENERATION_END);
 	mutex_init(&efx->mac_lock);
+#ifdef CONFIG_RFS_ACCEL
+	mutex_init(&efx->rps_mutex);
+#endif
 	efx->phy_op = &efx_dummy_phy_operations;
 	efx->mdio.dev = net_dev;
 	INIT_WORK(&efx->mac_work, efx_mac_work);
