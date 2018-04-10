@@ -816,7 +816,7 @@ void rfi_flush_enable(bool enable)
 	rfi_flush = enable;
 }
 
-void __init setup_rfi_flush(enum l1d_flush_type types, bool enable)
+void setup_rfi_flush(enum l1d_flush_type types, bool enable)
 {
 	if (types & L1D_FLUSH_FALLBACK) {
 		int cpu;
