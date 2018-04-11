@@ -91,14 +91,25 @@ config CHROMEOS_LAPTOP
 	  The module will be called chromeos_laptop.
 
 config DELL_SMBIOS
-	tristate "Dell SMBIOS Support"
-	depends on DCDBAS
-	default n
+	tristate "Dell SMBIOS driver"
 	---help---
-	This module provides common functions for kernel modules using
-	Dell SMBIOS.
+	This provides support for the Dell SMBIOS calling interface.
+	If you have a Dell computer you should enable this option.
 
-	If you have a Dell laptop, say Y or M here.
+	Be sure to select at least one backend for it to work properly.
+
+config DELL_SMBIOS_SMM
+	tristate "Dell SMBIOS calling interface (SMM implementation)"
+	depends on DCDBAS
+	default DCDBAS
+	select DELL_SMBIOS
+        ---help---
+	This provides an implementation for the Dell SMBIOS calling interface
+	communicated over SMI/SMM.
+
+	If you have a Dell computer from <=2017 you should say Y or M here.
+	If you aren't sure and this module doesn't work for your computer
+	it just won't load.
 
 config DELL_LAPTOP
 	tristate "Dell Laptop Extras"
