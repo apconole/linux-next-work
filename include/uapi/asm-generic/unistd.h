@@ -696,6 +696,8 @@ __SYSCALL(__NR_finit_module, sys_finit_module)
 __SYSCALL(__NR_seccomp, sys_seccomp)
 #define __NR_getrandom 278
 __SYSCALL(__NR_getrandom, sys_getrandom)
+#define __NR_membarrier 282
+__SYSCALL(__NR_membarrier, sys_membarrier)
 #define __NR_copy_file_range 285
 __SYSCALL(__NR_copy_file_range, sys_copy_file_range)
 #define __NR_pkey_mprotect 288

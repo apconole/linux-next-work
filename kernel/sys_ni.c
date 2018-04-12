@@ -223,3 +223,6 @@ cond_syscall(sys_seccomp);
 cond_syscall(sys_pkey_mprotect);
 cond_syscall(sys_pkey_alloc);
 cond_syscall(sys_pkey_free);
+
+/* membarrier */
+cond_syscall(sys_membarrier);

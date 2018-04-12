@@ -5672,6 +5672,14 @@ Q:	http://patchwork.kernel.org/project/linux-rdma/list/
 F:	drivers/infiniband/hw/rxe/
 F:	include/uapi/rdma/rdma_user_rxe.h
 
+MEMBARRIER SUPPORT
+M:	Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+M:	"Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+L:	linux-kernel@vger.kernel.org
+S:	Supported
+F:	kernel/membarrier.c
+F:	include/uapi/linux/membarrier.h
+
 MEMORY MANAGEMENT
 L:	linux-mm@kvack.org
 W:	http://www.linux-mm.org
