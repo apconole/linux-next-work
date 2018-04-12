@@ -2077,7 +2077,6 @@ static int srpt_cm_req_recv(struct ib_cm_id *cm_id,
 		goto reject;
 	}
 
-	init_rcu_head(&ch->rcu);
 	kref_init(&ch->kref);
 	ch->zw_cqe.done = srpt_zerolength_write_done;
 	INIT_WORK(&ch->release_work, srpt_release_channel_work);
