@@ -1455,6 +1455,9 @@ config USERFAULTFD
 
 	  If unsure, say Y.
 
+config ARCH_HAS_MEMBARRIER_CALLBACKS
+	bool
+
 config PCI_QUIRKS
 	default y
 	bool "Enable PCI quirk workarounds" if EXPERT
