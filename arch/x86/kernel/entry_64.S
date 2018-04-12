@@ -932,6 +932,10 @@ retint_restore_args:	/* return to kernel space */
 	RESTORE_ARGS 1,8,1
 
 irq_return:
+	/*
+	 * ARCH_HAS_MEMBARRIER_SYNC_CORE rely on IRET core serialization
+	 * when returning from IPI handler.
+	 */
 	INTERRUPT_RETURN
 	_ASM_EXTABLE(irq_return, bad_iret)
 
