@@ -94,7 +94,7 @@ struct pvrdma_cq {
 	struct pvrdma_page_dir pdir;
 	u32 cq_handle;
 	bool is_kernel;
-	atomic_t refcnt;
+	refcount_t refcnt;
 	struct completion free;
 };
 
@@ -197,7 +197,7 @@ struct pvrdma_qp {
 	u8 state;
 	bool is_kernel;
 	struct mutex mutex; /* QP state mutex. */
-	atomic_t refcnt;
+	refcount_t refcnt;
 	struct completion free;
 };
 
