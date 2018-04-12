@@ -1945,7 +1945,6 @@ static struct srpt_nexus *srpt_get_nexus(struct srpt_port *sport,
 			nexus = ERR_PTR(-ENOMEM);
 			break;
 		}
-		init_rcu_head(&tmp_nexus->rcu);
 		INIT_LIST_HEAD(&tmp_nexus->ch_list);
 		memcpy(tmp_nexus->i_port_id, i_port_id, 16);
 		memcpy(tmp_nexus->t_port_id, t_port_id, 16);
