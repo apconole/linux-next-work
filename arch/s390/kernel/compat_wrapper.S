@@ -1524,3 +1524,8 @@ ENTRY(sys_recvmsg_wrapper)
 	llgtr	%r3,%r3		# const struct msghdr *
 	llgfr	%r4,%r4		# unsigned int
 	jg	compat_sys_recvmsg
+
+ENTRY(sys_membarrier_wrapper)
+	lgfr	%r2,%r2		# int
+	lgfr	%r3,%r3		# int
+	jg	sys_membarrier

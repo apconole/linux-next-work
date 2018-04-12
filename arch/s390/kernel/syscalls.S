@@ -364,7 +364,7 @@ SYSCALL(sys_ni_syscall,sys_s390_pci_mmio_write,sys_s390_pci_mmio_write_wrapper)
 SYSCALL(sys_ni_syscall,sys_s390_pci_mmio_read,sys_s390_pci_mmio_read_wrapper)
 NI_SYSCALL					/* 354 sys_execveat */
 NI_SYSCALL					/* 355 sys_userfaultfd */
-NI_SYSCALL					/* 356 sys_membarrier */
+SYSCALL(sys_membarrier,sys_membarrier,sys_membarrier_wrapper)
 NI_SYSCALL					/* 357 sys_recvmmsg */
 NI_SYSCALL					/* 358 sys_sendmmsg */
 SYSCALL(sys_socket,sys_socket,sys_socket)
