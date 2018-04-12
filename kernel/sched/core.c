@@ -75,6 +75,7 @@
 #include <linux/context_tracking.h>
 #include <linux/compiler.h>
 #include <linux/frame.h>
+#include <linux/sched/mm.h>
 
 #include <asm/switch_to.h>
 #include <asm/tlb.h>
@@ -2401,13 +2402,21 @@ static void finish_task_switch(struct rq *rq, struct task_struct *prev)
 
 	fire_sched_in_preempt_notifiers(current);
 	/*
-	 * When transitioning from a kernel thread to a userspace
-	 * thread, mmdrop()'s implicit full barrier is required by the
-	 * membarrier system call, because the current ->active_mm can
-	 * become the current mm without going through switch_mm().
+	 * When switching through a kernel thread, the loop in
+	 * membarrier_{private,global}_expedited() may have observed that
+	 * kernel thread and not issued an IPI. It is therefore possible to
+	 * schedule between user->kernel->user threads without passing though
+	 * switch_mm(). Membarrier requires a barrier after storing to
+	 * rq->curr, before returning to userspace, so provide them here:
+	 *
+	 * - a full memory barrier for {PRIVATE,GLOBAL}_EXPEDITED, implicitly
+	 *   provided by mmdrop(),
+	 * - a sync_core for SYNC_CORE.
 	 */
-	if (mm)
+	if (mm) {
+		membarrier_mm_sync_core_before_usermode(mm);
 		mmdrop(mm);
+	}
 	if (unlikely(prev_state == TASK_DEAD)) {
 		task_numa_free(prev);
 
