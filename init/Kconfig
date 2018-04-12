@@ -1458,6 +1458,9 @@ config USERFAULTFD
 config ARCH_HAS_MEMBARRIER_CALLBACKS
 	bool
 
+config ARCH_HAS_SYNC_CORE_BEFORE_USERMODE
+	bool
+
 config PCI_QUIRKS
 	default y
 	bool "Enable PCI quirk workarounds" if EXPERT
