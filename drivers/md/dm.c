@@ -412,7 +412,7 @@ static int dm_blk_getgeo(struct block_device *bdev, struct hd_geometry *geo)
 }
 
 static int dm_prepare_ioctl(struct mapped_device *md, int *srcu_idx,
-			    struct block_device **bdev, fmode_t *mode)
+			    struct block_device **bdev)
 	__acquires(md->io_barrier)
 {
 	struct dm_target *tgt;
@@ -436,7 +436,7 @@ retry:
 	if (dm_suspended_md(md))
 		return -EAGAIN;
 
-	r = tgt->type->prepare_ioctl(tgt, bdev, mode);
+	r = tgt->type->prepare_ioctl(tgt, bdev);
 	if (r == -ENOTCONN && !fatal_signal_pending(current)) {
 		dm_put_live_table(md, *srcu_idx);
 		msleep(10);
@@ -458,7 +458,7 @@ static int dm_blk_ioctl(struct block_device *bdev, fmode_t mode,
 	struct mapped_device *md = bdev->bd_disk->private_data;
 	int r, srcu_idx;
 
-	r = dm_prepare_ioctl(md, &srcu_idx, &bdev, &mode);
+	r = dm_prepare_ioctl(md, &srcu_idx, &bdev);
 	if (r < 0)
 		goto out;
 
@@ -2984,10 +2984,9 @@ static int dm_pr_reserve(struct block_device *bdev, u64 key, enum pr_type type,
 {
 	struct mapped_device *md = bdev->bd_disk->private_data;
 	const struct pr_ops *ops;
-	fmode_t mode;
 	int r, srcu_idx;
 
-	r = dm_prepare_ioctl(md, &srcu_idx, &bdev, &mode);
+	r = dm_prepare_ioctl(md, &srcu_idx, &bdev);
 	if (r < 0)
 		goto out;
 
@@ -3005,10 +3004,9 @@ static int dm_pr_release(struct block_device *bdev, u64 key, enum pr_type type)
 {
 	struct mapped_device *md = bdev->bd_disk->private_data;
 	const struct pr_ops *ops;
-	fmode_t mode;
 	int r, srcu_idx;
 
-	r = dm_prepare_ioctl(md, &srcu_idx, &bdev, &mode);
+	r = dm_prepare_ioctl(md, &srcu_idx, &bdev);
 	if (r < 0)
 		goto out;
 
@@ -3027,10 +3025,9 @@ static int dm_pr_preempt(struct block_device *bdev, u64 old_key, u64 new_key,
 {
 	struct mapped_device *md = bdev->bd_disk->private_data;
 	const struct pr_ops *ops;
-	fmode_t mode;
 	int r, srcu_idx;
 
-	r = dm_prepare_ioctl(md, &srcu_idx, &bdev, &mode);
+	r = dm_prepare_ioctl(md, &srcu_idx, &bdev);
 	if (r < 0)
 		goto out;
 
@@ -3048,10 +3045,9 @@ static int dm_pr_clear(struct block_device *bdev, u64 key)
 {
 	struct mapped_device *md = bdev->bd_disk->private_data;
 	const struct pr_ops *ops;
-	fmode_t mode;
 	int r, srcu_idx;
 
-	r = dm_prepare_ioctl(md, &srcu_idx, &bdev, &mode);
+	r = dm_prepare_ioctl(md, &srcu_idx, &bdev);
 	if (r < 0)
 		goto out;
 
