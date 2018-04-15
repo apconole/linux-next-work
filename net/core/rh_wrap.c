@@ -84,6 +84,28 @@ int handle_cls_u32_rh74(struct net_device *dev,
 }
 
 static inline
+int tcf_exts_get_dev(struct net_device *dev, struct tcf_exts *exts,
+		     struct net_device **hw_dev)
+{
+#ifdef CONFIG_NET_CLS_ACT
+	const struct tc_action *a;
+	LIST_HEAD(actions);
+
+	if (!tcf_exts_has_actions(exts))
+		return -EINVAL;
+
+	tcf_exts_to_list(exts, &actions);
+	list_for_each_entry(a, &actions, list) {
+		if (a->ops->get_dev)
+			*hw_dev = a->ops->get_dev(a);
+	}
+	if (*hw_dev)
+		return 0;
+#endif
+	return -EOPNOTSUPP;
+}
+
+static inline
 int handle_cls_flower_rh74(struct net_device *dev,
 			   const struct tc_cls_flower_offload *cls_flower)
 {
