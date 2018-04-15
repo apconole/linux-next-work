@@ -99,13 +99,32 @@ int handle_cls_flower_rh74(struct net_device *dev,
 	struct tc_to_netdev_rh74 tc74 = {
 		.type		= TC_SETUP_CLSFLOWER,
 		.cls_flower	= &cls_flower_rh74,
-		.egress_dev	= cls_flower->egress_dev,
 	};
 	const struct tc_cls_common_offload *common = &cls_flower->common;
 
 	/* All older drivers supports only single chain */
 	if (common->chain_index)
 		return -ENOTSUPP;
+
+	/*
+	 * Emulate 'egress_dev':
+	 * tc_can_offload(dev)?
+	 * yes - leave egress_dev unset
+	 *     - call .ndo_setup_tc() for the 'dev'
+	 * no - retrieve egress device from one of assigned action(s)
+	 *    - set egress_dev to true
+	 *    - call .ndo_setup_tc() for this egress device
+	 */
+	if (!tc_can_offload(dev)) {
+		struct net_device *hw_dev = NULL;
+
+		if (tcf_exts_get_dev(dev, cls_flower->exts, &hw_dev) ||
+		    (hw_dev && !tc_can_offload(hw_dev)))
+			return -EINVAL;
+
+		dev = hw_dev;
+		tc74.egress_dev = true;
+	}
 
 	return dev->netdev_ops->ndo_setup_tc_rh74(dev, common->handle,
 						  common->protocol, &tc74);
