@@ -61,6 +61,16 @@ static unsigned long vmware_get_tsc_khz(void)
 	return vmware_tsc_khz;
 }
 
+#ifdef CONFIG_PARAVIRT
+static void __init vmware_paravirt_ops_setup(void)
+{
+	pv_info.name = "VMware hypervisor";
+	pv_cpu_ops.io_delay = paravirt_nop;
+}
+#else
+#define vmware_paravirt_ops_setup() do {} while (0)
+#endif
+
 static void __init vmware_platform_setup(void)
 {
 	uint32_t eax, ebx, ecx, edx;
@@ -95,6 +105,8 @@ static void __init vmware_platform_setup(void)
 		printk(KERN_WARNING
 		       "Failed to get TSC freq from the hypervisor\n");
 	}
+
+	vmware_paravirt_ops_setup();
 
 #ifdef CONFIG_X86_IO_APIC
 	no_timer_check = 1;
