@@ -47,6 +47,8 @@
 			"2"(VMWARE_HYPERVISOR_PORT), "3"(UINT_MAX) :	\
 			"memory");
 
+static unsigned long vmware_tsc_khz;
+
 static inline int __vmware_platform(void)
 {
 	uint32_t eax, ebx, ecx, edx;
@@ -56,34 +58,30 @@ static inline int __vmware_platform(void)
 
 static unsigned long vmware_get_tsc_khz(void)
 {
-	uint64_t tsc_hz, lpj;
-	uint32_t eax, ebx, ecx, edx;
-
-	VMWARE_PORT(GETHZ, eax, ebx, ecx, edx);
-
-	tsc_hz = eax | (((uint64_t)ebx) << 32);
-	do_div(tsc_hz, 1000);
-	BUG_ON(tsc_hz >> 32);
-	printk(KERN_INFO "TSC freq read from hypervisor : %lu.%03lu MHz\n",
-			 (unsigned long) tsc_hz / 1000,
-			 (unsigned long) tsc_hz % 1000);
-
-	if (!preset_lpj) {
-		lpj = ((u64)tsc_hz * 1000);
-		do_div(lpj, HZ);
-		preset_lpj = lpj;
-	}
-
-	return tsc_hz;
+	return vmware_tsc_khz;
 }
 
 static void __init vmware_platform_setup(void)
 {
 	uint32_t eax, ebx, ecx, edx;
+	uint64_t lpj, tsc_khz;
 
 	VMWARE_PORT(GETHZ, eax, ebx, ecx, edx);
 
 	if (ebx != UINT_MAX) {
+		lpj = tsc_khz = eax | (((uint64_t)ebx) << 32);
+		do_div(tsc_khz, 1000);
+		WARN_ON(tsc_khz >> 32);
+		pr_info("TSC freq read from hypervisor : %lu.%03lu MHz\n",
+			(unsigned long) tsc_khz / 1000,
+			(unsigned long) tsc_khz % 1000);
+
+		if (!preset_lpj) {
+			do_div(lpj, HZ);
+			preset_lpj = lpj;
+		}
+
+		vmware_tsc_khz = tsc_khz;
 		x86_platform.calibrate_tsc = vmware_get_tsc_khz;
 		x86_platform.calibrate_cpu = vmware_get_tsc_khz;
 
