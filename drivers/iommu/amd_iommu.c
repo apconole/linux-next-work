@@ -4222,7 +4222,12 @@ static int set_affinity(struct irq_data *data, const struct cpumask *mask,
 	return 0;
 }
 
-static int free_irq(int irq)
+/*
+ * RHEL: Renamed to free_irq_rh() because the prototype conflicts with
+ * global free_irq() that has different return value. Upstream is not affected
+ * because this local function was removed in the meantime.
+ */
+static int free_irq_rh(int irq)
 {
 	struct irq_2_irte *irte_info;
 	struct irq_cfg *cfg;
@@ -4443,7 +4448,7 @@ struct irq_remap_ops amd_iommu_irq_ops = {
 	.enable_faulting	= amd_iommu_enable_faulting,
 	.setup_ioapic_entry	= setup_ioapic_entry,
 	.set_affinity		= set_affinity,
-	.free_irq		= free_irq,
+	.free_irq		= free_irq_rh,
 	.compose_msi_msg	= compose_msi_msg,
 	.msi_alloc_irq		= msi_alloc_irq,
 	.msi_setup_irq		= msi_setup_irq,
