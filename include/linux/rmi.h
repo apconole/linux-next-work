@@ -13,6 +13,7 @@
 #include <linux/device.h>
 #include <linux/interrupt.h>
 #include <linux/input.h>
+#include <linux/kfifo.h>
 #include <linux/list.h>
 #include <linux/module.h>
 #include <linux/types.h>
@@ -278,6 +279,12 @@ struct rmi_device {
 	struct rmi_driver *driver;
 	struct rmi_transport_dev *xport;
 
+};
+
+struct rmi4_attn_data {
+	unsigned long irq_status;
+	size_t size;
+	void *data;
 };
 
 struct rmi_driver_data {
