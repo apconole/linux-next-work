@@ -1986,8 +1986,7 @@ static int synaptics_setup_intertouch(struct psmouse *psmouse,
 		return -ENXIO;
 
 	if (synaptics_intertouch == SYNAPTICS_INTERTOUCH_NOT_SET) {
-		if (!psmouse_matches_pnp_id(psmouse, topbuttonpad_pnp_ids) &&
-		    !psmouse_matches_pnp_id(psmouse, smbus_pnp_ids))
+		if (!psmouse_matches_pnp_id(psmouse, smbus_pnp_ids))
 			return -ENXIO;
 	}
 
