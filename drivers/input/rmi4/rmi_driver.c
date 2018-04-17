@@ -789,7 +789,7 @@ static int rmi_create_function(struct rmi_device *rmi_dev,
 			       void *ctx, const struct pdt_entry *pdt)
 {
 	struct device *dev = &rmi_dev->dev;
-	struct rmi_driver_data *data = dev_get_drvdata(&rmi_dev->dev);
+	struct rmi_driver_data *data = dev_get_drvdata(dev);
 	int *current_irq_count = ctx;
 	struct rmi_function *fn;
 	int i;
