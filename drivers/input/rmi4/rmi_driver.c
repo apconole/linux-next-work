@@ -41,14 +41,14 @@ static void rmi_free_function_list(struct rmi_device *rmi_dev)
 
 	rmi_dbg(RMI_DEBUG_CORE, &rmi_dev->dev, "Freeing function list\n");
 
-	data->f01_container = NULL;
-
 	/* Doing it in the reverse order so F01 will be removed last */
 	list_for_each_entry_safe_reverse(fn, tmp,
 					 &data->function_list, node) {
 		list_del(&fn->node);
 		rmi_unregister_function(fn);
 	}
+
+	data->f01_container = NULL;
 }
 
 static int reset_one_function(struct rmi_function *fn)
