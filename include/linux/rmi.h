@@ -155,9 +155,11 @@ struct rmi_f01_power_management {
  * @reset_delay_ms - after issuing a reset command to the touch sensor, the
  * driver waits a few milliseconds to give the firmware a chance to
  * to re-initialize.  You can override the default wait period here.
+ * @irq: irq associated with the attn gpio line, or negative
  */
 struct rmi_device_platform_data {
 	int reset_delay_ms;
+	int irq;
 
 	/* function handler pdata */
 	struct rmi_2d_sensor_platform_data *sensor_pdata;
@@ -301,8 +303,7 @@ struct rmi_driver_data {
 
 int rmi_register_transport_device(struct rmi_transport_dev *xport);
 void rmi_unregister_transport_device(struct rmi_transport_dev *xport);
-int rmi_process_interrupt_requests(struct rmi_device *rmi_dev);
 
-int rmi_driver_suspend(struct rmi_device *rmi_dev);
-int rmi_driver_resume(struct rmi_device *rmi_dev);
+int rmi_driver_suspend(struct rmi_device *rmi_dev, bool enable_wake);
+int rmi_driver_resume(struct rmi_device *rmi_dev, bool clear_wake);
 #endif
