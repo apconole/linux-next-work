@@ -420,8 +420,8 @@ static int rmi_driver_reset_handler(struct rmi_device *rmi_dev)
 	return 0;
 }
 
-int rmi_read_pdt_entry(struct rmi_device *rmi_dev, struct pdt_entry *entry,
-			u16 pdt_address)
+static int rmi_read_pdt_entry(struct rmi_device *rmi_dev,
+			      struct pdt_entry *entry, u16 pdt_address)
 {
 	u8 buf[RMI_PDT_ENTRY_SIZE];
 	int error;
@@ -444,7 +444,6 @@ int rmi_read_pdt_entry(struct rmi_device *rmi_dev, struct pdt_entry *entry,
 
 	return 0;
 }
-EXPORT_SYMBOL_GPL(rmi_read_pdt_entry);
 
 static void rmi_driver_copy_pdt_to_fd(const struct pdt_entry *pdt,
 				      struct rmi_function_descriptor *fd)
@@ -653,7 +652,6 @@ free_struct_buff:
 	kfree(struct_buf);
 	return ret;
 }
-EXPORT_SYMBOL_GPL(rmi_read_register_desc);
 
 const struct rmi_register_desc_item *rmi_get_register_desc_item(
 				struct rmi_register_descriptor *rdesc, u16 reg)
@@ -669,7 +667,6 @@ const struct rmi_register_desc_item *rmi_get_register_desc_item(
 
 	return NULL;
 }
-EXPORT_SYMBOL_GPL(rmi_get_register_desc_item);
 
 size_t rmi_register_desc_calc_size(struct rmi_register_descriptor *rdesc)
 {
@@ -683,7 +680,6 @@ size_t rmi_register_desc_calc_size(struct rmi_register_descriptor *rdesc)
 	}
 	return size;
 }
-EXPORT_SYMBOL_GPL(rmi_register_desc_calc_size);
 
 /* Compute the register offset relative to the base address */
 int rmi_register_desc_calc_reg_offset(
@@ -701,7 +697,6 @@ int rmi_register_desc_calc_reg_offset(
 	}
 	return -1;
 }
-EXPORT_SYMBOL_GPL(rmi_register_desc_calc_reg_offset);
 
 bool rmi_register_desc_has_subpacket(const struct rmi_register_desc_item *item,
 	u8 subpacket)
