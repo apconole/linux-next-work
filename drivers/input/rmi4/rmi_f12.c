@@ -348,9 +348,7 @@ static int rmi_f12_probe(struct rmi_function *fn)
 
 	f12->has_dribble = !!(buf & BIT(3));
 
-	if (pdata->sensor_pdata) {
-		f12->sensor_pdata = *pdata->sensor_pdata;
-	}
+	f12->sensor_pdata = pdata->sensor_pdata;
 
 	ret = rmi_read_register_desc(rmi_dev, query_addr,
 					&f12->query_reg_desc);

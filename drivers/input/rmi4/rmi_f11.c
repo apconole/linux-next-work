@@ -1076,8 +1076,7 @@ static int rmi_f11_initialize(struct rmi_function *fn)
 	if (!f11)
 		return -ENOMEM;
 
-	if (pdata->sensor_pdata)
-		f11->sensor_pdata = *pdata->sensor_pdata;
+	f11->sensor_pdata = pdata->sensor_pdata;
 
 	f11->rezero_wait_ms = f11->sensor_pdata.rezero_wait;
 
