@@ -39,21 +39,56 @@ typedef enum {
 	PSMOUSE_FULL_PACKET
 } psmouse_ret_t;
 
+enum psmouse_type {
+	PSMOUSE_NONE,
+	PSMOUSE_PS2,
+	PSMOUSE_PS2PP,
+	PSMOUSE_THINKPS,
+	PSMOUSE_GENPS,
+	PSMOUSE_IMPS,
+	PSMOUSE_IMEX,
+	PSMOUSE_SYNAPTICS,
+	PSMOUSE_ALPS,
+	PSMOUSE_LIFEBOOK,
+	PSMOUSE_TRACKPOINT,
+	PSMOUSE_TOUCHKIT_PS2,
+	PSMOUSE_CORTRON,
+	PSMOUSE_HGPK,
+	PSMOUSE_ELANTECH,
+	PSMOUSE_FSP,
+	PSMOUSE_SYNAPTICS_RELATIVE,
+	PSMOUSE_CYPRESS,
+	PSMOUSE_VMMOUSE,
+	PSMOUSE_AUTO		/* This one should always be last */
+};
+
+struct psmouse;
+
+struct psmouse_protocol {
+	enum psmouse_type type;
+	bool maxproto;
+	bool ignore_parity; /* Protocol should ignore parity errors from KBC */
+	bool try_passthru; /* Try protocol also on passthrough ports */
+	const char *name;
+	const char *alias;
+	int (*detect)(struct psmouse *, bool);
+	int (*init)(struct psmouse *);
+};
+
 struct psmouse {
 	void *private;
 	struct input_dev *dev;
 	struct ps2dev ps2dev;
 	struct delayed_work resync_work;
-	char *vendor;
-	char *name;
+	const char *vendor;
+	const char *name;
+	const struct psmouse_protocol *protocol;
 	unsigned char packet[8];
 	unsigned char badbyte;
 	unsigned char pktcnt;
 	unsigned char pktsize;
-	unsigned char type;
 	unsigned char oob_data_type;
 	unsigned char extra_buttons;
-	bool ignore_parity;
 	bool acks_disable_command;
 	unsigned int model;
 	unsigned long last;
@@ -81,29 +116,6 @@ struct psmouse {
 
 	void (*pt_activate)(struct psmouse *psmouse);
 	void (*pt_deactivate)(struct psmouse *psmouse);
-};
-
-enum psmouse_type {
-	PSMOUSE_NONE,
-	PSMOUSE_PS2,
-	PSMOUSE_PS2PP,
-	PSMOUSE_THINKPS,
-	PSMOUSE_GENPS,
-	PSMOUSE_IMPS,
-	PSMOUSE_IMEX,
-	PSMOUSE_SYNAPTICS,
-	PSMOUSE_ALPS,
-	PSMOUSE_LIFEBOOK,
-	PSMOUSE_TRACKPOINT,
-	PSMOUSE_TOUCHKIT_PS2,
-	PSMOUSE_CORTRON,
-	PSMOUSE_HGPK,
-	PSMOUSE_ELANTECH,
-	PSMOUSE_FSP,
-	PSMOUSE_SYNAPTICS_RELATIVE,
-	PSMOUSE_CYPRESS,
-	PSMOUSE_VMMOUSE,
-	PSMOUSE_AUTO		/* This one should always be last */
 };
 
 void psmouse_queue_work(struct psmouse *psmouse, struct delayed_work *work,

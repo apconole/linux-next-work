@@ -114,17 +114,6 @@ static DEFINE_MUTEX(psmouse_mutex);
 
 static struct workqueue_struct *kpsmoused_wq;
 
-struct psmouse_protocol {
-	enum psmouse_type type;
-	bool maxproto;
-	bool ignore_parity; /* Protocol should ignore parity errors from KBC */
-	bool try_passthru; /* Try protocol also on passthrough ports */
-	const char *name;
-	const char *alias;
-	int (*detect)(struct psmouse *, bool);
-	int (*init)(struct psmouse *);
-};
-
 static void psmouse_report_standard_buttons(struct input_dev *dev, u8 buttons)
 {
 	input_report_key(dev, BTN_LEFT,   buttons & BIT(0));
@@ -146,7 +135,7 @@ psmouse_ret_t psmouse_process_byte(struct psmouse *psmouse)
 
 	/* Full packet accumulated, process it */
 
-	switch (psmouse->type) {
+	switch (psmouse->protocol->type) {
 	case PSMOUSE_IMPS:
 		/* IntelliMouse has scroll wheel */
 		input_report_rel(dev, REL_WHEEL, -(signed char) packet[3]);
@@ -323,7 +312,8 @@ static irqreturn_t psmouse_interrupt(struct serio *serio,
 		goto out;
 
 	if (unlikely((flags & SERIO_TIMEOUT) ||
-		     ((flags & SERIO_PARITY) && !psmouse->ignore_parity))) {
+		     ((flags & SERIO_PARITY) &&
+		      !psmouse->protocol->ignore_parity))) {
 
 		if (psmouse->state == PSMOUSE_ACTIVATED)
 			psmouse_warn(psmouse,
@@ -370,7 +360,7 @@ static irqreturn_t psmouse_interrupt(struct serio *serio,
 		}
 
 		if (psmouse->packet[1] == PSMOUSE_RET_ID ||
-		    (psmouse->type == PSMOUSE_HGPK &&
+		    (psmouse->protocol->type == PSMOUSE_HGPK &&
 		     psmouse->packet[1] == PSMOUSE_RET_BAT)) {
 			__psmouse_set_state(psmouse, PSMOUSE_IGNORE);
 			serio_reconnect(serio);
@@ -903,6 +893,8 @@ static void psmouse_apply_defaults(struct psmouse *psmouse)
 
 	__set_bit(INPUT_PROP_POINTER, input_dev->propbit);
 
+	psmouse->protocol = &psmouse_protocols[0];
+
 	psmouse->set_rate = psmouse_set_rate;
 	psmouse->set_resolution = psmouse_set_resolution;
 	psmouse->poll = psmouse_poll;
@@ -1397,6 +1389,7 @@ static int psmouse_switch_protocol(struct psmouse *psmouse,
 {
 	const struct psmouse_protocol *selected_proto;
 	struct input_dev *input_dev = psmouse->dev;
+	enum psmouse_type type;
 
 	input_dev->dev.parent = &psmouse->ps2dev.serio->dev;
 
@@ -1409,15 +1402,13 @@ static int psmouse_switch_protocol(struct psmouse *psmouse,
 		if (proto->init && proto->init(psmouse) < 0)
 			return -1;
 
-		psmouse->type = proto->type;
 		selected_proto = proto;
 	} else {
-		psmouse->type = psmouse_extensions(psmouse,
-						   psmouse_max_proto, true);
-		selected_proto = psmouse_protocol_by_type(psmouse->type);
+		type = psmouse_extensions(psmouse, psmouse_max_proto, true);
+		selected_proto = psmouse_protocol_by_type(type);
 	}
 
-	psmouse->ignore_parity = selected_proto->ignore_parity;
+	psmouse->protocol = selected_proto;
 
 	/*
 	 * If mouse's packet size is 3 there is no point in polling the
@@ -1443,7 +1434,7 @@ static int psmouse_switch_protocol(struct psmouse *psmouse,
 	input_dev->phys = psmouse->phys;
 	input_dev->id.bustype = BUS_I8042;
 	input_dev->id.vendor = 0x0002;
-	input_dev->id.product = psmouse->type;
+	input_dev->id.product = psmouse->protocol->type;
 	input_dev->id.version = psmouse->model;
 
 	return 0;
@@ -1552,7 +1543,7 @@ static int __psmouse_reconnect(struct serio *serio, bool fast_reconnect)
 	struct psmouse *parent = NULL;
 	struct serio_driver *drv = serio->drv;
 	int (*reconnect_handler)(struct psmouse *);
-	unsigned char type;
+	enum psmouse_type type;
 	int rc = -1;
 
 	if (!drv || !psmouse) {
@@ -1590,7 +1581,7 @@ static int __psmouse_reconnect(struct serio *serio, bool fast_reconnect)
 			goto out;
 
 		type = psmouse_extensions(psmouse, psmouse_max_proto, false);
-		if (psmouse->type != type)
+		if (psmouse->protocol->type != type)
 			goto out;
 	}
 
@@ -1740,7 +1731,7 @@ static ssize_t psmouse_set_int_attr(struct psmouse *psmouse, void *offset, const
 
 static ssize_t psmouse_attr_show_protocol(struct psmouse *psmouse, void *data, char *buf)
 {
-	return sprintf(buf, "%s\n", psmouse_protocol_by_type(psmouse->type)->name);
+	return sprintf(buf, "%s\n", psmouse->protocol->name);
 }
 
 static ssize_t psmouse_attr_set_protocol(struct psmouse *psmouse, void *data, const char *buf, size_t count)
@@ -1756,7 +1747,7 @@ static ssize_t psmouse_attr_set_protocol(struct psmouse *psmouse, void *data, co
 	if (!proto)
 		return -EINVAL;
 
-	if (psmouse->type == proto->type)
+	if (psmouse->protocol == proto)
 		return count;
 
 	new_dev = input_allocate_device();
@@ -1780,7 +1771,7 @@ static ssize_t psmouse_attr_set_protocol(struct psmouse *psmouse, void *data, co
 			return -ENODEV;
 		}
 
-		if (psmouse->type == proto->type) {
+		if (psmouse->protocol == proto) {
 			input_free_device(new_dev);
 			return count; /* switched by other thread */
 		}
@@ -1793,7 +1784,7 @@ static ssize_t psmouse_attr_set_protocol(struct psmouse *psmouse, void *data, co
 	}
 
 	old_dev = psmouse->dev;
-	old_proto = psmouse_protocol_by_type(psmouse->type);
+	old_proto = psmouse->protocol;
 
 	if (psmouse->disconnect)
 		psmouse->disconnect(psmouse);
