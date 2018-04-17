@@ -74,6 +74,7 @@ struct psmouse {
 	void (*set_resolution)(struct psmouse *psmouse, unsigned int resolution);
 
 	int (*reconnect)(struct psmouse *psmouse);
+	int (*fast_reconnect)(struct psmouse *psmouse);
 	void (*disconnect)(struct psmouse *psmouse);
 	void (*cleanup)(struct psmouse *psmouse);
 	int (*poll)(struct psmouse *psmouse);
