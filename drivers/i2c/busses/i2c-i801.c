@@ -1644,6 +1644,15 @@ static void i801_remove(struct pci_dev *dev)
 	 */
 }
 
+static void i801_shutdown(struct pci_dev *dev)
+{
+	struct i801_priv *priv = pci_get_drvdata(dev);
+
+	/* Restore config registers to avoid hard hang on some systems */
+	i801_disable_host_notify(priv);
+	pci_write_config_byte(dev, SMBHSTCFG, priv->original_hstcfg);
+}
+
 #ifdef CONFIG_PM
 static int i801_suspend(struct pci_dev *dev, pm_message_t mesg)
 {
@@ -1677,6 +1686,7 @@ static struct pci_driver i801_driver = {
 	.remove		= i801_remove,
 	.suspend	= i801_suspend,
 	.resume		= i801_resume,
+	.shutdown	= i801_shutdown,
 };
 
 static int __init i2c_i801_init(void)
