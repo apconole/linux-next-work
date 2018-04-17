@@ -288,7 +288,6 @@ struct rmi_driver_data {
 	struct rmi_function *f01_container;
 	bool f01_bootloader_mode;
 
-	u32 attn_count;
 	int num_of_irq_regs;
 	int irq_count;
 	unsigned long *irq_status;
@@ -299,11 +298,8 @@ struct rmi_driver_data {
 	struct input_dev *input;
 
 	u8 pdt_props;
-	u8 bsr;
 
 	bool enabled;
-
-	void *data;
 };
 
 int rmi_register_transport_device(struct rmi_transport_dev *xport);
