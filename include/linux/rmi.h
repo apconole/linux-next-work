@@ -221,9 +221,6 @@ struct rmi_transport_dev {
 	struct rmi_device_platform_data pdata;
 
 	struct input_dev *input;
-
-	void *attn_data;
-	int attn_size;
 };
 
 /**
@@ -308,6 +305,8 @@ struct rmi_driver_data {
 
 	bool enabled;
 	struct mutex enabled_mutex;
+
+	struct rmi4_attn_data attn_data;
 };
 
 int rmi_register_transport_device(struct rmi_transport_dev *xport);
