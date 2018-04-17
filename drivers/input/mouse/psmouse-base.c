@@ -735,7 +735,7 @@ static const struct psmouse_protocol psmouse_protocols[] = {
 		.name		= "SynPS/2",
 		.alias		= "synaptics",
 		.detect		= synaptics_detect,
-		.init		= synaptics_init,
+		.init		= synaptics_init_absolute,
 	},
 	{
 		.type		= PSMOUSE_SYNAPTICS_RELATIVE,
@@ -743,6 +743,16 @@ static const struct psmouse_protocol psmouse_protocols[] = {
 		.alias		= "synaptics-relative",
 		.detect		= synaptics_detect,
 		.init		= synaptics_init_relative,
+	},
+#endif
+#ifdef CONFIG_MOUSE_PS2_SYNAPTICS_SMBUS
+	{
+		.type		= PSMOUSE_SYNAPTICS_SMBUS,
+		.name		= "SynSMBus",
+		.alias		= "synaptics-smbus",
+		.detect		= synaptics_detect,
+		.init		= synaptics_init_smbus,
+		.smbus_companion = true,
 	},
 #endif
 #ifdef CONFIG_MOUSE_PS2_ALPS
@@ -954,6 +964,7 @@ static int psmouse_extensions(struct psmouse *psmouse,
 			      unsigned int max_proto, bool set_properties)
 {
 	bool synaptics_hardware = false;
+	int ret;
 
 	/*
 	 * We always check for LifeBook because it does not disturb mouse
@@ -994,9 +1005,14 @@ static int psmouse_extensions(struct psmouse *psmouse,
 			 * enabled first, since we try detecting Synaptics
 			 * even when protocol is disabled.
 			 */
-			if (IS_ENABLED(CONFIG_MOUSE_PS2_SYNAPTICS) &&
-			    (!set_properties || synaptics_init(psmouse) == 0)) {
-				return PSMOUSE_SYNAPTICS;
+			if (IS_ENABLED(CONFIG_MOUSE_PS2_SYNAPTICS) ||
+			    IS_ENABLED(CONFIG_MOUSE_PS2_SYNAPTICS_SMBUS)) {
+				if (!set_properties)
+					return PSMOUSE_SYNAPTICS;
+
+				ret = synaptics_init(psmouse);
+				if (ret >= 0)
+					return ret;
 			}
 
 			/*

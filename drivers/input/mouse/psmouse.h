@@ -59,6 +59,7 @@ enum psmouse_type {
 	PSMOUSE_SYNAPTICS_RELATIVE,
 	PSMOUSE_CYPRESS,
 	PSMOUSE_VMMOUSE,
+	PSMOUSE_SYNAPTICS_SMBUS,
 	PSMOUSE_AUTO		/* This one should always be last */
 };
 
