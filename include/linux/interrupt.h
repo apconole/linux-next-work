@@ -173,7 +173,8 @@ request_percpu_irq(unsigned int irq, irq_handler_t handler,
 }
 #endif
 
-extern void free_irq(unsigned int, void *);
+RH_KABI_REPLACE_UNSAFE(extern void free_irq(unsigned int, void *),
+		       extern const void *free_irq(unsigned int, void *))
 extern void free_percpu_irq(unsigned int, void __percpu *);
 
 struct device;

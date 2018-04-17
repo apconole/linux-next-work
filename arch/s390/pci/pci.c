@@ -638,9 +638,10 @@ int request_irq(unsigned int irq, irq_handler_t handler,
 }
 EXPORT_SYMBOL_GPL(request_irq);
 
-void free_irq(unsigned int irq, void *dev_id)
+const void *free_irq(unsigned int irq, void *dev_id)
 {
 	zpci_free_irq(irq);
+	return NULL;
 }
 EXPORT_SYMBOL_GPL(free_irq);
 
