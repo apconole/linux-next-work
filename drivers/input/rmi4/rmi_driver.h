@@ -95,7 +95,7 @@ void rmi_unregister_physical_driver(void);
 void rmi_enable_irq(struct rmi_device *rmi_dev, bool clear_wake);
 void rmi_disable_irq(struct rmi_device *rmi_dev, bool enable_wake);
 
-char *rmi_f01_get_product_ID(struct rmi_function *fn);
+const char *rmi_f01_get_product_ID(struct rmi_function *fn);
 
 extern struct rmi_function_handler rmi_f01_handler;
 extern struct rmi_function_handler rmi_f03_handler;
