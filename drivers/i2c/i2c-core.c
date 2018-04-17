@@ -907,19 +907,16 @@ static int i2c_device_probe(struct device *dev)
 	if (!client->irq) {
 		int irq = -ENOENT;
 
-		if (ACPI_COMPANION(dev))
+		if (client->flags & I2C_CLIENT_HOST_NOTIFY) {
+			dev_dbg(dev, "Using Host Notify IRQ\n");
+			irq = i2c_smbus_host_notify_to_irq(client);
+		} else if (ACPI_COMPANION(dev)) {
 			irq = acpi_dev_gpio_irq_get(ACPI_COMPANION(dev), 0);
+		}
 
 		if (irq == -EPROBE_DEFER)
 			return irq;
-		/*
-		 * ACPI and OF did not find any useful IRQ, try to see
-		 * if Host Notify can be used.
-		 */
-		if (irq < 0) {
-			dev_dbg(dev, "Using Host Notify IRQ\n");
-			irq = i2c_smbus_host_notify_to_irq(client);
-		}
+
 		if (irq < 0)
 			irq = 0;
 
