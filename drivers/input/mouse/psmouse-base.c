@@ -765,7 +765,7 @@ static int psmouse_extensions(struct psmouse *psmouse,
  * Try activating protocol, but check if support is enabled first, since
  * we try detecting Synaptics even when protocol is disabled.
  */
-			if (synaptics_supported() &&
+			if (IS_ENABLED(CONFIG_MOUSE_PS2_SYNAPTICS) &&
 			    (!set_properties || synaptics_init(psmouse) == 0)) {
 				return PSMOUSE_SYNAPTICS;
 			}
@@ -790,7 +790,7 @@ static int psmouse_extensions(struct psmouse *psmouse,
  */
 	if (max_proto > PSMOUSE_IMEX &&
 			cypress_detect(psmouse, set_properties) == 0) {
-		if (cypress_supported()) {
+		if (IS_ENABLED(CONFIG_MOUSE_PS2_CYPRESS)) {
 			if (cypress_init(psmouse) == 0)
 				return PSMOUSE_CYPRESS;
 

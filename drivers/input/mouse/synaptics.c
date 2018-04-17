@@ -1803,11 +1803,6 @@ int synaptics_init_relative(struct psmouse *psmouse)
 	return __synaptics_init(psmouse, false);
 }
 
-bool synaptics_supported(void)
-{
-	return true;
-}
-
 #else /* CONFIG_MOUSE_PS2_SYNAPTICS */
 
 void __init synaptics_module_init(void)
@@ -1817,11 +1812,6 @@ void __init synaptics_module_init(void)
 int synaptics_init(struct psmouse *psmouse)
 {
 	return -ENOSYS;
-}
-
-bool synaptics_supported(void)
-{
-	return false;
 }
 
 #endif /* CONFIG_MOUSE_PS2_SYNAPTICS */
