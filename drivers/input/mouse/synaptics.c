@@ -80,7 +80,7 @@ static int synaptics_mode_cmd(struct psmouse *psmouse, unsigned char mode)
 {
 	unsigned char param[1];
 
-	if (psmouse_sliced_command(psmouse, mode))
+	if (ps2_sliced_command(&psmouse->ps2dev, mode))
 		return -1;
 	param[0] = SYN_PS_SET_MODE2;
 	if (ps2_command(&psmouse->ps2dev, param, PSMOUSE_CMD_SETRATE))
@@ -176,7 +176,7 @@ static int synaptics_send_cmd(struct psmouse *psmouse,
 {
 	int error;
 
-	error = psmouse_sliced_command(psmouse, c);
+	error = ps2_sliced_command(&psmouse->ps2dev, c);
 	if (error)
 		return error;
 
@@ -521,7 +521,7 @@ static int synaptics_set_advanced_gesture_mode(struct psmouse *psmouse)
 	static unsigned char param = 0xc8;
 	int error;
 
-	error = psmouse_sliced_command(psmouse, SYN_QUE_MODEL);
+	error = ps2_sliced_command(&psmouse->ps2dev, SYN_QUE_MODEL);
 	if (error)
 		return error;
 
@@ -585,7 +585,7 @@ static int synaptics_pt_write(struct serio *serio, unsigned char c)
 	struct psmouse *parent = serio_get_drvdata(serio->parent);
 	char rate_param = SYN_PS_CLIENT_CMD; /* indicates that we want pass-through port */
 
-	if (psmouse_sliced_command(parent, c))
+	if (ps2_sliced_command(&parent->ps2dev, c))
 		return -1;
 	if (ps2_command(&parent->ps2dev, &rate_param, PSMOUSE_CMD_SETRATE))
 		return -1;

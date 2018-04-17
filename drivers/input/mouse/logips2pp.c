@@ -111,7 +111,7 @@ static psmouse_ret_t ps2pp_process_byte(struct psmouse *psmouse)
 
 static int ps2pp_cmd(struct psmouse *psmouse, unsigned char *param, unsigned char command)
 {
-	if (psmouse_sliced_command(psmouse, command))
+	if (ps2_sliced_command(&psmouse->ps2dev, command))
 		return -1;
 
 	if (ps2_command(&psmouse->ps2dev, param, PSMOUSE_CMD_POLL | 0x0300))
