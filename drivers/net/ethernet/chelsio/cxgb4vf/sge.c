@@ -392,7 +392,7 @@ static void free_tx_desc(struct adapter *adapter, struct sge_txq *tq,
 		if (sdesc->skb) {
 			if (need_unmap)
 				unmap_sgl(dev, sdesc->skb, sdesc->sgl, tq);
-			consume_skb(sdesc->skb);
+			dev_consume_skb_any(sdesc->skb);
 			sdesc->skb = NULL;
 		}
 
@@ -1381,7 +1381,7 @@ int t4vf_eth_xmit(struct sk_buff *skb, struct net_device *dev)
 		 * need it any longer.
 		 */
 		inline_tx_skb(skb, &txq->q, cpl + 1);
-		consume_skb(skb);
+		dev_consume_skb_any(skb);
 	} else {
 		/*
 		 * Write the skb's Scatter/Gather list into the TX Packet CPL
