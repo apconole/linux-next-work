@@ -1650,6 +1650,7 @@ extern struct sk_buff		*sock_alloc_send_pskb(struct sock *sk,
 extern void *sock_kmalloc(struct sock *sk, int size,
 			  gfp_t priority);
 extern void sock_kfree_s(struct sock *sk, void *mem, int size);
+extern void sock_kzfree_s(struct sock *sk, void *mem, int size);
 extern void sk_send_sigurg(struct sock *sk);
 
 /*
