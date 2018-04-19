@@ -577,6 +577,9 @@ static int intel_pmu_setup_sw_lbr_filter(struct perf_event *event)
 	if (br_type & PERF_SAMPLE_BRANCH_IND_JUMP)
 		mask |= X86_BR_IND_JMP;
 
+	if (br_type & PERF_SAMPLE_BRANCH_CALL)
+		mask |= X86_BR_CALL | X86_BR_ZERO_CALL;
+
 	/*
 	 * stash actual user request into reg, it may
 	 * be used by fixup code for some CPU
