@@ -215,14 +215,13 @@ event_def: event_pmu |
 event_pmu:
 PE_NAME opt_event_config
 {
-	struct parse_events_evlist *data = _data;
 	struct list_head *list, *orig_terms, *terms;
 
 	if (parse_events_copy_term_list($2, &orig_terms))
 		YYABORT;
 
 	ALLOC_LIST(list);
-	if (parse_events_add_pmu(data, list, $1, $2)) {
+	if (parse_events_add_pmu(_data, list, $1, $2)) {
 		struct perf_pmu *pmu = NULL;
 		int ok = 0;
 
@@ -235,7 +234,7 @@ PE_NAME opt_event_config
 			if (!strncmp($1, name, strlen($1))) {
 				if (parse_events_copy_term_list(orig_terms, &terms))
 					YYABORT;
-				if (!parse_events_add_pmu(data, list, pmu->name, terms))
+				if (!parse_events_add_pmu(_data, list, pmu->name, terms))
 					ok++;
 				parse_events_terms__delete(terms);
 			}
@@ -276,26 +275,24 @@ PE_VALUE_SYM_SW
 event_legacy_symbol:
 value_sym '/' event_config '/'
 {
-	struct parse_events_evlist *data = _data;
 	struct list_head *list;
 	int type = $1 >> 16;
 	int config = $1 & 255;
 
 	ALLOC_LIST(list);
-	ABORT_ON(parse_events_add_numeric(data, list, type, config, $3));
+	ABORT_ON(parse_events_add_numeric(_data, list, type, config, $3));
 	parse_events_terms__delete($3);
 	$$ = list;
 }
 |
 value_sym sep_slash_dc
 {
-	struct parse_events_evlist *data = _data;
 	struct list_head *list;
 	int type = $1 >> 16;
 	int config = $1 & 255;
 
 	ALLOC_LIST(list);
-	ABORT_ON(parse_events_add_numeric(data, list, type, config, NULL));
+	ABORT_ON(parse_events_add_numeric(_data, list, type, config, NULL));
 	$$ = list;
 }
 
@@ -422,11 +419,10 @@ PE_NAME ':' PE_NAME
 event_legacy_numeric:
 PE_VALUE ':' PE_VALUE opt_event_config
 {
-	struct parse_events_evlist *data = _data;
 	struct list_head *list;
 
 	ALLOC_LIST(list);
-	ABORT_ON(parse_events_add_numeric(data, list, (u32)$1, $3, $4));
+	ABORT_ON(parse_events_add_numeric(_data, list, (u32)$1, $3, $4));
 	parse_events_terms__delete($4);
 	$$ = list;
 }
@@ -434,11 +430,10 @@ PE_VALUE ':' PE_VALUE opt_event_config
 event_legacy_raw:
 PE_RAW opt_event_config
 {
-	struct parse_events_evlist *data = _data;
 	struct list_head *list;
 
 	ALLOC_LIST(list);
-	ABORT_ON(parse_events_add_numeric(data, list, PERF_TYPE_RAW, $1, $2));
+	ABORT_ON(parse_events_add_numeric(_data, list, PERF_TYPE_RAW, $1, $2));
 	parse_events_terms__delete($2);
 	$$ = list;
 }
