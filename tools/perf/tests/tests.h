@@ -29,6 +29,11 @@ enum {
 struct test {
 	const char *desc;
 	int (*func)(int subtest);
+	struct {
+		bool skip_if_fail;
+		int (*get_nr)(void);
+		const char *(*get_desc)(int subtest);
+	} subtest;
 	bool (*is_supported)(void);
 };
 
