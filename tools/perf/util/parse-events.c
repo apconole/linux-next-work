@@ -950,7 +950,7 @@ int parse_events_add_tracepoint(struct list_head *list, int *idx,
 					    err, head_config);
 }
 
-int parse_events_add_numeric(struct parse_events_evlist *data,
+int parse_events_add_numeric(struct parse_events_state *data,
 			     struct list_head *list,
 			     u32 type, u64 config,
 			     struct list_head *head_config)
@@ -975,7 +975,7 @@ int parse_events_add_numeric(struct parse_events_evlist *data,
 			 get_config_name(head_config), &config_terms);
 }
 
-int parse_events_add_pmu(struct parse_events_evlist *data,
+int parse_events_add_pmu(struct parse_events_state *data,
 			 struct list_head *list, char *name,
 			 struct list_head *head_config)
 {
@@ -1033,7 +1033,7 @@ int parse_events_add_pmu(struct parse_events_evlist *data,
 	return evsel ? 0 : -ENOMEM;
 }
 
-int parse_events_multi_pmu_add(struct parse_events_evlist *data,
+int parse_events_multi_pmu_add(struct parse_events_state *data,
 			       char *str, struct list_head **listp)
 {
 	struct list_head *head;
@@ -1441,7 +1441,7 @@ int parse_events_terms(struct list_head *terms, const char *str)
 int parse_events(struct perf_evlist *evlist, const char *str,
 		 struct parse_events_error *err)
 {
-	struct parse_events_evlist data = {
+	struct parse_events_state data = {
 		.list  = LIST_HEAD_INIT(data.list),
 		.idx   = evlist->nr_entries,
 		.error = err,
@@ -2278,7 +2278,7 @@ void parse_events_terms__delete(struct list_head *terms)
 	free(terms);
 }
 
-void parse_events_evlist_error(struct parse_events_evlist *data,
+void parse_events_evlist_error(struct parse_events_state *data,
 			       int idx, const char *str)
 {
 	struct parse_events_error *err = data->error;

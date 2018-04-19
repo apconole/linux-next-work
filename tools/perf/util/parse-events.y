@@ -33,7 +33,7 @@ do { \
 } while (0)
 
 static void inc_group_count(struct list_head *list,
-		       struct parse_events_evlist *data)
+		       struct parse_events_state *data)
 {
 	/* Count groups only have more than 1 members */
 	if (!list_is_last(list->next, list))
@@ -106,7 +106,7 @@ PE_START_TERMS  start_terms
 
 start_events: groups
 {
-	struct parse_events_evlist *data = _data;
+	struct parse_events_state *data = _data;
 
 	parse_events_update_lists($1, &data->list);
 }
@@ -299,7 +299,7 @@ value_sym sep_slash_dc
 event_legacy_cache:
 PE_NAME_CACHE_TYPE '-' PE_NAME_CACHE_OP_RESULT '-' PE_NAME_CACHE_OP_RESULT opt_event_config
 {
-	struct parse_events_evlist *data = _data;
+	struct parse_events_state *data = _data;
 	struct parse_events_error *error = data->error;
 	struct list_head *list;
 
@@ -311,7 +311,7 @@ PE_NAME_CACHE_TYPE '-' PE_NAME_CACHE_OP_RESULT '-' PE_NAME_CACHE_OP_RESULT opt_e
 |
 PE_NAME_CACHE_TYPE '-' PE_NAME_CACHE_OP_RESULT opt_event_config
 {
-	struct parse_events_evlist *data = _data;
+	struct parse_events_state *data = _data;
 	struct parse_events_error *error = data->error;
 	struct list_head *list;
 
@@ -323,7 +323,7 @@ PE_NAME_CACHE_TYPE '-' PE_NAME_CACHE_OP_RESULT opt_event_config
 |
 PE_NAME_CACHE_TYPE opt_event_config
 {
-	struct parse_events_evlist *data = _data;
+	struct parse_events_state *data = _data;
 	struct parse_events_error *error = data->error;
 	struct list_head *list;
 
@@ -336,7 +336,7 @@ PE_NAME_CACHE_TYPE opt_event_config
 event_legacy_mem:
 PE_PREFIX_MEM PE_VALUE '/' PE_VALUE ':' PE_MODIFIER_BP sep_dc
 {
-	struct parse_events_evlist *data = _data;
+	struct parse_events_state *data = _data;
 	struct list_head *list;
 
 	ALLOC_LIST(list);
@@ -347,7 +347,7 @@ PE_PREFIX_MEM PE_VALUE '/' PE_VALUE ':' PE_MODIFIER_BP sep_dc
 |
 PE_PREFIX_MEM PE_VALUE '/' PE_VALUE sep_dc
 {
-	struct parse_events_evlist *data = _data;
+	struct parse_events_state *data = _data;
 	struct list_head *list;
 
 	ALLOC_LIST(list);
@@ -358,7 +358,7 @@ PE_PREFIX_MEM PE_VALUE '/' PE_VALUE sep_dc
 |
 PE_PREFIX_MEM PE_VALUE ':' PE_MODIFIER_BP sep_dc
 {
-	struct parse_events_evlist *data = _data;
+	struct parse_events_state *data = _data;
 	struct list_head *list;
 
 	ALLOC_LIST(list);
@@ -369,7 +369,7 @@ PE_PREFIX_MEM PE_VALUE ':' PE_MODIFIER_BP sep_dc
 |
 PE_PREFIX_MEM PE_VALUE sep_dc
 {
-	struct parse_events_evlist *data = _data;
+	struct parse_events_state *data = _data;
 	struct list_head *list;
 
 	ALLOC_LIST(list);
@@ -381,7 +381,7 @@ PE_PREFIX_MEM PE_VALUE sep_dc
 event_legacy_tracepoint:
 tracepoint_name opt_event_config
 {
-	struct parse_events_evlist *data = _data;
+	struct parse_events_state *data = _data;
 	struct parse_events_error *error = data->error;
 	struct list_head *list;
 
