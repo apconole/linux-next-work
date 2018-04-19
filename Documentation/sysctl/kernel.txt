@@ -60,6 +60,7 @@ show up in /proc/sys/kernel:
 - panic_on_rcu_stall
 - perf_cpu_time_max_percent
 - perf_event_paranoid
+- perf_event_mlock_kb
 - pid_max
 - powersave-nap               [ PPC only ]
 - printk
@@ -638,9 +639,19 @@ Controls use of the performance events system by unprivileged
 users (without CAP_SYS_ADMIN).  The default value is 2.
 
  -1: Allow use of (almost) all events by all users
->=0: Disallow raw tracepoint access by users without CAP_IOC_LOCK
+     Ignore mlock limit after perf_event_mlock_kb without CAP_IPC_LOCK
+>=0: Disallow ftrace function tracepoint by users without CAP_SYS_ADMIN
+     Disallow raw tracepoint access by users without CAP_SYS_ADMIN
 >=1: Disallow CPU event access by users without CAP_SYS_ADMIN
 >=2: Disallow kernel profiling by users without CAP_SYS_ADMIN
+
+==============================================================
+
+perf_event_mlock_kb:
+
+Control size of per-cpu ring buffer not counted agains mlock limit.
+
+The default value is 512 + 1 page
 
 ==============================================================
 
