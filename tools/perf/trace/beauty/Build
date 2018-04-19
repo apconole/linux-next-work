@@ -1,3 +1,4 @@
 # XXX there's no statx syscall in RHEL7
 #libperf-y += statx.o
+libperf-y += clone.o
 libperf-y += fcntl.o
