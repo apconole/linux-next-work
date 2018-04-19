@@ -66,6 +66,8 @@ tools/include/uapi/asm-generic/fcntl.h
 tools/include/uapi/asm-generic/ioctls.h
 tools/include/uapi/asm-generic/mman-common.h
 tools/include/uapi/asm-generic/mman.h
+tools/include/uapi/drm/drm.h
+tools/include/uapi/drm/i915_drm.h
 tools/include/uapi/linux/fcntl.h
 tools/include/uapi/linux/hw_breakpoint.h
 tools/include/uapi/linux/mman.h
