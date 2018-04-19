@@ -174,7 +174,7 @@ static struct test generic_tests[] = {
 	},
 	{
 		.desc = "Session topology",
-		.func = test_session_topology,
+		.func = test__session_topology,
 	},
 	{
 		.desc = "Synthesize thread map",
@@ -302,7 +302,7 @@ static int run_test(struct test *test, int subtest)
 			}
 		}
 
-		err = test->func(subtest);
+		err = test->func(test, subtest);
 		if (!dont_fork)
 			exit(err);
 	}
