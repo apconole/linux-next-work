@@ -225,23 +225,26 @@ static int hash_recvmsg(struct kiocb *unused, struct socket *sock,
 
 	ahash_request_set_crypt(&ctx->req, NULL, ctx->result, 0);
 
-	if (ctx->more) {
+	if (!result) {
+		err = af_alg_wait_for_completion(
+				crypto_ahash_init(&ctx->req),
+				&ctx->completion);
+		if (err)
+			goto unlock;
+	}
+
+	if (!result || ctx->more) {
 		ctx->more = 0;
 		err = af_alg_wait_for_completion(crypto_ahash_final(&ctx->req),
 						 &ctx->completion);
 		if (err)
 			goto unlock;
-	} else if (!result) {
-		err = af_alg_wait_for_completion(
-				crypto_ahash_digest(&ctx->req),
-				&ctx->completion);
 	}
 
 	err = memcpy_toiovec(msg->msg_iov, ctx->result, len);
 
-	hash_free_result(sk, ctx);
-
 unlock:
+	hash_free_result(sk, ctx);
 	release_sock(sk);
 
 	return err ?: len;
