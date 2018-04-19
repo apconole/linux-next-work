@@ -400,6 +400,11 @@ size_t syscall_arg__scnprintf_int(char *bf, size_t size, struct syscall_arg *arg
 	return scnprintf(bf, size, "%d", arg->val);
 }
 
+size_t syscall_arg__scnprintf_long(char *bf, size_t size, struct syscall_arg *arg)
+{
+	return scnprintf(bf, size, "%ld", arg->val);
+}
+
 static const char *epoll_ctl_ops[] = { "ADD", "DEL", "MOD", };
 static DEFINE_STRARRAY_OFFSET(epoll_ctl_ops, 1);
 
