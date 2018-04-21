@@ -8601,7 +8601,7 @@ static int t4_get_flash_params(struct adapter *adap)
 		default:
 			dev_err(adap->pdev_dev, "Micron Flash Part has bad size, ID = %#x, Density code = %#x\n",
 				flashid, density);
-		return -EINVAL;
+			return -EINVAL;
 		}
 		break;
 	}
@@ -8639,8 +8639,9 @@ static int t4_get_flash_params(struct adapter *adap)
 		default:
 			dev_err(adap->pdev_dev, "Macronix Flash Part has bad size, ID = %#x, Density code = %#x\n",
 				flashid, density);
-		return -EINVAL;
+			return -EINVAL;
 		}
+		break;
 	}
 	case 0xef: { /* Winbond */
 		/* This Density -> Size decoding table is taken from Winbond
@@ -8657,7 +8658,7 @@ static int t4_get_flash_params(struct adapter *adap)
 		default:
 			dev_err(adap->pdev_dev, "Winbond Flash Part has bad size, ID = %#x, Density code = %#x\n",
 				flashid, density);
-		return -EINVAL;
+			return -EINVAL;
 		}
 		break;
 	}
