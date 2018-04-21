@@ -41,6 +41,7 @@
 #include <linux/jiffies.h>
 #include <linux/prefetch.h>
 #include <linux/export.h>
+#include <net/xfrm.h>
 #include <net/ipv6.h>
 #include <net/tcp.h>
 #include <net/busy_poll.h>
@@ -50,6 +51,7 @@
 #include "t4_msg.h"
 #include "t4fw_api.h"
 #include "cxgb4_ptp.h"
+#include "cxgb4_uld.h"
 
 /*
  * Rx buffer size.  We use largish buffers if possible but settle for single
@@ -107,14 +109,6 @@
 #define NOMEM_TMR_IDX (SGE_NTIMERS - 1)
 
 /*
- * Suspend an Ethernet Tx queue with fewer available descriptors than this.
- * This is the same as calc_tx_descs() for a TSO packet with
- * nr_frags == MAX_SKB_FRAGS.
- */
-#define ETHTXQ_STOP_THRES \
-	(1 + DIV_ROUND_UP((3 * MAX_SKB_FRAGS) / 2 + (MAX_SKB_FRAGS & 1), 8))
-
-/*
  * Suspension threshold for non-Ethernet Tx queues.  We require enough room
  * for a full sized WR.
  */
@@ -130,11 +124,6 @@
  * Max size of a WR sent through a control Tx queue.
  */
 #define MAX_CTRL_WR_LEN SGE_MAX_WR_LEN
-
-struct tx_sw_desc {                /* SW state per Tx descriptor */
-	struct sk_buff *skb;
-	struct ulptx_sgl *sgl;
-};
 
 struct rx_sw_desc {                /* SW state per Rx descriptor */
 	struct page *page;
@@ -245,8 +234,8 @@ static inline bool fl_starving(const struct adapter *adapter,
 	return fl->avail - fl->pend_cred <= s->fl_starve_thres;
 }
 
-static int map_skb(struct device *dev, const struct sk_buff *skb,
-		   dma_addr_t *addr)
+int cxgb4_map_skb(struct device *dev, const struct sk_buff *skb,
+		  dma_addr_t *addr)
 {
 	const skb_frag_t *fp, *end;
 	const struct skb_shared_info *si;
@@ -274,6 +263,7 @@ unwind:
 out_err:
 	return -ENOMEM;
 }
+EXPORT_SYMBOL(cxgb4_map_skb);
 
 #ifdef CONFIG_NEED_DMA_MAP_STATE
 static void unmap_skb(struct device *dev, const struct sk_buff *skb,
@@ -408,7 +398,7 @@ static inline int reclaimable(const struct sge_txq *q)
 }
 
 /**
- *	reclaim_completed_tx - reclaims completed Tx descriptors
+ *	cxgb4_reclaim_completed_tx - reclaims completed Tx descriptors
  *	@adap: the adapter
  *	@q: the Tx queue to reclaim completed descriptors from
  *	@unmap: whether the buffers should be unmapped for DMA
@@ -417,7 +407,7 @@ static inline int reclaimable(const struct sge_txq *q)
  *	and frees the associated buffers if possible.  Called with the Tx
  *	queue locked.
  */
-static inline void reclaim_completed_tx(struct adapter *adap, struct sge_txq *q,
+inline void cxgb4_reclaim_completed_tx(struct adapter *adap, struct sge_txq *q,
 					bool unmap)
 {
 	int avail = reclaimable(q);
@@ -434,6 +424,7 @@ static inline void reclaim_completed_tx(struct adapter *adap, struct sge_txq *q,
 		q->in_use -= avail;
 	}
 }
+EXPORT_SYMBOL(cxgb4_reclaim_completed_tx);
 
 static inline int get_buf_size(struct adapter *adapter,
 			       const struct rx_sw_desc *d)
@@ -846,7 +837,7 @@ static inline unsigned int calc_tx_descs(const struct sk_buff *skb,
 }
 
 /**
- *	write_sgl - populate a scatter/gather list for a packet
+ *	cxgb4_write_sgl - populate a scatter/gather list for a packet
  *	@skb: the packet
  *	@q: the Tx queue we are writing into
  *	@sgl: starting location for writing the SGL
@@ -862,9 +853,9 @@ static inline unsigned int calc_tx_descs(const struct sk_buff *skb,
  *	right after the end of the SGL but does not account for any potential
  *	wrap around, i.e., @end > @sgl.
  */
-static void write_sgl(const struct sk_buff *skb, struct sge_txq *q,
-		      struct ulptx_sgl *sgl, u64 *end, unsigned int start,
-		      const dma_addr_t *addr)
+void cxgb4_write_sgl(const struct sk_buff *skb, struct sge_txq *q,
+		     struct ulptx_sgl *sgl, u64 *end, unsigned int start,
+		     const dma_addr_t *addr)
 {
 	unsigned int i, len;
 	struct ulptx_sge_pair *to;
@@ -916,6 +907,7 @@ static void write_sgl(const struct sk_buff *skb, struct sge_txq *q,
 	if ((uintptr_t)end & 8)           /* 0-pad to multiple of 16 */
 		*end = 0;
 }
+EXPORT_SYMBOL(cxgb4_write_sgl);
 
 /* This function copies 64 byte coalesced work request to
  * memory mapped BAR2 space(user space writes).
@@ -934,14 +926,14 @@ static void cxgb_pio_copy(u64 __iomem *dst, u64 *src)
 }
 
 /**
- *	ring_tx_db - check and potentially ring a Tx queue's doorbell
+ *	cxgb4_ring_tx_db - check and potentially ring a Tx queue's doorbell
  *	@adap: the adapter
  *	@q: the Tx queue
  *	@n: number of new descriptors to give to HW
  *
  *	Ring the doorbel for a Tx queue.
  */
-static inline void ring_tx_db(struct adapter *adap, struct sge_txq *q, int n)
+inline void cxgb4_ring_tx_db(struct adapter *adap, struct sge_txq *q, int n)
 {
 	/* Make sure that all writes to the TX Descriptors are committed
 	 * before we tell the hardware about them.
@@ -1008,9 +1000,10 @@ static inline void ring_tx_db(struct adapter *adap, struct sge_txq *q, int n)
 		wmb();
 	}
 }
+EXPORT_SYMBOL(cxgb4_ring_tx_db);
 
 /**
- *	inline_tx_skb - inline a packet's data into Tx descriptors
+ *	cxgb4_inline_tx_skb - inline a packet's data into Tx descriptors
  *	@skb: the packet
  *	@q: the Tx queue where the packet will be inlined
  *	@pos: starting position in the Tx queue where to inline the packet
@@ -1020,8 +1013,8 @@ static inline void ring_tx_db(struct adapter *adap, struct sge_txq *q, int n)
  *	Most of the complexity of this operation is dealing with wrap arounds
  *	in the middle of the packet we want to inline.
  */
-static void inline_tx_skb(const struct sk_buff *skb, const struct sge_txq *q,
-			  void *pos)
+void cxgb4_inline_tx_skb(const struct sk_buff *skb,
+			 const struct sge_txq *q, void *pos)
 {
 	u64 *p;
 	int left = (void *)q->stat - pos;
@@ -1043,6 +1036,7 @@ static void inline_tx_skb(const struct sk_buff *skb, const struct sge_txq *q,
 	if ((uintptr_t)p & 8)
 		*p = 0;
 }
+EXPORT_SYMBOL(cxgb4_inline_tx_skb);
 
 static void *inline_tx_skb_header(const struct sk_buff *skb,
 				  const struct sge_txq *q,  void *pos,
@@ -1280,6 +1274,12 @@ out_free:	dev_kfree_skb_any(skb);
 
 	pi = netdev_priv(dev);
 	adap = pi->adapter;
+	ssi = skb_shinfo(skb);
+#ifdef CONFIG_CHELSIO_IPSEC_INLINE
+	if (xfrm_offload(skb) && !ssi->gso_size)
+		return adap->uld[CXGB4_ULD_CRYPTO].tx_handler(skb, dev);
+#endif /* CHELSIO_IPSEC_INLINE */
+
 	qidx = skb_get_queue_mapping(skb);
 	if (ptp_enabled) {
 		spin_lock(&adap->ptp_lock);
@@ -1296,7 +1296,7 @@ out_free:	dev_kfree_skb_any(skb);
 	}
 	skb_tx_timestamp(skb);
 
-	reclaim_completed_tx(adap, &q->q, true);
+	cxgb4_reclaim_completed_tx(adap, &q->q, true);
 
 	chip_ver = CHELSIO_CHIP_VERSION(adap->params.chip);
 	flits = calc_tx_flits(skb, chip_ver);
@@ -1320,7 +1320,7 @@ out_free:	dev_kfree_skb_any(skb);
 		tnl_type = cxgb_encap_offload_supported(skb);
 
 	if (!immediate &&
-	    unlikely(map_skb(adap->pdev_dev, skb, addr) < 0)) {
+	    unlikely(cxgb4_map_skb(adap->pdev_dev, skb, addr) < 0)) {
 		q->mapping_err++;
 		if (ptp_enabled)
 			spin_unlock(&adap->ptp_lock);
@@ -1339,7 +1339,6 @@ out_free:	dev_kfree_skb_any(skb);
 	end = (u64 *)wr + flits;
 
 	len = immediate ? skb->len : 0;
-	ssi = skb_shinfo(skb);
 	if (ssi->gso_size) {
 		struct cpl_tx_pkt_lso *lso = (void *)wr;
 		bool v6 = (ssi->gso_type & SKB_GSO_TCPV6) != 0;
@@ -1437,13 +1436,13 @@ out_free:	dev_kfree_skb_any(skb);
 	cpl->ctrl1 = cpu_to_be64(cntrl);
 
 	if (immediate) {
-		inline_tx_skb(skb, &q->q, cpl + 1);
+		cxgb4_inline_tx_skb(skb, &q->q, cpl + 1);
 		dev_consume_skb_any(skb);
 	} else {
 		int last_desc;
 
-		write_sgl(skb, &q->q, (struct ulptx_sgl *)(cpl + 1), end, 0,
-			  addr);
+		cxgb4_write_sgl(skb, &q->q, (struct ulptx_sgl *)(cpl + 1),
+				end, 0, addr);
 		skb_orphan(skb);
 
 		last_desc = q->q.pidx + ndesc - 1;
@@ -1455,7 +1454,7 @@ out_free:	dev_kfree_skb_any(skb);
 
 	txq_advance(&q->q, ndesc);
 
-	ring_tx_db(adap, &q->q, ndesc);
+	cxgb4_ring_tx_db(adap, &q->q, ndesc);
 	if (ptp_enabled)
 		spin_unlock(&adap->ptp_lock);
 	return NETDEV_TX_OK;
@@ -1465,9 +1464,9 @@ out_free:	dev_kfree_skb_any(skb);
  *	reclaim_completed_tx_imm - reclaim completed control-queue Tx descs
  *	@q: the SGE control Tx queue
  *
- *	This is a variant of reclaim_completed_tx() that is used for Tx queues
- *	that send only immediate data (presently just the control queues) and
- *	thus do not have any sk_buffs to release.
+ *	This is a variant of cxgb4_reclaim_completed_tx() that is used
+ *	for Tx queues that send only immediate data (presently just
+ *	the control queues) and	thus do not have any sk_buffs to release.
  */
 static inline void reclaim_completed_tx_imm(struct sge_txq *q)
 {
@@ -1542,13 +1541,13 @@ static int ctrl_xmit(struct sge_ctrl_txq *q, struct sk_buff *skb)
 	}
 
 	wr = (struct fw_wr_hdr *)&q->q.desc[q->q.pidx];
-	inline_tx_skb(skb, &q->q, wr);
+	cxgb4_inline_tx_skb(skb, &q->q, wr);
 
 	txq_advance(&q->q, ndesc);
 	if (unlikely(txq_avail(&q->q) < TXQ_STOP_THRES))
 		ctrlq_check_stop(q, wr);
 
-	ring_tx_db(q->adap, &q->q, ndesc);
+	cxgb4_ring_tx_db(q->adap, &q->q, ndesc);
 	spin_unlock(&q->sendq.lock);
 
 	kfree_skb(skb);
@@ -1583,7 +1582,7 @@ static void restart_ctrlq(unsigned long data)
 		txq_advance(&q->q, ndesc);
 		spin_unlock(&q->sendq.lock);
 
-		inline_tx_skb(skb, &q->q, wr);
+		cxgb4_inline_tx_skb(skb, &q->q, wr);
 		kfree_skb(skb);
 
 		if (unlikely(txq_avail(&q->q) < TXQ_STOP_THRES)) {
@@ -1596,14 +1595,15 @@ static void restart_ctrlq(unsigned long data)
 			}
 		}
 		if (written > 16) {
-			ring_tx_db(q->adap, &q->q, written);
+			cxgb4_ring_tx_db(q->adap, &q->q, written);
 			written = 0;
 		}
 		spin_lock(&q->sendq.lock);
 	}
 	q->full = 0;
-ringdb: if (written)
-		ring_tx_db(q->adap, &q->q, written);
+ringdb:
+	if (written)
+		cxgb4_ring_tx_db(q->adap, &q->q, written);
 	spin_unlock(&q->sendq.lock);
 }
 
@@ -1746,7 +1746,7 @@ static void service_ofldq(struct sge_uld_txq *q)
 		 */
 		spin_unlock(&q->sendq.lock);
 
-		reclaim_completed_tx(q->adap, &q->q, false);
+		cxgb4_reclaim_completed_tx(q->adap, &q->q, false);
 
 		flits = skb->priority;                /* previously saved */
 		ndesc = flits_to_desc(flits);
@@ -1757,9 +1757,9 @@ static void service_ofldq(struct sge_uld_txq *q)
 
 		pos = (u64 *)&q->q.desc[q->q.pidx];
 		if (is_ofld_imm(skb))
-			inline_tx_skb(skb, &q->q, pos);
-		else if (map_skb(q->adap->pdev_dev, skb,
-				 (dma_addr_t *)skb->head)) {
+			cxgb4_inline_tx_skb(skb, &q->q, pos);
+		else if (cxgb4_map_skb(q->adap->pdev_dev, skb,
+				       (dma_addr_t *)skb->head)) {
 			txq_stop_maperr(q);
 			spin_lock(&q->sendq.lock);
 			break;
@@ -1790,9 +1790,9 @@ static void service_ofldq(struct sge_uld_txq *q)
 				pos = (void *)txq->desc;
 			}
 
-			write_sgl(skb, &q->q, (void *)pos,
-				  end, hdr_len,
-				  (dma_addr_t *)skb->head);
+			cxgb4_write_sgl(skb, &q->q, (void *)pos,
+					end, hdr_len,
+					(dma_addr_t *)skb->head);
 #ifdef CONFIG_NEED_DMA_MAP_STATE
 			skb->dev = q->adap->port[0];
 			skb->destructor = deferred_unmap_destructor;
@@ -1806,7 +1806,7 @@ static void service_ofldq(struct sge_uld_txq *q)
 		txq_advance(&q->q, ndesc);
 		written += ndesc;
 		if (unlikely(written > 32)) {
-			ring_tx_db(q->adap, &q->q, written);
+			cxgb4_ring_tx_db(q->adap, &q->q, written);
 			written = 0;
 		}
 
@@ -1821,7 +1821,7 @@ static void service_ofldq(struct sge_uld_txq *q)
 			kfree_skb(skb);
 	}
 	if (likely(written))
-		ring_tx_db(q->adap, &q->q, written);
+		cxgb4_ring_tx_db(q->adap, &q->q, written);
 
 	/*Indicate that no thread is processing the Pending Send Queue
 	 * currently.
