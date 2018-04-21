@@ -78,6 +78,7 @@
 #include "cxgb4_debugfs.h"
 #include "clip_tbl.h"
 #include "l2t.h"
+#include "smt.h"
 #include "sched.h"
 #include "cxgb4_tc_u32.h"
 #include "cxgb4_tc_flower.h"
@@ -563,6 +564,10 @@ static int fwevtq_handler(struct sge_rspq *q, const __be64 *rsp,
 		const struct cpl_l2t_write_rpl *p = (void *)rsp;
 
 		do_l2t_write_rpl(q->adap, p);
+	} else if (opcode == CPL_SMT_WRITE_RPL) {
+		const struct cpl_smt_write_rpl *p = (void *)rsp;
+
+		do_smt_write_rpl(q->adap, p);
 	} else if (opcode == CPL_SET_TCB_RPL) {
 		const struct cpl_set_tcb_rpl *p = (void *)rsp;
 
@@ -4636,6 +4641,7 @@ static void free_some_resources(struct adapter *adapter)
 {
 	unsigned int i;
 
+	kvfree(adapter->smt);
 	kvfree(adapter->l2t);
 	t4_cleanup_sched(adapter);
 	kvfree(adapter->tids.tid_tab);
@@ -5055,6 +5061,12 @@ static int init_one(struct pci_dev *pdev, const struct pci_device_id *ent)
 	 * soon as the first register_netdev completes.
 	 */
 	cfg_queues(adapter);
+
+	adapter->smt = t4_init_smt();
+	if (!adapter->smt) {
+		/* We tolerate a lack of SMT, giving up some functionality */
+		dev_warn(&pdev->dev, "could not allocate SMT, continuing\n");
+	}
 
 	adapter->l2t = t4_init_l2t(adapter->l2t_start, adapter->l2t_end);
 	if (!adapter->l2t) {
