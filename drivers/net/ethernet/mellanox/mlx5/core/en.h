@@ -121,6 +121,10 @@
 #define MLX5E_ICOSQ_MAX_WQEBBS \
 	(DIV_ROUND_UP(sizeof(struct mlx5e_umr_wqe), MLX5_SEND_WQE_BB))
 
+#define MLX5E_XDP_MIN_INLINE (ETH_HLEN + VLAN_HLEN)
+#define MLX5E_XDP_TX_DS_COUNT \
+	((sizeof(struct mlx5e_tx_wqe) / MLX5_SEND_WQE_DS) + 1 /* SG DS */)
+
 #define MLX5E_NUM_MAIN_GROUPS 9
 
 static inline u16 mlx5_min_rx_wqes(int wq_type, u32 wq_size)
@@ -362,6 +366,35 @@ struct mlx5e_txqsq {
 	u32                        rate_limit;
 } ____cacheline_aligned_in_smp;
 
+struct mlx5e_xdpsq {
+	/* data path */
+
+	/* dirtied @rx completion */
+	u16                        cc;
+	u16                        pc;
+
+	struct mlx5e_cq            cq;
+
+	/* write@xmit, read@completion */
+	struct {
+		struct mlx5e_dma_info     *di;
+		bool                       doorbell;
+	} db;
+
+	/* read only */
+	struct mlx5_wq_cyc         wq;
+	void __iomem              *uar_map;
+	u32                        sqn;
+	struct device             *pdev;
+	__be32                     mkey_be;
+	u8                         min_inline_mode;
+	unsigned long              state;
+
+	/* control path */
+	struct mlx5_wq_ctrl        wq_ctrl;
+	struct mlx5e_channel      *channel;
+} ____cacheline_aligned_in_smp;
+
 struct mlx5e_icosq {
 	/* data path */
 
@@ -505,6 +538,10 @@ struct mlx5e_rq {
 
 	struct mlx5e_rx_am     am; /* Adaptive Moderation */
 
+	/* XDP */
+	struct bpf_prog       *xdp_prog;
+	struct mlx5e_xdpsq     xdpsq;
+
 	/* control */
 	struct mlx5_wq_ctrl    wq_ctrl;
 	__be32                 mkey_be;
@@ -519,6 +556,7 @@ struct mlx5e_channel {
 	struct mlx5e_rq            rq;
 	struct mlx5e_txqsq         sq[MLX5E_MAX_NUM_TC];
 	struct mlx5e_icosq         icosq;   /* internal control operations */
+	bool                       xdp;
 	struct napi_struct         napi;
 	struct device             *pdev;
 	struct net_device         *netdev;
@@ -778,7 +816,9 @@ void mlx5e_cq_error_event(struct mlx5_core_cq *mcq, enum mlx5_event event);
 int mlx5e_napi_poll(struct napi_struct *napi, int budget);
 bool mlx5e_poll_tx_cq(struct mlx5e_cq *cq, int napi_budget);
 int mlx5e_poll_rx_cq(struct mlx5e_cq *cq, int budget);
+bool mlx5e_poll_xdpsq_cq(struct mlx5e_cq *cq);
 void mlx5e_free_txqsq_descs(struct mlx5e_txqsq *sq);
+void mlx5e_free_xdpsq_descs(struct mlx5e_xdpsq *sq);
 
 void mlx5e_page_release(struct mlx5e_rq *rq, struct mlx5e_dma_info *dma_info,
 			bool recycle);
