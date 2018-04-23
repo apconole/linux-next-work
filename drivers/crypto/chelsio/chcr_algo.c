@@ -1291,7 +1291,7 @@ static int process_cipher(struct ablkcipher_request *req,
 					   req->src,
 					   req->dst,
 					   req->nbytes,
-					   req->info,
+					   reqctx->iv,
 					   op_type);
 		goto error;
 	}
