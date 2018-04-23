@@ -642,7 +642,7 @@ static int chcr_sg_ent_in_wr(struct scatterlist *src,
 		dst = sg_next(dst);
 		dstskip = 0;
 	}
-	soffset = 0;
+
 	while (src && dst &&
 	       space > (sgl_ent_len[srcsg + 1] + dsgl_ent_len[dstsg])) {
 		sless = min_t(unsigned int, sg_dma_len(src) - srcskip - soffset,
