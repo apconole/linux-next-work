@@ -201,7 +201,7 @@ enum trace_reg {
 struct ftrace_event_call;
 
 struct ftrace_event_class {
-	const char		*system;
+	RH_KABI_CONST	char *system;
 	void			*probe;
 #ifdef CONFIG_PERF_EVENTS
 	void			*perf_probe;
@@ -248,7 +248,7 @@ struct ftrace_event_call {
 	struct ftrace_event_class *class;
 	char			*name;
 	struct trace_event	event;
-	const char		*print_fmt;
+	RH_KABI_REPLACE(const char *print_fmt, char *print_fmt)
 	struct event_filter	*filter;
 	struct list_head	*files;
 	void			*mod;

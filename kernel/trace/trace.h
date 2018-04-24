@@ -1076,4 +1076,12 @@ int perf_ftrace_event_register(struct ftrace_event_call *call,
 #define perf_ftrace_event_register NULL
 #endif
 
+#ifdef CONFIG_EVENT_TRACING
+void trace_event_enum_update(struct trace_enum_map **map, int len);
+#else
+static inline void trace_event_enum_update(struct trace_enum_map **map, int len) { }
+#endif
+
+extern struct trace_iterator *tracepoint_print_iter;
+
 #endif /* _LINUX_KERNEL_TRACE_H */
