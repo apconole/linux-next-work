@@ -750,9 +750,10 @@ locked:
 			ext4_orphan_del(handle, inode);
 		if (ret > 0) {
 			loff_t end = offset + ret;
-			if (end > inode->i_size) {
+			if (end > inode->i_size || end > ei->i_disksize) {
 				ei->i_disksize = end;
-				i_size_write(inode, end);
+				if (end > inode->i_size)
+					i_size_write(inode, end);
 				/*
 				 * We're going to return a positive `ret'
 				 * here due to non-zero-length I/O, so there's
