@@ -4043,6 +4043,23 @@ use_dfl:
 	return false;
 }
 
+/**
+ * current_work - retrieve %current task's work struct
+ *
+ * Determine if %current task is a workqueue worker and what it's working on.
+ * Useful to find out the context that the %current task is running in.
+ *
+ * Return: work struct if %current task is a workqueue worker, %NULL otherwise.
+ */
+struct work_struct *current_work(void)
+{
+	struct worker *worker = current_wq_worker();
+
+	return worker ? worker->current_work : NULL;
+}
+EXPORT_SYMBOL(current_work);
+
+
 /* install @pwq into @wq's numa_pwq_tbl[] for @node and return the old pwq */
 static struct pool_workqueue *numa_pwq_tbl_install(struct workqueue_struct *wq,
 						   int node,
