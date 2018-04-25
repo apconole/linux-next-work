@@ -691,7 +691,7 @@ ssize_t ext4_ind_direct_IO(int rw, struct kiocb *iocb,
 				goto out;
 			}
 			orphan = 1;
-			ei->i_disksize = inode->i_size;
+			ext4_update_i_disksize(inode, inode->i_size);
 			ext4_journal_stop(handle);
 		}
 	}
@@ -751,7 +751,7 @@ locked:
 		if (ret > 0) {
 			loff_t end = offset + ret;
 			if (end > inode->i_size || end > ei->i_disksize) {
-				ei->i_disksize = end;
+				ext4_update_i_disksize(inode, end);
 				if (end > inode->i_size)
 					i_size_write(inode, end);
 				/*
