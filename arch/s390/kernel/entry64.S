@@ -88,6 +88,7 @@ _TIF_TRACE    = (_TIF_SYSCALL_TRACE | _TIF_SYSCALL_AUDIT | _TIF_SECCOMP | \
 	.else
 	jhe	0f
 	.endif
+	BPENTER __SF_EMPTY+30(%r15),(_TIF_ISOLATE_BP|_TIF_ISOLATE_BP_GUEST)>>8
 	lg	%r14,__SF_EMPTY(%r15)		# get control block pointer
 	ni	__SIE_PROG0C+3(%r14),0xfe	# no longer in SIE
 	lctlg	%c1,%c1,__LC_USER_ASCE		# load primary asce
@@ -187,6 +188,40 @@ _TIF_TRACE    = (_TIF_SYSCALL_TRACE | _TIF_SYSCALL_AUDIT | _TIF_SECCOMP | \
 	.popsection
 	.endm
 
+	.macro BPENTER tif_ptr,tif_mask
+	.pushsection .altinstr_replacement, "ax"
+662:	.word	0xc004, 0x0000, 0x0000	# 6 byte nop
+	.word	0xc004, 0x0000, 0x0000	# 6 byte nop
+	.popsection
+664:	tm	\tif_ptr,\tif_mask
+	jz	. + 8
+	.long	0xb2e8d000
+	.pushsection .altinstructions, "a"
+	.long 664b - .
+	.long 662b - .
+	.word 82
+	.byte 12
+	.byte 12
+	.popsection
+	.endm
+
+	.macro BPEXIT tif_ptr,tif_mask
+	tm	\tif_ptr,\tif_mask
+	.pushsection .altinstr_replacement, "ax"
+662:	jnz	. + 8
+	.long	0xb2e8d000
+	.popsection
+664:	jz	. + 8
+	.long	0xb2e8c000
+	.pushsection .altinstructions, "a"
+	.long 664b - .
+	.long 662b - .
+	.word 82
+	.byte 8
+	.byte 8
+	.popsection
+	.endm
+
 	.section .kprobes.text, "ax"
 
 ENTRY(__bpon)
@@ -243,6 +278,7 @@ sysc_per:
 	la	%r11,STACK_FRAME_OVERHEAD(%r15)	# pointer to pt_regs
 sysc_vtime:
 	UPDATE_VTIME %r13,__LC_SYNC_ENTER_TIMER
+	BPENTER __TI_flags+6(%r12),_TIF_ISOLATE_BP>>8
 	LAST_BREAK %r13
 	stmg	%r0,%r7,__PT_R0(%r11)
 	mvc	__PT_R8(64,%r11),__LC_SAVE_AREA_SYNC
@@ -280,7 +316,7 @@ sysc_tif:
 	tm	__TI_flags+7(%r12),_TIF_WORK_SVC
 	jnz	sysc_work			# check for work
 	ni	__TI_flags+6(%r12),255-_TIF_SYSCALL>>8
-	BPON
+	BPEXIT	__TI_flags+6(%r12),_TIF_ISOLATE_BP>>8
 sysc_restore:
 	lg	%r14,__LC_VDSO_PER_CPU
 	lmg	%r0,%r10,__PT_R0(%r11)
@@ -453,6 +489,7 @@ ENTRY(pgm_check_handler)
 	aghi	%r15,-(STACK_FRAME_OVERHEAD + __PT_SIZE)
 	j	2f
 1:	UPDATE_VTIME %r14,__LC_SYNC_ENTER_TIMER
+	BPENTER __TI_flags+6(%r12),_TIF_ISOLATE_BP>>8
 	LAST_BREAK %r14
 	lg	%r15,__LC_KERNEL_STACK
 	lg	%r14,__TI_task(%r12)
@@ -539,6 +576,7 @@ ENTRY(io_int_handler)
 	tmhh	%r8,0x0001		# interrupting from user?
 	jz	io_skip
 	UPDATE_VTIME %r14,__LC_ASYNC_ENTER_TIMER
+	BPENTER __TI_flags+6(%r12),_TIF_ISOLATE_BP>>8
 	LAST_BREAK %r14
 io_skip:
 	stmg	%r0,%r7,__PT_R0(%r11)
@@ -569,7 +607,7 @@ io_restore:
 	mvc	__LC_RETURN_PSW(16),__PT_PSW(%r11)
 	tm	__PT_PSW+1(%r11),0x01	# returning to user ?
 	jno	io_exit_kernel
-	BPON
+	BPEXIT	__TI_flags+6(%r12),_TIF_ISOLATE_BP>>8
 	stpt	__LC_EXIT_TIMER
 	mvc	__VDSO_ECTG_BASE(16,%r14),__LC_EXIT_TIMER
 io_exit_kernel:
@@ -722,6 +760,7 @@ ENTRY(ext_int_handler)
 	tmhh	%r8,0x0001		# interrupting from user ?
 	jz	ext_skip
 	UPDATE_VTIME %r14,__LC_ASYNC_ENTER_TIMER
+	BPENTER __TI_flags+6(%r12),_TIF_ISOLATE_BP>>8
 	LAST_BREAK %r14
 ext_skip:
 	stmg	%r0,%r7,__PT_R0(%r11)
@@ -809,6 +848,7 @@ ENTRY(mcck_int_handler)
 	tm	%r8,0x0001		# interrupting from user ?
 	jz	mcck_skip
 	UPDATE_VTIME %r14,__LC_MCCK_ENTER_TIMER
+	BPENTER __TI_flags+6(%r12),_TIF_ISOLATE_BP>>8
 	LAST_BREAK %r14
 mcck_skip:
 	lghi	%r14,__LC_GPREGS_SAVE_AREA+64
@@ -846,7 +886,7 @@ mcck_return:
 	mvc	__LC_RETURN_MCCK_PSW(16),__PT_PSW(%r11) # move return PSW
 	tm	__LC_RETURN_MCCK_PSW+1,0x01 # returning to user ?
 	jno	0f
-	BPON
+	BPEXIT	__TI_flags+6(%r12),_TIF_ISOLATE_BP>>8
 	stpt	__LC_EXIT_TIMER
 	mvc	__VDSO_ECTG_BASE(16,%r14),__LC_EXIT_TIMER
 0:	lmg	%r11,%r15,__PT_R11(%r11)
@@ -1109,9 +1149,11 @@ cleanup_idle_insn:
  */
 ENTRY(sie64a)
 	stmg	%r6,%r14,__SF_GPRS(%r15)	# save kernel registers
+	lg	%r12,__LC_THREAD_INFO
 	stg	%r2,__SF_EMPTY(%r15)		# save control block pointer
 	stg	%r3,__SF_EMPTY+8(%r15)		# save guest register save area
 	xc	__SF_EMPTY+16(8,%r15),__SF_EMPTY+16(%r15) # reason code = 0
+	mvc	__SF_EMPTY+24(8,%r15),__TI_flags(%r12) # copy thread flags
 	lmg	%r0,%r13,0(%r3)			# load guest gprs 0-13
 	lg	%r14,__LC_GMAP			# get gmap pointer
 	ltgr	%r14,%r14
@@ -1122,10 +1164,11 @@ sie_gmap:
 	oi	__SIE_PROG0C+3(%r14),1		# we are going into SIE now
 	tm	__SIE_PROG20+3(%r14),1		# last exit...
 	jnz	sie_skip
-	BPON
+	BPEXIT	__SF_EMPTY+30(%r15),(_TIF_ISOLATE_BP|_TIF_ISOLATE_BP_GUEST)>>8
 	sie	0(%r14)
 sie_done:
 	BPOFF
+	BPENTER	__SF_EMPTY+30(%r15),(_TIF_ISOLATE_BP|_TIF_ISOLATE_BP_GUEST)>>8
 sie_skip:
 	ni	__SIE_PROG0C+3(%r14),0xfe	# no longer in SIE
 	lctlg	%c1,%c1,__LC_USER_ASCE		# load primary asce
