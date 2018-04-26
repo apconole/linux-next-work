@@ -1084,6 +1084,7 @@ cleanup_system_call:
 	stg	%r15,__LC_SYSTEM_TIMER
 0:	# update accounting time stamp
 	mvc	__LC_LAST_UPDATE_TIMER(8),__LC_SYNC_ENTER_TIMER
+	BPENTER __TI_flags+6(%r12),_TIF_ISOLATE_BP>>8
 	# do LAST_BREAK
 	lg	%r9,16(%r11)
 	srag	%r9,%r9,23
