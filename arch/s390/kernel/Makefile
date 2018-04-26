@@ -33,6 +33,7 @@ obj-y	+= processor.o sys_s390.o ptrace.o signal.o cpcmd.o ebcdic.o nmi.o
 obj-y	+= debug.o irq.o ipl.o dis.o diag.o sclp.o vdso.o
 obj-y	+= sysinfo.o jump_label.o lgr.o os_info.o machine_kexec.o pgm_check.o
 obj-y	+= dumpstack.o guarded_storage.o alternative.o
+obj-y	+= nospec-branch.o
 
 obj-y	+= $(if $(CONFIG_64BIT),entry64.o,entry.o)
 obj-y	+= $(if $(CONFIG_64BIT),reipl64.o,reipl.o)
@@ -41,8 +42,7 @@ obj-y	+= $(if $(CONFIG_64BIT),relocate_kernel64.o,relocate_kernel.o)
 extra-y				+= head.o vmlinux.lds
 extra-y				+= $(if $(CONFIG_64BIT),head64.o,head31.o)
 
-obj-$(CONFIG_EXPOLINE)		+= nospec-branch.o
-CFLAGS_REMOVE_expoline.o	+= $(CC_FLAGS_EXPOLINE)
+CFLAGS_REMOVE_nospec-branch.o	+= $(CC_FLAGS_EXPOLINE)
 
 obj-$(CONFIG_MODULES)		+= s390_ksyms.o module.o
 obj-$(CONFIG_SMP)		+= smp.o
