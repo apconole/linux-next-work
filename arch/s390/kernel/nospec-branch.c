@@ -40,6 +40,16 @@ static int __init nogmb_setup_early(char *str)
 }
 early_param("nogmb", nogmb_setup_early);
 
+static int __init nospec_report(void)
+{
+	if (IS_ENABLED(CC_USING_EXPOLINE) && !nospec_disable)
+		pr_info("Spectre V2 mitigation: execute trampolines.\n");
+	if (__test_facility(82, S390_lowcore.alt_stfle_fac_list))
+		pr_info("Spectre V2 mitigation: limited branch prediction.\n");
+	return 0;
+}
+arch_initcall(nospec_report);
+
 #ifdef CONFIG_EXPOLINE
 
 int nospec_disable = IS_ENABLED(CONFIG_EXPOLINE_OFF);
