@@ -41,6 +41,9 @@ obj-y	+= $(if $(CONFIG_64BIT),relocate_kernel64.o,relocate_kernel.o)
 extra-y				+= head.o vmlinux.lds
 extra-y				+= $(if $(CONFIG_64BIT),head64.o,head31.o)
 
+obj-$(CONFIG_EXPOLINE)		+= nospec-branch.o
+CFLAGS_REMOVE_expoline.o	+= $(CC_FLAGS_EXPOLINE)
+
 obj-$(CONFIG_MODULES)		+= s390_ksyms.o module.o
 obj-$(CONFIG_SMP)		+= smp.o
 obj-$(CONFIG_SCHED_BOOK)	+= topology.o
