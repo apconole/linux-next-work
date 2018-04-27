@@ -1213,6 +1213,7 @@ static struct dentry *rdt_mount(struct file_system_type *fs_type,
 	struct dentry *dentry;
 	int ret;
 
+	get_online_cpus();
 	mutex_lock(&rdtgroup_mutex);
 	/*
 	 * resctrl file system can only be mounted once.
@@ -1290,6 +1291,7 @@ out_cdp:
 out:
 	rdt_last_cmd_clear();
 	mutex_unlock(&rdtgroup_mutex);
+	put_online_cpus();
 
 	return dentry;
 }
