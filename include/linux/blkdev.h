@@ -1053,8 +1053,9 @@ static inline unsigned int blk_max_size_offset(struct request_queue *q,
 	if (!q->limits.chunk_sectors)
 		return q->limits.max_sectors;
 
-	return q->limits.chunk_sectors -
-			(offset & (q->limits.chunk_sectors - 1));
+	return min_t(unsigned int, q->limits.chunk_sectors -
+			(offset & (q->limits.chunk_sectors - 1)),
+			q->limits.max_sectors);
 }
 
 static inline unsigned int blk_rq_get_max_sectors(struct request *rq)
