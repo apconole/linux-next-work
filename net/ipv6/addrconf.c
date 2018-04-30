@@ -3450,6 +3450,10 @@ static int addrconf_ifdown(struct net_device *dev, int how)
 		if (state != INET6_IFADDR_STATE_DEAD) {
 			__ipv6_ifa_notify(RTM_DELADDR, ifa);
 			inet6addr_notifier_call_chain(NETDEV_DOWN, ifa);
+		} else {
+			if (idev->cnf.forwarding)
+				addrconf_leave_anycast(ifa);
+			addrconf_leave_solict(ifa->idev, &ifa->addr);
 		}
 
 		write_lock_bh(&idev->lock);
