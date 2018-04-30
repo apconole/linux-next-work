@@ -3438,8 +3438,7 @@ static int addrconf_ifdown(struct net_device *dev, int how)
 			state = ifa->state;
 			ifa->state = INET6_IFADDR_STATE_DEAD;
 
-			list_del(&ifa->if_list);
-			list_add(&ifa->if_list, &del_list);
+			list_move(&ifa->if_list, &del_list);
 		}
 
 		spin_unlock_bh(&ifa->lock);
