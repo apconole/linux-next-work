@@ -2015,6 +2015,11 @@ int ip6_route_info_create(struct fib6_config *cfg, struct rt6_info **rt_ret)
 	if (!dev)
 		goto out;
 
+	if (idev->cnf.disable_ipv6) {
+		err = -EACCES;
+		goto out;
+	}
+
 	if (!ipv6_addr_any(&cfg->fc_prefsrc)) {
 		if (!ipv6_chk_addr(net, &cfg->fc_prefsrc, dev, 0)) {
 			err = -EINVAL;
