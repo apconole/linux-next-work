@@ -382,7 +382,7 @@ SYSCALL(sys_sendmsg,sys_sendmsg,sys_sendmsg_wrapper)	/* 370 */
 SYSCALL(sys_recvfrom,sys_recvfrom,sys_recvfrom_wrapper)
 SYSCALL(sys_recvmsg,sys_recvmsg,sys_recvmsg_wrapper)
 SYSCALL(sys_shutdown,sys_shutdown,sys_shutdown)
-NI_SYSCALL					/* 374 sys_mlock2 */
+SYSCALL(sys_mlock2,sys_mlock2,sys_mlock2_wrapper)
 SYSCALL(sys_copy_file_range,sys_copy_file_range,sys_copy_file_range_wrapper) /* 375 */
 NI_SYSCALL
 NI_SYSCALL

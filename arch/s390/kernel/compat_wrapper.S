@@ -1536,3 +1536,9 @@ ENTRY(sys_membarrier_wrapper)
 	lgfr	%r2,%r2		# int
 	lgfr	%r3,%r3		# int
 	jg	sys_membarrier
+
+ENTRY(sys_mlock2_wrapper)
+	llgfr	%r2,%r2		# unsigned long
+	llgfr	%r3,%r3		# size_t
+	lgfr	%r4,%r4		# int
+	jg	sys_mlock2

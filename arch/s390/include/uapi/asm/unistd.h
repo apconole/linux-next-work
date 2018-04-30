@@ -300,6 +300,7 @@
 #define __NR_recvfrom		371
 #define __NR_recvmsg		372
 #define __NR_shutdown		373
+#define __NR_mlock2		374
 #define __NR_copy_file_range	375
 /* Number 376 is reserved for sys_preadv2 */
 /* Number 377 is reserved for sys_pwritev2 */
