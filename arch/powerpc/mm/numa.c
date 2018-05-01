@@ -1065,6 +1065,13 @@ void __init do_init_bootmem(void)
 	else
 		dump_numa_memory_topology();
 
+	/*
+	 * Reduce the possible NUMA nodes to the online NUMA nodes,
+	 * since we do not support node hotplug. This ensures that  we
+	 * lower the maximum NUMA node ID to what is actually present.
+	 */
+	nodes_and(node_possible_map, node_possible_map, node_online_map);
+
 	for_each_online_node(nid) {
 		unsigned long start_pfn, end_pfn;
 		void *bootmem_vaddr;
