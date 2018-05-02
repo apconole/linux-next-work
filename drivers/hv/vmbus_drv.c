@@ -36,7 +36,6 @@
 #include <linux/clockchips.h>
 #include <linux/cpu.h>
 #include <asm/hyperv.h>
-#include <asm/hypervisor.h>
 #include <asm/mshyperv.h>
 #include <linux/notifier.h>
 #include <linux/ptrace.h>
@@ -1772,7 +1771,7 @@ static int __init hv_acpi_init(void)
 {
 	int ret, t;
 
-	if (x86_hyper != &x86_hyper_ms_hyperv)
+	if (!hv_is_hyperv_initialized())
 		return -ENODEV;
 
 	init_completion(&probe_event);
