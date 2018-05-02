@@ -1238,6 +1238,23 @@ int memory_failure(unsigned long pfn, int trapno, int flags)
 		put_page(hpage);
 		return 0;
 	}
+
+	/*
+	 * TODO: hwpoison for pud-sized hugetlb doesn't work right now, so
+	 * simply disable it. In order to make it work properly, we need
+	 * make sure that:
+	 *  - conversion of a pud that maps an error hugetlb into hwpoison
+	 *    entry properly works, and
+	 *  - other mm code walking over page table is aware of pud-aligned
+	 *    hwpoison entries.
+	 */
+	if (PageHuge(p) && huge_page_size(page_hstate(hpage)) > PMD_SIZE) {
+		action_result(pfn, "non-pmd-sized huge page", IGNORED);
+		unlock_page(hpage);
+		put_page(hpage);
+		return -EBUSY;
+	}
+
 	/*
 	 * Set PG_hwpoison on all pages in an error hugepage,
 	 * because containment is done in hugepage unit for now.
