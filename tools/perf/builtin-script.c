@@ -1309,6 +1309,7 @@ struct perf_script {
 	bool			show_mmap_events;
 	bool			show_switch_events;
 	bool			allocated;
+	bool			per_event_dump;
 	struct cpu_map		*cpus;
 	struct thread_map	*threads;
 	int			name_width;
@@ -1355,7 +1356,7 @@ static void process_event(struct perf_script *script,
 	struct thread *thread = al->thread;
 	struct perf_event_attr *attr = &evsel->attr;
 	unsigned int type = output_type(attr->type);
-	FILE *fp = stdout;
+	FILE *fp = evsel->priv;
 
 	if (output[type].fields == 0)
 		return;
@@ -1767,6 +1768,52 @@ static void sig_handler(int sig __maybe_unused)
 	session_done = 1;
 }
 
+static void perf_script__fclose_per_event_dump(struct perf_script *script)
+{
+	struct perf_evlist *evlist = script->session->evlist;
+	struct perf_evsel *evsel;
+
+	evlist__for_each_entry(evlist, evsel) {
+		if (!evsel->priv)
+			break;
+		fclose(evsel->priv);
+		evsel->priv = NULL;
+	}
+}
+
+static int perf_script__fopen_per_event_dump(struct perf_script *script)
+{
+	struct perf_evsel *evsel;
+
+	evlist__for_each_entry(script->session->evlist, evsel) {
+		char filename[PATH_MAX];
+		snprintf(filename, sizeof(filename), "%s.%s.dump",
+			 script->session->file->path, perf_evsel__name(evsel));
+		evsel->priv = fopen(filename, "w");
+		if (evsel->priv == NULL)
+			goto out_err_fclose;
+	}
+
+	return 0;
+
+out_err_fclose:
+	perf_script__fclose_per_event_dump(script);
+	return -1;
+}
+
+static int perf_script__setup_per_event_dump(struct perf_script *script)
+{
+	struct perf_evsel *evsel;
+
+	if (script->per_event_dump)
+		return perf_script__fopen_per_event_dump(script);
+
+	evlist__for_each_entry(script->session->evlist, evsel)
+		evsel->priv = stdout;
+
+	return 0;
+}
+
 static int __cmd_script(struct perf_script *script)
 {
 	int ret;
@@ -1786,7 +1833,15 @@ static int __cmd_script(struct perf_script *script)
 	if (script->show_switch_events)
 		script->tool.context_switch = process_switch_event;
 
+	if (perf_script__setup_per_event_dump(script)) {
+		pr_err("Couldn't create the per event dump files\n");
+		return -1;
+	}
+
 	ret = perf_session__process_events(script->session);
+
+	if (script->per_event_dump)
+		perf_script__fclose_per_event_dump(script);
 
 	if (debug_mode)
 		pr_err("Misordered timestamps: %" PRIu64 "\n", nr_unordered);
@@ -2702,6 +2757,8 @@ int cmd_script(int argc, const char **argv)
 		    "Show the mmap events"),
 	OPT_BOOLEAN('\0', "show-switch-events", &script.show_switch_events,
 		    "Show context switch events (if recorded)"),
+	OPT_BOOLEAN('\0', "per-event-dump", &script.per_event_dump,
+		    "Dump trace output to files named by the monitored events"),
 	OPT_BOOLEAN('f', "force", &symbol_conf.force, "don't complain, do it"),
 	OPT_INTEGER(0, "max-blocks", &max_blocks,
 		    "Maximum number of code blocks to dump with brstackinsn"),
