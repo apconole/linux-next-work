@@ -782,9 +782,10 @@ S:	Maintained
 F:	drivers/net/ethernet/rocker/
 
 SCSI CORE SUBSYSTEM (NOT INDIVIDUAL DRIVERS)
-M:	David Milburn <dmilburn@redhat.com>
+M:	Ewan D. Milne <emilne@redhat.com>
 S:	Maintained
 F:	drivers/scsi/
+F:	include/scsi/
 
 SCSI TARGET (LIO)
 M:	Maurizio Lombardi <mlombard@redhat.com>
