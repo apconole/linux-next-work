@@ -29,7 +29,7 @@ static void dsos__init(struct dsos *dsos)
 {
 	INIT_LIST_HEAD(&dsos->head);
 	dsos->root = RB_ROOT;
-	pthread_rwlock_init(&dsos->lock, NULL);
+	init_rwsem(&dsos->lock);
 }
 
 static void machine__threads_init(struct machine *machine)
@@ -39,7 +39,7 @@ static void machine__threads_init(struct machine *machine)
 	for (i = 0; i < THREADS__TABLE_SIZE; i++) {
 		struct threads *threads = &machine->threads[i];
 		threads->entries = RB_ROOT;
-		pthread_rwlock_init(&threads->lock, NULL);
+		init_rwsem(&threads->lock);
 		threads->nr = 0;
 		INIT_LIST_HEAD(&threads->dead);
 		threads->last_match = NULL;
@@ -129,7 +129,7 @@ static void dsos__purge(struct dsos *dsos)
 {
 	struct dso *pos, *n;
 
-	pthread_rwlock_wrlock(&dsos->lock);
+	down_write(&dsos->lock);
 
 	list_for_each_entry_safe(pos, n, &dsos->head, node) {
 		RB_CLEAR_NODE(&pos->rb_node);
@@ -138,13 +138,13 @@ static void dsos__purge(struct dsos *dsos)
 		dso__put(pos);
 	}
 
-	pthread_rwlock_unlock(&dsos->lock);
+	up_write(&dsos->lock);
 }
 
 static void dsos__exit(struct dsos *dsos)
 {
 	dsos__purge(dsos);
-	pthread_rwlock_destroy(&dsos->lock);
+	exit_rwsem(&dsos->lock);
 }
 
 void machine__delete_threads(struct machine *machine)
@@ -154,7 +154,7 @@ void machine__delete_threads(struct machine *machine)
 
 	for (i = 0; i < THREADS__TABLE_SIZE; i++) {
 		struct threads *threads = &machine->threads[i];
-		pthread_rwlock_wrlock(&threads->lock);
+		down_write(&threads->lock);
 		nd = rb_first(&threads->entries);
 		while (nd) {
 			struct thread *t = rb_entry(nd, struct thread, rb_node);
@@ -162,7 +162,7 @@ void machine__delete_threads(struct machine *machine)
 			nd = rb_next(nd);
 			__machine__remove_thread(machine, t, false);
 		}
-		pthread_rwlock_unlock(&threads->lock);
+		up_write(&threads->lock);
 	}
 }
 
@@ -179,7 +179,7 @@ void machine__exit(struct machine *machine)
 
 	for (i = 0; i < THREADS__TABLE_SIZE; i++) {
 		struct threads *threads = &machine->threads[i];
-		pthread_rwlock_destroy(&threads->lock);
+		exit_rwsem(&threads->lock);
 	}
 }
 
@@ -481,9 +481,9 @@ struct thread *machine__findnew_thread(struct machine *machine, pid_t pid,
 	struct threads *threads = machine__threads(machine, tid);
 	struct thread *th;
 
-	pthread_rwlock_wrlock(&threads->lock);
+	down_write(&threads->lock);
 	th = __machine__findnew_thread(machine, pid, tid);
-	pthread_rwlock_unlock(&threads->lock);
+	up_write(&threads->lock);
 	return th;
 }
 
@@ -493,9 +493,9 @@ struct thread *machine__find_thread(struct machine *machine, pid_t pid,
 	struct threads *threads = machine__threads(machine, tid);
 	struct thread *th;
 
-	pthread_rwlock_rdlock(&threads->lock);
+	down_read(&threads->lock);
 	th =  ____machine__findnew_thread(machine, threads, pid, tid, false);
-	pthread_rwlock_unlock(&threads->lock);
+	up_read(&threads->lock);
 	return th;
 }
 
@@ -556,7 +556,7 @@ static struct dso *machine__findnew_module_dso(struct machine *machine,
 {
 	struct dso *dso;
 
-	pthread_rwlock_wrlock(&machine->dsos.lock);
+	down_write(&machine->dsos.lock);
 
 	dso = __dsos__find(&machine->dsos, m->name, true);
 	if (!dso) {
@@ -570,7 +570,7 @@ static struct dso *machine__findnew_module_dso(struct machine *machine,
 
 	dso__get(dso);
 out_unlock:
-	pthread_rwlock_unlock(&machine->dsos.lock);
+	up_write(&machine->dsos.lock);
 	return dso;
 }
 
@@ -716,7 +716,8 @@ size_t machine__fprintf(struct machine *machine, FILE *fp)
 
 	for (i = 0; i < THREADS__TABLE_SIZE; i++) {
 		struct threads *threads = &machine->threads[i];
-		pthread_rwlock_rdlock(&threads->lock);
+
+		down_read(&threads->lock);
 
 		ret = fprintf(fp, "Threads: %u\n", threads->nr);
 
@@ -726,7 +727,7 @@ size_t machine__fprintf(struct machine *machine, FILE *fp)
 			ret += thread__fprintf(pos, fp);
 		}
 
-		pthread_rwlock_unlock(&threads->lock);
+		up_read(&threads->lock);
 	}
 	return ret;
 }
@@ -1286,7 +1287,7 @@ static int machine__process_kernel_mmap_event(struct machine *machine,
 		struct dso *kernel = NULL;
 		struct dso *dso;
 
-		pthread_rwlock_rdlock(&machine->dsos.lock);
+		down_read(&machine->dsos.lock);
 
 		list_for_each_entry(dso, &machine->dsos.head, node) {
 
@@ -1316,7 +1317,7 @@ static int machine__process_kernel_mmap_event(struct machine *machine,
 			break;
 		}
 
-		pthread_rwlock_unlock(&machine->dsos.lock);
+		up_read(&machine->dsos.lock);
 
 		if (kernel == NULL)
 			kernel = machine__findnew_dso(machine, kmmap_prefix);
@@ -1480,7 +1481,7 @@ static void __machine__remove_thread(struct machine *machine, struct thread *th,
 
 	BUG_ON(refcount_read(&th->refcnt) == 0);
 	if (lock)
-		pthread_rwlock_wrlock(&threads->lock);
+		down_write(&threads->lock);
 	rb_erase_init(&th->rb_node, &threads->entries);
 	RB_CLEAR_NODE(&th->rb_node);
 	--threads->nr;
@@ -1491,7 +1492,7 @@ static void __machine__remove_thread(struct machine *machine, struct thread *th,
 	 */
 	list_add_tail(&th->node, &threads->dead);
 	if (lock)
-		pthread_rwlock_unlock(&threads->lock);
+		up_write(&threads->lock);
 	thread__put(th);
 }
 

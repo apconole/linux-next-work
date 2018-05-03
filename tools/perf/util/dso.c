@@ -1349,9 +1349,9 @@ void __dsos__add(struct dsos *dsos, struct dso *dso)
 
 void dsos__add(struct dsos *dsos, struct dso *dso)
 {
-	pthread_rwlock_wrlock(&dsos->lock);
+	down_write(&dsos->lock);
 	__dsos__add(dsos, dso);
-	pthread_rwlock_unlock(&dsos->lock);
+	up_write(&dsos->lock);
 }
 
 struct dso *__dsos__find(struct dsos *dsos, const char *name, bool cmp_short)
@@ -1370,9 +1370,9 @@ struct dso *__dsos__find(struct dsos *dsos, const char *name, bool cmp_short)
 struct dso *dsos__find(struct dsos *dsos, const char *name, bool cmp_short)
 {
 	struct dso *dso;
-	pthread_rwlock_rdlock(&dsos->lock);
+	down_read(&dsos->lock);
 	dso = __dsos__find(dsos, name, cmp_short);
-	pthread_rwlock_unlock(&dsos->lock);
+	up_read(&dsos->lock);
 	return dso;
 }
 
@@ -1399,9 +1399,9 @@ struct dso *__dsos__findnew(struct dsos *dsos, const char *name)
 struct dso *dsos__findnew(struct dsos *dsos, const char *name)
 {
 	struct dso *dso;
-	pthread_rwlock_wrlock(&dsos->lock);
+	down_write(&dsos->lock);
 	dso = dso__get(__dsos__findnew(dsos, name));
-	pthread_rwlock_unlock(&dsos->lock);
+	up_write(&dsos->lock);
 	return dso;
 }
 
