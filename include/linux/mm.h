@@ -162,13 +162,25 @@ extern unsigned int kobjsize(const void *objp);
 #define VM_HIGH_ARCH_BIT_2	34	/* bit only usable on 64-bit architectures */
 #define VM_HIGH_ARCH_BIT_3	35	/* bit only usable on 64-bit architectures */
 #define VM_HIGH_ARCH_BIT_4	36	/* bit only usable on 64-bit architectures */
+#define VM_HIGH_ARCH_BIT_63	63	/* bit only usable on 64-bit architectures */
 #define VM_HIGH_ARCH_0	BIT(VM_HIGH_ARCH_BIT_0)
 #define VM_HIGH_ARCH_1	BIT(VM_HIGH_ARCH_BIT_1)
 #define VM_HIGH_ARCH_2	BIT(VM_HIGH_ARCH_BIT_2)
 #define VM_HIGH_ARCH_3	BIT(VM_HIGH_ARCH_BIT_3)
 #define VM_HIGH_ARCH_4	BIT(VM_HIGH_ARCH_BIT_4)
+#define VM_HIGH_ARCH_63 BIT(VM_HIGH_ARCH_BIT_63)
 #endif /* CONFIG_ARCH_USES_HIGH_VMA_FLAGS */
 
+/*
+ * RHEL7: VM_LOCKONFAULT will only work on 64-bit builds
+ * as its original upstream flag was previously
+ * overlapped by VM_FOP_EXTEND CRIU backports.
+ */
+#if (defined(CONFIG_64BIT) && defined(CONFIG_ARCH_USES_HIGH_VMA_FLAGS))
+#define VM_LOCKONFAULT	VM_HIGH_ARCH_63	/* Lock the pages covered when they are faulted in */
+#else
+#define VM_LOCKONFAULT	VM_NONE
+#endif
 /*
  * vm_flags2 in vm_area_struct, see mm_types.h.
  */
@@ -235,6 +247,9 @@ extern unsigned int kobjsize(const void *objp);
 
 /* This mask defines which mm->def_flags a process can inherit its parent */
 #define VM_INIT_DEF_MASK	VM_NOHUGEPAGE
+
+/* This mask is used to clear all the VMA flags used by mlock */
+#define VM_LOCKED_CLEAR_MASK   (~(VM_LOCKED | VM_LOCKONFAULT))
 
 /*
  * mapping from the currently active vm_flags protection bits (the
@@ -2280,6 +2295,7 @@ static inline struct page *follow_page(struct vm_area_struct *vma,
 #define FOLL_NUMA	0x200	/* force NUMA hinting page fault */
 #define FOLL_MIGRATION	0x400	/* wait for page to replace migration entry */
 #define FOLL_TRIED	0x800	/* a retry, previous pass started an IO */
+#define FOLL_MLOCK	0x1000	/* lock present pages */
 #define FOLL_REMOTE	0x2000	/* we are working on non-current tsk/mm */
 #define FOLL_COW	0x4000	/* internal GUP flag */
 
