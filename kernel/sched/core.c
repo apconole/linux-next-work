@@ -4961,8 +4961,6 @@ SYSCALL_DEFINE2(sched_setparam, pid_t, pid, struct sched_param __user *, param)
 	return do_sched_setscheduler(pid, -1, param);
 }
 
-static const bool sched_deadline_enable;
-
 /**
  * sys_sched_setattr - same as above, but with extended sched_attr
  * @pid: the pid in question.
@@ -4975,9 +4973,6 @@ SYSCALL_DEFINE3(sched_setattr, pid_t, pid, struct sched_attr __user *, uattr,
 	struct sched_attr attr;
 	struct task_struct *p;
 	int retval;
-
-	if (!sched_deadline_enable)
-		return -ENOSYS;
 
 	if (!uattr || pid < 0 || flags)
 		return -EINVAL;
@@ -5129,9 +5124,6 @@ SYSCALL_DEFINE4(sched_getattr, pid_t, pid, struct sched_attr __user *, uattr,
 	};
 	struct task_struct *p;
 	int retval;
-
-	if (!sched_deadline_enable)
-		return -ENOSYS;
 
 	if (!uattr || pid < 0 || size > PAGE_SIZE ||
 	    size < SCHED_ATTR_SIZE_VER0 || flags)
