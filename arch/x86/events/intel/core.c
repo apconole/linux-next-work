@@ -3762,6 +3762,8 @@ static struct attribute *intel_pmu_attrs[] = {
 
 __init int intel_pmu_init(void)
 {
+	struct attribute **extra_attr = NULL;
+	struct attribute **to_free = NULL;
 	union cpuid10_edx edx;
 	union cpuid10_eax eax;
 	union cpuid10_ebx ebx;
@@ -3769,7 +3771,6 @@ __init int intel_pmu_init(void)
 	unsigned int unused;
 	struct extra_reg *er;
 	int version, i;
-	struct attribute **extra_attr = NULL;
 	char *name;
 
 	if (!cpu_has(&boot_cpu_data, X86_FEATURE_ARCH_PERFMON)) {
@@ -4202,6 +4203,7 @@ __init int intel_pmu_init(void)
 		extra_attr = boot_cpu_has(X86_FEATURE_RTM) ?
 			hsw_format_attr : nhm_format_attr;
 		extra_attr = merge_attr(extra_attr, skl_format_attr);
+		to_free = extra_attr;
 		x86_pmu.cpu_events = get_hsw_events_attrs();
 		intel_pmu_pebs_data_source_skl(
 			boot_cpu_data.x86_model == INTEL_FAM6_SKYLAKE_X);
@@ -4309,6 +4311,7 @@ __init int intel_pmu_init(void)
 		pr_cont("full-width counters, ");
 	}
 
+	kfree(to_free);
 	return 0;
 }
 
