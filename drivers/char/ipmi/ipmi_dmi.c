@@ -57,10 +57,9 @@ static void __init dmi_add_platform_ipmi(unsigned long base_addr,
 
 	memset(p, 0, sizeof(p));
 
-	name = "dmi-ipmi-si";
+	name = "ipmi_si";
 	switch (type) {
 	case IPMI_DMI_TYPE_SSIF:
-		name = "dmi-ipmi-ssif";
 		offset = 1;
 		size = 1;
 		si_type = SI_TYPE_INVALID;
