@@ -120,26 +120,62 @@ static void nfp_bpf_vnic_free(struct nfp_app *app, struct nfp_net *nn)
 	kfree(nn->app_priv);
 }
 
+static int nfp_bpf_setup_tc_block_cb(enum tc_setup_type type,
+				     void *type_data, void *cb_priv)
+{
+#if 0 /* Not in RHEL7 */
+	struct tc_cls_bpf_offload *cls_bpf = type_data;
+	struct nfp_net *nn = cb_priv;
+
+	switch (type) {
+	case TC_SETUP_CLSBPF:
+		if (!nfp_net_ebpf_capable(nn) ||
+		    cls_bpf->common.protocol != htons(ETH_P_ALL) ||
+		    cls_bpf->common.chain_index)
+			return -EOPNOTSUPP;
+		return nfp_net_bpf_offload(nn, cls_bpf);
+	default:
+		return -EOPNOTSUPP;
+	}
+#else
+	return -EOPNOTSUPP;
+#endif
+}
+
+static int nfp_bpf_setup_tc_block(struct net_device *netdev,
+				  struct tc_block_offload *f)
+{
+	struct nfp_net *nn = netdev_priv(netdev);
+
+	if (f->binder_type != TCF_BLOCK_BINDER_TYPE_CLSACT_INGRESS)
+		return -EOPNOTSUPP;
+
+	switch (f->command) {
+	case TC_BLOCK_BIND:
+		return tcf_block_cb_register(f->block,
+					     nfp_bpf_setup_tc_block_cb,
+					     nn, nn);
+	case TC_BLOCK_UNBIND:
+		tcf_block_cb_unregister(f->block,
+					nfp_bpf_setup_tc_block_cb,
+					nn);
+		return 0;
+	default:
+		return -EOPNOTSUPP;
+	}
+}
+
 static int nfp_bpf_setup_tc(struct nfp_app *app, struct net_device *netdev,
 			    enum tc_setup_type type, void *type_data)
 {
-#if 0 /* Not in RHEL7 */
-	struct nfp_net *nn = netdev_priv(netdev);
-
-	if (TC_H_MAJ(handle) != TC_H_MAJ(TC_H_INGRESS))
+	switch (type) {
+	case TC_SETUP_CLSBPF:
+		return 0; /* will be removed after conversion from ndo */
+	case TC_SETUP_BLOCK:
+		return nfp_bpf_setup_tc_block(netdev, type_data);
+	default:
 		return -EOPNOTSUPP;
-	if (proto != htons(ETH_P_ALL))
-		return -EOPNOTSUPP;
-
-	if (tc->type == TC_SETUP_CLSBPF && nfp_net_ebpf_capable(nn)) {
-		if (!nn->dp.bpf_offload_xdp)
-			return nfp_net_bpf_offload(nn, tc->cls_bpf);
-		else
-			return -EBUSY;
 	}
-#endif
-
-	return -EINVAL;
 }
 
 static bool nfp_bpf_tc_busy(struct nfp_app *app, struct nfp_net *nn)
