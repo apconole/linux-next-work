@@ -637,11 +637,7 @@ struct tc_cls_u32_offload {
 
 static inline bool tc_can_offload(const struct net_device *dev)
 {
-	if (!(dev->features & NETIF_F_HW_TC))
-		return false;
-	if (!__rh_has_ndo_setup_tc(dev))
-		return false;
-	return true;
+	return dev->features & NETIF_F_HW_TC;
 }
 
 static inline bool tc_skip_hw(u32 flags)
