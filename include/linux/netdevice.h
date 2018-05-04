@@ -1806,7 +1806,7 @@ struct net_device {
 	unsigned char		broadcast[MAX_ADDR_LEN];	/* hw bcast add	*/
 
 #ifdef CONFIG_NET_CLS_ACT
-	RH_KABI_FILL_HOLE(struct tcf_proto __rcu *ingress_cl_list)
+	RH_KABI_FILL_HOLE(struct mini_Qdisc __rcu *miniq_ingress)
 #endif
 	/* Hole: 16 bytes remain */
 
@@ -2019,7 +2019,7 @@ struct net_device_extended {
 	bool needs_free_netdev;
 	void (*priv_destructor)(struct net_device *dev);
 #ifdef CONFIG_NET_CLS_ACT
-	struct tcf_proto __rcu	*egress_cl_list;
+	struct mini_Qdisc __rcu	*miniq_egress;
 #endif
 #ifdef CONFIG_NET_SCHED
 	DECLARE_HASHTABLE	(qdisc_hash, 4);
