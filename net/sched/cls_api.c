@@ -345,6 +345,8 @@ void tcf_block_put_ext(struct tcf_block *block, struct Qdisc *q,
 	/* Hold a refcnt for all chains, so that they don't disappear
 	 * while we are iterating.
 	 */
+	if (!block)
+		return;
 	list_for_each_entry(chain, &block->chain_list, list)
 		tcf_chain_hold(chain);
 
@@ -367,8 +369,6 @@ void tcf_block_put(struct tcf_block *block)
 {
 	struct tcf_block_ext_info ei = {0, };
 
-	if (!block)
-		return;
 	tcf_block_put_ext(block, block->q, &ei);
 }
 EXPORT_SYMBOL(tcf_block_put);
