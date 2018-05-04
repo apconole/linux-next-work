@@ -334,8 +334,6 @@ void tcf_block_put_ext(struct tcf_block *block,
 	if (!block)
 		return;
 
-	tcf_block_offload_unbind(block, q, ei);
-
 	/* Hold a refcnt for all chains, so that they don't disappear
 	 * while we are iterating.
 	 */
@@ -344,6 +342,8 @@ void tcf_block_put_ext(struct tcf_block *block,
 
 	list_for_each_entry(chain, &block->chain_list, list)
 		tcf_chain_flush(chain);
+
+	tcf_block_offload_unbind(block, q, ei);
 
 	/* At this point, all the chains should have refcnt >= 1. */
 	list_for_each_entry_safe(chain, tmp, &block->chain_list, list)
