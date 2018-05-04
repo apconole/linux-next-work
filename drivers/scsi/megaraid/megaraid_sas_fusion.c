@@ -3492,7 +3492,7 @@ void megasas_sync_irqs(unsigned long instance_addr)
 	count = instance->msix_vectors > 0 ? instance->msix_vectors : 1;
 
 	for (i = 0; i < count; i++)
-		synchronize_irq(instance->msixentry[i].vector);
+		synchronize_irq(pci_irq_vector(instance->pdev, i));
 }
 
 /**

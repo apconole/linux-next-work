@@ -2259,7 +2259,6 @@ struct megasas_instance {
 	/* Ptr to hba specific information */
 	void *ctrl_context;
 	unsigned int msix_vectors;
-	struct msix_entry msixentry[MEGASAS_MAX_MSIX_QUEUES];
 	struct megasas_irq_context irq_context[MEGASAS_MAX_MSIX_QUEUES];
 	u64 map_id;
 	u64 pd_seq_map_id;
