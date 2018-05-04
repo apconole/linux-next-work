@@ -1317,6 +1317,9 @@ struct fusion_context {
 	u32 log_to_span_pages;
 	struct LD_STREAM_DETECT **stream_detect_by_ld;
 	struct megasas_cmd *ioc_init_cmd;
+	dma_addr_t ioc_init_request_phys;
+	struct MPI2_IOC_INIT_REQUEST *ioc_init_request;
+
 };
 
 union desc_value {
