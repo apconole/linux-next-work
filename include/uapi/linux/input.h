@@ -716,7 +716,7 @@ struct input_keymap_entry {
 #define KEY_BUTTONCONFIG		0x240	/* AL Button Configuration */
 #define KEY_CONTROLPANEL		0x243
 #define KEY_VOICECOMMAND		0x246	/* Listening Voice Command */
-#define KEY_BRIGHTNESS_MIN		0x251	/* Set Brightness to Minimum */
+#define KEY_BRIGHTNESS_MIN		0x250	/* Set Brightness to Minimum */
 
 #define KEY_ONSCREEN_KEYBOARD		0x278
 
