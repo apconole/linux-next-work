@@ -46,11 +46,11 @@
 #include <linux/mlx5/transobj.h>
 #include <linux/rhashtable.h>
 #include <net/switchdev.h>
+#include <linux/net_dim.h>
 #include <linux/refcount.h>
 #include "wq.h"
 #include "mlx5_core.h"
 #include "en_stats.h"
-#include "net_dim.h"
 
 #define MLX5_SET_CFG(p, f, v) MLX5_SET(create_flow_group_in, p, f, v)
 
