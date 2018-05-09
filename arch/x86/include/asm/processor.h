@@ -1082,5 +1082,6 @@ bool xen_set_default_idle(void);
 #endif
 
 void stop_this_cpu(void *dummy);
+void microcode_check(void);
 
 #endif /* _ASM_X86_PROCESSOR_H */
