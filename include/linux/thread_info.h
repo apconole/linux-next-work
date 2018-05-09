@@ -51,6 +51,18 @@ struct restart_block {
 extern long do_no_restart_syscall(struct restart_block *parm);
 
 #include <linux/bitops.h>
+
+/*
+ * For per-arch arch_within_stack_frames() implementations, defined in
+ * asm/thread_info.h.
+ */
+enum {
+	BAD_STACK = -1,
+	NOT_STACK = 0,
+	GOOD_FRAME,
+	GOOD_STACK,
+};
+
 #include <asm/thread_info.h>
 
 #ifdef __KERNEL__
