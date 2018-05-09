@@ -109,7 +109,7 @@ qla2x00_async_iocb_timeout(void *data)
 		    "Async-%s timeout - hdl=%x portid=%06x %8phC.\n",
 		    sp->name, sp->handle, fcport->d_id.b24, fcport->port_name);
 
-		fcport->flags &= ~FCF_ASYNC_SENT;
+		fcport->flags &= ~(FCF_ASYNC_SENT | FCF_ASYNC_ACTIVE);
 	} else {
 		pr_info("Async-%s timeout - hdl=%x.\n",
 		    sp->name, sp->handle);
@@ -158,7 +158,8 @@ qla2x00_async_login_sp_done(void *ptr, int res)
 	ql_dbg(ql_dbg_disc, vha, 0x20dd,
 	    "%s %8phC res %d \n", __func__, sp->fcport->port_name, res);
 
-	sp->fcport->flags &= ~FCF_ASYNC_SENT;
+	sp->fcport->flags &= ~(FCF_ASYNC_SENT | FCF_ASYNC_ACTIVE);
+
 	if (!test_bit(UNLOADING, &vha->dpc_flags)) {
 		memset(&ea, 0, sizeof(ea));
 		ea.event = FCME_PLOGI_DONE;
@@ -236,7 +237,7 @@ qla2x00_async_logout_sp_done(void *ptr, int res)
 	srb_t *sp = ptr;
 	struct srb_iocb *lio = &sp->u.iocb_cmd;
 
-	sp->fcport->flags &= ~FCF_ASYNC_SENT;
+	sp->fcport->flags &= ~(FCF_ASYNC_SENT | FCF_ASYNC_ACTIVE);
 	if (!test_bit(UNLOADING, &sp->vha->dpc_flags))
 		qla2x00_post_async_logout_done_work(sp->vha, sp->fcport,
 		    lio->u.logio.data);
@@ -669,7 +670,7 @@ qla24xx_async_gnl_sp_done(void *s, int res)
 
 	list_for_each_entry_safe(fcport, tf, &h, gnl_entry) {
 		list_del_init(&fcport->gnl_entry);
-		fcport->flags &= ~FCF_ASYNC_SENT;
+		fcport->flags &= ~(FCF_ASYNC_SENT | FCF_ASYNC_ACTIVE);
 		ea.fcport = fcport;
 
 		qla2x00_fcport_event_handler(vha, &ea);
@@ -792,6 +793,7 @@ int qla24xx_post_gnl_work(struct scsi_qla_host *vha, fc_port_t *fcport)
 		return QLA_FUNCTION_FAILED;
 
 	e->u.fcport.fcport = fcport;
+	fcport->flags |= FCF_ASYNC_ACTIVE;
 	return qla2x00_post_work(vha, e);
 }
 
@@ -809,7 +811,7 @@ void qla24xx_async_gpdb_sp_done(void *s, int res)
 	    "Async done-%s res %x, WWPN %8phC mb[1]=%x mb[2]=%x \n",
 	    sp->name, res, fcport->port_name, mb[1], mb[2]);
 
-	fcport->flags &= ~FCF_ASYNC_SENT;
+	fcport->flags &= ~(FCF_ASYNC_SENT | FCF_ASYNC_ACTIVE);
 
 	memset(&ea, 0, sizeof(ea));
 	ea.event = FCME_GPDB_DONE;
@@ -931,6 +933,7 @@ int qla24xx_post_gpdb_work(struct scsi_qla_host *vha, fc_port_t *fcport, u8 opt)
 
 	e->u.fcport.fcport = fcport;
 	e->u.fcport.opt = opt;
+	fcport->flags |= FCF_ASYNC_ACTIVE;
 	return qla2x00_post_work(vha, e);
 }
 
@@ -1520,6 +1523,7 @@ qla2x00_async_tm_cmd(fc_port_t *fcport, uint32_t flags, uint32_t lun,
 
 done_free_sp:
 	sp->free(sp);
+	sp->fcport->flags &= ~FCF_ASYNC_SENT;
 done:
 	return rval;
 }
