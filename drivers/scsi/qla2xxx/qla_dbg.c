@@ -12,7 +12,7 @@
  * |             Level            |   Last Value Used  |     Holes	|
  * ----------------------------------------------------------------------
  * | Module Init and Probe        |       0x0193       | 0x0146         |
- * | Mailbox commands             |       0x1192       | 0x1018-0x1019	|
+ * | Mailbox commands             |       0x1205       | 0x1018-0x1019	|
  * |                              |                    | 0x1155-0x1158  |
  * |                              |                    | 0x1018-0x1019  |
  * |                              |                    | 0x1115-0x1116  |
