@@ -740,13 +740,14 @@ static int nvmf_parse_options(struct nvmf_ctrl_options *opts,
 				goto out;
 			}
 			ret = uuid_be_to_bin(p, &hostid);
-			kfree(p);
 			if (ret) {
 
 				pr_err("Invalid hostid %s\n", p);
 				ret = -EINVAL;
+				kfree(p);
 				goto out;
 			}
+			kfree(p);
 			break;
 		case NVMF_OPT_DUP_CONNECT:
 			opts->duplicate_connect = true;
