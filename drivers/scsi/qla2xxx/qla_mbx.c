@@ -17,6 +17,7 @@ static struct mb_cmd_name {
 	{MBC_GET_PORT_DATABASE,		"GPDB"},
 	{MBC_GET_ID_LIST,		"GIDList"},
 	{MBC_GET_LINK_PRIV_STATS,	"Stats"},
+	{MBC_GET_RESOURCE_COUNTS,	"ResCnt"},
 };
 
 static const char *mb_to_str(uint16_t cmd)
@@ -6307,5 +6308,34 @@ int qla27xx_get_zio_threshold(scsi_qla_host_t *vha, uint16_t *value)
 	ql_dbg(ql_dbg_mbx, vha, 0x1205, "%s %x\n",
 	    (rval != QLA_SUCCESS) ? "Failed" : "Done", rval);
 
+	return rval;
+}
+
+int qla24xx_res_count_wait(struct scsi_qla_host *vha,
+    uint16_t *out_mb, int out_mb_sz)
+{
+	int rval = QLA_FUNCTION_FAILED;
+	mbx_cmd_t mc;
+
+	if (!vha->hw->flags.fw_started)
+		goto done;
+
+	memset(&mc, 0, sizeof(mc));
+	mc.mb[0] = MBC_GET_RESOURCE_COUNTS;
+
+	rval = qla24xx_send_mb_cmd(vha, &mc);
+	if (rval != QLA_SUCCESS) {
+		ql_dbg(ql_dbg_mbx, vha, 0xffff,
+			"%s:  fail\n", __func__);
+	} else {
+		if (out_mb_sz <= SIZEOF_IOCB_MB_REG)
+			memcpy(out_mb, mc.mb, out_mb_sz);
+		else
+			memcpy(out_mb, mc.mb, SIZEOF_IOCB_MB_REG);
+
+		ql_dbg(ql_dbg_mbx, vha, 0xffff,
+			"%s:  done\n", __func__);
+	}
+done:
 	return rval;
 }
