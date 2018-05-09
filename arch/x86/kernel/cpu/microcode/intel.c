@@ -887,7 +887,7 @@ static int get_matching_mc(struct microcode_intel *mc, int cpu)
 	return has_newer_microcode(mc, csig, cpf, crev);
 }
 
-static int apply_microcode_intel(int cpu)
+static enum ucode_state apply_microcode_intel(int cpu)
 {
 	struct microcode_intel *mc;
 	struct ucode_cpu_info *uci;
@@ -897,12 +897,12 @@ static int apply_microcode_intel(int cpu)
 
 	/* We should bind the task to the CPU */
 	if (WARN_ON(raw_smp_processor_id() != cpu))
-		return -1;
+		return UCODE_ERROR;
 
 	uci = ucode_cpu_info + cpu;
 	mc = uci->mc;
 	if (!mc)
-		return 0;
+		return UCODE_NFOUND;
 
 	/*
 	 * Microcode on this CPU could be updated earlier. Only apply the
@@ -910,7 +910,7 @@ static int apply_microcode_intel(int cpu)
 	 * CPU.
 	 */
 	if (!get_matching_mc(mc, cpu))
-		return 0;
+		return UCODE_NFOUND;
 
 	/* write microcode via MSR 0x79 */
 	wrmsrl(MSR_IA32_UCODE_WRITE, (unsigned long)mc->bits);
@@ -919,7 +919,7 @@ static int apply_microcode_intel(int cpu)
 	if (rev != mc->hdr.rev) {
 		pr_err("CPU%d update to revision 0x%x failed\n",
 		       cpu, mc->hdr.rev);
-		return -1;
+		return UCODE_ERROR;
 	}
 
 	if (rev != prev_rev) {
@@ -936,7 +936,7 @@ static int apply_microcode_intel(int cpu)
 	uci->cpu_sig.rev = rev;
 	c->microcode = rev;
 
-	return 0;
+	return UCODE_UPDATED;
 }
 
 static enum ucode_state generic_load_microcode(int cpu, void *data, size_t size,
