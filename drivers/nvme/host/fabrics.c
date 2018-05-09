@@ -739,7 +739,10 @@ static int nvmf_parse_options(struct nvmf_ctrl_options *opts,
 				ret = -ENOMEM;
 				goto out;
 			}
-			if (uuid_be_to_bin(p, &hostid)) {
+			ret = uuid_be_to_bin(p, &hostid);
+			kfree(p);
+			if (ret) {
+
 				pr_err("Invalid hostid %s\n", p);
 				ret = -EINVAL;
 				goto out;
