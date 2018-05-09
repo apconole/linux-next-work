@@ -19,7 +19,6 @@ snd-soc-rt5663-objs := rt5663.o
 snd-soc-rt5670-objs := rt5670.o
 snd-soc-rt5677-objs := rt5677.o
 snd-soc-rt5677-spi-objs := rt5677-spi.o
-snd-soc-sn95031-objs := sn95031.o
 snd-soc-ssm2518-objs := ssm2518.o
 snd-soc-ssm4567-objs := ssm4567.o
 snd-soc-ts3a227e-objs := ts3a227e.o

@@ -30,7 +30,6 @@ config SND_SOC_ALL_CODECS
 	select SND_SOC_RT5663 if I2C
 	select SND_SOC_RT5670 if I2C
 	select SND_SOC_RT5677 if I2C
-	select SND_SOC_SN95031 if INTEL_SCU_IPC
 	select SND_SOC_SSM4567 if I2C
 	select SND_SOC_TS3A227E if I2C
         help
@@ -138,8 +137,8 @@ config SND_SOC_RT5677_SPI
 	tristate
 	default SND_SOC_RT5677
 
-config SND_SOC_SN95031
-	tristate
+config SND_SOC_SPDIF
+	tristate "S/PDIF CODEC"
 
 config SND_SOC_SSM2518
 	tristate
