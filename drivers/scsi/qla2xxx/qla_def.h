@@ -3515,6 +3515,7 @@ struct qla_hw_data {
 
 		uint32_t	detected_lr_sfp:1;
 		uint32_t	using_lr_setting:1;
+		uint32_t	rida_fmt2:1;
 	} flags;
 
 	uint16_t max_exchg;
@@ -4532,6 +4533,16 @@ struct sff_8247_a0 {
 	(ql2xautodetectsfp && !_vha->vp_idx &&		\
 	(IS_QLA25XX(_vha->hw) || IS_QLA81XX(_vha->hw) ||\
 	IS_QLA83XX(_vha->hw) || IS_QLA27XX(_vha->hw)))
+
+#define SAVE_TOPO(_ha) { \
+	if (_ha->current_topology)				\
+		_ha->prev_topology = _ha->current_topology;     \
+}
+
+#define N2N_TOPO(ha) \
+	((ha->prev_topology == ISP_CFG_N && !ha->current_topology) || \
+	 ha->current_topology == ISP_CFG_N || \
+	 !ha->current_topology)
 
 #include "qla_target.h"
 #include "qla_gbl.h"
