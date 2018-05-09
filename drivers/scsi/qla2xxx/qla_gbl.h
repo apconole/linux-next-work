@@ -95,7 +95,7 @@ qla2x00_alloc_outstanding_cmds(struct qla_hw_data *, struct req_que *);
 extern int qla2x00_init_rings(scsi_qla_host_t *);
 extern uint8_t qla27xx_find_valid_image(struct scsi_qla_host *);
 extern struct qla_qpair *qla2xxx_create_qpair(struct scsi_qla_host *,
-	cpumask_var_t, int, int, bool);
+	int, int, bool);
 extern int qla2xxx_delete_qpair(struct scsi_qla_host *, struct qla_qpair *);
 void qla2x00_fcport_event_handler(scsi_qla_host_t *, struct event_arg *);
 int qla24xx_async_gpdb(struct scsi_qla_host *, fc_port_t *, u8);

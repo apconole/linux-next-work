@@ -2755,7 +2755,6 @@ qla2x00_probe_one(struct pci_dev *pdev, const struct pci_device_id *id)
 	struct req_que *req = NULL;
 	struct rsp_que *rsp = NULL;
 	int cpu_id;
-	cpumask_t cpu_mask;
 
 	bars = pci_select_bars(pdev, IORESOURCE_MEM | IORESOURCE_IO);
 	sht = &qla2xxx_driver_template;
@@ -3233,7 +3232,6 @@ qla2x00_probe_one(struct pci_dev *pdev, const struct pci_device_id *id)
 
 		if ((ql2x_ini_mode == QLA2XXX_INI_MODE_ENABLED) &&
 		    shost_use_blk_mq(host)) {
-			cpumask_clear(&cpu_mask);
 			mq = true;
 			startit = true;
 		}
@@ -3241,9 +3239,7 @@ qla2x00_probe_one(struct pci_dev *pdev, const struct pci_device_id *id)
 		if (mq) {
 			/* Create start of day qpairs for Block MQ */
 			for (cpu_id = 0; cpu_id < ha->max_qpairs; cpu_id++) {
-				cpumask_set_cpu(cpu_id, &cpu_mask);
-				qla2xxx_create_qpair(base_vha, &cpu_mask, 5, 0, true);
-				cpumask_clear_cpu(cpu_id, &cpu_mask);
+				qla2xxx_create_qpair(base_vha, 5, 0, startit);
 			}
 		}
 	}

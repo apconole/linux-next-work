@@ -7751,21 +7751,8 @@ qla24xx_update_all_fcp_prio(scsi_qla_host_t *vha)
 	return ret;
 }
 
-static int
-qla2xxx_set_affinity_hint(struct qla_qpair *qpair, cpumask_var_t cpu_mask)
-{
-	int ret;
-
-	if (!qpair || !qpair->msix)
-		return -EINVAL;
-
-	ret = irq_set_affinity_hint(qpair->msix->vector, cpu_mask);
-
-	return ret;
-}
-
 struct qla_qpair *qla2xxx_create_qpair(struct scsi_qla_host *vha,
-	cpumask_var_t cpu_mask, int qos, int vp_idx, bool startqp)
+	int qos, int vp_idx, bool startqp)
 {
 	int rsp_id = 0;
 	int  req_id = 0;
@@ -7878,10 +7865,6 @@ struct qla_qpair *qla2xxx_create_qpair(struct scsi_qla_host *vha,
 			    qpair->id);
 			goto fail_mempool;
 		}
-
-		/* Set CPU affinity hint */
-		if (cpu_mask)
-			qla2xxx_set_affinity_hint(qpair, cpu_mask);
 
 		/* Mark as online */
 		qpair->online = 1;
