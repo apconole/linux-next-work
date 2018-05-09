@@ -59,8 +59,10 @@ static inline unsigned long __must_check copy_from_user(void *to,
 	int sz = __compiletime_object_size(to);
 
 	might_fault();
-	if (likely(sz == -1 || sz >= n))
+	if (likely(sz == -1 || sz >= n)) {
+		check_object_size(to, n, false);
 		n = _copy_from_user(to, from, n);
+	}
 #ifdef CONFIG_DEBUG_VM
 	else
 		WARN(1, "Buffer overflow detected!\n");
@@ -71,9 +73,14 @@ static inline unsigned long __must_check copy_from_user(void *to,
 static __always_inline __must_check
 int copy_to_user(void __user *dst, const void *src, unsigned size)
 {
-	might_fault();
+	int sz = __compiletime_object_size(src);
 
-	return _copy_to_user(dst, src, size);
+	might_fault();
+	if (likely(sz == -1 || sz >= size)) {
+		check_object_size(src, size, true);
+		size = (unsigned)_copy_to_user(dst, src, size);
+	}
+	return (int)size;
 }
 
 static __always_inline __must_check
@@ -82,6 +89,9 @@ int __copy_from_user(void *dst, const void __user *src, unsigned size)
 	int ret = 0;
 
 	might_fault();
+
+	check_object_size(dst, size, false);
+
 	if (!__builtin_constant_p(size))
 		return copy_user_generic(dst, (__force void *)src, size);
 	switch (size) {
@@ -140,6 +150,9 @@ int __copy_to_user(void __user *dst, const void *src, unsigned size)
 	int ret = 0;
 
 	might_fault();
+
+	check_object_size(src, size, true);
+
 	if (!__builtin_constant_p(size))
 		return copy_user_generic((__force void *)dst, src, size);
 	switch (size) {
