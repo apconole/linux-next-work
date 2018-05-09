@@ -41,9 +41,9 @@
 #include <acpi/acpi_bus.h>
 #include <asm/cpu_device_id.h>
 #include <asm/iosf_mbi.h>
+#include <sound/soc-acpi.h>
 #include "../sst-mfld-platform.h"
 #include "../../common/sst-dsp.h"
-#include "../../common/sst-acpi.h"
 #include "sst.h"
 
 /* LPE viewpoint addresses */
@@ -285,7 +285,7 @@ static int sst_acpi_probe(struct platform_device *pdev)
 	int ret = 0;
 	struct intel_sst_drv *ctx;
 	const struct acpi_device_id *id;
-	struct sst_acpi_mach *mach;
+	struct snd_soc_acpi_mach *mach;
 	struct platform_device *mdev;
 	struct platform_device *plat_dev;
 	struct sst_platform_info *pdata;
@@ -297,8 +297,8 @@ static int sst_acpi_probe(struct platform_device *pdev)
 		return -ENODEV;
 	dev_dbg(dev, "for %s\n", id->id);
 
-	mach = (struct sst_acpi_mach *)id->driver_data;
-	mach = sst_acpi_find_machine(mach);
+	mach = (struct snd_soc_acpi_mach *)id->driver_data;
+	mach = snd_soc_acpi_find_machine(mach);
 	if (mach == NULL) {
 		dev_err(dev, "No matching machine driver found\n");
 		return -ENODEV;
@@ -436,7 +436,7 @@ static const struct dmi_system_id cht_table[] = {
 };
 
 
-static struct sst_acpi_mach cht_surface_mach = {
+static struct snd_soc_acpi_mach cht_surface_mach = {
 	.id = "10EC5640",
 	.drv_name = "cht-bsw-rt5645",
 	.fw_filename = "intel/fw_sst_22a8.bin",
@@ -444,7 +444,7 @@ static struct sst_acpi_mach cht_surface_mach = {
 	.pdata = &chv_platform_data,
 };
 
-static struct sst_acpi_mach byt_thinkpad_10 = {
+static struct snd_soc_acpi_mach byt_thinkpad_10 = {
 	.id = "10EC5640",
 	.drv_name = "cht-bsw-rt5672",
 	.fw_filename = "intel/fw_sst_0f28.bin",
@@ -452,9 +452,9 @@ static struct sst_acpi_mach byt_thinkpad_10 = {
 	.pdata = &byt_rvp_platform_data,
 };
 
-static struct sst_acpi_mach *cht_quirk(void *arg)
+static struct snd_soc_acpi_mach *cht_quirk(void *arg)
 {
-	struct sst_acpi_mach *mach = arg;
+	struct snd_soc_acpi_mach *mach = arg;
 
 	dmi_check_system(cht_table);
 
@@ -464,9 +464,9 @@ static struct sst_acpi_mach *cht_quirk(void *arg)
 		return mach;
 }
 
-static struct sst_acpi_mach *byt_quirk(void *arg)
+static struct snd_soc_acpi_mach *byt_quirk(void *arg)
 {
-	struct sst_acpi_mach *mach = arg;
+	struct snd_soc_acpi_mach *mach = arg;
 
 	dmi_check_system(byt_table);
 
@@ -477,7 +477,7 @@ static struct sst_acpi_mach *byt_quirk(void *arg)
 }
 
 
-static struct sst_acpi_mach sst_acpi_bytcr[] = {
+static struct snd_soc_acpi_mach sst_acpi_bytcr[] = {
 	{
 		.id = "10EC5640",
 		.drv_name = "bytcr_rt5640",
@@ -553,7 +553,7 @@ static struct sst_acpi_mach sst_acpi_bytcr[] = {
 };
 
 /* Cherryview-based platforms: CherryTrail and Braswell */
-static struct sst_acpi_mach sst_acpi_chv[] = {
+static struct snd_soc_acpi_mach sst_acpi_chv[] = {
 	{
 		.id = "10EC5670",
 		.drv_name = "cht-bsw-rt5672",
