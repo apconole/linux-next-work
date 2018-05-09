@@ -1750,7 +1750,7 @@ static void nvme_init_subnqn(struct nvme_ctrl *ctrl, struct nvme_id_ctrl *id)
 	memset(ctrl->subnqn + off, 0, sizeof(ctrl->subnqn) - off);
 }
 
-static int nvme_get_log_ext(struct nvme_ctrl *ctrl, struct nvme_ns *ns,
+int nvme_get_log_ext(struct nvme_ctrl *ctrl, struct nvme_ns *ns,
 			    u8 log_page, void *log,
 			    size_t size, size_t offset)
 {
