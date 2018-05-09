@@ -2982,6 +2982,11 @@ struct ct_sns_gpnft_pkt {
 	} p;
 };
 
+enum scan_flags_t {
+	SF_SCANNING = BIT_0,
+	SF_QUEUED = BIT_1,
+};
+
 struct fab_scan_rp {
 	port_id_t id;
 	u8 port_name[8];
@@ -2991,6 +2996,8 @@ struct fab_scan_rp {
 struct fab_scan {
 	struct fab_scan_rp *l;
 	u32 size;
+	enum scan_flags_t scan_flags;
+	struct delayed_work scan_work;
 };
 
 /*
