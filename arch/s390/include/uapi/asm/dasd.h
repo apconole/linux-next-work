@@ -75,6 +75,7 @@ typedef struct dasd_information2_t {
  * 0x010: allow I/O to fail on lost paths
  * 0x020: allow I/O to fail when a lock was stolen
  * 0x040: give access to raw eckd data
+ * 0x080: enable discard support
  * 0x100: enable autodisable for IFCC errors (default)
  */
 #define DASD_FEATURE_READONLY	      0x001
@@ -84,6 +85,7 @@ typedef struct dasd_information2_t {
 #define DASD_FEATURE_FAILFAST	      0x010
 #define DASD_FEATURE_FAILONSLCK       0x020
 #define DASD_FEATURE_USERAW	      0x040
+#define DASD_FEATURE_DISCARD	      0x080
 #define DASD_FEATURE_PATH_AUTODISABLE 0x100
 #define DASD_FEATURE_DEFAULT          DASD_FEATURE_PATH_AUTODISABLE
 
