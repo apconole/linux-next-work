@@ -816,7 +816,7 @@ struct da7219_priv {
 	struct mutex ctrl_lock;
 	struct mutex pll_lock;
 
-#ifdef CONFIG_COMMON_CLK
+#ifdef CONFIG_COMMON_CLK_DA7219
 	struct clk_hw dai_clks_hw;
 #endif
 	struct clk_lookup *dai_clks_lookup;

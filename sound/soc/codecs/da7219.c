@@ -1738,7 +1738,7 @@ static int da7219_handle_supplies(struct snd_soc_component *component)
 	return 0;
 }
 
-#ifdef CONFIG_COMMON_CLK
+#ifdef CONFIG_COMMON_CLK_DA7219
 static int da7219_dai_clks_prepare(struct clk_hw *hw)
 {
 	struct da7219_priv *da7219 =
