@@ -14,6 +14,7 @@
  * more details.
  */
 
+#include <linux/module.h>
 #include <sound/soc-acpi.h>
 
 static acpi_status snd_soc_acpi_find_name(acpi_handle handle, u32 level,

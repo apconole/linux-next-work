@@ -14,6 +14,7 @@
  * more details.
  */
 
+#include <linux/module.h>
 #include <linux/dmi.h>
 #include <sound/soc-acpi.h>
 #include <sound/soc-acpi-intel-match.h>
