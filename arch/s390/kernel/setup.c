@@ -992,7 +992,12 @@ static void __init setup_hwcaps(void)
 		strcpy(elf_platform, "zEC12");
 		break;
 	case 0x2964:
+	case 0x2965:
 		strcpy(elf_platform, "z13");
+		break;
+	case 0x3906:
+	case 0x3907:
+		strcpy(elf_platform, "z14");
 		break;
 	}
 
