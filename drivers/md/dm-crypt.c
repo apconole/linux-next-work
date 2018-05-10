@@ -156,6 +156,7 @@ struct crypt_config {
 	void *iv_private;
 	struct crypto_ablkcipher **tfms;
 	unsigned tfms_count;
+	unsigned long cipher_flags;
 
 	/*
 	 * Layout of each crypto request:
@@ -1706,6 +1707,49 @@ bad_mem:
 	return -ENOMEM;
 }
 
+static int crypt_ctr_optional(struct dm_target *ti, unsigned int argc, char **argv)
+{
+	struct crypt_config *cc = ti->private;
+	struct dm_arg_set as;
+	static struct dm_arg _args[] = {
+		{0, 3, "Invalid number of feature args"},
+	};
+	unsigned int opt_params;
+	const char *opt_string;
+	int ret;
+
+	/* Optional parameters */
+	as.argc = argc;
+	as.argv = argv;
+
+	ret = dm_read_arg_group(_args, &as, &opt_params, &ti->error);
+	if (ret)
+		return ret;
+
+	while (opt_params--) {
+		opt_string = dm_shift_arg(&as);
+		if (!opt_string) {
+			ti->error = "Not enough feature arguments";
+			return -EINVAL;
+		}
+
+		if (!strcasecmp(opt_string, "allow_discards"))
+			ti->num_discard_bios = 1;
+
+		else if (!strcasecmp(opt_string, "same_cpu_crypt"))
+			set_bit(DM_CRYPT_SAME_CPU, &cc->flags);
+
+		else if (!strcasecmp(opt_string, "submit_from_crypt_cpus"))
+			set_bit(DM_CRYPT_NO_OFFLOAD, &cc->flags);
+		else {
+			ti->error = "Invalid feature arguments";
+			return -EINVAL;
+		}
+	}
+
+	return 0;
+}
+
 /*
  * Construct an encryption mapping:
  * <cipher> <key> <iv_offset> <dev_path> <start>
@@ -1713,17 +1757,11 @@ bad_mem:
 static int crypt_ctr(struct dm_target *ti, unsigned int argc, char **argv)
 {
 	struct crypt_config *cc;
-	unsigned int key_size, opt_params;
+	unsigned int key_size;
 	unsigned long long tmpll;
 	int ret;
 	size_t iv_size_padding;
-	struct dm_arg_set as;
-	const char *opt_string;
 	char dummy;
-
-	static const struct dm_arg _args[] = {
-		{0, 3, "Invalid number of feature args"},
-	};
 
 	if (argc < 5) {
 		ti->error = "Not enough arguments";
@@ -1740,6 +1778,14 @@ static int crypt_ctr(struct dm_target *ti, unsigned int argc, char **argv)
 	cc->key_size = key_size;
 
 	ti->private = cc;
+
+	/* Optional parameters need to be read before cipher constructor */
+	if (argc > 5) {
+		ret = crypt_ctr_optional(ti, argc - 5, &argv[5]);
+		if (ret)
+			goto bad;
+	}
+
 	ret = crypt_ctr_cipher(ti, argv[0], argv[1]);
 	if (ret < 0)
 		goto bad;
@@ -1807,42 +1853,6 @@ static int crypt_ctr(struct dm_target *ti, unsigned int argc, char **argv)
 		goto bad;
 	}
 	cc->start = tmpll;
-
-	argv += 5;
-	argc -= 5;
-
-	/* Optional parameters */
-	if (argc) {
-		as.argc = argc;
-		as.argv = argv;
-
-		ret = dm_read_arg_group(_args, &as, &opt_params, &ti->error);
-		if (ret)
-			goto bad;
-
-		ret = -EINVAL;
-		while (opt_params--) {
-			opt_string = dm_shift_arg(&as);
-			if (!opt_string) {
-				ti->error = "Not enough feature arguments";
-				goto bad;
-			}
-
-			if (!strcasecmp(opt_string, "allow_discards"))
-				ti->num_discard_bios = 1;
-
-			else if (!strcasecmp(opt_string, "same_cpu_crypt"))
-				set_bit(DM_CRYPT_SAME_CPU, &cc->flags);
-
-			else if (!strcasecmp(opt_string, "submit_from_crypt_cpus"))
-				set_bit(DM_CRYPT_NO_OFFLOAD, &cc->flags);
-
-			else {
-				ti->error = "Invalid feature arguments";
-				goto bad;
-			}
-		}
-	}
 
 	ret = -ENOMEM;
 	cc->io_queue = alloc_workqueue("kcryptd_io", WQ_HIGHPRI | WQ_CPU_INTENSIVE | WQ_MEM_RECLAIM, 1);
