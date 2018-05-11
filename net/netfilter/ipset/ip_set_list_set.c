@@ -58,25 +58,14 @@ struct set_adt_elem {
 
 /* Type structure */
 struct list_set {
-	size_t dsize;		/* element size */
-	size_t offset[IPSET_EXT_ID_MAX]; /* Offsets to extensions */
 	u32 size;		/* size of set list array */
-	u32 timeout;		/* timeout value */
 	struct timer_list gc;	/* garbage collection */
 	struct net *net;	/* namespace */
 	struct set_elem members[0]; /* the set members */
 };
 
-static inline struct set_elem *
-list_set_elem(const struct list_set *map, u32 id)
-{
-	return (struct set_elem *)((void *)map->members + id * map->dsize);
-}
-
-#define ext_timeout(e, m)	\
-(unsigned long *)((void *)(e) + (m)->offset[IPSET_EXT_ID_TIMEOUT])
-#define ext_counter(e, m)	\
-(struct ip_set_counter *)((void *)(e) + (m)->offset[IPSET_EXT_ID_COUNTER])
+#define list_set_elem(set, map, id)	\
+	(struct set_elem *)((void *)(map)->members + (id) * (set)->dsize)
 
 static int
 list_set_ktest(struct ip_set *set, const struct sk_buff *skb,
@@ -93,16 +82,16 @@ list_set_ktest(struct ip_set *set, const struct sk_buff *skb,
 	if (opt->cmdflags & IPSET_FLAG_SKIP_SUBCOUNTER_UPDATE)
 		opt->cmdflags &= ~IPSET_FLAG_SKIP_COUNTER_UPDATE;
 	for (i = 0; i < map->size; i++) {
-		e = list_set_elem(map, i);
+		e = list_set_elem(set, map, i);
 		if (e->id == IPSET_INVALID_ID)
 			return 0;
 		if (SET_WITH_TIMEOUT(set) &&
-		    ip_set_timeout_expired(ext_timeout(e, map)))
+		    ip_set_timeout_expired(ext_timeout(e, set)))
 			continue;
 		ret = ip_set_test(e->id, skb, par, opt);
 		if (ret > 0) {
 			if (SET_WITH_COUNTER(set))
-				ip_set_update_counter(ext_counter(e, map),
+				ip_set_update_counter(ext_counter(e, set),
 						      ext, &opt->ext,
 						      cmdflags);
 			return ret;
@@ -122,11 +111,11 @@ list_set_kadd(struct ip_set *set, const struct sk_buff *skb,
 	int ret;
 
 	for (i = 0; i < map->size; i++) {
-		e = list_set_elem(map, i);
+		e = list_set_elem(set, map, i);
 		if (e->id == IPSET_INVALID_ID)
 			return 0;
 		if (SET_WITH_TIMEOUT(set) &&
-		    ip_set_timeout_expired(ext_timeout(e, map)))
+		    ip_set_timeout_expired(ext_timeout(e, set)))
 			continue;
 		ret = ip_set_add(e->id, skb, par, opt);
 		if (ret == 0)
@@ -146,11 +135,11 @@ list_set_kdel(struct ip_set *set, const struct sk_buff *skb,
 	int ret;
 
 	for (i = 0; i < map->size; i++) {
-		e = list_set_elem(map, i);
+		e = list_set_elem(set, map, i);
 		if (e->id == IPSET_INVALID_ID)
 			return 0;
 		if (SET_WITH_TIMEOUT(set) &&
-		    ip_set_timeout_expired(ext_timeout(e, map)))
+		    ip_set_timeout_expired(ext_timeout(e, set)))
 			continue;
 		ret = ip_set_del(e->id, skb, par, opt);
 		if (ret == 0)
@@ -164,8 +153,7 @@ list_set_kadt(struct ip_set *set, const struct sk_buff *skb,
 	      const struct xt_action_param *par,
 	      enum ipset_adt adt, struct ip_set_adt_opt *opt)
 {
-	struct list_set *map = set->data;
-	struct ip_set_ext ext = IP_SET_INIT_KEXT(skb, opt, map);
+	struct ip_set_ext ext = IP_SET_INIT_KEXT(skb, opt, set);
 
 	switch (adt) {
 	case IPSET_TEST:
@@ -189,10 +177,10 @@ id_eq(const struct ip_set *set, u32 i, ip_set_id_t id)
 	if (i >= map->size)
 		return 0;
 
-	e = list_set_elem(map, i);
+	e = list_set_elem(set, map, i);
 	return !!(e->id == id &&
 		 !(SET_WITH_TIMEOUT(set) &&
-		   ip_set_timeout_expired(ext_timeout(e, map))));
+		   ip_set_timeout_expired(ext_timeout(e, set))));
 }
 
 static int
@@ -200,28 +188,29 @@ list_set_add(struct ip_set *set, u32 i, struct set_adt_elem *d,
 	     const struct ip_set_ext *ext)
 {
 	struct list_set *map = set->data;
-	struct set_elem *e = list_set_elem(map, i);
+	struct set_elem *e = list_set_elem(set, map, i);
 
 	if (e->id != IPSET_INVALID_ID) {
 		if (i == map->size - 1)
 			/* Last element replaced: e.g. add new,before,last */
 			ip_set_put_byindex(map->net, e->id);
 		else {
-			struct set_elem *x = list_set_elem(map, map->size - 1);
+			struct set_elem *x = list_set_elem(set, map,
+							   map->size - 1);
 
 			/* Last element pushed off */
 			if (x->id != IPSET_INVALID_ID)
 				ip_set_put_byindex(map->net, x->id);
-			memmove(list_set_elem(map, i + 1), e,
-				map->dsize * (map->size - (i + 1)));
+			memmove(list_set_elem(set, map, i + 1), e,
+				set->dsize * (map->size - (i + 1)));
 		}
 	}
 
 	e->id = d->id;
 	if (SET_WITH_TIMEOUT(set))
-		ip_set_timeout_set(ext_timeout(e, map), ext->timeout);
+		ip_set_timeout_set(ext_timeout(e, set), ext->timeout);
 	if (SET_WITH_COUNTER(set))
-		ip_set_init_counter(ext_counter(e, map), ext);
+		ip_set_init_counter(ext_counter(e, set), ext);
 	return 0;
 }
 
@@ -229,16 +218,16 @@ static int
 list_set_del(struct ip_set *set, u32 i)
 {
 	struct list_set *map = set->data;
-	struct set_elem *e = list_set_elem(map, i);
+	struct set_elem *e = list_set_elem(set, map, i);
 
 	ip_set_put_byindex(map->net, e->id);
 
 	if (i < map->size - 1)
-		memmove(e, list_set_elem(map, i + 1),
-			map->dsize * (map->size - (i + 1)));
+		memmove(e, list_set_elem(set, map, i + 1),
+			set->dsize * (map->size - (i + 1)));
 
 	/* Last element */
-	e = list_set_elem(map, map->size - 1);
+	e = list_set_elem(set, map, map->size - 1);
 	e->id = IPSET_INVALID_ID;
 	return 0;
 }
@@ -251,9 +240,9 @@ set_cleanup_entries(struct ip_set *set)
 	u32 i;
 
 	for (i = 0; i < map->size; i++) {
-		e = list_set_elem(map, i);
+		e = list_set_elem(set, map, i);
 		if (e->id != IPSET_INVALID_ID &&
-		    ip_set_timeout_expired(ext_timeout(e, map)))
+		    ip_set_timeout_expired(ext_timeout(e, set)))
 			list_set_del(set, i);
 	}
 }
@@ -269,11 +258,11 @@ list_set_utest(struct ip_set *set, void *value, const struct ip_set_ext *ext,
 	int ret;
 
 	for (i = 0; i < map->size; i++) {
-		e = list_set_elem(map, i);
+		e = list_set_elem(set, map, i);
 		if (e->id == IPSET_INVALID_ID)
 			return 0;
 		else if (SET_WITH_TIMEOUT(set) &&
-			 ip_set_timeout_expired(ext_timeout(e, map)))
+			 ip_set_timeout_expired(ext_timeout(e, set)))
 			continue;
 		else if (e->id != d->id)
 			continue;
@@ -302,11 +291,11 @@ list_set_uadd(struct ip_set *set, void *value, const struct ip_set_ext *ext,
 
 	/* Check already added element */
 	for (i = 0; i < map->size; i++) {
-		e = list_set_elem(map, i);
+		e = list_set_elem(set, map, i);
 		if (e->id == IPSET_INVALID_ID)
 			goto insert;
 		else if (SET_WITH_TIMEOUT(set) &&
-			 ip_set_timeout_expired(ext_timeout(e, map)))
+			 ip_set_timeout_expired(ext_timeout(e, set)))
 			continue;
 		else if (e->id != d->id)
 			continue;
@@ -321,9 +310,9 @@ list_set_uadd(struct ip_set *set, void *value, const struct ip_set_ext *ext,
 			return -IPSET_ERR_EXIST;
 		/* Update extensions */
 		if (SET_WITH_TIMEOUT(set))
-			ip_set_timeout_set(ext_timeout(e, map), ext->timeout);
+			ip_set_timeout_set(ext_timeout(e, set), ext->timeout);
 		if (SET_WITH_COUNTER(set))
-			ip_set_init_counter(ext_counter(e, map), ext);
+			ip_set_init_counter(ext_counter(e, set), ext);
 		/* Set is already added to the list */
 		ip_set_put_byindex(map->net, d->id);
 		return 0;
@@ -331,7 +320,7 @@ list_set_uadd(struct ip_set *set, void *value, const struct ip_set_ext *ext,
 insert:
 	ret = -IPSET_ERR_LIST_FULL;
 	for (i = 0; i < map->size && ret == -IPSET_ERR_LIST_FULL; i++) {
-		e = list_set_elem(map, i);
+		e = list_set_elem(set, map, i);
 		if (e->id == IPSET_INVALID_ID)
 			ret = d->before != 0 ? -IPSET_ERR_REF_EXIST
 				: list_set_add(set, i, d, ext);
@@ -356,12 +345,12 @@ list_set_udel(struct ip_set *set, void *value, const struct ip_set_ext *ext,
 	u32 i;
 
 	for (i = 0; i < map->size; i++) {
-		e = list_set_elem(map, i);
+		e = list_set_elem(set, map, i);
 		if (e->id == IPSET_INVALID_ID)
 			return d->before != 0 ? -IPSET_ERR_REF_EXIST
 					      : -IPSET_ERR_EXIST;
 		else if (SET_WITH_TIMEOUT(set) &&
-			 ip_set_timeout_expired(ext_timeout(e, map)))
+			 ip_set_timeout_expired(ext_timeout(e, set)))
 			continue;
 		else if (e->id != d->id)
 			continue;
@@ -387,7 +376,7 @@ list_set_uadt(struct ip_set *set, struct nlattr *tb[],
 	struct list_set *map = set->data;
 	ipset_adtfn adtfn = set->variant->adt[adt];
 	struct set_adt_elem e = { .refid = IPSET_INVALID_ID };
-	struct ip_set_ext ext = IP_SET_INIT_UEXT(map);
+	struct ip_set_ext ext = IP_SET_INIT_UEXT(set);
 	struct ip_set *s;
 	int ret = 0;
 
@@ -456,7 +445,7 @@ list_set_flush(struct ip_set *set)
 	u32 i;
 
 	for (i = 0; i < map->size; i++) {
-		e = list_set_elem(map, i);
+		e = list_set_elem(set, map, i);
 		if (e->id != IPSET_INVALID_ID) {
 			ip_set_put_byindex(map->net, e->id);
 			e->id = IPSET_INVALID_ID;
@@ -488,13 +477,13 @@ list_set_head(struct ip_set *set, struct sk_buff *skb)
 		goto nla_put_failure;
 	if (nla_put_net32(skb, IPSET_ATTR_SIZE, htonl(map->size)) ||
 	    (SET_WITH_TIMEOUT(set) &&
-	     nla_put_net32(skb, IPSET_ATTR_TIMEOUT, htonl(map->timeout))) ||
+	     nla_put_net32(skb, IPSET_ATTR_TIMEOUT, htonl(set->timeout))) ||
 	    (SET_WITH_COUNTER(set) &&
 	     nla_put_net32(skb, IPSET_ATTR_CADT_FLAGS,
 			   htonl(IPSET_FLAG_WITH_COUNTERS))) ||
 	    nla_put_net32(skb, IPSET_ATTR_REFERENCES, htonl(set->ref)) ||
 	    nla_put_net32(skb, IPSET_ATTR_MEMSIZE,
-			  htonl(sizeof(*map) + map->size * map->dsize)))
+			  htonl(sizeof(*map) + map->size * set->dsize)))
 		goto nla_put_failure;
 	ipset_nest_end(skb, nested);
 
@@ -517,11 +506,11 @@ list_set_list(const struct ip_set *set,
 		return -EMSGSIZE;
 	for (; cb->args[2] < map->size; cb->args[2]++) {
 		i = cb->args[2];
-		e = list_set_elem(map, i);
+		e = list_set_elem(set, map, i);
 		if (e->id == IPSET_INVALID_ID)
 			goto finish;
 		if (SET_WITH_TIMEOUT(set) &&
-		    ip_set_timeout_expired(ext_timeout(e, map)))
+		    ip_set_timeout_expired(ext_timeout(e, set)))
 			continue;
 		nested = ipset_nest_start(skb, IPSET_ATTR_DATA);
 		if (!nested) {
@@ -537,10 +526,10 @@ list_set_list(const struct ip_set *set,
 		if (SET_WITH_TIMEOUT(set) &&
 		    nla_put_net32(skb, IPSET_ATTR_TIMEOUT,
 				  htonl(ip_set_timeout_get(
-						ext_timeout(e, map)))))
+						ext_timeout(e, set)))))
 			goto nla_put_failure;
 		if (SET_WITH_COUNTER(set) &&
-		    ip_set_put_counter(skb, ext_counter(e, map)))
+		    ip_set_put_counter(skb, ext_counter(e, set)))
 			goto nla_put_failure;
 		ipset_nest_end(skb, nested);
 	}
@@ -567,7 +556,7 @@ list_set_same_set(const struct ip_set *a, const struct ip_set *b)
 	const struct list_set *y = b->data;
 
 	return x->size == y->size &&
-	       x->timeout == y->timeout &&
+	       a->timeout == b->timeout &&
 	       a->extensions == b->extensions;
 }
 
@@ -596,7 +585,7 @@ list_set_gc(unsigned long ul_set)
 	set_cleanup_entries(set);
 	write_unlock_bh(&set->lock);
 
-	map->gc.expires = jiffies + IPSET_GC_PERIOD(map->timeout) * HZ;
+	map->gc.expires = jiffies + IPSET_GC_PERIOD(set->timeout) * HZ;
 	add_timer(&map->gc);
 }
 
@@ -608,7 +597,7 @@ list_set_gc_init(struct ip_set *set, void (*gc)(unsigned long ul_set))
 	init_timer(&map->gc);
 	map->gc.data = (unsigned long) set;
 	map->gc.function = gc;
-	map->gc.expires = jiffies + IPSET_GC_PERIOD(map->timeout) * HZ;
+	map->gc.expires = jiffies + IPSET_GC_PERIOD(set->timeout) * HZ;
 	add_timer(&map->gc);
 }
 
@@ -627,13 +616,13 @@ init_list_set(struct net *net, struct ip_set *set, u32 size, size_t dsize,
 		return NULL;
 
 	map->size = size;
-	map->dsize = dsize;
-	map->timeout = timeout;
 	map->net = net;
+	set->dsize = dsize;
+	set->timeout = timeout;
 	set->data = map;
 
 	for (i = 0; i < size; i++) {
-		e = list_set_elem(map, i);
+		e = list_set_elem(set, map, i);
 		e->id = IPSET_INVALID_ID;
 	}
 
@@ -671,9 +660,9 @@ list_set_create(struct net *net, struct ip_set *set, struct nlattr *tb[],
 			if (!map)
 				return -ENOMEM;
 			set->extensions |= IPSET_EXT_TIMEOUT;
-			map->offset[IPSET_EXT_ID_TIMEOUT] =
+			set->offset[IPSET_EXT_ID_TIMEOUT] =
 				offsetof(struct setct_elem, timeout);
-			map->offset[IPSET_EXT_ID_COUNTER] =
+			set->offset[IPSET_EXT_ID_COUNTER] =
 				offsetof(struct setct_elem, counter);
 			list_set_gc_init(set, list_set_gc);
 		} else {
@@ -681,7 +670,7 @@ list_set_create(struct net *net, struct ip_set *set, struct nlattr *tb[],
 					    sizeof(struct setc_elem), 0);
 			if (!map)
 				return -ENOMEM;
-			map->offset[IPSET_EXT_ID_COUNTER] =
+			set->offset[IPSET_EXT_ID_COUNTER] =
 				offsetof(struct setc_elem, counter);
 		}
 	} else if (tb[IPSET_ATTR_TIMEOUT]) {
@@ -690,7 +679,7 @@ list_set_create(struct net *net, struct ip_set *set, struct nlattr *tb[],
 		if (!map)
 			return -ENOMEM;
 		set->extensions |= IPSET_EXT_TIMEOUT;
-		map->offset[IPSET_EXT_ID_TIMEOUT] =
+		set->offset[IPSET_EXT_ID_TIMEOUT] =
 			offsetof(struct sett_elem, timeout);
 		list_set_gc_init(set, list_set_gc);
 	} else {
