@@ -57,7 +57,7 @@ MODULE_ALIAS_NFNL_SUBSYS(NFNL_SUBSYS_IPSET);
 /* When the nfnl mutex is held: */
 #define ip_set_dereference(p)		\
 	rcu_dereference_protected(p, 1)
-#define ip_set(inst, id)			\
+#define ip_set(inst, id)		\
 	ip_set_dereference((inst)->ip_set_list)[id]
 
 /*
