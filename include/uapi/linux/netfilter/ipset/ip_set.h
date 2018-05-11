@@ -10,11 +10,13 @@
 #ifndef _UAPI_IP_SET_H
 #define _UAPI_IP_SET_H
 
-
 #include <linux/types.h>
 
 /* The protocol version */
 #define IPSET_PROTOCOL		6
+
+/* The maximum permissible comment length we will accept over netlink */
+#define IPSET_MAX_COMMENT_SIZE	255
 
 /* The max length of strings including NUL: set and type identifiers */
 #define IPSET_MAXNAMELEN	32
@@ -110,7 +112,7 @@ enum {
 	IPSET_ATTR_IFACE,
 	IPSET_ATTR_BYTES,
 	IPSET_ATTR_PACKETS,
-	__RH_RESERVED_IPSET_ATTR_COMMENT,
+	IPSET_ATTR_COMMENT,
 	__RH_RESERVED_IPSET_ATTR_SKBMARK,
 	__RH_RESERVED_IPSET_ATTR_SKBPRIO,
 	__RH_RESERVED_IPSET_ATTR_SKBQUEUE,
@@ -145,6 +147,7 @@ enum ipset_errno {
 	IPSET_ERR_IPADDR_IPV4,
 	IPSET_ERR_IPADDR_IPV6,
 	IPSET_ERR_COUNTER,
+	IPSET_ERR_COMMENT,
 
 	/* Type specific error codes */
 	IPSET_ERR_TYPE_SPECIFIC = 4352,
@@ -181,6 +184,8 @@ enum ipset_cadt_flags {
 	IPSET_FLAG_NOMATCH	= (1 << IPSET_FLAG_BIT_NOMATCH),
 	IPSET_FLAG_BIT_WITH_COUNTERS = 3,
 	IPSET_FLAG_WITH_COUNTERS = (1 << IPSET_FLAG_BIT_WITH_COUNTERS),
+	IPSET_FLAG_BIT_WITH_COMMENT = 4,
+	IPSET_FLAG_WITH_COMMENT = (1 << IPSET_FLAG_BIT_WITH_COMMENT),
 	IPSET_FLAG_CADT_MAX	= 15,
 };
 
