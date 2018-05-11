@@ -574,9 +574,9 @@ list_set_gc(unsigned long ul_set)
 	struct ip_set *set = (struct ip_set *) ul_set;
 	struct list_set *map = set->data;
 
-	write_lock_bh(&set->lock);
+	spin_lock_bh(&set->lock);
 	set_cleanup_entries(set);
-	write_unlock_bh(&set->lock);
+	spin_unlock_bh(&set->lock);
 
 	map->gc.expires = jiffies + IPSET_GC_PERIOD(set->timeout) * HZ;
 	add_timer(&map->gc);

@@ -545,9 +545,9 @@ mtype_gc(unsigned long ul_set)
 	struct htype *h = set->data;
 
 	pr_debug("called\n");
-	write_lock_bh(&set->lock);
+	spin_lock_bh(&set->lock);
 	mtype_expire(set, h, NLEN(set->family), set->dsize);
-	write_unlock_bh(&set->lock);
+	spin_unlock_bh(&set->lock);
 
 	h->gc.expires = jiffies + IPSET_GC_PERIOD(set->timeout) * HZ;
 	add_timer(&h->gc);
@@ -574,9 +574,9 @@ mtype_resize(struct ip_set *set, bool retried)
 	/* Try to cleanup once */
 	if (SET_WITH_TIMEOUT(set) && !retried) {
 		i = h->elements;
-		write_lock_bh(&set->lock);
+		spin_lock_bh(&set->lock);
 		mtype_expire(set, set->data, NLEN(set->family), set->dsize);
-		write_unlock_bh(&set->lock);
+		spin_unlock_bh(&set->lock);
 		if (h->elements < i)
 			return 0;
 	}
@@ -598,7 +598,7 @@ retry:
 		return -ENOMEM;
 	t->htable_bits = htable_bits;
 
-	read_lock_bh(&set->lock);
+	spin_lock_bh(&set->lock);
 	/* There can't be another parallel resizing, but dumping is possible */
 	atomic_set(&orig->ref, 1);
 	atomic_inc(&orig->uref);
@@ -618,7 +618,7 @@ retry:
 #endif
 				atomic_set(&orig->ref, 0);
 				atomic_dec(&orig->uref);
-				read_unlock_bh(&set->lock);
+				spin_unlock_bh(&set->lock);
 				mtype_ahash_destroy(set, t, false);
 				if (ret == -EAGAIN)
 					goto retry;
@@ -633,7 +633,7 @@ retry:
 	}
 
 	rcu_assign_pointer(h->table, t);
-	read_unlock_bh(&set->lock);
+	spin_unlock_bh(&set->lock);
 
 	/* Give time to other readers of the set */
 	synchronize_rcu_bh();
