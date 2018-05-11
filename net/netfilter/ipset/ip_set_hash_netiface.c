@@ -135,7 +135,7 @@ iface_add(struct rb_root *root, const char **iface)
 
 #define STREQ(a, b)	(strcmp(a, b) == 0)
 
-/* IPv4 variants */
+/* IPv4 variant */
 
 struct hash_netiface4_elem_hashed {
 	__be32 ip;
@@ -145,7 +145,7 @@ struct hash_netiface4_elem_hashed {
 	u8 elem;
 };
 
-/* Member elements without timeout */
+/* Member elements */
 struct hash_netiface4_elem {
 	__be32 ip;
 	u8 physdev;
@@ -153,37 +153,6 @@ struct hash_netiface4_elem {
 	u8 nomatch;
 	u8 elem;
 	const char *iface;
-};
-
-struct hash_netiface4t_elem {
-	__be32 ip;
-	u8 physdev;
-	u8 cidr;
-	u8 nomatch;
-	u8 elem;
-	const char *iface;
-	unsigned long timeout;
-};
-
-struct hash_netiface4c_elem {
-	__be32 ip;
-	u8 physdev;
-	u8 cidr;
-	u8 nomatch;
-	u8 elem;
-	const char *iface;
-	struct ip_set_counter counter;
-};
-
-struct hash_netiface4ct_elem {
-	__be32 ip;
-	u8 physdev;
-	u8 cidr;
-	u8 nomatch;
-	u8 elem;
-	const char *iface;
-	struct ip_set_counter counter;
-	unsigned long timeout;
 };
 
 /* Common functions */
@@ -415,7 +384,7 @@ hash_netiface4_uadt(struct ip_set *set, struct nlattr *tb[],
 	return ret;
 }
 
-/* IPv6 variants */
+/* IPv6 variant */
 
 struct hash_netiface6_elem_hashed {
 	union nf_inet_addr ip;
@@ -432,37 +401,6 @@ struct hash_netiface6_elem {
 	u8 nomatch;
 	u8 elem;
 	const char *iface;
-};
-
-struct hash_netiface6t_elem {
-	union nf_inet_addr ip;
-	u8 physdev;
-	u8 cidr;
-	u8 nomatch;
-	u8 elem;
-	const char *iface;
-	unsigned long timeout;
-};
-
-struct hash_netiface6c_elem {
-	union nf_inet_addr ip;
-	u8 physdev;
-	u8 cidr;
-	u8 nomatch;
-	u8 elem;
-	const char *iface;
-	struct ip_set_counter counter;
-};
-
-struct hash_netiface6ct_elem {
-	union nf_inet_addr ip;
-	u8 physdev;
-	u8 cidr;
-	u8 nomatch;
-	u8 elem;
-	const char *iface;
-	struct ip_set_counter counter;
-	unsigned long timeout;
 };
 
 /* Common functions */
