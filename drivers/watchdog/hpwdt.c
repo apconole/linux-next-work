@@ -115,7 +115,7 @@ static int hpwdt_my_nmi(void)
  */
 static int hpwdt_pretimeout(unsigned int ulReason, struct pt_regs *regs)
 {
-	if (ilo5 && ulReason == NMI_UNKNOWN && hpwdt_my_nmi())
+	if (ilo5 && ulReason == NMI_UNKNOWN && !hpwdt_my_nmi())
 		return NMI_DONE;
 
 	if (allow_kdump)
