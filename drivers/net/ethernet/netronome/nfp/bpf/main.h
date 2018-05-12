@@ -103,6 +103,7 @@ typedef int (*instr_cb_t)(struct nfp_prog *, struct nfp_insn_meta *);
  * struct nfp_insn_meta - BPF instruction wrapper
  * @insn: BPF instruction
  * @ptr: pointer type for memory operations
+ * @ptr_not_const: pointer is not always constant
  * @off: index of first generated machine instruction (in nfp_prog.prog)
  * @n: eBPF instruction number
  * @skip: skip this instruction (optimized out)
@@ -113,6 +114,7 @@ struct nfp_insn_meta {
 	struct bpf_insn insn;
 #if 0 /* Not in RHEL7... */
 	struct bpf_reg_state ptr;
+	bool ptr_not_const;
 #endif
 	unsigned int off;
 	unsigned short n;
