@@ -121,18 +121,12 @@ static int nfp_bpf_setup_tc_block_cb(enum tc_setup_type type,
 	struct tc_cls_bpf_offload *cls_bpf = type_data;
 	struct nfp_net *nn = cb_priv;
 
-	if (!tc_can_offload(nn->dp.netdev))
-		return -EOPNOTSUPP;
-
 	switch (type) {
 	case TC_SETUP_CLSBPF:
 		if (!nfp_net_ebpf_capable(nn) ||
 		    cls_bpf->common.protocol != htons(ETH_P_ALL) ||
 		    cls_bpf->common.chain_index)
 			return -EOPNOTSUPP;
-		if (nn->dp.bpf_offload_xdp)
-			return -EBUSY;
-
 		return nfp_net_bpf_offload(nn, cls_bpf);
 	default:
 		return -EOPNOTSUPP;
@@ -169,6 +163,8 @@ static int nfp_bpf_setup_tc(struct nfp_app *app, struct net_device *netdev,
 			    enum tc_setup_type type, void *type_data)
 {
 	switch (type) {
+	case TC_SETUP_CLSBPF:
+		return 0; /* will be removed after conversion from ndo */
 	case TC_SETUP_BLOCK:
 		return nfp_bpf_setup_tc_block(netdev, type_data);
 	default:
