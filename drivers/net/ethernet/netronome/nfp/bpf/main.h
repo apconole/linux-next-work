@@ -36,6 +36,9 @@
 
 #include <linux/bitfield.h>
 #include <linux/bpf.h>
+#if 0 /* Not in RHEL7... */
+#include <linux/bpf_verifier.h>
+#endif
 #include <linux/list.h>
 #include <linux/types.h>
 
@@ -96,6 +99,7 @@ typedef int (*instr_cb_t)(struct nfp_prog *, struct nfp_insn_meta *);
 /**
  * struct nfp_insn_meta - BPF instruction wrapper
  * @insn: BPF instruction
+ * @ptr: pointer type for memory operations
  * @off: index of first generated machine instruction (in nfp_prog.prog)
  * @n: eBPF instruction number
  * @skip: skip this instruction (optimized out)
@@ -104,6 +108,9 @@ typedef int (*instr_cb_t)(struct nfp_prog *, struct nfp_insn_meta *);
  */
 struct nfp_insn_meta {
 	struct bpf_insn insn;
+#if 0 /* Not in RHEL7... */
+	struct bpf_reg_state ptr;
+#endif
 	unsigned int off;
 	unsigned short n;
 	bool skip;
