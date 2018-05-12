@@ -268,6 +268,11 @@ static inline u32 nfp_get_ind_csr_ctx_ptr_offs(u32 read_offset)
 	return (read_offset & ~NFP_IND_ME_CTX_PTR_BASE_MASK) | NFP_CSR_CTX_PTR;
 }
 
+#define NFP_CSR_ACT_LM_ADDR0	0x64
+#define NFP_CSR_ACT_LM_ADDR1	0x6c
+#define NFP_CSR_ACT_LM_ADDR2	0x94
+#define NFP_CSR_ACT_LM_ADDR3	0x9c
+
 /* Software register representation, independent of operand type */
 #define NN_REG_TYPE	GENMASK(31, 24)
 #define NN_REG_LM_IDX	GENMASK(23, 22)
