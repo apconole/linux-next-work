@@ -588,6 +588,7 @@ struct perf_event {
 	 */
 	RH_KABI_EXTEND(struct rb_node			group_node)
 	RH_KABI_EXTEND(u64				group_index)
+	RH_KABI_EXTEND(struct list_head			active_list)
 #endif /* CONFIG_PERF_EVENTS */
 };
 
@@ -624,6 +625,7 @@ struct perf_event_context {
 	RH_KABI_DEPRECATE(struct list_head, pinned_groups)
 	RH_KABI_DEPRECATE(struct list_head, flexible_groups)
 	struct list_head		event_list;
+
 	int				nr_events;
 	int				nr_active;
 	int				is_active;
@@ -654,6 +656,8 @@ struct perf_event_context {
 	RH_KABI_EXTEND(void			*task_ctx_data) /* pmu specific data */
 	RH_KABI_EXTEND(struct perf_event_groups	pinned_groups)
 	RH_KABI_EXTEND(struct perf_event_groups	flexible_groups)
+	RH_KABI_EXTEND(struct list_head		pinned_active)
+	RH_KABI_EXTEND(struct list_head		flexible_active)
 };
 
 /*
