@@ -583,12 +583,22 @@ struct perf_event {
 	RH_KABI_EXTEND(u64				(*clock)(void))
 	/* The cumulative AND of all event_caps for events in this group. */
 	RH_KABI_EXTEND(int				group_caps)
+	/*
+	 * Node on the pinned or flexible tree located at the event context;
+	 */
+	RH_KABI_EXTEND(struct rb_node			group_node)
+	RH_KABI_EXTEND(u64				group_index)
 #endif /* CONFIG_PERF_EVENTS */
 };
 
 enum perf_event_context_type {
 	task_context,
 	cpu_context,
+};
+
+struct perf_event_groups {
+	struct rb_root	tree;
+	u64		index;
 };
 
 /**
@@ -611,8 +621,8 @@ struct perf_event_context {
 	 */
 	struct mutex			mutex;
 
-	struct list_head		pinned_groups;
-	struct list_head		flexible_groups;
+	RH_KABI_DEPRECATE(struct list_head, pinned_groups)
+	RH_KABI_DEPRECATE(struct list_head, flexible_groups)
 	struct list_head		event_list;
 	int				nr_events;
 	int				nr_active;
@@ -642,6 +652,8 @@ struct perf_event_context {
 	struct rcu_head			rcu_head;
 	RH_KABI_EXTEND(struct list_head		active_ctx_list)
 	RH_KABI_EXTEND(void			*task_ctx_data) /* pmu specific data */
+	RH_KABI_EXTEND(struct perf_event_groups	pinned_groups)
+	RH_KABI_EXTEND(struct perf_event_groups	flexible_groups)
 };
 
 /*
