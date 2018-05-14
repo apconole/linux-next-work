@@ -440,7 +440,8 @@ static void zpci_irq_handler(struct airq_struct *airq)
 			inc_irq_stat(IRQIO_MSI);
 			airq_iv_lock(imap->aibv, ai);
 			if (imap->cb[ai].handler)
-				imap->cb[ai].handler(ai, imap->cb[ai].data);
+				imap->cb[ai].handler(__irq_offset(si) + ai,
+						     imap->cb[ai].data);
 			airq_iv_unlock(imap->aibv, ai);
 		}
 	}
