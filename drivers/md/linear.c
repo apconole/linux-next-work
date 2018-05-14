@@ -262,13 +262,16 @@ static bool linear_make_request(struct mddev *mddev, struct bio *bio)
 	sector_t start_sector;
 	unsigned int max_sectors = blk_queue_get_max_sectors(mddev->queue,
 			bio->bi_rw);
+	const unsigned long do_discard = (bio->bi_rw
+					  & (REQ_DISCARD | REQ_SECURE));
+	const unsigned long do_same = (bio->bi_rw & REQ_WRITE_SAME);
 
 	if (unlikely(bio->bi_rw & REQ_FLUSH)) {
 		md_flush_request(mddev, bio);
 		return true;
 	}
 
-	if (bio_sectors(bio) > max_sectors) {
+	if (!do_discard && !do_same && bio_sectors(bio) > max_sectors) {
 		struct bio_pair2 *bp = bio_split2(bio, max_sectors);
 		if (!bp) {
 			bio_io_error(bio);
@@ -283,7 +286,6 @@ static bool linear_make_request(struct mddev *mddev, struct bio *bio)
 
 	tmp_dev = which_dev(mddev, bio->bi_sector);
 	start_sector = tmp_dev->end_sector - tmp_dev->rdev->sectors;
-
 
 	if (unlikely(bio->bi_sector >= (tmp_dev->end_sector)
 		     || (bio->bi_sector < start_sector))) {
