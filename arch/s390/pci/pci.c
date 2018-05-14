@@ -44,6 +44,8 @@
 #define ZPCI_NR_DMA_SPACES		1
 #define ZPCI_NR_DEVICES			CONFIG_PCI_NR_FUNCTIONS
 
+#define ZPCI_MSI_NR_OFFSET		1
+
 /* list of all detected zpci devices */
 static LIST_HEAD(zpci_list);
 static DEFINE_SPINLOCK(zpci_list_lock);
@@ -84,12 +86,12 @@ static struct kmem_cache *zdev_fmb_cache;
 
 static inline int irq_to_msi_nr(unsigned int irq)
 {
-	return irq & ZPCI_MSI_VEC_MASK;
+	return (irq - ZPCI_MSI_NR_OFFSET) & ZPCI_MSI_VEC_MASK;
 }
 
 static inline int irq_to_dev_nr(unsigned int irq)
 {
-	return irq >> ZPCI_MSI_VEC_BITS;
+	return (irq - ZPCI_MSI_NR_OFFSET) >> ZPCI_MSI_VEC_BITS;
 }
 
 struct zpci_dev *get_zdev(struct pci_dev *pdev)
@@ -404,6 +406,11 @@ static struct pci_ops pci_root_ops = {
 	.write = pci_write,
 };
 
+static inline int __irq_offset(int sum_bit)
+{
+	return (sum_bit << ZPCI_MSI_VEC_BITS) + ZPCI_MSI_NR_OFFSET;
+}
+
 static void zpci_irq_handler(struct airq_struct *airq)
 {
 	unsigned long si, ai;
@@ -515,14 +522,10 @@ int arch_setup_msi_irqs(struct pci_dev *pdev, int nvec, int type)
 	zpci_imap[aisb] = zdev->irq_map;
 	zdev->irq_map->aibv = zdev->aibv;
 
-	/*
-	 * TODO: irq number 0 wont be found if we return less than the
-	 * requested MSIs. Ignore it for now and fix in common code.
-	 */
-	msi_nr = aisb << ZPCI_MSI_VEC_BITS;
+	msi_nr = __irq_offset(aisb);
 	list_for_each_entry(msi, &pdev->msi_list, list) {
 		rc = zpci_setup_msi_irq(zdev, msi, msi_nr,
-					  aisb << ZPCI_MSI_VEC_BITS);
+					__irq_offset(aisb));
 		if (rc)
 			return rc;
 		msi_nr++;
@@ -548,7 +551,7 @@ void arch_teardown_msi_irqs(struct pci_dev *pdev)
 		return;
 
 	list_for_each_entry(msi, &pdev->msi_list, list)
-		zpci_teardown_msi_irq(zdev, msi);
+		zpci_teardown_msi_irq(zdev, msi, __irq_offset(zdev->aisb));
 
 	zpci_free_msi(zdev);
 

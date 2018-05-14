@@ -182,7 +182,7 @@ int clp_get_state(u32 fid, enum zpci_state *state);
 struct msi_desc *__irq_get_msi_desc(unsigned int);
 int zpci_msi_set_mask_bits(struct msi_desc *, u32, u32);
 int zpci_setup_msi_irq(struct zpci_dev *, struct msi_desc *, unsigned int, int);
-void zpci_teardown_msi_irq(struct zpci_dev *, struct msi_desc *);
+void zpci_teardown_msi_irq(struct zpci_dev *, struct msi_desc *, int);
 int zpci_msihash_init(void);
 void zpci_msihash_exit(void);
 
