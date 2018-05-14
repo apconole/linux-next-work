@@ -187,8 +187,8 @@ static bool faulty_make_request(struct mddev *mddev, struct bio *bio)
 			return true;
 		}
 
-		faulty_make_request(mddev, bp->bio1);
-		faulty_make_request(mddev, bp->bio2);
+		generic_make_request(bp->bio1);
+		generic_make_request(bp->bio2);
 		bio_pair2_release(bp);
 		return true;
 	}
