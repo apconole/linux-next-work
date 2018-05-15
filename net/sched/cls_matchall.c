@@ -73,7 +73,6 @@ static void mall_destroy_hw_filter(struct tcf_proto *tp,
 				   struct cls_mall_head *head,
 				   unsigned long cookie)
 {
-	struct net_device *dev = tp->q->dev_queue->dev;
 	struct tc_cls_matchall_offload cls_mall = {};
 	struct tcf_block *block = tp->chain->block;
 
@@ -81,9 +80,6 @@ static void mall_destroy_hw_filter(struct tcf_proto *tp,
 	cls_mall.command = TC_CLSMATCHALL_DESTROY;
 	cls_mall.cookie = cookie;
 
-	if (tc_can_offload(dev))
-		__rh_call_ndo_setup_tc(dev, TC_SETUP_CLSMATCHALL,
-				       &cls_mall);
 	tc_setup_cb_call(block, NULL, TC_SETUP_CLSMATCHALL, &cls_mall, false);
 }
 
@@ -91,7 +87,6 @@ static int mall_replace_hw_filter(struct tcf_proto *tp,
 				  struct cls_mall_head *head,
 				  unsigned long cookie)
 {
-	struct net_device *dev = tp->q->dev_queue->dev;
 	struct tc_cls_matchall_offload cls_mall = {};
 	struct tcf_block *block = tp->chain->block;
 	bool skip_sw = tc_skip_sw(head->flags);
@@ -101,17 +96,6 @@ static int mall_replace_hw_filter(struct tcf_proto *tp,
 	cls_mall.command = TC_CLSMATCHALL_REPLACE;
 	cls_mall.exts = &head->exts;
 	cls_mall.cookie = cookie;
-
-	if (tc_can_offload(dev)) {
-		err = __rh_call_ndo_setup_tc(dev, TC_SETUP_CLSMATCHALL,
-					     &cls_mall);
-		if (err) {
-			if (skip_sw)
-				return err;
-		} else {
-			head->flags |= TCA_CLS_FLAGS_IN_HW;
-		}
-	}
 
 	err = tc_setup_cb_call(block, NULL, TC_SETUP_CLSMATCHALL,
 			       &cls_mall, skip_sw);

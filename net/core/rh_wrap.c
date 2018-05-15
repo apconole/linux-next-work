@@ -184,8 +184,26 @@ int __rh_call_ndo_setup_tc(struct net_device *dev, enum tc_setup_type type,
 	int ret = -EOPNOTSUPP;
 
 	if (get_ndo_ext(ops, ndo_setup_tc_rh)) {
+		/*
+		 * The drivers implementing .ndo_setup_tc_rh() should handle
+		 * only types >= TC_SETUP_BLOCK.
+		 * The types TC_SETUP_{MQPRIO,CLSU32,CLSFLOWER,CLSMATCHALL,
+		 * CLSBPF} are handled by TC setup callbacks.
+		 */
+		if (type < TC_SETUP_BLOCK)
+			return 0;
 		ret = get_ndo_ext(ops, ndo_setup_tc_rh)(dev, type, type_data);
 	} else if (ops->ndo_setup_tc_rh74) {
+		/*
+		 * Callback .ndo_setup_tc() for RHEL-7.4 drivers should be
+		 * called only when TC offloading is supported and enabled
+		 * by the device. There is one exception: flower classifier
+		 * in combination with mirred action where offloading can
+		 * be provided by egress device. This functionality is
+		 * handled in handle_cls_flower_rh74().
+		 */
+		if (!tc_can_offload(dev) && type != TC_SETUP_CLSFLOWER)
+			return 0;
 		switch (type) {
 		case TC_SETUP_MQPRIO:
 			ret = handle_sch_mqprio_rh74(dev, type_data);

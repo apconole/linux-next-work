@@ -1219,6 +1219,18 @@ int tc_setup_cb_call(struct tcf_block *block, struct tcf_exts *exts,
 	int ok_count;
 	int ret;
 
+	/*
+	 * RHEL: Older drivers compiled against RHEL 7.4 and older don't
+	 * use TC setup callback infrastructure. We need to call their
+	 * .ndo_setup_tc() callback for types used by classifiers in RHEL 7.4
+	 * TC_SETUP_{MQPRIO,CLS*}.
+	 * For newer drivers and such types the __rh_call_ndo_setup_tc()
+	 * does nothing and immediately returns 0.
+	 */
+	ret = __rh_call_ndo_setup_tc(tcf_block_dev(block), type, type_data);
+	if (ret < 0 && err_stop)
+		return ret;
+
 	ret = tcf_block_cb_call(block, type, type_data, err_stop);
 	if (ret < 0)
 		return ret;

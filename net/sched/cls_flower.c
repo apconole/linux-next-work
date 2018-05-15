@@ -244,16 +244,12 @@ static void fl_destroy_filter(struct rcu_head *head)
 static void fl_hw_destroy_filter(struct tcf_proto *tp, struct cls_fl_filter *f)
 {
 	struct tc_cls_flower_offload cls_flower = {};
-	struct net_device *dev = tp->q->dev_queue->dev;
 	struct tcf_block *block = tp->chain->block;
 
 	tc_cls_common_offload_init(&cls_flower.common, tp);
 	cls_flower.command = TC_CLSFLOWER_DESTROY;
 	cls_flower.cookie = (unsigned long) f;
 
-	if (tc_can_offload(dev))
-		__rh_call_ndo_setup_tc(dev, TC_SETUP_CLSFLOWER,
-				       &cls_flower);
 	tc_setup_cb_call(block, &f->exts, TC_SETUP_CLSFLOWER,
 			 &cls_flower, false);
 }
@@ -263,7 +259,6 @@ static int fl_hw_replace_filter(struct tcf_proto *tp,
 				struct fl_flow_key *mask,
 				struct cls_fl_filter *f)
 {
-	struct net_device *dev = tp->q->dev_queue->dev;
 	struct tc_cls_flower_offload cls_flower = {};
 	struct tcf_block *block = tp->chain->block;
 	bool skip_sw = tc_skip_sw(f->flags);
@@ -276,26 +271,6 @@ static int fl_hw_replace_filter(struct tcf_proto *tp,
 	cls_flower.mask = mask;
 	cls_flower.key = &f->mkey;
 	cls_flower.exts = &f->exts;
-
-	/*
-	 * RHEL note: We need to preserve 'egress_dev' functionality for
-	 * drivers compiled against RHEL-7.4 that uses it. In this case
-	 * we have to call .ndo_setup_tc() callback of egress device
-	 * associated with one of assigned actions.
-	 *
-	 * This emulation is done by handle_cls_flower_rh74() in
-	 * net/core/rh_wrap.c to avoid RHEL specific code here.
-	 */
-	if (tc_can_offload(dev) || dev->netdev_ops->ndo_setup_tc_rh74) {
-		err = __rh_call_ndo_setup_tc(dev, TC_SETUP_CLSFLOWER,
-					     &cls_flower);
-		if (err) {
-			if (skip_sw)
-				return err;
-		} else {
-			f->flags |= TCA_CLS_FLAGS_IN_HW;
-		}
-	}
 
 	err = tc_setup_cb_call(block, &f->exts, TC_SETUP_CLSFLOWER,
 			       &cls_flower, skip_sw);
@@ -315,7 +290,6 @@ static int fl_hw_replace_filter(struct tcf_proto *tp,
 static void fl_hw_update_stats(struct tcf_proto *tp, struct cls_fl_filter *f)
 {
 	struct tc_cls_flower_offload cls_flower = {};
-	struct net_device *dev = tp->q->dev_queue->dev;
 	struct tcf_block *block = tp->chain->block;
 
 	tc_cls_common_offload_init(&cls_flower.common, tp);
@@ -323,9 +297,6 @@ static void fl_hw_update_stats(struct tcf_proto *tp, struct cls_fl_filter *f)
 	cls_flower.cookie = (unsigned long) f;
 	cls_flower.exts = &f->exts;
 
-	if (tc_can_offload(dev))
-		__rh_call_ndo_setup_tc(dev, TC_SETUP_CLSFLOWER,
-				       &cls_flower);
 	tc_setup_cb_call(block, &f->exts, TC_SETUP_CLSFLOWER,
 			 &cls_flower, false);
 }
