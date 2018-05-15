@@ -261,7 +261,7 @@ static void tcf_block_offload_cmd(struct tcf_block *block, struct Qdisc *q,
 	struct net_device *dev = q->dev_queue->dev;
 	struct tc_block_offload bo = {};
 
-	if (!tc_can_offload(dev))
+	if (!__rh_has_ndo_setup_tc(dev))
 		return;
 	bo.command = command;
 	bo.binder_type = ei->binder_type;
