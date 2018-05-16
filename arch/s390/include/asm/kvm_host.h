@@ -282,6 +282,7 @@ struct kvm_arch{
 	struct kvm_s390_float_interrupt float_int;
 	struct gmap *gmap;
 	int css_support;
+	struct ratelimit_state sthyi_limit;
 };
 
 #define KVM_HVA_ERR_BAD		(-1UL)

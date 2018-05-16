@@ -260,6 +260,8 @@ int kvm_arch_init_vm(struct kvm *kvm, unsigned long type)
 	rc = -ENOMEM;
 
 	kvm->arch.sca = (struct sca_block *) get_zeroed_page(GFP_KERNEL);
+	ratelimit_state_init(&kvm->arch.sthyi_limit, 5 * HZ, 500);
+
 	if (!kvm->arch.sca)
 		goto out_err;
 
