@@ -136,6 +136,8 @@ int __must_check kvm_s390_inject_sigp_stop(struct kvm_vcpu *vcpu, int action);
 struct kvm_s390_interrupt_info *kvm_s390_get_io_int(struct kvm *kvm,
 						    u64 cr6, u64 schid);
 
+int handle_sthyi(struct kvm_vcpu *vcpu);
+
 /* implemented in priv.c */
 int kvm_s390_handle_b2(struct kvm_vcpu *vcpu);
 int kvm_s390_handle_e5(struct kvm_vcpu *vcpu);
@@ -147,9 +149,6 @@ int kvm_s390_handle_eb(struct kvm_vcpu *vcpu);
 
 /* implemented in sigp.c */
 int kvm_s390_handle_sigp(struct kvm_vcpu *vcpu);
-
-/* implemented in sthyi.c */
-int handle_sthyi(struct kvm_vcpu *vcpu);
 
 /* implemented in kvm-s390.c */
 int kvm_s390_vcpu_store_status(struct kvm_vcpu *vcpu,
