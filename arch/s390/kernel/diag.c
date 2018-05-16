@@ -127,3 +127,16 @@ int diag26c(void *req, void *resp, enum diag26c_sc subcode)
 	return __diag26c(req, resp, subcode);
 }
 EXPORT_SYMBOL(diag26c);
+int diag224(void *ptr)
+{
+	int rc = -EOPNOTSUPP;
+
+	asm volatile(
+		"	diag	%1,%2,0x224\n"
+		"0:	lhi	%0,0x0\n"
+		"1:\n"
+		EX_TABLE(0b,1b)
+		: "+d" (rc) :"d" (0), "d" (ptr) : "memory");
+	return rc;
+}
+EXPORT_SYMBOL(diag224);
