@@ -135,6 +135,7 @@ struct kvm_vcpu_stat {
 	u64 instruction_lctlg;
 	u64 exit_program_interruption;
 	u64 exit_instr_and_program;
+	u32 exit_operation_exception;
 	u64 deliver_external_call;
 	u64 deliver_emergency_signal;
 	u64 deliver_service_signal;

@@ -137,6 +137,15 @@ static int handle_instruction_and_prog(struct kvm_vcpu *vcpu)
 	return rc2;
 }
 
+static int handle_operexc(struct kvm_vcpu *vcpu)
+{
+	vcpu->stat.exit_operation_exception++;
+	trace_kvm_s390_handle_operexc(vcpu, vcpu->arch.sie_block->ipa,
+				      vcpu->arch.sie_block->ipb);
+
+	return kvm_s390_inject_program_int(vcpu, PGM_OPERATION);
+}
+
 static const intercept_handler_t intercept_funcs[] = {
 	[0x00 >> 2] = handle_noop,
 	[0x04 >> 2] = handle_instruction,
@@ -148,6 +157,7 @@ static const intercept_handler_t intercept_funcs[] = {
 	[0x1C >> 2] = kvm_s390_handle_wait,
 	[0x20 >> 2] = handle_validity,
 	[0x28 >> 2] = handle_stop,
+	[0x2c >> 2] = handle_operexc,
 };
 
 int kvm_handle_sie_intercept(struct kvm_vcpu *vcpu)
