@@ -143,6 +143,9 @@ static int handle_operexc(struct kvm_vcpu *vcpu)
 	trace_kvm_s390_handle_operexc(vcpu, vcpu->arch.sie_block->ipa,
 				      vcpu->arch.sie_block->ipb);
 
+	if (vcpu->arch.sie_block->ipa == 0xb256)
+		return handle_sthyi(vcpu);
+
 	return kvm_s390_inject_program_int(vcpu, PGM_OPERATION);
 }
 

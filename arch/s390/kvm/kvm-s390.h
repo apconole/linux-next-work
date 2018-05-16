@@ -148,6 +148,9 @@ int kvm_s390_handle_eb(struct kvm_vcpu *vcpu);
 /* implemented in sigp.c */
 int kvm_s390_handle_sigp(struct kvm_vcpu *vcpu);
 
+/* implemented in sthyi.c */
+int handle_sthyi(struct kvm_vcpu *vcpu);
+
 /* implemented in kvm-s390.c */
 int kvm_s390_vcpu_store_status(struct kvm_vcpu *vcpu,
 				 unsigned long addr);
