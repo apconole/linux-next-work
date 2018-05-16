@@ -387,3 +387,5 @@ SYSCALL(sys_copy_file_range,sys_copy_file_range,sys_copy_file_range_wrapper) /* 
 NI_SYSCALL
 NI_SYSCALL
 SYSCALL(sys_s390_guarded_storage,sys_s390_guarded_storage,sys_s390_guarded_storage_wrapper) /* 378 */
+NI_SYSCALL
+SYSCALL(sys_s390_sthyi,sys_s390_sthyi,sys_s390_sthyi_wrapper) /* 380 */
