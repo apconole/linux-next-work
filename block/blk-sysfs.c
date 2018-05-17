@@ -544,14 +544,6 @@ static void blk_release_queue(struct kobject *kobj)
 	if (test_bit(QUEUE_FLAG_POLL_STATS, &q->queue_flags))
 		blk_stat_remove_callback(q, q->poll_cb);
 	blk_stat_free_callback(q->poll_cb);
-	blkcg_exit_queue(q);
-
-	if (q->elevator) {
-		spin_lock_irq(q->queue_lock);
-		ioc_clear_queue(q);
-		spin_unlock_irq(q->queue_lock);
-		elevator_exit(q, q->elevator);
-	}
 
 	blk_free_queue_stats(q->stats);
 
