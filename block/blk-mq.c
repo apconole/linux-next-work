@@ -1407,17 +1407,6 @@ static void blk_mq_delay_work_fn(struct work_struct *work)
 		__blk_mq_run_hw_queue(hctx);
 }
 
-void blk_mq_delay_queue(struct blk_mq_hw_ctx *hctx, unsigned long msecs)
-{
-	if (unlikely(!blk_mq_hw_queue_mapped(hctx)))
-		return;
-
-	blk_mq_stop_hw_queue(hctx);
-	kblockd_schedule_delayed_work_on(blk_mq_hctx_next_cpu(hctx),
-			&hctx->delay_work, msecs_to_jiffies(msecs));
-}
-EXPORT_SYMBOL(blk_mq_delay_queue);
-
 static inline void __blk_mq_insert_req_list(struct blk_mq_hw_ctx *hctx,
 					    struct request *rq,
 					    bool at_head)
