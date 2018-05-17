@@ -1047,6 +1047,8 @@ static bool blk_mq_mark_tag_wait(struct blk_mq_hw_ctx **hctx,
 	return true;
 }
 
+#define BLK_MQ_RESOURCE_DELAY	3		/* ms units */
+
 bool blk_mq_dispatch_rq_list(struct request_queue *q, struct list_head *list,
 			     bool got_budget)
 {
@@ -1124,6 +1126,7 @@ bool blk_mq_dispatch_rq_list(struct request_queue *q, struct list_head *list,
 			queued++;
 			break;
 		case BLK_MQ_RQ_QUEUE_BUSY:
+		case BLK_MQ_RQ_QUEUE_DEV_BUSY:
 			/*
 			 * If an I/O scheduler has been configured and we got a
 			 * driver tag for the next request already, free it again.
@@ -1144,7 +1147,7 @@ bool blk_mq_dispatch_rq_list(struct request_queue *q, struct list_head *list,
 			break;
 		}
 
-		if (ret == BLK_MQ_RQ_QUEUE_BUSY)
+		if (ret == BLK_MQ_RQ_QUEUE_BUSY || ret == BLK_MQ_RQ_QUEUE_DEV_BUSY)
 			break;
 
 		/*
@@ -1162,6 +1165,8 @@ bool blk_mq_dispatch_rq_list(struct request_queue *q, struct list_head *list,
 	 * that is where we will continue on next queue run.
 	 */
 	if (!list_empty(list)) {
+		bool needs_restart;
+
 		spin_lock(&hctx->lock);
 		list_splice_init(list, &hctx->dispatch);
 		spin_unlock(&hctx->lock);
@@ -1182,10 +1187,17 @@ bool blk_mq_dispatch_rq_list(struct request_queue *q, struct list_head *list,
 		 * a driver tag with an I/O scheduler attached. If our dispatch
 		 * waitqueue is no longer active, ensure that we run the queue
 		 * AFTER adding our entries back to the list.
+		 *
+		 * If driver returns BLK_MQ_RQ_QUEUE_BUSY and SCHED_RESTART
+		 * bit is set, run queue after a delay to avoid IO stalls
+		 * that could otherwise occur if the queue is idle.
 		 */
-		if (!blk_mq_sched_needs_restart(hctx) ||
+		needs_restart = blk_mq_sched_needs_restart(hctx);
+		if (!needs_restart ||
 		    (no_tag && list_empty_careful(&hctx->dispatch_wait.task_list)))
 			blk_mq_run_hw_queue(hctx, true);
+		else if (needs_restart && (ret == BLK_MQ_RQ_QUEUE_BUSY))
+			blk_mq_delay_run_hw_queue(hctx, BLK_MQ_RESOURCE_DELAY);
 	}
 
 	return (queued + errors) != 0;
@@ -1587,6 +1599,7 @@ static int __blk_mq_issue_directly(struct blk_mq_hw_ctx *hctx, struct request *r
 	case BLK_MQ_RQ_QUEUE_OK:
 		break;
 	case BLK_MQ_RQ_QUEUE_BUSY:
+	case BLK_MQ_RQ_QUEUE_DEV_BUSY:
 		__blk_mq_requeue_request(rq);
 		break;
 	default:
@@ -1645,7 +1658,7 @@ static void blk_mq_try_issue_directly(struct blk_mq_hw_ctx *hctx,
 	might_sleep_if(hctx->flags & BLK_MQ_F_BLOCKING);
 	hctx_lock(hctx, &srcu_idx);
 	ret = __blk_mq_try_issue_directly(hctx, rq, false);
-	if (ret == BLK_MQ_RQ_QUEUE_BUSY)
+	if (ret == BLK_MQ_RQ_QUEUE_BUSY || ret == BLK_MQ_RQ_QUEUE_DEV_BUSY)
 		blk_mq_sched_insert_request(rq, false, true, false);
 	else if (ret != BLK_MQ_RQ_QUEUE_OK)
 		blk_mq_end_request(rq, ret);

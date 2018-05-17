@@ -1893,9 +1893,9 @@ out_put_budget:
 	scsi_mq_put_budget(hctx);
 	switch (ret) {
 	case BLK_MQ_RQ_QUEUE_BUSY:
-		if (atomic_read(&sdev->device_busy) == 0 &&
-		    !scsi_device_blocked(sdev))
-			blk_mq_delay_run_hw_queue(hctx, SCSI_QUEUE_DELAY);
+		if (atomic_read(&sdev->device_busy) ||
+		    scsi_device_blocked(sdev))
+			ret = BLK_MQ_RQ_QUEUE_DEV_BUSY;
 		break;
 	case BLK_MQ_RQ_QUEUE_ERROR:
 		/*

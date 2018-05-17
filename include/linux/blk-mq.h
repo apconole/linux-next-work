@@ -234,6 +234,24 @@ enum {
 	BLK_MQ_RQ_QUEUE_BUSY	= 1,	/* requeue IO for later */
 	BLK_MQ_RQ_QUEUE_ERROR	= 2,	/* end IO with error */
 
+	/*
+	 * BLK_MQ_RQ_QUEUE_DEV_BUSY is returned from the driver to the block layer if
+	 * device related resources are unavailable, but the driver can guarantee
+	 * that the queue will be rerun in the future once resources become
+	 * available again. This is typically the case for device specific
+	 * resources that are consumed for IO. If the driver fails allocating these
+	 * resources, we know that inflight (or pending) IO will free these
+	 * resource upon completion.
+	 *
+	 * This is different from BLK_MQ_RQ_QUEUE_BUSY in that it explicitly references
+	 * a device specific resource. For resources of wider scope, allocation
+	 * failure can happen without having pending IO. This means that we can't
+	 * rely on request completions freeing these resources, as IO may not be in
+	 * flight. Examples of that are kernel memory allocations, DMA mappings, or
+	 * any other system wide resources.
+	 */
+	BLK_MQ_RQ_QUEUE_DEV_BUSY	= 3,
+
 	BLK_MQ_F_SHOULD_MERGE	= 1 << 0,
 	BLK_MQ_F_SHOULD_SORT	= 1 << 1,
 	BLK_MQ_F_TAG_SHARED	= 1 << 2,

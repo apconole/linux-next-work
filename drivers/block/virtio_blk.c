@@ -218,7 +218,7 @@ static int virtio_queue_rq(struct blk_mq_hw_ctx *hctx,
 		/* Out of mem doesn't actually happen, since we fall back
 		 * to direct descriptors */
 		if (err == -ENOMEM || err == -ENOSPC)
-			return BLK_MQ_RQ_QUEUE_BUSY;
+			return BLK_MQ_RQ_QUEUE_DEV_BUSY;
 		return BLK_MQ_RQ_QUEUE_ERROR;
 	}
 
