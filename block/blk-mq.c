@@ -1607,15 +1607,6 @@ static int __blk_mq_issue_directly(struct blk_mq_hw_ctx *hctx, struct request *r
 	return ret;
 }
 
-static void __blk_mq_fallback_to_insert(struct request *rq,
-					bool run_queue, bool bypass_insert)
-{
-	if (!bypass_insert)
-		blk_mq_sched_insert_request(rq, false, run_queue, false);
-	else
-		blk_mq_request_bypass_insert(rq, run_queue);
-}
-
 static int __blk_mq_try_issue_directly(struct blk_mq_hw_ctx *hctx,
 						struct request *rq,
 						bool bypass_insert)
@@ -1623,9 +1614,16 @@ static int __blk_mq_try_issue_directly(struct blk_mq_hw_ctx *hctx,
 	struct request_queue *q = rq->q;
 	bool run_queue = true;
 
-	/* RCU or SRCU read lock is needed before checking quiesced flag */
+	/*
+	 * RCU or SRCU read lock is needed before checking quiesced flag.
+	 *
+	 * When queue is stopped or quiesced, ignore 'bypass_insert' from
+	 * blk_mq_request_direct_issue(), and return BLK_STS_OK to caller,
+	 * and avoid driver to try to dispatch again.
+	 */
 	if (blk_mq_hctx_stopped(hctx) || blk_queue_quiesced(q)) {
 		run_queue = false;
+		bypass_insert = false;
 		goto insert;
 	}
 
@@ -1642,10 +1640,10 @@ static int __blk_mq_try_issue_directly(struct blk_mq_hw_ctx *hctx,
 
 	return __blk_mq_issue_directly(hctx, rq);
 insert:
-	__blk_mq_fallback_to_insert(rq, run_queue, bypass_insert);
 	if (bypass_insert)
 		return BLK_MQ_RQ_QUEUE_BUSY;
 
+	blk_mq_sched_insert_request(rq, false, run_queue, false);
 	return BLK_MQ_RQ_QUEUE_OK;
 }
 
@@ -1659,7 +1657,7 @@ static void blk_mq_try_issue_directly(struct blk_mq_hw_ctx *hctx,
 	hctx_lock(hctx, &srcu_idx);
 	ret = __blk_mq_try_issue_directly(hctx, rq, false);
 	if (ret == BLK_MQ_RQ_QUEUE_BUSY)
-		__blk_mq_fallback_to_insert(rq, true, false);
+		blk_mq_sched_insert_request(rq, false, true, false);
 	else if (ret != BLK_MQ_RQ_QUEUE_OK)
 		blk_mq_end_request(rq, ret);
 
