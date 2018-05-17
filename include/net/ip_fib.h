@@ -228,6 +228,12 @@ void fib_notify(struct net *net, struct notifier_block *nb);
 struct fib_table {
 	struct hlist_node	tb_hlist;
 	u32			tb_id;
+	/* Remove the field would cause some functions checksum changed,
+	 * which may affect some customers' symbol list. Use
+	 * RH_KABI_DEPRECATE is just a courtesy and the struct is not kABI
+	 * frozen
+	 */
+	RH_KABI_DEPRECATE(int,	tb_default)
 	int			tb_num_default;
 	struct rcu_head		rcu;
 	unsigned long 		*tb_data;
