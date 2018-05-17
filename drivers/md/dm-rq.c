@@ -468,7 +468,7 @@ static void end_clone_request(struct request *clone, int error)
 	dm_complete_request(tio->orig, error);
 }
 
-static void dm_dispatch_clone_request(struct request *clone, struct request *rq)
+static int dm_dispatch_clone_request(struct request *clone, struct request *rq)
 {
 	int r;
 
@@ -477,9 +477,10 @@ static void dm_dispatch_clone_request(struct request *clone, struct request *rq)
 
 	clone->start_time = jiffies;
 	r = blk_insert_cloned_request(clone->q, clone);
-	if (r)
+	if (r != BLK_MQ_RQ_QUEUE_OK && r != BLK_MQ_RQ_QUEUE_BUSY)
 		/* must complete clone in terms of original request */
 		dm_complete_request(rq, r);
+	return r;
 }
 
 static int dm_rq_bio_constructor(struct bio *bio, struct bio *bio_orig,
@@ -629,6 +630,7 @@ static int map_request(struct dm_rq_target_io *tio)
 	struct mapped_device *md = tio->md;
 	struct request *rq = tio->orig;
 	struct request *clone = NULL;
+	int ret;
 
 	if (tio->clone) {
 		clone = tio->clone;
@@ -649,7 +651,7 @@ static int map_request(struct dm_rq_target_io *tio)
 			return DM_MAPIO_REQUEUE;
 		}
 	}
-
+check_again:
 	switch (r) {
 	case DM_MAPIO_SUBMITTED:
 		/* The target has taken the I/O to submit by itself later */
@@ -658,7 +660,17 @@ static int map_request(struct dm_rq_target_io *tio)
 		/* The target has remapped the I/O so dispatch it */
 		trace_block_rq_remap(clone->q, clone, disk_devt(dm_disk(md)),
 				     blk_rq_pos(rq));
-		dm_dispatch_clone_request(clone, rq);
+		ret = dm_dispatch_clone_request(clone, rq);
+		if (ret == BLK_MQ_RQ_QUEUE_BUSY) {
+			blk_rq_unprep_clone(clone);
+			tio->ti->type->release_clone_rq(clone);
+			tio->clone = NULL;
+			if (!rq->q->mq_ops)
+				r = DM_MAPIO_DELAY_REQUEUE;
+			else
+				r = DM_MAPIO_REQUEUE;
+			goto check_again;
+		}
 		break;
 	case DM_MAPIO_REQUEUE:
 		/* The target wants to requeue the I/O */
