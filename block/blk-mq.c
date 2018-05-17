@@ -640,13 +640,13 @@ static void blk_mq_requeue_work(struct work_struct *work)
 
 		rq->cmd_flags &= ~REQ_SOFTBARRIER;
 		list_del_init(&rq->queuelist);
-		blk_mq_sched_insert_request(rq, true, false, false, true);
+		blk_mq_sched_insert_request(rq, true, false, false);
 	}
 
 	while (!list_empty(&rq_list)) {
 		rq = list_entry(rq_list.next, struct request, queuelist);
 		list_del_init(&rq->queuelist);
-		blk_mq_sched_insert_request(rq, false, false, false, true);
+		blk_mq_sched_insert_request(rq, false, false, false);
 	}
 
 	blk_mq_run_hw_queues(q, false);
@@ -1607,13 +1607,11 @@ static int __blk_mq_issue_directly(struct blk_mq_hw_ctx *hctx, struct request *r
 	return ret;
 }
 
-static void __blk_mq_fallback_to_insert(struct blk_mq_hw_ctx *hctx,
-					struct request *rq,
+static void __blk_mq_fallback_to_insert(struct request *rq,
 					bool run_queue, bool bypass_insert)
 {
 	if (!bypass_insert)
-		blk_mq_sched_insert_request(rq, false, run_queue, false,
-					    hctx->flags & BLK_MQ_F_BLOCKING);
+		blk_mq_sched_insert_request(rq, false, run_queue, false);
 	else
 		blk_mq_request_bypass_insert(rq, run_queue);
 }
@@ -1644,7 +1642,7 @@ static int __blk_mq_try_issue_directly(struct blk_mq_hw_ctx *hctx,
 
 	return __blk_mq_issue_directly(hctx, rq);
 insert:
-	__blk_mq_fallback_to_insert(hctx, rq, run_queue, bypass_insert);
+	__blk_mq_fallback_to_insert(rq, run_queue, bypass_insert);
 	if (bypass_insert)
 		return BLK_MQ_RQ_QUEUE_BUSY;
 
@@ -1661,7 +1659,7 @@ static void blk_mq_try_issue_directly(struct blk_mq_hw_ctx *hctx,
 	hctx_lock(hctx, &srcu_idx);
 	ret = __blk_mq_try_issue_directly(hctx, rq, false);
 	if (ret == BLK_MQ_RQ_QUEUE_BUSY)
-		__blk_mq_fallback_to_insert(hctx, rq, true, false);
+		__blk_mq_fallback_to_insert(rq, true, false);
 	else if (ret != BLK_MQ_RQ_QUEUE_OK)
 		blk_mq_end_request(rq, ret);
 
@@ -1780,7 +1778,7 @@ static void blk_mq_make_request(struct request_queue *q, struct bio *bio)
 	} else if (q->elevator) {
 		blk_mq_put_ctx(data.ctx);
 		blk_mq_bio_to_request(rq, bio);
-		blk_mq_sched_insert_request(rq, false, true, true, true);
+		blk_mq_sched_insert_request(rq, false, true, true);
 	} else {
 		blk_mq_put_ctx(data.ctx);
 		blk_mq_bio_to_request(rq, bio);
