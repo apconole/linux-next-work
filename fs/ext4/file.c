@@ -322,42 +322,11 @@ static inline int ext4_dax_fault(struct vm_area_struct *vma,
 	return ext4_dax_huge_fault(vmf, PE_SIZE_PTE);
 }
 
-/*
- * Handle write fault for VM_MIXEDMAP mappings. Similarly to ext4_dax_fault()
- * handler we check for races agaist truncate. Note that since we cycle through
- * i_mmap_sem, we are sure that also any hole punching that began before we
- * were called is finished by now and so if it included part of the file we
- * are working on, our pte will get unmapped and the check for pte_same() in
- * wp_pfn_shared() fails. Thus fault gets retried and things work out as
- * desired.
- */
-static int ext4_dax_pfn_mkwrite(struct vm_area_struct *vma,
-				struct vm_fault *vmf)
-{
-	struct inode *inode = file_inode(vma->vm_file);
-	struct super_block *sb = inode->i_sb;
-	loff_t size;
-	int ret;
-
-	sb_start_pagefault(sb);
-	file_update_time(vma->vm_file);
-	down_read(&EXT4_I(inode)->i_mmap_sem);
-	size = (i_size_read(inode) + PAGE_SIZE - 1) >> PAGE_SHIFT;
-	if (vmf->pgoff >= size)
-		ret = VM_FAULT_SIGBUS;
-	else
-		ret = dax_pfn_mkwrite(vma, vmf);
-	up_read(&EXT4_I(inode)->i_mmap_sem);
-	sb_end_pagefault(sb);
-
-	return ret;
-}
-
 static const struct vm_operations_struct ext4_dax_vm_ops = {
 	.fault		= ext4_dax_fault,
 	.huge_fault	= ext4_dax_huge_fault,
 	.page_mkwrite	= ext4_dax_fault,
-	.pfn_mkwrite	= ext4_dax_pfn_mkwrite,
+	.pfn_mkwrite	= ext4_dax_fault,
 	.remap_pages	= generic_file_remap_pages,
 };
 #else
