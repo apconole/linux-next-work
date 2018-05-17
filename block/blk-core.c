@@ -2171,9 +2171,15 @@ void generic_make_request(struct bio *bio)
 	 * yet.
 	 */
 	struct bio_list bio_list_on_stack[2];
+	struct request_queue *q = bdev_get_queue(bio->bi_bdev);
+
+	if (blk_queue_enter(q, 0) < 0) {
+		bio_io_error(bio);
+		return;
+	}
 
 	if (!generic_make_request_checks(bio))
-		return;
+		goto out;
 
 	/*
 	 * We only want one ->make_request_fn to be active at a time, else
@@ -2187,7 +2193,7 @@ void generic_make_request(struct bio *bio)
 	 */
 	if (current->bio_list) {
 		bio_list_add(&current->bio_list[0], bio);
-		return;
+		goto out;
 	}
 
 	/* following loop may be a bit non-obvious, and so deserves some
@@ -2208,17 +2214,25 @@ void generic_make_request(struct bio *bio)
 	bio_list_init(&bio_list_on_stack[0]);
 	current->bio_list = bio_list_on_stack;
 	do {
-		struct request_queue *q = bdev_get_queue(bio->bi_bdev);
+		bool enter_succeeded = true;
 
-		if (likely(blk_queue_enter(q, 0) == 0)) {
+		if (unlikely(q != bdev_get_queue(bio->bi_bdev))) {
+			if (q)
+				blk_queue_exit(q);
+			q = bdev_get_queue(bio->bi_bdev);
+			if (blk_queue_enter(q, 0) < 0) {
+				enter_succeeded = false;
+				q = NULL;
+			}
+		}
+
+		if (enter_succeeded) {
 			struct bio_list lower, same;
 
 			/* Create a fresh bio_list for all subordinate requests */
 			bio_list_on_stack[1] = bio_list_on_stack[0];
 			bio_list_init(&bio_list_on_stack[0]);
 			q->make_request_fn(q, bio);
-
-			blk_queue_exit(q);
 
 			/* sort new bios into those for a lower level
 			 * and those for the same level
@@ -2240,6 +2254,9 @@ void generic_make_request(struct bio *bio)
 		bio = bio_list_pop(&bio_list_on_stack[0]);
 	} while (bio);
 	current->bio_list = NULL; /* deactivate */
+ out:
+	if (q)
+		blk_queue_exit(q);
 }
 EXPORT_SYMBOL(generic_make_request);
 
