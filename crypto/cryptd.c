@@ -663,16 +663,18 @@ static void cryptd_aead_crypt(struct aead_request *req,
 			int (*crypt)(struct aead_request *req))
 {
 	struct cryptd_aead_request_ctx *rctx;
+	crypto_completion_t compl;
+
 	rctx = aead_request_ctx(req);
+	compl = rctx->complete;
 
 	if (unlikely(err == -EINPROGRESS))
 		goto out;
 	aead_request_set_tfm(req, child);
 	err = crypt( req );
-	req->base.complete = rctx->complete;
 out:
 	local_bh_disable();
-	rctx->complete(&req->base, err);
+	compl(&req->base, err);
 	local_bh_enable();
 }
 
@@ -732,7 +734,9 @@ static int cryptd_aead_init_tfm(struct crypto_tfm *tfm)
 
 	crypto_aead_set_flags(cipher, CRYPTO_TFM_REQ_MAY_SLEEP);
 	ctx->child = cipher;
-	tfm->crt_aead.reqsize = sizeof(struct cryptd_aead_request_ctx);
+	tfm->crt_aead.reqsize =
+		max((unsigned)sizeof(struct cryptd_aead_request_ctx),
+		    crypto_aead_reqsize(cipher));
 	return 0;
 }
 
@@ -750,7 +754,7 @@ static int cryptd_create_aead(struct crypto_template *tmpl,
 	struct crypto_instance *inst;
 	struct crypto_alg *alg;
 	u32 type = CRYPTO_ALG_TYPE_AEAD;
-	u32 mask = CRYPTO_ALG_TYPE_MASK;
+	u32 mask = CRYPTO_ALG_TYPE_MASK | CRYPTO_ALG_ASYNC;
 	int err;
 
 	cryptd_check_internal(tb, &type, &mask);
