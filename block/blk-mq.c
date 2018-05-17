@@ -1578,8 +1578,7 @@ static inline void blk_mq_queue_io(struct blk_mq_hw_ctx *hctx,
 	spin_unlock(&ctx->lock);
 }
 
-static void __blk_mq_try_issue_directly(struct blk_mq_hw_ctx *hctx,
-					struct request *rq)
+static int __blk_mq_issue_directly(struct blk_mq_hw_ctx *hctx, struct request *rq)
 {
 	struct request_queue *q = rq->q;
 	struct blk_mq_queue_data bd = {
@@ -1588,6 +1587,38 @@ static void __blk_mq_try_issue_directly(struct blk_mq_hw_ctx *hctx,
 		.last = true,
 	};
 	int ret;
+
+	/*
+	 * For OK queue, we are done. For error, caller may kill it.
+	 * Any other error (busy), just add it to our list as we
+	 * previously would have done.
+	 */
+	ret = q->mq_ops->queue_rq(hctx, &bd);
+	switch (ret) {
+	case BLK_MQ_RQ_QUEUE_OK:
+		break;
+	case BLK_MQ_RQ_QUEUE_BUSY:
+		__blk_mq_requeue_request(rq);
+		break;
+	default:
+		break;
+	}
+
+	return ret;
+}
+
+static void __blk_mq_fallback_to_insert(struct blk_mq_hw_ctx *hctx,
+					struct request *rq,
+					bool run_queue)
+{
+	blk_mq_sched_insert_request(rq, false, run_queue, false,
+					hctx->flags & BLK_MQ_F_BLOCKING);
+}
+
+static int __blk_mq_try_issue_directly(struct blk_mq_hw_ctx *hctx,
+						struct request *rq)
+{
+	struct request_queue *q = rq->q;
 	bool run_queue = true;
 
 	/* RCU or SRCU read lock is needed before checking quiesced flag */
@@ -1607,35 +1638,27 @@ static void __blk_mq_try_issue_directly(struct blk_mq_hw_ctx *hctx,
 		goto insert;
 	}
 
-	/*
-	 * For OK queue, we are done. For error, kill it. Any other
-	 * error (busy), just add it to our list as we previously
-	 * would have done
-	 */
-	ret = q->mq_ops->queue_rq(hctx, &bd);
-	if (ret == BLK_MQ_RQ_QUEUE_OK)
-		return;
-
-	if (ret == BLK_MQ_RQ_QUEUE_ERROR) {
-		rq->errors = -EIO;
-		blk_mq_end_request(rq, rq->errors);
-		return;
-	}
-
-	__blk_mq_requeue_request(rq);
+	return __blk_mq_issue_directly(hctx, rq);
 insert:
-	blk_mq_sched_insert_request(rq, false, run_queue, false,
-					hctx->flags & BLK_MQ_F_BLOCKING);
+	__blk_mq_fallback_to_insert(hctx, rq, run_queue);
+
+	return BLK_MQ_RQ_QUEUE_OK;
 }
 
 static void blk_mq_try_issue_directly(struct blk_mq_hw_ctx *hctx,
 				      struct request *rq)
 {
+	int ret;
 	int srcu_idx;
 
 	might_sleep_if(hctx->flags & BLK_MQ_F_BLOCKING);
 	hctx_lock(hctx, &srcu_idx);
-	__blk_mq_try_issue_directly(hctx, rq);
+	ret = __blk_mq_try_issue_directly(hctx, rq);
+	if (ret == BLK_MQ_RQ_QUEUE_BUSY)
+		__blk_mq_fallback_to_insert(hctx, rq, true);
+	else if (ret != BLK_MQ_RQ_QUEUE_OK)
+		blk_mq_end_request(rq, ret);
+
 	hctx_unlock(hctx, srcu_idx);
 }
 
