@@ -493,6 +493,22 @@ static void __blk_mq_complete_request(struct request *rq)
 		blk_mq_ipi_complete_request(rq);
 }
 
+static void hctx_unlock(struct blk_mq_hw_ctx *hctx, int srcu_idx)
+{
+	if (!(hctx->flags & BLK_MQ_F_BLOCKING))
+		rcu_read_unlock();
+	else
+		srcu_read_unlock(&hctx->queue_rq_srcu, srcu_idx);
+}
+
+static void hctx_lock(struct blk_mq_hw_ctx *hctx, int *srcu_idx)
+{
+	if (!(hctx->flags & BLK_MQ_F_BLOCKING))
+		rcu_read_lock();
+	else
+		*srcu_idx = srcu_read_lock(&hctx->queue_rq_srcu);
+}
+
 /**
  * blk_mq_complete_request - end I/O on a request
  * @rq:		the request being processed
@@ -1177,17 +1193,11 @@ static void __blk_mq_run_hw_queue(struct blk_mq_hw_ctx *hctx)
 	WARN_ON(!cpumask_test_cpu(raw_smp_processor_id(), hctx->cpumask) &&
 		cpu_online(hctx->next_cpu));
 
-	if (!(hctx->flags & BLK_MQ_F_BLOCKING)) {
-		rcu_read_lock();
-		blk_mq_sched_dispatch_requests(hctx);
-		rcu_read_unlock();
-	} else {
-		might_sleep();
+	might_sleep_if(hctx->flags & BLK_MQ_F_BLOCKING);
 
-		srcu_idx = srcu_read_lock(&hctx->queue_rq_srcu);
-		blk_mq_sched_dispatch_requests(hctx);
-		srcu_read_unlock(&hctx->queue_rq_srcu, srcu_idx);
-	}
+	hctx_lock(hctx, &srcu_idx);
+	blk_mq_sched_dispatch_requests(hctx);
+	hctx_unlock(hctx, srcu_idx);
 }
 
 /*
@@ -1256,17 +1266,10 @@ bool blk_mq_run_hw_queue(struct blk_mq_hw_ctx *hctx, bool async)
 	 * And queue will be rerun in blk_mq_unquiesce_queue() if it is
 	 * quiesced.
 	 */
-	if (!(hctx->flags & BLK_MQ_F_BLOCKING)) {
-		rcu_read_lock();
-		need_run = !blk_queue_quiesced(hctx->queue) &&
-			blk_mq_hctx_has_pending(hctx);
-		rcu_read_unlock();
-	} else {
-		srcu_idx = srcu_read_lock(&hctx->queue_rq_srcu);
-		need_run = !blk_queue_quiesced(hctx->queue) &&
-			blk_mq_hctx_has_pending(hctx);
-		srcu_read_unlock(&hctx->queue_rq_srcu, srcu_idx);
-	}
+	hctx_lock(hctx, &srcu_idx);
+	need_run = !blk_queue_quiesced(hctx->queue) &&
+		blk_mq_hctx_has_pending(hctx);
+	hctx_unlock(hctx, srcu_idx);
 
 	if (need_run) {
 		__blk_mq_delay_run_hw_queue(hctx, async, 0);
@@ -1571,7 +1574,7 @@ static inline void blk_mq_queue_io(struct blk_mq_hw_ctx *hctx,
 }
 
 static void __blk_mq_try_issue_directly(struct blk_mq_hw_ctx *hctx,
-					struct request *rq, bool may_sleep)
+					struct request *rq)
 {
 	struct request_queue *q = rq->q;
 	struct blk_mq_queue_data bd = {
@@ -1616,25 +1619,19 @@ static void __blk_mq_try_issue_directly(struct blk_mq_hw_ctx *hctx,
 
 	__blk_mq_requeue_request(rq);
 insert:
-	blk_mq_sched_insert_request(rq, false, run_queue, false, may_sleep);
+	blk_mq_sched_insert_request(rq, false, run_queue, false,
+					hctx->flags & BLK_MQ_F_BLOCKING);
 }
 
 static void blk_mq_try_issue_directly(struct blk_mq_hw_ctx *hctx,
 				      struct request *rq)
 {
-	if (!(hctx->flags & BLK_MQ_F_BLOCKING)) {
-		rcu_read_lock();
-		__blk_mq_try_issue_directly(hctx, rq, false);
-		rcu_read_unlock();
-	} else {
-		unsigned int srcu_idx;
+	int srcu_idx;
 
-		might_sleep();
-
-		srcu_idx = srcu_read_lock(&hctx->queue_rq_srcu);
-		__blk_mq_try_issue_directly(hctx, rq, true);
-		srcu_read_unlock(&hctx->queue_rq_srcu, srcu_idx);
-	}
+	might_sleep_if(hctx->flags & BLK_MQ_F_BLOCKING);
+	hctx_lock(hctx, &srcu_idx);
+	__blk_mq_try_issue_directly(hctx, rq);
+	hctx_unlock(hctx, srcu_idx);
 }
 
 static void blk_mq_make_request(struct request_queue *q, struct bio *bio)
