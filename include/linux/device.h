@@ -746,6 +746,7 @@ struct acpi_dev_node {
  * @coherent_dma_mask: Like dma_mask, but for alloc_coherent mapping as not all
  * 		hardware supports 64-bit addresses for consistent allocations
  * 		such descriptors.
+ * @dma_pfn_offset: offset of DMA memory range relatively of RAM
  * @dma_parms:	A low level driver may set these to teach IOMMU code about
  * 		segment limitations.
  * @dma_pools:	Dma pools (if dma'ble device).
@@ -861,6 +862,10 @@ struct device_rh {
 
 	/* RHEL7: due to KABI this can't go into struct class */
 	RH_KABI_EXTEND(int (*class_shutdown_pre)(struct device *dev))
+
+	/* RHEL7: due to KABI this can't go into struct class */
+	RH_KABI_EXTEND(unsigned long  dma_pfn_offset)
+
 };
 /* allocator for device_rh */
 extern void device_rh_alloc(struct device *dev);
