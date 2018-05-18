@@ -1750,6 +1750,76 @@ out:
 	return 0;
 }
 
+int madvise_free_huge_pmd(struct mmu_gather *tlb, struct vm_area_struct *vma,
+		pmd_t *pmd, unsigned long addr, unsigned long next)
+
+{
+	spinlock_t *ptl;
+	pmd_t orig_pmd;
+	struct page *page;
+	struct mm_struct *mm = tlb->mm;
+	int ret = 0;
+
+	if (!pmd_trans_huge_lock(pmd, vma, &ptl))
+		goto out;
+
+	orig_pmd = *pmd;
+	if (is_huge_zero_pmd(orig_pmd)) {
+		ret = 1;
+		goto out;
+	}
+
+	page = pmd_page(orig_pmd);
+	/*
+	 * If other processes are mapping this page, we couldn't discard
+	 * the page unless they all do MADV_FREE so let's skip the page.
+	 */
+	if (page_mapcount(page) != 1)
+		goto out;
+
+	if (!trylock_page(page))
+		goto out;
+
+	/*
+	 * If user want to discard part-pages of THP, split it so MADV_FREE
+	 * will deactivate only them.
+	 */
+	if (next - addr != HPAGE_PMD_SIZE) {
+		get_page(page);
+		spin_unlock(ptl);
+		if (split_huge_page(page)) {
+			put_page(page);
+			unlock_page(page);
+			goto out_unlocked;
+		}
+		put_page(page);
+		unlock_page(page);
+		ret = 1;
+		goto out_unlocked;
+	}
+
+	if (PageDirty(page))
+		ClearPageDirty(page);
+	unlock_page(page);
+
+	if (PageActive(page))
+		deactivate_page(page);
+
+	if (pmd_young(orig_pmd) || pmd_dirty(orig_pmd)) {
+		orig_pmd = pmdp_get_and_clear(tlb->mm, addr, pmd);
+		orig_pmd = pmd_mkold(orig_pmd);
+		orig_pmd = pmd_mkclean(orig_pmd);
+
+		set_pmd_at(mm, addr, pmd, orig_pmd);
+		tlb_remove_pmd_tlb_entry(tlb, pmd, addr);
+	}
+	ret = 1;
+out:
+	spin_unlock(ptl);
+out_unlocked:
+	return ret;
+}
+
 int zap_huge_pmd(struct mmu_gather *tlb, struct vm_area_struct *vma,
 		 pmd_t *pmd, unsigned long addr)
 {
@@ -2249,6 +2319,7 @@ static int __split_huge_page_map(struct page *page,
 	pmd = page_check_address_pmd(page, mm, address,
 			PAGE_CHECK_ADDRESS_PMD_SPLITTING_FLAG, &ptl);
 	if (pmd) {
+		bool dirty = pmd_dirty(*pmd);
 		pgtable = pgtable_trans_huge_withdraw(mm, pmd);
 		pmd_populate(mm, &_pmd, pgtable);
 
@@ -2257,7 +2328,7 @@ static int __split_huge_page_map(struct page *page,
 			pte_t *pte, entry;
 			BUG_ON(PageCompound(page+i));
 			entry = mk_pte(page + i, vma->vm_page_prot);
-			entry = maybe_mkwrite(pte_mkdirty(entry), vma);
+			entry = maybe_mkwrite(entry, vma);
 			if (!pmd_write(*pmd))
 				entry = pte_wrprotect(entry);
 			else
@@ -2266,6 +2337,8 @@ static int __split_huge_page_map(struct page *page,
 				entry = pte_mkold(entry);
 			if (pmd_numa(*pmd))
 				entry = pte_mknuma(entry);
+			if (dirty)
+				SetPageDirty(page + i);
 			pte = pte_offset_map(&_pmd, haddr);
 			BUG_ON(!pte_none(*pte));
 			set_pte_at(mm, haddr, pte, entry);
