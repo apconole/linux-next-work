@@ -73,6 +73,13 @@ UNUSUAL_DEV(0x152d, 0x0567, 0x0000, 0x9999,
 		USB_SC_DEVICE, USB_PR_DEVICE, NULL,
 		US_FL_BROKEN_FUA | US_FL_NO_REPORT_OPCODES),
 
+/* Reported-by: Icenowy Zheng <icenowy@aosc.io> */
+UNUSUAL_DEV(0x2537, 0x1068, 0x0000, 0x9999,
+		"Norelsys",
+		"NS1068X",
+		USB_SC_DEVICE, USB_PR_DEVICE, NULL,
+		US_FL_IGNORE_UAS),
+
 /* Reported-by: Takeo Nakayama <javhera@gmx.com> */
 UNUSUAL_DEV(0x357d, 0x7788, 0x0000, 0x9999,
 		"JMicron",
