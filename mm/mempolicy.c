@@ -666,6 +666,9 @@ queue_pages_range(struct mm_struct *mm, unsigned long start, unsigned long end,
 	for (vma = first; vma && vma->vm_start < end; vma = vma->vm_next) {
 		unsigned long endvma = vma->vm_end;
 
+		if (vma->vm_flags & VM_PFNMAP)
+			continue;
+
 		if (endvma > end)
 			endvma = end;
 		if (vma->vm_start > start)
