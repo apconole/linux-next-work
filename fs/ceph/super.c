@@ -959,7 +959,7 @@ static int ceph_register_bdi(struct super_block *sb,
 	int err;
 
 	/* set ra_pages based on rasize mount option? */
-	sb->s_bdi->ra_pages = fsc->mount_options->rasize >> PAGE_SHIFT;
+	fsc->backing_dev_info.ra_pages = fsc->mount_options->rasize >> PAGE_SHIFT;
 
 	err = bdi_register(&fsc->backing_dev_info, NULL, "ceph-%ld",
 			   atomic_long_inc_return(&bdi_seq));
