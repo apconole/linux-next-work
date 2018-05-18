@@ -1474,9 +1474,6 @@ __xfs_end_io_direct_write(
 	if (XFS_FORCED_SHUTDOWN(mp) || ioend->io_error)
 		goto out_end_io;
 
-	if (size <= 0)
-		return;
-
 	/*
 	 * The ioend only maps whole blocks, while the IO may be sector aligned.
 	 * Hence the ioend offset/size may not match the IO offset/size exactly.
@@ -1545,6 +1542,9 @@ xfs_end_io_direct_write(
 {
 	struct inode		*inode = file_inode(iocb->ki_filp);
 	struct xfs_ioend	*ioend = private;
+
+	if (size <= 0)
+		return;
 
 	trace_xfs_gbmap_direct_endio(XFS_I(inode), offset, size,
 				     ioend ? ioend->io_type : 0, NULL);
