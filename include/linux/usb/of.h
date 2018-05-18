@@ -12,6 +12,8 @@
 #include <linux/usb/otg.h>
 #include <linux/usb/phy.h>
 
+struct usb_device;
+
 #if IS_ENABLED(CONFIG_OF)
 enum usb_dr_mode of_usb_get_dr_mode(struct device_node *np);
 enum usb_device_speed of_usb_get_maximum_speed(struct device_node *np);
@@ -20,6 +22,9 @@ int of_usb_update_otg_caps(struct device_node *np,
 			struct usb_otg_caps *otg_caps);
 struct device_node *usb_of_get_child_node(struct device_node *parent,
 			int portnum);
+bool usb_of_has_combined_node(struct usb_device *udev);
+struct device_node *usb_of_get_interface_node(struct usb_device *udev,
+		u8 config, u8 ifnum);
 struct device *usb_of_get_companion_dev(struct device *dev);
 #else
 static inline enum usb_dr_mode of_usb_get_dr_mode(struct device_node *np)
@@ -43,6 +48,15 @@ static inline int of_usb_update_otg_caps(struct device_node *np,
 }
 static inline struct device_node *usb_of_get_child_node
 		(struct device_node *parent, int portnum)
+{
+	return NULL;
+}
+static inline bool usb_of_has_combined_node(struct usb_device *udev)
+{
+	return false;
+}
+static inline struct device_node *
+usb_of_get_interface_node(struct usb_device *udev, u8 config, u8 ifnum)
 {
 	return NULL;
 }
