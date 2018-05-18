@@ -897,4 +897,13 @@ static inline struct fwnode_handle *acpi_get_next_subnode(struct device *dev,
 }
 #endif
 
+#ifdef CONFIG_ACPI_LPIT
+int lpit_read_residency_count_address(u64 *address);
+#else
+static inline int lpit_read_residency_count_address(u64 *address)
+{
+	return -EINVAL;
+}
+#endif
+
 #endif	/*_LINUX_ACPI_H*/

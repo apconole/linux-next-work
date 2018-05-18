@@ -211,4 +211,10 @@ bool acpi_osi_is_win8(void);
 void acpi_init_properties(struct acpi_device *adev);
 void acpi_free_properties(struct acpi_device *adev);
 
+#ifdef CONFIG_ACPI_LPIT
+void acpi_init_lpit(void);
+#else
+static inline void acpi_init_lpit(void) { }
+#endif
+
 #endif /* _ACPI_INTERNAL_H_ */

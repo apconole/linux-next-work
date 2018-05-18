@@ -54,6 +54,7 @@ ifdef CONFIG_ACPI_VIDEO
 acpi-y				+= video_detect.o
 endif
 obj-y				+= dptf/
+acpi-$(CONFIG_ACPI_LPIT)	+= acpi_lpit.o
 
 # These are (potentially) separate modules
 
