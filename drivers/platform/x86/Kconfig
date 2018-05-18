@@ -127,7 +127,6 @@ config DELL_SMBIOS_SMM
 
 config DELL_LAPTOP
 	tristate "Dell Laptop Extras"
-	depends on X86
 	depends on DELL_SMBIOS
 	depends on BACKLIGHT_CLASS_DEVICE
 	depends on RFKILL || RFKILL = n
@@ -524,7 +523,7 @@ config THINKPAD_ACPI_HOTKEY_POLL
 
 config SENSORS_HDAPS
 	tristate "Thinkpad Hard Drive Active Protection System (hdaps)"
-	depends on INPUT && X86
+	depends on INPUT
 	select INPUT_POLLDEV
 	default n
 	help
@@ -725,7 +724,7 @@ config TOSHIBA_BT_RFKILL
 
 config ACPI_CMPC
 	tristate "CMPC Laptop Extras"
-	depends on X86 && ACPI
+	depends on ACPI
 	depends on RFKILL || RFKILL=n
 	select INPUT
 	select BACKLIGHT_CLASS_DEVICE
@@ -811,7 +810,7 @@ config INTEL_IPS
 
 config INTEL_PMC_CORE
 	bool "Intel PMC Core driver"
-	depends on X86 && PCI
+	depends on PCI
 	---help---
 	  The Intel Platform Controller Hub for Intel Core SoCs provides access
 	  to Power Management Controller registers via a PCI interface. This
@@ -823,7 +822,7 @@ config INTEL_PMC_CORE
 
 config IBM_RTL
 	tristate "Device driver to enable PRTL support"
-	depends on X86 && PCI
+	depends on PCI
 	---help---
 	 Enable support for IBM Premium Real Time Mode (PRTM).
 	 This module will allow you the enter and exit PRTM in the BIOS via
@@ -856,7 +855,6 @@ config XO15_EBOOK
 
 config SAMSUNG_LAPTOP
 	tristate "Samsung Laptop driver"
-	depends on X86
 	depends on RFKILL || RFKILL = n
 	depends on BACKLIGHT_CLASS_DEVICE
 	select LEDS_CLASS
