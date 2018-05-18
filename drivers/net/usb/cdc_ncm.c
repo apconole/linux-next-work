@@ -1020,7 +1020,7 @@ static void cdc_ncm_align_tail(struct sk_buff *skb, size_t modulus, size_t remai
 	if (skb->len + align > max)
 		align = max - skb->len;
 	if (align && skb_tailroom(skb) >= align)
-		memset(skb_put(skb, align), 0, align);
+		skb_put_zero(skb, align);
 }
 
 /* return a pointer to a valid struct usb_cdc_ncm_ndp16 of type sign, possibly
