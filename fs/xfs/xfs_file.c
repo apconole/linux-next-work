@@ -1107,103 +1107,70 @@ xfs_file_llseek(
  *       page_lock (MM)
  *         i_lock (XFS - extent map serialisation)
  */
-
-/*
- * mmap()d file has taken write protection fault and is being made writable. We
- * can set the page state up correctly for a writable page, which means we can
- * do correct delalloc accounting (ENOSPC checking!) and unwritten extent
- * mapping.
- */
-STATIC int
-xfs_filemap_page_mkwrite(
+static int
+__xfs_filemap_fault(
 	struct vm_area_struct	*vma,
-	struct vm_fault		*vmf)
+	struct vm_fault		*vmf,
+	enum page_entry_size	pe_size,
+	bool			write_fault)
 {
 	struct inode		*inode = file_inode(vma->vm_file);
+	struct xfs_inode	*ip = XFS_I(inode);
 	int			ret;
 
-	trace_xfs_filemap_page_mkwrite(XFS_I(inode));
+	trace_xfs_filemap_fault(ip, pe_size, write_fault);
 
-	sb_start_pagefault(inode->i_sb);
-	file_update_time(vma->vm_file);
-	xfs_ilock(XFS_I(inode), XFS_MMAPLOCK_SHARED);
-
-	if (IS_DAX(inode)) {
-		ret = dax_iomap_fault(vmf, PE_SIZE_PTE, &xfs_iomap_ops);
-	} else {
-		ret = iomap_page_mkwrite(vma, vmf, &xfs_iomap_ops);
+	if (write_fault) {
+		sb_start_pagefault(inode->i_sb);
+		file_update_time(vma->vm_file);
 	}
 
+	xfs_ilock(XFS_I(inode), XFS_MMAPLOCK_SHARED);
+	if (IS_DAX(inode)) {
+		ret = dax_iomap_fault(vmf, pe_size, &xfs_iomap_ops);
+	} else {
+		if (write_fault)
+			ret = iomap_page_mkwrite(vma, vmf, &xfs_iomap_ops);
+		else
+			ret = filemap_fault(vma, vmf);
+	}
 	xfs_iunlock(XFS_I(inode), XFS_MMAPLOCK_SHARED);
-	sb_end_pagefault(inode->i_sb);
 
+	if (write_fault)
+		sb_end_pagefault(inode->i_sb);
 	return ret;
 }
 
-STATIC int
+static int
 xfs_filemap_fault(
 	struct vm_area_struct	*vma,
 	struct vm_fault		*vmf)
 {
-	struct inode		*inode = file_inode(vma->vm_file);
-	int			ret;
-
-	trace_xfs_filemap_fault(XFS_I(inode));
-
 	/* DAX can shortcut the normal fault path on write faults! */
-	if ((vmf->flags & FAULT_FLAG_WRITE) && IS_DAX(inode))
-		return xfs_filemap_page_mkwrite(vma, vmf);
-
-	xfs_ilock(XFS_I(inode), XFS_MMAPLOCK_SHARED);
-	if (IS_DAX(inode)) {
-		/*
-		 * we do not want to trigger unwritten extent conversion on read
-		 * faults - that is unnecessary overhead and would also require
-		 * changes to xfs_get_blocks_direct() to map unwritten extent
-		 * ioend for conversion on read-only mappings.
-		 */
-		ret = dax_iomap_fault(vmf, PE_SIZE_PTE, &xfs_iomap_ops);
-	} else
-		ret = filemap_fault(vma, vmf);
-	xfs_iunlock(XFS_I(inode), XFS_MMAPLOCK_SHARED);
-
-	return ret;
+	return __xfs_filemap_fault(vma, vmf, PE_SIZE_PTE,
+			IS_DAX(file_inode(vmf->vma->vm_file)) &&
+			(vmf->flags & FAULT_FLAG_WRITE));
 }
 
-/*
- * Similar to xfs_filemap_fault(), the DAX fault path can call into here on
- * both read and write faults. Hence we need to handle both cases. There is no
- * ->huge_mkwrite callout for huge pages, so we have a single function here to
- * handle both cases here. @flags carries the information on the type of fault
- * occuring.
- */
-STATIC int
+static int
 xfs_filemap_huge_fault(
 	struct vm_fault		*vmf,
 	enum page_entry_size	pe_size)
 {
-	struct inode		*inode = file_inode(vmf->vma->vm_file);
-	struct xfs_inode	*ip = XFS_I(inode);
-	int			ret;
-
-	if (!IS_DAX(inode))
+	if (!IS_DAX(file_inode(vmf->vma->vm_file)))
 		return VM_FAULT_FALLBACK;
 
-	trace_xfs_filemap_huge_fault(ip);
+	/* DAX can shortcut the normal fault path on write faults! */
+	 return __xfs_filemap_fault(vmf->vma, vmf, pe_size,
+			(vmf->flags & FAULT_FLAG_WRITE));
+}
 
-	if (vmf->flags & FAULT_FLAG_WRITE) {
-		sb_start_pagefault(inode->i_sb);
-		file_update_time(vmf->vma->vm_file);
-	}
-
-	xfs_ilock(XFS_I(inode), XFS_MMAPLOCK_SHARED);
-	ret = dax_iomap_fault(vmf, pe_size, &xfs_iomap_ops);
-	xfs_iunlock(XFS_I(inode), XFS_MMAPLOCK_SHARED);
-
-	if (vmf->flags & FAULT_FLAG_WRITE)
-		sb_end_pagefault(inode->i_sb);
-
-	return ret;
+static int
+xfs_filemap_page_mkwrite(
+	struct vm_area_struct	*vma,
+	struct vm_fault		*vmf)
+{
+	return __xfs_filemap_fault(vma, vmf, PE_SIZE_PTE, true);
 }
 
 /*
