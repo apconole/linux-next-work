@@ -1296,7 +1296,7 @@ static int dax_pmd_insert_mapping(struct vm_fault *vmf, struct iomap *iomap,
 	const sector_t sector = dax_iomap_sector(iomap, pos);
 	struct inode *inode = mapping->host;
 	void *ret = NULL;
-	pfn_t pfn;
+	pfn_t pfn = {};
 	int rc;
 
 	rc = dax_iomap_pfn(iomap, pos, PMD_SIZE, &pfn);
