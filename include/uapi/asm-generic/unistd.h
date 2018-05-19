@@ -696,7 +696,9 @@ __SYSCALL(__NR_finit_module, sys_finit_module)
 __SYSCALL(__NR_seccomp, sys_seccomp)
 #define __NR_getrandom 278
 __SYSCALL(__NR_getrandom, sys_getrandom)
-#define __NR_membarrier 282
+#define __NR_userfaultfd 282
+__SYSCALL(__NR_userfaultfd, sys_userfaultfd)
+#define __NR_membarrier 283
 __SYSCALL(__NR_membarrier, sys_membarrier)
 #define __NR_mlock2 284
 __SYSCALL(__NR_mlock2, sys_mlock2)
@@ -716,7 +718,7 @@ __SYSCALL(__NR_pkey_free,     sys_pkey_free)
  * All syscalls below here should go away really,
  * these are provided for both review and as a porting
  * help for the C library version.
-*
+ *
  * Last chance: are any of these important enough to
  * enable by default?
  */
