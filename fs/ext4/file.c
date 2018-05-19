@@ -28,6 +28,7 @@
 #include <linux/aio.h>
 #include <linux/quotaops.h>
 #include <linux/pagevec.h>
+#include <linux/mman.h>
 #include "ext4.h"
 #include "ext4_jbd2.h"
 #include "xattr.h"
@@ -290,6 +291,7 @@ static int ext4_dax_huge_fault(struct vm_fault *vmf,
 	 */
 	bool write = (vmf->flags & FAULT_FLAG_WRITE) &&
 		(vmf->vma->vm_flags & VM_SHARED);
+	pfn_t pfn;
 
 	if (write) {
 		sb_start_pagefault(sb);
@@ -305,9 +307,12 @@ static int ext4_dax_huge_fault(struct vm_fault *vmf,
 	} else {
 		down_read(&EXT4_I(inode)->i_mmap_sem);
 	}
-	result = dax_iomap_fault(vmf, pe_size, NULL, &ext4_iomap_ops);
+	result = dax_iomap_fault(vmf, pe_size, &pfn, &ext4_iomap_ops);
 	if (write) {
 		ext4_journal_stop(handle);
+		/* Handling synchronous page fault? */
+		if (result & VM_FAULT_NEEDDSYNC)
+			result = dax_finish_sync_fault(vmf, pe_size, pfn);
 		up_read(&EXT4_I(inode)->i_mmap_sem);
 		sb_end_pagefault(sb);
 	} else {
@@ -342,6 +347,14 @@ static const struct vm_operations_struct ext4_file_vm_ops = {
 
 static int ext4_file_mmap(struct file *file, struct vm_area_struct *vma)
 {
+
+	/*
+	 * We don't support synchronous mappings for non-DAX files. At least
+	 * until someone comes with a sensible use case.
+	 */
+	if (!IS_DAX(file_inode(file)) && (vma->vm_flags & VM_SYNC))
+		return -EOPNOTSUPP;
+
 	file_accessed(file);
 	if (IS_DAX(file_inode(file))) {
 		vma->vm_ops = &ext4_dax_vm_ops;
@@ -509,24 +522,27 @@ ext4_file_read(
 	return generic_file_aio_read(iocb, iovp, nr_segs, pos);
 }
 
-const struct file_operations ext4_file_operations = {
-	.llseek		= ext4_llseek,
-	.read		= do_sync_read,
-	.write		= do_sync_write,
-	.aio_read	= ext4_file_read,
-	.aio_write	= ext4_file_write,
-	.unlocked_ioctl = ext4_ioctl,
+const struct file_operations_extend  ext4_file_operations = {
+	.kabi_fops = {
+		.llseek		= ext4_llseek,
+		.read		= do_sync_read,
+		.write		= do_sync_write,
+		.aio_read	= ext4_file_read,
+		.aio_write	= ext4_file_write,
+		.unlocked_ioctl = ext4_ioctl,
 #ifdef CONFIG_COMPAT
-	.compat_ioctl	= ext4_compat_ioctl,
+		.compat_ioctl	= ext4_compat_ioctl,
 #endif
-	.mmap		= ext4_file_mmap,
-	.open		= ext4_file_open,
-	.release	= ext4_release_file,
-	.fsync		= ext4_sync_file,
-	.get_unmapped_area = thp_get_unmapped_area,
-	.splice_read	= generic_file_splice_read,
-	.splice_write	= generic_file_splice_write,
-	.fallocate	= ext4_fallocate,
+		.mmap		= ext4_file_mmap,
+		.open		= ext4_file_open,
+		.release	= ext4_release_file,
+		.fsync		= ext4_sync_file,
+		.get_unmapped_area = thp_get_unmapped_area,
+		.splice_read	= generic_file_splice_read,
+		.splice_write	= generic_file_splice_write,
+		.fallocate	= ext4_fallocate,
+	},
+	.mmap_supported_flags = MAP_SYNC,
 };
 
 const struct inode_operations ext4_file_inode_operations = {
