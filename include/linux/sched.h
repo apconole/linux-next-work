@@ -2707,6 +2707,18 @@ static inline struct task_struct *next_thread(const struct task_struct *p)
 			      struct task_struct, thread_group);
 }
 
+/*
+ * simple wrapper function that always returns NULL
+ * for RHEL-7 to enable upstream backports that have this check in it.
+ * Returning NULL means the task's stack is direct-mapped and not vmalloc'd,
+ * which is the case for RHEL-7.
+ *
+ */
+static inline struct vm_struct *task_stack_vm_area(const struct task_struct *t)
+{
+	return NULL;
+}
+
 static inline int thread_group_empty(struct task_struct *p)
 {
 	return list_empty(&p->thread_group);
