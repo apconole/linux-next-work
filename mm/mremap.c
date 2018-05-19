@@ -309,11 +309,10 @@ static unsigned long move_vma(struct vm_area_struct *vma,
 		new_addr = -ENOMEM;
 	} else {
 		mremap_userfaultfd_prep(new_vma, uf);
-		if (vm_flags & VM_FOP_EXTEND) {
-			struct file_operations_extend *fop = to_fop_extend(vma->vm_file->f_op);
-			if (fop->mremap)
+		if (vma->vm_file) {
+			struct file_operations_extend *fop = get_fo_extend(vma->vm_file);
+			if (fop && fop->mremap)
 				fop->mremap(vma->vm_file, new_vma);
-		
 		}
 		arch_remap(mm, old_addr, old_addr + old_len,
 			   new_addr, new_addr + new_len);
