@@ -1132,7 +1132,6 @@ xfs_filemap_page_mkwrite(
 		ret = dax_iomap_fault(vmf, PE_SIZE_PTE, &xfs_iomap_ops);
 	} else {
 		ret = iomap_page_mkwrite(vma, vmf, &xfs_iomap_ops);
-		ret = block_page_mkwrite_return(ret);
 	}
 
 	xfs_iunlock(XFS_I(inode), XFS_MMAPLOCK_SHARED);
