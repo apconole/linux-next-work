@@ -1829,6 +1829,7 @@ struct file_operations_extend {
 	void (*mremap)(struct file *, struct vm_area_struct *);
 	ssize_t (*copy_file_range)(struct file *, loff_t, struct file *, loff_t, size_t, unsigned int);
 	int (*clone_file_range)(struct file *, loff_t, struct file *, loff_t, u64);
+	unsigned long mmap_supported_flags;
 };
 
 #define to_fop_extend(fop)	\
