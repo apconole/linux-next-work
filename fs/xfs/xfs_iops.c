@@ -1288,7 +1288,7 @@ xfs_setup_iops(
 	switch (inode->i_mode & S_IFMT) {
 	case S_IFREG:
 		inode->i_op = &xfs_inode_operations;
-		inode->i_fop = &xfs_file_operations;
+		inode->i_fop = &xfs_file_operations.kabi_fops;
 		inode->i_mapping->a_ops = &xfs_address_space_operations;
 		break;
 	case S_IFDIR:

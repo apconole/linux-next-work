@@ -44,6 +44,7 @@
 #include <linux/falloc.h>
 #include <linux/pagevec.h>
 #include <linux/splice.h>
+#include <linux/mman.h>
 
 static const struct vm_operations_struct xfs_file_vm_ops;
 
@@ -1127,7 +1128,11 @@ __xfs_filemap_fault(
 
 	xfs_ilock(XFS_I(inode), XFS_MMAPLOCK_SHARED);
 	if (IS_DAX(inode)) {
-		ret = dax_iomap_fault(vmf, pe_size, NULL, &xfs_iomap_ops);
+		pfn_t pfn;
+
+		ret = dax_iomap_fault(vmf, pe_size, &pfn, &xfs_iomap_ops);
+		if (ret & VM_FAULT_NEEDDSYNC)
+			ret = dax_finish_sync_fault(vmf, pe_size, pfn);
 	} else {
 		if (write_fault)
 			ret = iomap_page_mkwrite(vma, vmf, &xfs_iomap_ops);
@@ -1200,6 +1205,13 @@ xfs_file_mmap(
 	struct file	*filp,
 	struct vm_area_struct *vma)
 {
+	/*
+	 * We don't support synchronous mappings for non-DAX files. At least
+	 * until someone comes with a sensible use case.
+	 */
+	if (!IS_DAX(file_inode(filp)) && (vma->vm_flags & VM_SYNC))
+		return -EOPNOTSUPP;
+
 	file_accessed(filp);
 	vma->vm_ops = &xfs_file_vm_ops;
 	if (IS_DAX(file_inode(filp)))
@@ -1208,24 +1220,27 @@ xfs_file_mmap(
 	return 0;
 }
 
-const struct file_operations xfs_file_operations = {
-	.llseek		= xfs_file_llseek,
-	.read		= do_sync_read,
-	.write		= do_sync_write,
-	.aio_read	= xfs_file_aio_read,
-	.aio_write	= xfs_file_aio_write,
-	.splice_read	= xfs_file_splice_read,
-	.splice_write	= xfs_file_splice_write,
-	.unlocked_ioctl	= xfs_file_ioctl,
+const struct file_operations_extend xfs_file_operations = {
+	.kabi_fops = {
+		.llseek		= xfs_file_llseek,
+		.read		= do_sync_read,
+		.write		= do_sync_write,
+		.aio_read	= xfs_file_aio_read,
+		.aio_write	= xfs_file_aio_write,
+		.splice_read	= xfs_file_splice_read,
+		.splice_write	= xfs_file_splice_write,
+		.unlocked_ioctl	= xfs_file_ioctl,
 #ifdef CONFIG_COMPAT
-	.compat_ioctl	= xfs_file_compat_ioctl,
+		.compat_ioctl	= xfs_file_compat_ioctl,
 #endif
-	.mmap		= xfs_file_mmap,
-	.open		= xfs_file_open,
-	.release	= xfs_file_release,
-	.fsync		= xfs_file_fsync,
-	.get_unmapped_area = thp_get_unmapped_area,
-	.fallocate	= xfs_file_fallocate,
+		.mmap		= xfs_file_mmap,
+		.open		= xfs_file_open,
+		.release	= xfs_file_release,
+		.fsync		= xfs_file_fsync,
+		.get_unmapped_area = thp_get_unmapped_area,
+		.fallocate	= xfs_file_fallocate,
+	},
+	.mmap_supported_flags = MAP_SYNC,
 };
 
 const struct file_operations xfs_dir_file_operations = {

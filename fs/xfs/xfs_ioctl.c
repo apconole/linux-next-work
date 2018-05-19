@@ -1618,8 +1618,8 @@ xfs_ioc_swapext(
 		goto out_put_tmp_file;
 	}
 
-	if (f.file->f_op != &xfs_file_operations ||
-	    tmp.file->f_op != &xfs_file_operations) {
+	if (f.file->f_op != &xfs_file_operations.kabi_fops ||
+	    tmp.file->f_op != &xfs_file_operations.kabi_fops) {
 		error = -EINVAL;
 		goto out_put_tmp_file;
 	}
