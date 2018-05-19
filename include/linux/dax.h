@@ -90,7 +90,7 @@ ssize_t dax_iomap_rw(int rw, struct kiocb *iocb, const struct iovec *iov,
 		unsigned long nr_segs, loff_t pos,
 		size_t count, const struct iomap_ops *ops);
 int dax_iomap_fault(struct vm_fault *vmf, enum page_entry_size pe_size,
-		const struct iomap_ops *ops);
+		pfn_t *pfnp, const struct iomap_ops *ops);
 int dax_fault(struct vm_area_struct *, struct vm_fault *, get_block_t);
 int dax_delete_mapping_entry(struct address_space *mapping, pgoff_t index);
 int dax_invalidate_mapping_entry_sync(struct address_space *mapping,
