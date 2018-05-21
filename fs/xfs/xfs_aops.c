@@ -1727,6 +1727,14 @@ xfs_vm_bmap(
 	struct xfs_inode	*ip = XFS_I(inode);
 
 	trace_xfs_vm_bmap(XFS_I(inode));
+
+	/*
+	 * Since we don't pass back blockdev info, we can't return bmap
+	 * information for rt files.
+	 */
+	if (XFS_IS_REALTIME_INODE(ip))
+		return 0;
+
 	xfs_ilock(ip, XFS_IOLOCK_SHARED);
 	filemap_write_and_wait(mapping);
 	xfs_iunlock(ip, XFS_IOLOCK_SHARED);
