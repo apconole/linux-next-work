@@ -46,6 +46,7 @@
 #include "xfs_symlink.h"
 #include "xfs_attr_leaf.h"
 #include "xfs_filestream.h"
+#include "xfs_icache.h"
 
 
 kmem_zone_t		*xfs_bmap_free_item_zone;
@@ -4025,23 +4026,32 @@ xfs_bmapi_read(
 int
 xfs_bmapi_reserve_delalloc(
 	struct xfs_inode	*ip,
-	xfs_fileoff_t		aoff,
+	xfs_fileoff_t		off,
 	xfs_filblks_t		len,
+	xfs_filblks_t		prealloc,
 	struct xfs_bmbt_irec	*got,
 	xfs_extnum_t		*lastx,
 	int			eof)
 {
 	struct xfs_mount	*mp = ip->i_mount;
-	struct xfs_ifork        *ifp = XFS_IFORK_PTR(ip, XFS_DATA_FORK);
+	int			whichfork = XFS_DATA_FORK;
+	struct xfs_ifork        *ifp = XFS_IFORK_PTR(ip, whichfork);
 	xfs_extlen_t		alen;
 	xfs_extlen_t		indlen;
 	char			rt = XFS_IS_REALTIME_INODE(ip);
 	xfs_extlen_t		extsz;
 	int			error;
+	xfs_fileoff_t		aoff = off;
 
-	alen = XFS_FILBLKS_MIN(len, MAXEXTLEN);
+	/*
+	 * Cap the alloc length. Keep track of prealloc so we know whether to
+	 * tag the inode before we return.
+	 */
+	alen = XFS_FILBLKS_MIN(len + prealloc, MAXEXTLEN);
 	if (!eof)
 		alen = XFS_FILBLKS_MIN(alen, got->br_startoff - aoff);
+	if (prealloc && alen >= len)
+		prealloc = alen - len;
 
 	/* Figure out the extent size, adjust alen */
 	extsz = xfs_get_extsz_hint(ip);
@@ -4098,6 +4108,12 @@ xfs_bmapi_reserve_delalloc(
 	got->br_state = XFS_EXT_NORM;
 
 	xfs_bmap_add_extent_hole_delay(ip, lastx, got);
+
+	/*
+	 * Tag the inode if blocks were preallocated.
+	 */
+	if (whichfork == XFS_DATA_FORK && prealloc)
+		xfs_inode_set_eofblocks_tag(ip);
 
 	return 0;
 

@@ -197,8 +197,8 @@ int	xfs_bmap_shift_extents(struct xfs_trans *tp, struct xfs_inode *ip,
 		xfs_fileoff_t start_fsb, xfs_fileoff_t offset_shift_fsb,
 		int *done, xfs_fileoff_t *next_fsb, xfs_fsblock_t *firstblock,
 		struct xfs_defer_ops *dfops, int num_exts);
-int	xfs_bmapi_reserve_delalloc(struct xfs_inode *ip, xfs_fileoff_t aoff,
-		xfs_filblks_t len, struct xfs_bmbt_irec *got,
-		xfs_extnum_t *lastx, int eof);
+int	xfs_bmapi_reserve_delalloc(struct xfs_inode *ip, xfs_fileoff_t off,
+		xfs_filblks_t len, xfs_filblks_t prealloc,
+		struct xfs_bmbt_irec *got, xfs_extnum_t *lastx, int eof);
 
 #endif	/* __XFS_BMAP_H__ */
