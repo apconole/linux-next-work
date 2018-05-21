@@ -332,12 +332,7 @@ xfs_growfs_data_private(
 			goto error0;
 		}
 
-		if (xfs_sb_version_hascrc(&mp->m_sb))
-			xfs_btree_init_block(mp, bp, XFS_ABTB_CRC_MAGIC, 0, 1,
-						agno, 0);
-		else
-			xfs_btree_init_block(mp, bp, XFS_ABTB_MAGIC, 0, 1,
-						agno, 0);
+		xfs_btree_init_block(mp, bp, XFS_BTNUM_BNO, 0, 1, agno, 0);
 
 		arec = XFS_ALLOC_REC_ADDR(mp, XFS_BUF_TO_BLOCK(bp), 1);
 		arec->ar_startblock = cpu_to_be32(XFS_PREALLOC_BLOCKS(mp));
@@ -361,12 +356,7 @@ xfs_growfs_data_private(
 			goto error0;
 		}
 
-		if (xfs_sb_version_hascrc(&mp->m_sb))
-			xfs_btree_init_block(mp, bp, XFS_ABTC_CRC_MAGIC, 0, 1,
-						agno, 0);
-		else
-			xfs_btree_init_block(mp, bp, XFS_ABTC_MAGIC, 0, 1,
-						agno, 0);
+		xfs_btree_init_block(mp, bp, XFS_BTNUM_CNT, 0, 1, agno, 0);
 
 		arec = XFS_ALLOC_REC_ADDR(mp, XFS_BUF_TO_BLOCK(bp), 1);
 		arec->ar_startblock = cpu_to_be32(XFS_PREALLOC_BLOCKS(mp));
@@ -391,12 +381,7 @@ xfs_growfs_data_private(
 			goto error0;
 		}
 
-		if (xfs_sb_version_hascrc(&mp->m_sb))
-			xfs_btree_init_block(mp, bp, XFS_IBT_CRC_MAGIC, 0, 0,
-						agno, 0);
-		else
-			xfs_btree_init_block(mp, bp, XFS_IBT_MAGIC, 0, 0,
-						agno, 0);
+		xfs_btree_init_block(mp, bp, XFS_BTNUM_INO , 0, 0, agno, 0);
 
 		error = xfs_bwrite(bp);
 		xfs_buf_relse(bp);
@@ -416,12 +401,8 @@ xfs_growfs_data_private(
 				goto error0;
 			}
 
-			if (xfs_sb_version_hascrc(&mp->m_sb))
-				xfs_btree_init_block(mp, bp, XFS_FIBT_CRC_MAGIC,
+			xfs_btree_init_block(mp, bp, XFS_BTNUM_FINO,
 						     0, 0, agno, 0);
-			else
-				xfs_btree_init_block(mp, bp, XFS_FIBT_MAGIC, 0,
-						     0, agno, 0);
 
 			error = xfs_bwrite(bp);
 			xfs_buf_relse(bp);
