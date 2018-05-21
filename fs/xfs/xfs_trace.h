@@ -2184,7 +2184,7 @@ DECLARE_EVENT_CLASS(xfs_discard_class,
 		__entry->agbno = agbno;
 		__entry->len = len;
 	),
-	TP_printk("dev %d:%d agno %u agbno %u len %u\n",
+	TP_printk("dev %d:%d agno %u agbno %u len %u",
 		  MAJOR(__entry->dev), MINOR(__entry->dev),
 		  __entry->agno,
 		  __entry->agbno,
@@ -2220,7 +2220,7 @@ DECLARE_EVENT_CLASS(xfs_defer_class,
 		__entry->committed = dop->dop_committed;
 		__entry->low = dop->dop_low;
 	),
-	TP_printk("dev %d:%d ops %p committed %d low %d\n",
+	TP_printk("dev %d:%d ops %p committed %d low %d",
 		  MAJOR(__entry->dev), MINOR(__entry->dev),
 		  __entry->dop,
 		  __entry->committed,
@@ -2248,7 +2248,7 @@ DECLARE_EVENT_CLASS(xfs_defer_error_class,
 		__entry->low = dop->dop_low;
 		__entry->error = error;
 	),
-	TP_printk("dev %d:%d ops %p committed %d low %d err %d\n",
+	TP_printk("dev %d:%d ops %p committed %d low %d err %d",
 		  MAJOR(__entry->dev), MINOR(__entry->dev),
 		  __entry->dop,
 		  __entry->committed,
@@ -2277,7 +2277,7 @@ DECLARE_EVENT_CLASS(xfs_defer_pending_class,
 		__entry->committed = dfp->dfp_done != NULL;
 		__entry->nr = dfp->dfp_count;
 	),
-	TP_printk("dev %d:%d optype %d intent %p committed %d nr %d\n",
+	TP_printk("dev %d:%d optype %d intent %p committed %d nr %d",
 		  MAJOR(__entry->dev), MINOR(__entry->dev),
 		  __entry->type,
 		  __entry->intent,
