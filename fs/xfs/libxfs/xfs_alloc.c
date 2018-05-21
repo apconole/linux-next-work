@@ -1911,21 +1911,22 @@ xfs_alloc_space_available(
 	int			flags)
 {
 	struct xfs_perag	*pag = args->pag;
-	xfs_extlen_t		longest;
+	xfs_extlen_t		alloc_len, longest;
 	int			available;
 
 	if (flags & XFS_ALLOC_FLAG_FREEING)
 		return true;
 
 	/* do we have enough contiguous free space for the allocation? */
+	alloc_len = args->minlen + (args->alignment - 1) + args->minalignslop;
 	longest = xfs_alloc_longest_free_extent(args->mp, pag, min_free);
-	if ((args->minlen + args->alignment + args->minalignslop - 1) > longest)
+	if (longest < alloc_len)
 		return false;
 
 	/* do have enough free space remaining for the allocation? */
 	available = (int)(pag->pagf_freeblks + pag->pagf_flcount -
 			  min_free - args->minleft);
-	if (available < (int)args->total)
+	if (available < (int)max(args->total, alloc_len))
 		return false;
 
 	/*
