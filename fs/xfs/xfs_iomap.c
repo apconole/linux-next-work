@@ -535,10 +535,11 @@ xfs_iomap_write_delay(
 	xfs_fileoff_t		offset_fsb = XFS_B_TO_FSBT(mp, offset);
 	xfs_fileoff_t		maxbytes_fsb =
 		XFS_B_TO_FSB(mp, mp->m_super->s_maxbytes);
-	xfs_fileoff_t		end_fsb, orig_end_fsb;
+	xfs_fileoff_t		end_fsb;
 	int			error = 0, eof = 0;
 	struct xfs_bmbt_irec	got;
 	xfs_extnum_t		idx;
+	xfs_fsblock_t		prealloc_blocks = 0;
 
 	ASSERT(xfs_isilocked(ip, XFS_ILOCK_EXCL));
 	ASSERT(!XFS_IS_REALTIME_INODE(ip));
@@ -580,33 +581,32 @@ xfs_iomap_write_delay(
 	 * the lower level functions are updated.
 	 */
 	count = min_t(loff_t, count, 1024 * PAGE_SIZE);
-	end_fsb = orig_end_fsb =
-		min(XFS_B_TO_FSB(mp, offset + count), maxbytes_fsb);
+	end_fsb = min(XFS_B_TO_FSB(mp, offset + count), maxbytes_fsb);
 
 	if (eof) {
-		xfs_fsblock_t	prealloc_blocks;
-
 		prealloc_blocks = xfs_iomap_prealloc_size(ip, offset, count, idx);
 		if (prealloc_blocks) {
 			xfs_extlen_t	align;
 			xfs_off_t	end_offset;
+			xfs_fileoff_t	p_end_fsb;
 
 			end_offset = XFS_WRITEIO_ALIGN(mp, offset + count - 1);
-			end_fsb = XFS_B_TO_FSBT(mp, end_offset) +
-				prealloc_blocks;
+			p_end_fsb = XFS_B_TO_FSBT(mp, end_offset) +
+					prealloc_blocks;
 
 			align = xfs_eof_alignment(ip, 0);
 			if (align)
-				end_fsb = roundup_64(end_fsb, align);
+				p_end_fsb = roundup_64(p_end_fsb, align);
 
-			end_fsb = min(end_fsb, maxbytes_fsb);
-			ASSERT(end_fsb > offset_fsb);
+			p_end_fsb = min(p_end_fsb, maxbytes_fsb);
+			ASSERT(p_end_fsb > offset_fsb);
+			prealloc_blocks = p_end_fsb - end_fsb;
 		}
 	}
 
 retry:
 	error = xfs_bmapi_reserve_delalloc(ip, offset_fsb,
-			end_fsb - offset_fsb, 0, &got, &idx, eof);
+			end_fsb - offset_fsb, prealloc_blocks, &got, &idx, eof);
 	switch (error) {
 	case 0:
 		break;
@@ -614,21 +614,14 @@ retry:
 	case -EDQUOT:
 		/* retry without any preallocation */
 		trace_xfs_delalloc_enospc(ip, offset, count);
-		if (end_fsb != orig_end_fsb) {
-			end_fsb = orig_end_fsb;
+		if (prealloc_blocks) {
+			prealloc_blocks = 0;
 			goto retry;
 		}
 		/*FALLTHRU*/
 	default:
 		return error;
 	}
-
-	/*
-	 * Tag the inode as speculatively preallocated so we can reclaim this
-	 * space on demand, if necessary.
-	 */
-	if (end_fsb != orig_end_fsb)
-		xfs_inode_set_eofblocks_tag(ip);
 
 	/*
 	 * Flag newly allocated delalloc blocks with IOMAP_F_NEW so we punch
