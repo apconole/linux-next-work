@@ -344,7 +344,6 @@ const struct xfs_buf_ops xfs_allocbt_buf_ops = {
 };
 
 
-#if defined(DEBUG) || defined(XFS_WARN)
 STATIC int
 xfs_allocbt_keys_inorder(
 	struct xfs_btree_cur	*cur,
@@ -381,7 +380,6 @@ xfs_allocbt_recs_inorder(
 			 be32_to_cpu(r2->alloc.ar_startblock));
 	}
 }
-#endif	/* DEBUG */
 
 static const struct xfs_btree_ops xfs_allocbt_ops = {
 	.rec_len		= sizeof(xfs_alloc_rec_t),
@@ -399,10 +397,8 @@ static const struct xfs_btree_ops xfs_allocbt_ops = {
 	.init_ptr_from_cur	= xfs_allocbt_init_ptr_from_cur,
 	.key_diff		= xfs_allocbt_key_diff,
 	.buf_ops		= &xfs_allocbt_buf_ops,
-#if defined(DEBUG) || defined(XFS_WARN)
 	.keys_inorder		= xfs_allocbt_keys_inorder,
 	.recs_inorder		= xfs_allocbt_recs_inorder,
-#endif
 
 	.get_leaf_keys		= xfs_btree_get_leaf_keys,
 	.get_node_keys		= xfs_btree_get_node_keys,
