@@ -1780,6 +1780,7 @@ xfs_bmap_add_extent_delay_real(
 		 */
 		trace_xfs_bmap_pre_update(bma->ip, bma->idx, state, _THIS_IP_);
 		xfs_bmbt_set_startblock(ep, new->br_startblock);
+		xfs_bmbt_set_state(ep, new->br_state);
 		trace_xfs_bmap_post_update(bma->ip, bma->idx, state, _THIS_IP_);
 
 		bma->ip->i_d.di_nextents++;
@@ -2112,6 +2113,7 @@ STATIC int				/* error */
 xfs_bmap_add_extent_unwritten_real(
 	struct xfs_trans	*tp,
 	xfs_inode_t		*ip,	/* incore inode pointer */
+	int			whichfork,
 	xfs_extnum_t		*idx,	/* extent number to update/insert */
 	xfs_btree_cur_t		**curp,	/* if *curp is null, not a btree */
 	xfs_bmbt_irec_t		*new,	/* new data to add to file extents */
@@ -2131,12 +2133,12 @@ xfs_bmap_add_extent_unwritten_real(
 					/* left is 0, right is 1, prev is 2 */
 	int			rval=0;	/* return value (logging flags) */
 	int			state = 0;/* state bits, accessed thru macros */
-	struct xfs_mount	*mp = tp->t_mountp;
+	struct xfs_mount	*mp = ip->i_mount;
 
 	*logflagsp = 0;
 
 	cur = *curp;
-	ifp = XFS_IFORK_PTR(ip, XFS_DATA_FORK);
+	ifp = XFS_IFORK_PTR(ip, whichfork);
 
 	ASSERT(*idx >= 0);
 	ASSERT(*idx <= xfs_iext_count(ifp));
@@ -2195,7 +2197,7 @@ xfs_bmap_add_extent_unwritten_real(
 	 * Don't set contiguous if the combined extent would be too large.
 	 * Also check for all-three-contiguous being too large.
 	 */
-	if (*idx < xfs_iext_count(&ip->i_df) - 1) {
+	if (*idx < xfs_iext_count(ifp) - 1) {
 		state |= BMAP_RIGHT_VALID;
 		xfs_bmbt_get_all(xfs_iext_get_ext(ifp, *idx + 1), &RIGHT);
 		if (isnullstartblock(RIGHT.br_startblock))
@@ -2235,7 +2237,8 @@ xfs_bmap_add_extent_unwritten_real(
 		trace_xfs_bmap_post_update(ip, *idx, state, _THIS_IP_);
 
 		xfs_iext_remove(ip, *idx + 1, 2, state);
-		ip->i_d.di_nextents -= 2;
+		XFS_IFORK_NEXT_SET(ip, whichfork,
+				XFS_IFORK_NEXTENTS(ip, whichfork) - 2);
 		if (cur == NULL)
 			rval = XFS_ILOG_CORE | XFS_ILOG_DEXT;
 		else {
@@ -2278,7 +2281,8 @@ xfs_bmap_add_extent_unwritten_real(
 		trace_xfs_bmap_post_update(ip, *idx, state, _THIS_IP_);
 
 		xfs_iext_remove(ip, *idx + 1, 1, state);
-		ip->i_d.di_nextents--;
+		XFS_IFORK_NEXT_SET(ip, whichfork,
+				XFS_IFORK_NEXTENTS(ip, whichfork) - 1);
 		if (cur == NULL)
 			rval = XFS_ILOG_CORE | XFS_ILOG_DEXT;
 		else {
@@ -2313,7 +2317,8 @@ xfs_bmap_add_extent_unwritten_real(
 		xfs_bmbt_set_state(ep, newext);
 		trace_xfs_bmap_post_update(ip, *idx, state, _THIS_IP_);
 		xfs_iext_remove(ip, *idx + 1, 1, state);
-		ip->i_d.di_nextents--;
+		XFS_IFORK_NEXT_SET(ip, whichfork,
+				XFS_IFORK_NEXTENTS(ip, whichfork) - 1);
 		if (cur == NULL)
 			rval = XFS_ILOG_CORE | XFS_ILOG_DEXT;
 		else {
@@ -2425,7 +2430,8 @@ xfs_bmap_add_extent_unwritten_real(
 		trace_xfs_bmap_post_update(ip, *idx, state, _THIS_IP_);
 
 		xfs_iext_insert(ip, *idx, 1, new, state);
-		ip->i_d.di_nextents++;
+		XFS_IFORK_NEXT_SET(ip, whichfork,
+				XFS_IFORK_NEXTENTS(ip, whichfork) + 1);
 		if (cur == NULL)
 			rval = XFS_ILOG_CORE | XFS_ILOG_DEXT;
 		else {
@@ -2503,7 +2509,8 @@ xfs_bmap_add_extent_unwritten_real(
 		++*idx;
 		xfs_iext_insert(ip, *idx, 1, new, state);
 
-		ip->i_d.di_nextents++;
+		XFS_IFORK_NEXT_SET(ip, whichfork,
+				XFS_IFORK_NEXTENTS(ip, whichfork) + 1);
 		if (cur == NULL)
 			rval = XFS_ILOG_CORE | XFS_ILOG_DEXT;
 		else {
@@ -2551,7 +2558,8 @@ xfs_bmap_add_extent_unwritten_real(
 		++*idx;
 		xfs_iext_insert(ip, *idx, 2, &r[0], state);
 
-		ip->i_d.di_nextents += 2;
+		XFS_IFORK_NEXT_SET(ip, whichfork,
+				XFS_IFORK_NEXTENTS(ip, whichfork) + 2);
 		if (cur == NULL)
 			rval = XFS_ILOG_CORE | XFS_ILOG_DEXT;
 		else {
@@ -2605,12 +2613,12 @@ xfs_bmap_add_extent_unwritten_real(
 	}
 
 	/* convert to a btree if necessary */
-	if (xfs_bmap_needs_btree(ip, XFS_DATA_FORK)) {
+	if (xfs_bmap_needs_btree(ip, whichfork)) {
 		int	tmp_logflags;	/* partial log flag return val */
 
 		ASSERT(cur == NULL);
 		error = xfs_bmap_extents_to_btree(tp, ip, first, dfops, &cur,
-				0, &tmp_logflags, XFS_DATA_FORK);
+				0, &tmp_logflags, whichfork);
 		*logflagsp |= tmp_logflags;
 		if (error)
 			goto done;
@@ -2622,7 +2630,7 @@ xfs_bmap_add_extent_unwritten_real(
 		*curp = cur;
 	}
 
-	xfs_bmap_check_leaf_extents(*curp, ip, XFS_DATA_FORK);
+	xfs_bmap_check_leaf_extents(*curp, ip, whichfork);
 done:
 	*logflagsp |= rval;
 	return error;
@@ -4209,8 +4217,8 @@ xfs_bmapi_allocate(
 	bma->got.br_state = XFS_EXT_NORM;
 
 	/*
-	 * A wasdelay extent has been initialized, so shouldn't be flagged
-	 * as unwritten.
+	 * In the data fork, a wasdelay extent has been initialized, so
+	 * shouldn't be flagged as unwritten.
 	 */
 	if (!bma->wasdel && (bma->flags & XFS_BMAPI_PREALLOC) &&
 	    xfs_sb_version_hasextflgbit(&mp->m_sb))
@@ -4288,8 +4296,8 @@ xfs_bmapi_convert_unwritten(
 			return error;
 	}
 
-	error = xfs_bmap_add_extent_unwritten_real(bma->tp, bma->ip, &bma->idx,
-			&bma->cur, mval, bma->firstblock, bma->dfops,
+	error = xfs_bmap_add_extent_unwritten_real(bma->tp, bma->ip, whichfork,
+			&bma->idx, &bma->cur, mval, bma->firstblock, bma->dfops,
 			&tmp_logflags);
 	/*
 	 * Log the inode core unconditionally in the unwritten extent conversion
@@ -5160,8 +5168,8 @@ __xfs_bunmapi(
 			}
 			del.br_state = XFS_EXT_UNWRITTEN;
 			error = xfs_bmap_add_extent_unwritten_real(tp, ip,
-					&lastx, &cur, &del, firstblock, dfops,
-					&logflags);
+					whichfork, &lastx, &cur, &del,
+					firstblock, dfops, &logflags);
 			if (error)
 				goto error0;
 			goto nodelete;
@@ -5214,8 +5222,9 @@ __xfs_bunmapi(
 				prev.br_state = XFS_EXT_UNWRITTEN;
 				lastx--;
 				error = xfs_bmap_add_extent_unwritten_real(tp,
-						ip, &lastx, &cur, &prev,
-						firstblock, dfops, &logflags);
+						ip, whichfork, &lastx, &cur,
+						&prev, firstblock, dfops,
+						&logflags);
 				if (error)
 					goto error0;
 				goto nodelete;
@@ -5223,8 +5232,9 @@ __xfs_bunmapi(
 				ASSERT(del.br_state == XFS_EXT_NORM);
 				del.br_state = XFS_EXT_UNWRITTEN;
 				error = xfs_bmap_add_extent_unwritten_real(tp,
-						ip, &lastx, &cur, &del,
-						firstblock, dfops, &logflags);
+						ip, whichfork, &lastx, &cur,
+						&del, firstblock, dfops,
+						&logflags);
 				if (error)
 					goto error0;
 				goto nodelete;
