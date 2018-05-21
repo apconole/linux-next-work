@@ -81,6 +81,8 @@ union xfs_btree_rec {
 #define	XFS_BB_NUM_BITS_CRC	9
 #define	XFS_BB_ALL_BITS_CRC	((1 << XFS_BB_NUM_BITS_CRC) - 1)
 
+__uint32_t xfs_btree_magic(int crc, xfs_btnum_t btnum);
+
 /*
  * Generic stats interface
  */
