@@ -608,8 +608,7 @@ xfs_iomap_write_delay(
 
 retry:
 	error = xfs_bmapi_reserve_delalloc(ip, offset_fsb,
-			end_fsb - offset_fsb, &got,
-			&prev, &idx, eof);
+			end_fsb - offset_fsb, &got, &idx, eof);
 	switch (error) {
 	case 0:
 		break;

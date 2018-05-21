@@ -203,6 +203,6 @@ struct xfs_bmbt_rec_host *
 		struct xfs_bmbt_irec *gotp, struct xfs_bmbt_irec *prevp);
 int	xfs_bmapi_reserve_delalloc(struct xfs_inode *ip, xfs_fileoff_t aoff,
 		xfs_filblks_t len, struct xfs_bmbt_irec *got,
-		struct xfs_bmbt_irec *prev, xfs_extnum_t *lastx, int eof);
+		xfs_extnum_t *lastx, int eof);
 
 #endif	/* __XFS_BMAP_H__ */

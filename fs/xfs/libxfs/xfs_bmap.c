@@ -4119,11 +4119,11 @@ xfs_bmapi_reserve_delalloc(
 	xfs_fileoff_t		aoff,
 	xfs_filblks_t		len,
 	struct xfs_bmbt_irec	*got,
-	struct xfs_bmbt_irec	*prev,
 	xfs_extnum_t		*lastx,
 	int			eof)
 {
 	struct xfs_mount	*mp = ip->i_mount;
+	struct xfs_ifork        *ifp = XFS_IFORK_PTR(ip, XFS_DATA_FORK);
 	xfs_extlen_t		alen;
 	xfs_extlen_t		indlen;
 	char			rt = XFS_IS_REALTIME_INODE(ip);
@@ -4137,7 +4137,12 @@ xfs_bmapi_reserve_delalloc(
 	/* Figure out the extent size, adjust alen */
 	extsz = xfs_get_extsz_hint(ip);
 	if (extsz) {
-		error = xfs_bmap_extsize_align(mp, got, prev, extsz, rt, eof,
+		struct xfs_bmbt_irec	prev;
+
+		if (!xfs_iext_get_extent(ifp, *lastx - 1, &prev))
+			prev.br_startoff = NULLFILEOFF;
+
+		error = xfs_bmap_extsize_align(mp, got, &prev, extsz, rt, eof,
 					       1, 0, &aoff, &alen);
 		ASSERT(!error);
 	}
