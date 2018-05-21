@@ -294,34 +294,36 @@ xfs_end_io(
 	struct xfs_ioend	*ioend =
 		container_of(work, struct xfs_ioend, io_work);
 	struct xfs_inode	*ip = XFS_I(ioend->io_inode);
+	xfs_off_t		offset = ioend->io_offset;
+	size_t			size = ioend->io_size;
 	int			error = ioend->io_error;
 
 	/*
-	 * Set an error if the mount has shut down and proceed with end I/O
-	 * processing so it can perform whatever cleanups are necessary.
+	 * Just clean up the in-memory strutures if the fs has been shut down.
 	 */
-	if (XFS_FORCED_SHUTDOWN(ip->i_mount))
+	if (XFS_FORCED_SHUTDOWN(ip->i_mount)) {
 		error = -EIO;
+		goto done;
+	}
+
+	if (unlikely(error))
+		goto done;
 
 	/*
-	 * For unwritten extents we need to issue transactions to convert a
-	 * range to normal written extens after the data I/O has finished.
-	 * Detecting and handling completion IO errors is done individually
-	 * for each case as different cleanup operations need to be performed
-	 * on error.
+	 * Success:  commit the COW or unwritten blocks if needed.
 	 */
-	if (ioend->io_type == XFS_IO_UNWRITTEN) {
-		if (error)
-			goto done;
-		error = xfs_iomap_write_unwritten(ip, ioend->io_offset,
-						  ioend->io_size);
-	} else if (ioend->io_append_trans) {
-		error = xfs_setfilesize_ioend(ioend, error);
-	} else {
-		ASSERT(!xfs_ioend_is_append(ioend));
+	switch (ioend->io_type) {
+	case XFS_IO_UNWRITTEN:
+		error = xfs_iomap_write_unwritten(ip, offset, size);
+		break;
+	default:
+		ASSERT(!xfs_ioend_is_append(ioend) || ioend->io_append_trans);
+		break;
 	}
 
 done:
+	if (ioend->io_append_trans)
+		error = xfs_setfilesize_ioend(ioend, error);
 	xfs_destroy_ioend(ioend, error);
 }
 
