@@ -323,7 +323,7 @@ xfs_readlink_by_handle(
 		goto out_dput;
 	}
 
-	link = kmalloc(MAXPATHLEN+1, GFP_KERNEL);
+	link = kmalloc(XFS_SYMLINK_MAXLEN+1, GFP_KERNEL);
 	if (!link) {
 		error = -ENOMEM;
 		goto out_dput;

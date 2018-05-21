@@ -462,7 +462,7 @@ xfs_vn_follow_link(
 	char			*link;
 	int			error = -ENOMEM;
 
-	link = kmalloc(MAXPATHLEN+1, GFP_KERNEL);
+	link = kmalloc(XFS_SYMLINK_MAXLEN+1, GFP_KERNEL);
 	if (!link)
 		goto out_err;
 
