@@ -50,6 +50,7 @@ static unsigned int xfs_errortag_random_default[] = {
 	XFS_RANDOM_DIOWRITE_IOERR,
 	XFS_RANDOM_BMAPIFORMAT,
 	XFS_RANDOM_FREE_EXTENT,
+	XFS_RANDOM_DROP_WRITES,
 };
 
 struct xfs_errortag_attr {
@@ -147,6 +148,7 @@ XFS_ERRORTAG_ATTR_RW(stratcmpl,		XFS_ERRTAG_STRATCMPL_IOERR);
 XFS_ERRORTAG_ATTR_RW(diowrite,		XFS_ERRTAG_DIOWRITE_IOERR);
 XFS_ERRORTAG_ATTR_RW(bmapifmt,		XFS_ERRTAG_BMAPIFORMAT);
 XFS_ERRORTAG_ATTR_RW(free_extent,	XFS_ERRTAG_FREE_EXTENT);
+XFS_ERRORTAG_ATTR_RW(drop_writes,	XFS_ERRTAG_DROP_WRITES);
 
 static struct attribute *xfs_errortag_attrs[] = {
 	XFS_ERRORTAG_ATTR_LIST(noerror),
@@ -172,6 +174,7 @@ static struct attribute *xfs_errortag_attrs[] = {
 	XFS_ERRORTAG_ATTR_LIST(diowrite),
 	XFS_ERRORTAG_ATTR_LIST(bmapifmt),
 	XFS_ERRORTAG_ATTR_LIST(free_extent),
+	XFS_ERRORTAG_ATTR_LIST(drop_writes),
 	NULL,
 };
 
