@@ -54,6 +54,7 @@ typedef unsigned int xfs_alloctype_t;
  */
 #define	XFS_ALLOC_FLAG_TRYLOCK	0x00000001  /* use trylock for buffer locking */
 #define	XFS_ALLOC_FLAG_FREEING	0x00000002  /* indicate caller is freeing extents*/
+#define	XFS_ALLOC_FLAG_CHECK	0x00000010  /* test only, don't modify args */
 
 /*
  * Argument structure for xfs_alloc routines.
