@@ -2203,7 +2203,6 @@ DEFINE_DISCARD_EVENT(xfs_discard_busy);
 
 /* deferred ops */
 struct xfs_defer_pending;
-struct xfs_defer_intake;
 struct xfs_defer_ops;
 
 DECLARE_EVENT_CLASS(xfs_defer_class,
