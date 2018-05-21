@@ -43,8 +43,8 @@
 #include "xfs_log.h"
 
 /* ----- Kernel only functions below ----- */
-STATIC int
-xfs_readlink_bmap(
+int
+xfs_readlink_bmap_ilocked(
 	struct xfs_inode	*ip,
 	char			*link)
 {
@@ -155,7 +155,7 @@ xfs_readlink(
 		memcpy(link, ip->i_df.if_u1.if_data, pathlen);
 		link[pathlen] = '\0';
 	} else {
-		error = xfs_readlink_bmap(ip, link);
+		error = xfs_readlink_bmap_ilocked(ip, link);
 	}
 
  out:
