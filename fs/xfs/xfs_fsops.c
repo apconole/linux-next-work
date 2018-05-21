@@ -334,7 +334,7 @@ xfs_growfs_data_private(
 
 		if (xfs_sb_version_hascrc(&mp->m_sb))
 			xfs_btree_init_block(mp, bp, XFS_ABTB_CRC_MAGIC, 0, 1,
-						agno, XFS_BTREE_CRC_BLOCKS);
+						agno, 0);
 		else
 			xfs_btree_init_block(mp, bp, XFS_ABTB_MAGIC, 0, 1,
 						agno, 0);
@@ -363,7 +363,7 @@ xfs_growfs_data_private(
 
 		if (xfs_sb_version_hascrc(&mp->m_sb))
 			xfs_btree_init_block(mp, bp, XFS_ABTC_CRC_MAGIC, 0, 1,
-						agno, XFS_BTREE_CRC_BLOCKS);
+						agno, 0);
 		else
 			xfs_btree_init_block(mp, bp, XFS_ABTC_MAGIC, 0, 1,
 						agno, 0);
@@ -393,7 +393,7 @@ xfs_growfs_data_private(
 
 		if (xfs_sb_version_hascrc(&mp->m_sb))
 			xfs_btree_init_block(mp, bp, XFS_IBT_CRC_MAGIC, 0, 0,
-						agno, XFS_BTREE_CRC_BLOCKS);
+						agno, 0);
 		else
 			xfs_btree_init_block(mp, bp, XFS_IBT_MAGIC, 0, 0,
 						agno, 0);
@@ -418,8 +418,7 @@ xfs_growfs_data_private(
 
 			if (xfs_sb_version_hascrc(&mp->m_sb))
 				xfs_btree_init_block(mp, bp, XFS_FIBT_CRC_MAGIC,
-						     0, 0, agno,
-						     XFS_BTREE_CRC_BLOCKS);
+						     0, 0, agno, 0);
 			else
 				xfs_btree_init_block(mp, bp, XFS_FIBT_MAGIC, 0,
 						     0, agno, 0);
