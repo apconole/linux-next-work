@@ -81,7 +81,7 @@ union xfs_btree_rec {
 #define	XFS_BB_NUM_BITS_CRC	9
 #define	XFS_BB_ALL_BITS_CRC	((1 << XFS_BB_NUM_BITS_CRC) - 1)
 
-__uint32_t xfs_btree_magic(int crc, xfs_btnum_t btnum);
+uint32_t xfs_btree_magic(int crc, xfs_btnum_t btnum);
 
 /*
  * Generic stats interface
@@ -136,7 +136,7 @@ struct xfs_btree_ops {
 				     union xfs_btree_ptr *ptr);
 
 	/* difference between key value and cursor value */
-	__int64_t (*key_diff)(struct xfs_btree_cur *cur,
+	int64_t (*key_diff)(struct xfs_btree_cur *cur,
 			      union xfs_btree_key *key);
 
 	const struct xfs_buf_ops	*buf_ops;
@@ -192,11 +192,11 @@ typedef struct xfs_btree_cur
 	}		bc_rec;		/* current insert/search record value */
 	struct xfs_buf	*bc_bufs[XFS_BTREE_MAXLEVELS];	/* buf ptr per level */
 	int		bc_ptrs[XFS_BTREE_MAXLEVELS];	/* key/record # */
-	__uint8_t	bc_ra[XFS_BTREE_MAXLEVELS];	/* readahead bits */
+	uint8_t		bc_ra[XFS_BTREE_MAXLEVELS];	/* readahead bits */
 #define	XFS_BTCUR_LEFTRA	1	/* left sibling has been read-ahead */
 #define	XFS_BTCUR_RIGHTRA	2	/* right sibling has been read-ahead */
-	__uint8_t	bc_nlevels;	/* number of levels in the tree */
-	__uint8_t	bc_blocklog;	/* log2(blocksize) of btree blocks */
+	uint8_t		bc_nlevels;	/* number of levels in the tree */
+	uint8_t		bc_blocklog;	/* log2(blocksize) of btree blocks */
 	xfs_btnum_t	bc_btnum;	/* identifies which btree type */
 	int		bc_statoff;	/* offset of btre stats array */
 	union {
@@ -307,7 +307,7 @@ xfs_btree_islastblock(
  */
 void
 xfs_btree_offsets(
-	__int64_t		fields,	/* bitmask of fields */
+	int64_t			fields,	/* bitmask of fields */
 	const short		*offsets,/* table of field offsets */
 	int			nbits,	/* number of bits to inspect */
 	int			*first,	/* output: first byte offset */
@@ -385,7 +385,7 @@ int xfs_btree_new_iroot(struct xfs_btree_cur *, int *, int *);
 int xfs_btree_insert(struct xfs_btree_cur *, int *);
 int xfs_btree_delete(struct xfs_btree_cur *, int *);
 int xfs_btree_get_rec(struct xfs_btree_cur *, union xfs_btree_rec **, int *);
-int xfs_btree_change_owner(struct xfs_btree_cur *cur, __uint64_t new_owner,
+int xfs_btree_change_owner(struct xfs_btree_cur *cur, uint64_t new_owner,
 			   struct list_head *buffer_list);
 
 /*
@@ -411,7 +411,7 @@ static inline int xfs_btree_get_numrecs(struct xfs_btree_block *block)
 }
 
 static inline void xfs_btree_set_numrecs(struct xfs_btree_block *block,
-		__uint16_t numrecs)
+		uint16_t numrecs)
 {
 	block->bb_numrecs = cpu_to_be16(numrecs);
 }

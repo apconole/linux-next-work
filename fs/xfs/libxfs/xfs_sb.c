@@ -445,7 +445,7 @@ xfs_sb_quota_to_disk(
 	struct xfs_dsb	*to,
 	struct xfs_sb	*from)
 {
-	__uint16_t	qflags = from->sb_qflags;
+	uint16_t	qflags = from->sb_qflags;
 
 	to->sb_uquotino = cpu_to_be64(from->sb_uquotino);
 	if (xfs_sb_version_has_pquotino(from)) {
@@ -741,7 +741,7 @@ xfs_sb_mount_common(
 	mp->m_bmap_dmnr[1] = mp->m_bmap_dmxr[1] / 2;
 
 	mp->m_bsize = XFS_FSB_TO_BB(mp, 1);
-	mp->m_ialloc_inos = (int)MAX((__uint16_t)XFS_INODES_PER_CHUNK,
+	mp->m_ialloc_inos = (int)MAX((uint16_t)XFS_INODES_PER_CHUNK,
 					sbp->sb_inopblock);
 	mp->m_ialloc_blks = mp->m_ialloc_inos >> sbp->sb_inopblog;
 

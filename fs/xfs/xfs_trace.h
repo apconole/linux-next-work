@@ -245,7 +245,7 @@ TRACE_EVENT(xfs_iext_insert,
 		  __print_flags(__entry->bmap_state, "|", XFS_BMAP_EXT_FLAGS),
 		  (long)__entry->idx,
 		  __entry->startoff,
-		  (__int64_t)__entry->startblock,
+		  (int64_t)__entry->startblock,
 		  __entry->blockcount,
 		  __entry->state,
 		  (char *)__entry->caller_ip)
@@ -289,7 +289,7 @@ DECLARE_EVENT_CLASS(xfs_bmap_class,
 		  __print_flags(__entry->bmap_state, "|", XFS_BMAP_EXT_FLAGS),
 		  (long)__entry->idx,
 		  __entry->startoff,
-		  (__int64_t)__entry->startblock,
+		  (int64_t)__entry->startblock,
 		  __entry->blockcount,
 		  __entry->state,
 		  (char *)__entry->caller_ip)
@@ -1274,7 +1274,7 @@ DECLARE_EVENT_CLASS(xfs_imap_class,
 		  __entry->count,
 		  __print_symbolic(__entry->type, XFS_IO_TYPES),
 		  __entry->startoff,
-		  (__int64_t)__entry->startblock,
+		  (int64_t)__entry->startblock,
 		  __entry->blockcount)
 )
 
@@ -2031,7 +2031,7 @@ DECLARE_EVENT_CLASS(xfs_log_recover_buf_item_class,
 	TP_ARGS(log, buf_f),
 	TP_STRUCT__entry(
 		__field(dev_t, dev)
-		__field(__int64_t, blkno)
+		__field(int64_t, blkno)
 		__field(unsigned short, len)
 		__field(unsigned short, flags)
 		__field(unsigned short, size)
@@ -2080,7 +2080,7 @@ DECLARE_EVENT_CLASS(xfs_log_recover_ino_item_class,
 		__field(int, fields)
 		__field(unsigned short, asize)
 		__field(unsigned short, dsize)
-		__field(__int64_t, blkno)
+		__field(int64_t, blkno)
 		__field(int, len)
 		__field(int, boffset)
 	),
