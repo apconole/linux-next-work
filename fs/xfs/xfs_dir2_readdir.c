@@ -178,7 +178,7 @@ xfs_dir2_block_getdents(
 		return 0;
 
 	lock_mode = xfs_ilock_data_map_shared(dp);
-	error = xfs_dir3_block_read(NULL, dp, &bp);
+	error = xfs_dir3_block_read(args->trans, dp, &bp);
 	xfs_iunlock(dp, lock_mode);
 	if (error)
 		return error;
@@ -236,7 +236,7 @@ xfs_dir2_block_getdents(
 			    cook & 0x7fffffff, be64_to_cpu(dep->inumber),
 			    xfs_dir3_get_dtype(dp->i_mount, filetype))) {
 			*offset = cook & 0x7fffffff;
-			xfs_trans_brelse(NULL, bp);
+			xfs_trans_brelse(args->trans, bp);
 			return 0;
 		}
 	}
@@ -247,7 +247,7 @@ xfs_dir2_block_getdents(
 	 */
 	*offset = xfs_dir2_db_off_to_dataptr(geo, geo->datablk + 1, 0) &
 								0x7fffffff;
-	xfs_trans_brelse(NULL, bp);
+	xfs_trans_brelse(args->trans, bp);
 	return 0;
 }
 
@@ -505,15 +505,21 @@ xfs_dir2_leaf_getdents(
 	else
 		*offset = xfs_dir2_byte_to_dataptr(curoff) & 0x7fffffff;
 	if (bp)
-		xfs_trans_brelse(NULL, bp);
+		xfs_trans_brelse(args->trans, bp);
 	return error;
 }
 
 /*
  * Read a directory.
+ *
+ * If supplied, the transaction collects locked dir buffers to avoid
+ * nested buffer deadlocks.  This function does not dirty the
+ * transaction.  The caller should ensure that the inode is locked
+ * before calling this function.
  */
 int
 xfs_readdir(
+	struct xfs_trans	*tp,
 	struct xfs_inode	*dp,
 	void			*dirent,
 	size_t			bufsize,
@@ -534,6 +540,7 @@ xfs_readdir(
 
 	args.dp = dp;
 	args.geo = dp->i_mount->m_dir_geo;
+	args.trans = tp;
 
 	xfs_ilock(dp, XFS_IOLOCK_SHARED);
 	if (dp->i_d.di_format == XFS_DINODE_FMT_LOCAL)

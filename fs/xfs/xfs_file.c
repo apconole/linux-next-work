@@ -1066,7 +1066,7 @@ xfs_file_readdir(
 	 */
 	bufsize = (size_t)min_t(loff_t, 32768, ip->i_d.di_size);
 
-	return xfs_readdir(ip, dirent, bufsize,
+	return xfs_readdir(NULL, ip, dirent, bufsize,
 				(xfs_off_t *)&filp->f_pos, filldir);
 }
 
