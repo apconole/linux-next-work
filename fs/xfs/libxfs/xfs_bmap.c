@@ -5343,14 +5343,16 @@ __xfs_bunmapi(
 				rtexts = XFS_FSB_TO_B(mp, del.br_blockcount);
 				do_div(rtexts, mp->m_sb.sb_rextsize);
 				xfs_mod_frextents(mp, (int64_t)rtexts);
-				(void)xfs_trans_reserve_quota_nblks(NULL,
-					ip, -((long)del.br_blockcount), 0,
-					XFS_QMOPT_RES_RTBLKS);
+				error = xfs_trans_reserve_quota_nblks(NULL,
+						ip, -((long)del.br_blockcount),
+						0, XFS_QMOPT_RES_RTBLKS);
 			} else {
-				(void)xfs_trans_reserve_quota_nblks(NULL,
-					ip, -((long)del.br_blockcount), 0,
-					XFS_QMOPT_RES_REGBLKS);
+				error = xfs_trans_reserve_quota_nblks(NULL,
+						ip, -((long)del.br_blockcount),
+						0, XFS_QMOPT_RES_REGBLKS);
 			}
+			if (error)
+				goto error0;
 			ip->i_delayed_blks -= del.br_blockcount;
 			if (cur)
 				cur->bc_private.b.flags |=
