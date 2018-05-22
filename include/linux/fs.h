@@ -3131,6 +3131,11 @@ extern int simple_unlink(struct inode *, struct dentry *);
 extern int simple_rmdir(struct inode *, struct dentry *);
 extern int simple_rename(struct inode *, struct dentry *, struct inode *, struct dentry *);
 extern int noop_fsync(struct file *, loff_t, loff_t, int);
+extern int noop_set_page_dirty(struct page *page);
+extern void noop_invalidatepage_range(struct page *page, unsigned int offset,
+		unsigned int length);
+extern ssize_t noop_direct_IO(int rw, struct kiocb *kiocb,
+		const struct iovec *iov, loff_t offset, unsigned long nr_segs);
 extern int simple_empty(struct dentry *);
 extern int simple_readpage(struct file *file, struct page *page);
 extern int simple_write_begin(struct file *file, struct address_space *mapping,
