@@ -208,6 +208,7 @@
 
 #define X86_FEATURE_MBA		( 7*32+18) /* Memory Bandwidth Allocation */
 #define X86_FEATURE_IBP_DISABLE ( 7*32+21) /* Old AMD Indirect Branch Predictor Disable */
+#define X86_FEATURE_SPEC_STORE_BYPASS_DISABLE	(7*32+23) /* "" Disable Speculative Store Bypass. */
 
 /* Virtualization flags: Linux defined, word 8 */
 #define X86_FEATURE_TPR_SHADOW  (8*32+ 0) /* Intel TPR Shadow */
@@ -312,6 +313,7 @@
 #define X86_FEATURE_SPEC_CTRL		(18*32+26) /* Speculation Control (IBRS + IBPB) */
 #define X86_FEATURE_INTEL_STIBP		(18*32+27) /* Single Thread Indirect Branch Predictors */
 #define X86_FEATURE_ARCH_CAPABILITIES	(18*32+29) /* IA32_ARCH_CAPABILITIES MSR (Intel) */
+#define X86_FEATURE_RDS			(18*32+31) /* Reduced Data Speculation (formerly "MDD") */
 
 /*
  * BUG word(s)
