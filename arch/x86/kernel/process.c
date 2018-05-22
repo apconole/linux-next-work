@@ -197,6 +197,25 @@ int set_tsc_mode(unsigned int val)
 	return 0;
 }
 
+static __always_inline void __speculative_store_bypass_update(unsigned long tifn)
+{
+	u64 msr;
+
+	if (static_cpu_has(X86_FEATURE_AMD_RDS)) {
+		msr = x86_amd_ls_cfg_base | rds_tif_to_amd_ls_cfg(tifn);
+		wrmsrl(MSR_AMD64_LS_CFG, msr);
+	} else {
+		msr = this_cpu_read(spec_ctrl_pcp.entry) |
+		      rds_tif_to_spec_ctrl(tifn);
+		wrmsrl(MSR_IA32_SPEC_CTRL, msr);
+	}
+}
+
+void speculative_store_bypass_update(void)
+{
+	__speculative_store_bypass_update(current_thread_info()->flags);
+}
+
 void __switch_to_xtra(struct task_struct *prev_p, struct task_struct *next_p,
 		      struct tss_struct *tss)
 {
@@ -239,6 +258,10 @@ void __switch_to_xtra(struct task_struct *prev_p, struct task_struct *next_p,
 		memset(tss->io_bitmap, 0xff, prev->io_bitmap_max);
 	}
 	propagate_user_return_notify(prev_p, next_p);
+
+	if (test_tsk_thread_flag(prev_p, TIF_RDS) ^
+	    test_tsk_thread_flag(next_p, TIF_RDS))
+		__speculative_store_bypass_update(task_thread_info(next_p)->flags);
 }
 
 /*
