@@ -28,6 +28,11 @@ EXPORT_SYMBOL(retp_enabled_key);
 EXPORT_SYMBOL(ibrs_present_key);
 
 /*
+ * SPEC_CTRL MSR bits being managed by the kernel.
+ */
+#define SPEC_CTRL_MANAGED_MASK	(FEATURE_ENABLE_IBRS|FEATURE_ENABLE_SSBD)
+
+/*
  * The Intel specification for the SPEC_CTRL MSR requires that we
  * preserve any already set reserved bits at boot time (e.g. for
  * future additions that this kernel is not currently aware of).
@@ -51,6 +56,7 @@ EXPORT_SYMBOL(ibrs_present_key);
  */
 u64 __read_mostly x86_spec_ctrl_base;
 EXPORT_SYMBOL_GPL(x86_spec_ctrl_base);
+static bool spec_ctrl_msr_write;
 
 /*
  * AMD specific MSR info for Store Bypass control.  x86_amd_ls_cfg_ssbd_mask
@@ -63,14 +69,26 @@ void spec_ctrl_save_msr(void)
 {
 	int cpu;
 	unsigned int hival, loval;
+	static int savecnt;
+
+	spec_ctrl_msr_write = false;
 
 	/*
 	 * Read the SPEC_CTRL MSR to account for reserved bits which may have
 	 * unknown values. AMD64_LS_CFG MSR is cached in the early AMD
 	 * init code as it is not enumerated and depends on the family.
 	 */
-	if (boot_cpu_has(X86_FEATURE_IBRS))
+	if (boot_cpu_has(X86_FEATURE_IBRS) && !savecnt) {
+		/*
+		 * This part is run only the first time it is called.
+		 */
 		rdmsrl(MSR_IA32_SPEC_CTRL, x86_spec_ctrl_base);
+		if (x86_spec_ctrl_base & SPEC_CTRL_MANAGED_MASK) {
+			x86_spec_ctrl_base &= ~SPEC_CTRL_MANAGED_MASK;
+			spec_ctrl_msr_write = true;
+			native_wrmsrl(MSR_IA32_SPEC_CTRL, x86_spec_ctrl_base);
+		}
+	}
 
 	/*
 	 * RHEL only: update the PER_CPU spec_ctrl_pcp cached values
@@ -84,6 +102,7 @@ void spec_ctrl_save_msr(void)
 		WRITE_ONCE(per_cpu(spec_ctrl_pcp.entry, cpu), loval);
 		WRITE_ONCE(per_cpu(spec_ctrl_pcp.exit, cpu), loval);
 	}
+	savecnt++;
 }
 
 /*
@@ -403,9 +422,11 @@ void spec_ctrl_cpu_init(void)
 		return;
 	}
 
-	if (ibrs_mode == IBRS_ENABLED_ALWAYS)
-		native_wrmsrl(MSR_IA32_SPEC_CTRL,
-			      x86_spec_ctrl_base | FEATURE_ENABLE_IBRS);
+	if ((ibrs_mode == IBRS_ENABLED_ALWAYS) ||
+	    (spec_ctrl_msr_write && (system_state == SYSTEM_BOOTING)))
+		native_wrmsr(MSR_IA32_SPEC_CTRL,
+			     this_cpu_read(spec_ctrl_pcp.entry),
+			     this_cpu_read(spec_ctrl_pcp.hi32));
 }
 
 static void spec_ctrl_reinit_all_cpus(void)
@@ -431,11 +452,12 @@ void spec_ctrl_init(void)
 
 	/*
 	 * If the x86_spec_ctrl_base is modified, propagate it to the
-	 * percpu spec_ctrl structure.
+	 * percpu spec_ctrl structure as well as forcing MSR write.
 	 */
 	if (x86_spec_ctrl_base) {
 		wrmsrl(MSR_IA32_SPEC_CTRL, x86_spec_ctrl_base);
 		spec_ctrl_save_msr();
+		spec_ctrl_msr_write = true;
 	}
 }
 
