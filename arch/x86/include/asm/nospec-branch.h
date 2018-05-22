@@ -205,6 +205,7 @@ extern u64 x86_spec_ctrl_base;
 enum ssb_mitigation {
 	SPEC_STORE_BYPASS_NONE,
 	SPEC_STORE_BYPASS_DISABLE,
+	SPEC_STORE_BYPASS_PRCTL,
 };
 
 /* AMD specific Speculative Store Bypass MSR data */
