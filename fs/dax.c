@@ -1030,6 +1030,11 @@ dax_iomap_actor(int rw, struct inode *inode, loff_t pos, loff_t length, void *da
 		if (map_len > end - pos)
 			map_len = end - pos;
 
+		/*
+		 * The userspace address for the memory copy has already been
+		 * validated via access_ok() in either vfs_read() or
+		 * vfs_write(), depending on which operation we are doing.
+		 */
 		if (rw & WRITE)
 			map_len = memcpy_fromiovecend_partial_flushcache(
 					kaddr, iter->iov,
