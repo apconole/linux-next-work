@@ -472,8 +472,8 @@ static const char *table_lookup_model(struct cpuinfo_x86 *c)
 	return NULL;		/* Not found */
 }
 
-__u32 cpu_caps_cleared[NCAPINTS];
-__u32 cpu_caps_set[NCAPINTS];
+__u32 cpu_caps_cleared[NCAPINTS + NBUGINTS];
+__u32 cpu_caps_set[NCAPINTS + NBUGINTS];
 
 void load_percpu_segment(int cpu)
 {
@@ -1059,7 +1059,7 @@ static void identify_cpu(struct cpuinfo_x86 *c)
 		this_cpu->c_identify(c);
 
 	/* Clear/Set all flags overriden by options, after probe */
-	for (i = 0; i < NCAPINTS; i++) {
+	for (i = 0; i < NCAPINTS + NBUGINTS; i++) {
 		c->x86_capability[i] &= ~cpu_caps_cleared[i];
 		c->x86_capability[i] |= cpu_caps_set[i];
 	}
@@ -1121,7 +1121,7 @@ static void identify_cpu(struct cpuinfo_x86 *c)
 	 * Clear/Set all flags overriden by options, need do it
 	 * before following smp all cpus cap AND.
 	 */
-	for (i = 0; i < NCAPINTS; i++) {
+	for (i = 0; i < NCAPINTS + NBUGINTS; i++) {
 		c->x86_capability[i] &= ~cpu_caps_cleared[i];
 		c->x86_capability[i] |= cpu_caps_set[i];
 	}
