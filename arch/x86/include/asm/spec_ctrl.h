@@ -176,6 +176,7 @@ extern struct static_key ibrs_present_key;
 extern void spec_ctrl_rescan_cpuid(void);
 extern void spec_ctrl_init(void);
 extern void spec_ctrl_cpu_init(void);
+extern void ssb_select_mitigation(void);
 
 bool spec_ctrl_force_enable_ibrs(void);
 bool spec_ctrl_cond_enable_ibrs(bool full_retpoline);
@@ -386,6 +387,8 @@ static inline void spec_ctrl_ibpb_if_different_creds(struct task_struct *next)
 			fill_RSB();
 	}
 }
+
+extern enum ssb_mitigation ssb_mode;
 
 #endif /* __ASSEMBLY__ */
 #endif /* _ASM_X86_SPEC_CTRL_H */

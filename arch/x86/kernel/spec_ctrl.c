@@ -52,7 +52,7 @@ EXPORT_SYMBOL(ibrs_present_key);
 u64 __read_mostly x86_spec_ctrl_base;
 EXPORT_SYMBOL_GPL(x86_spec_ctrl_base);
 
-void __init spec_ctrl_save_msr(void)
+void spec_ctrl_save_msr(void)
 {
 	int cpu;
 	unsigned int hival, loval;
@@ -85,7 +85,7 @@ void __init spec_ctrl_save_msr(void)
  */
 void x86_spec_ctrl_set(u64 val)
 {
-	if (val & ~FEATURE_ENABLE_IBRS)
+	if (val & ~(FEATURE_ENABLE_IBRS | X86_FEATURE_RDS))
 		WARN_ONCE(1, "SPEC_CTRL MSR value 0x%16llx is unknown.\n", val);
 	else
 		native_wrmsrl(MSR_IA32_SPEC_CTRL, x86_spec_ctrl_base | val);
@@ -420,12 +420,22 @@ void spec_ctrl_init(void)
 	else if (static_key_enabled(&ibrs_present_key) && !boot_cpu_has(X86_FEATURE_IBRS))
 		static_key_slow_dec(&ibrs_present_key);
 	spec_ctrl_print_features();
+
+	/*
+	 * If the x86_spec_ctrl_base is modified, propagate it to the
+	 * percpu spec_ctrl structure.
+	 */
+	if (x86_spec_ctrl_base) {
+		wrmsrl(MSR_IA32_SPEC_CTRL, x86_spec_ctrl_base);
+		spec_ctrl_save_msr();
+	}
 }
 
 void spec_ctrl_rescan_cpuid(void)
 {
 	enum spectre_v2_mitigation old_mode;
-	bool old_ibrs, old_ibpb;
+	bool old_ibrs, old_ibpb, old_rds;
+	bool rds_changed;
 	int cpu;
 
 	if (boot_cpu_has(X86_FEATURE_IBP_DISABLE))
@@ -437,32 +447,54 @@ void spec_ctrl_rescan_cpuid(void)
 
 		old_ibrs = boot_cpu_has(X86_FEATURE_IBRS);
 		old_ibpb = boot_cpu_has(X86_FEATURE_IBPB);
+		old_rds  = boot_cpu_has(X86_FEATURE_RDS);
 		old_mode = spec_ctrl_get_mitigation();
 
 		/* detect spec ctrl related cpuid additions */
 		get_cpu_cap(&boot_cpu_data);
 
 		/* if there were no spec ctrl related changes, we're done */
+		rds_changed = (old_rds != boot_cpu_has(X86_FEATURE_RDS));
 		if (old_ibrs == boot_cpu_has(X86_FEATURE_IBRS) &&
-		    old_ibpb == boot_cpu_has(X86_FEATURE_IBPB))
+		    old_ibpb == boot_cpu_has(X86_FEATURE_IBPB) && !rds_changed)
 			goto done;
 
 		/*
-		 * The SPEC_CTRL and IBPB cpuid bits may have
+		 * The IBRS, IBPB & RDS cpuid bits may have
 		 * just been set in the boot_cpu_data, transfer them
 		 * to the per-cpu data too.
 		 */
 		if (boot_cpu_has(X86_FEATURE_IBRS))
 			for_each_online_cpu(cpu)
-				set_cpu_cap(&cpu_data(cpu),
-					    X86_FEATURE_IBRS);
+				set_cpu_cap(&cpu_data(cpu), X86_FEATURE_IBRS);
 		if (boot_cpu_has(X86_FEATURE_IBPB))
 			for_each_online_cpu(cpu)
-				set_cpu_cap(&cpu_data(cpu),
-					    X86_FEATURE_IBPB);
+				set_cpu_cap(&cpu_data(cpu), X86_FEATURE_IBPB);
+		if (boot_cpu_has(X86_FEATURE_RDS))
+			for_each_online_cpu(cpu)
+				set_cpu_cap(&cpu_data(cpu), X86_FEATURE_RDS);
 
 		/* update static key, print the changed IBRS/IBPB features */
 		spec_ctrl_init();
+
+		if (rds_changed) {
+			u64 old_spec_ctrl = x86_spec_ctrl_base;
+
+			/*
+			 * Redo speculative store bypass setup.
+			 */
+			ssb_select_mitigation();
+			if (x86_spec_ctrl_base != old_spec_ctrl) {
+				/*
+				 * Need to propagate the new baseline to all
+				 * the percpu spec_ctrl structures. The
+				 * spectre v2 re-initialization below will
+				 * reset to the right percpu values.
+				 */
+				spec_ctrl_save_msr();
+				sync_all_cpus_ibrs(false);
+			}
+		}
 
 		/*
 		 * Re-execute the v2 mitigation logic based on any new CPU

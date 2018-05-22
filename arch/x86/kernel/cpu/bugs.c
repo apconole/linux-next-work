@@ -25,8 +25,9 @@
 #include <asm/spec_ctrl.h>
 
 static void __init spectre_v2_select_mitigation(void);
-static void __init ssb_select_mitigation(void);
-void __init spec_ctrl_save_msr(void);
+static void __init ssb_parse_cmdline(void);
+void ssb_select_mitigation(void);
+extern void spec_ctrl_save_msr(void);
 
 void __init check_bugs(void)
 {
@@ -39,14 +40,17 @@ void __init check_bugs(void)
 		print_cpu_info(&boot_cpu_data);
 	}
 
-	spec_ctrl_init();
-	spectre_v2_select_mitigation();
-
 	/*
 	 * Select proper mitigation for any exposure to the Speculative Store
 	 * Bypass vulnerability (exposed as a bug in "Memory Disambiguation")
+	 * This has to be done before spec_ctrl_init() to make sure that its
+	 * SPEC_CTRL MSR value is properly set up.
 	 */
+	ssb_parse_cmdline();
 	ssb_select_mitigation();
+
+	spec_ctrl_init();
+	spectre_v2_select_mitigation();
 
 	spec_ctrl_cpu_init();
 
@@ -213,7 +217,7 @@ static void __init spectre_v2_select_mitigation(void)
 
 #define pr_fmt(fmt)    "Speculative Store Bypass: " fmt
 
-static enum ssb_mitigation ssb_mode = SPEC_STORE_BYPASS_NONE;
+enum ssb_mitigation ssb_mode = SPEC_STORE_BYPASS_NONE;
 
 /* The kernel command line selection */
 enum ssb_mitigation_cmd {
@@ -221,6 +225,8 @@ enum ssb_mitigation_cmd {
 	SPEC_STORE_BYPASS_CMD_AUTO,
 	SPEC_STORE_BYPASS_CMD_ON,
 };
+
+static enum ssb_mitigation_cmd ssb_cmd = SPEC_STORE_BYPASS_CMD_NONE;
 
 static const char *ssb_strings[] = {
 	[SPEC_STORE_BYPASS_NONE]			= "Vulnerable",
@@ -236,7 +242,7 @@ static const struct {
 	{ "off",	SPEC_STORE_BYPASS_CMD_NONE }, /* Don't touch Speculative Store Bypass */
 };
 
-static enum ssb_mitigation_cmd __init ssb_parse_cmdline(void)
+static enum ssb_mitigation_cmd __init __ssb_parse_cmdline(void)
 {
 	enum ssb_mitigation_cmd cmd = SPEC_STORE_BYPASS_CMD_AUTO;
 	char arg[20];
@@ -267,15 +273,24 @@ static enum ssb_mitigation_cmd __init ssb_parse_cmdline(void)
 	return cmd;
 }
 
-static enum ssb_mitigation __init __ssb_select_mitigation(void)
+/*
+ * The SSB command line parsing is now separated from SSB mitigation
+ * selection as the boot command line buffer will not be available after
+ * init and so could not be used with late microcode update.
+ */
+static void  __init ssb_parse_cmdline(void)
+{
+	ssb_cmd = __ssb_parse_cmdline();
+}
+
+static enum ssb_mitigation __ssb_select_mitigation(void)
 {
 	enum ssb_mitigation mode = SPEC_STORE_BYPASS_NONE;
-	enum ssb_mitigation_cmd cmd;
+	enum ssb_mitigation_cmd cmd = ssb_cmd;
 
 	if (!boot_cpu_has(X86_FEATURE_RDS))
 		return mode;
 
-	cmd = ssb_parse_cmdline();
 	if (!boot_cpu_has_bug(X86_BUG_SPEC_STORE_BYPASS) &&
 	    (cmd == SPEC_STORE_BYPASS_CMD_NONE ||
 	     cmd == SPEC_STORE_BYPASS_CMD_AUTO))
@@ -290,12 +305,31 @@ static enum ssb_mitigation __init __ssb_select_mitigation(void)
 		break;
 	}
 
-	if (mode != SPEC_STORE_BYPASS_NONE)
+	/*
+	 * We have three CPU feature flags that are in play here:
+	 *  - X86_BUG_SPEC_STORE_BYPASS - CPU is susceptible.
+	 *  - X86_FEATURE_RDS - CPU is able to turn off speculative store bypass
+	 *  - X86_FEATURE_SPEC_STORE_BYPASS_DISABLE - engage the mitigation
+	 */
+	if (mode != SPEC_STORE_BYPASS_NONE) {
 		setup_force_cpu_cap(X86_FEATURE_SPEC_STORE_BYPASS_DISABLE);
+		/*
+		 * Intel uses the SPEC CTRL MSR Bit(2) for this, while AMD uses
+		 * a completely different MSR and bit dependent on family.
+		 */
+		switch (boot_cpu_data.x86_vendor) {
+		case X86_VENDOR_INTEL:
+			x86_spec_ctrl_base |= FEATURE_ENABLE_RDS;
+			break;
+		case X86_VENDOR_AMD:
+			break;
+		}
+	}
+
 	return mode;
 }
 
-static void ssb_select_mitigation()
+void ssb_select_mitigation()
 {
 	ssb_mode = __ssb_select_mitigation();
 

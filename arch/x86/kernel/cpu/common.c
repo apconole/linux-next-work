@@ -1175,6 +1175,13 @@ static void identify_cpu(struct cpuinfo_x86 *c)
 #ifdef CONFIG_NUMA
 	numa_add_cpu(smp_processor_id());
 #endif
+
+	/*
+	 * Always write back x86_spec_ctrl_base if it has been modified.
+	 */
+	if (x86_spec_ctrl_base)
+		wrmsrl(MSR_IA32_SPEC_CTRL, x86_spec_ctrl_base);
+
 }
 
 #ifdef CONFIG_X86_64
