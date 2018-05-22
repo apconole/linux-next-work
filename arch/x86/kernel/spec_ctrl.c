@@ -27,6 +27,77 @@ struct static_key ibrs_present_key = STATIC_KEY_INIT_FALSE;
 EXPORT_SYMBOL(retp_enabled_key);
 EXPORT_SYMBOL(ibrs_present_key);
 
+/*
+ * The Intel specification for the SPEC_CTRL MSR requires that we
+ * preserve any already set reserved bits at boot time (e.g. for
+ * future additions that this kernel is not currently aware of).
+ * We then set any additional mitigation bits that we want
+ * ourselves and always use this as the base for SPEC_CTRL.
+ * We also use this when handling guest entry/exit as below.
+ *
+ * RHEL note: We do the above to be in sync with upstream,
+ * but in the RHEL case, we have both x86_spec_ctrl_base,
+ * and a PER_CPU spec_ctrl_pcp to track and manage.
+ *
+ * RHEL note: It's actually cleaner to directly export this
+ * and allow all of our assorted IBRS management code to touch
+ * this directly, rather than use the upstream accessors. We
+ * implement them, but we don't use those in the RHEL code.
+ */
+
+/*
+ * Our boot-time value of the SPEC_CTRL MSR. We read it once so that any
+ * writes to SPEC_CTRL contain whatever reserved bits have been set.
+ */
+u64 __read_mostly x86_spec_ctrl_base;
+EXPORT_SYMBOL_GPL(x86_spec_ctrl_base);
+
+void __init spec_ctrl_save_msr(void)
+{
+	int cpu;
+	unsigned int hival, loval;
+
+	/*
+	 * Read the SPEC_CTRL MSR to account for reserved bits which may have
+	 * unknown values.
+	 */
+	if (boot_cpu_has(X86_FEATURE_IBRS))
+		rdmsrl(MSR_IA32_SPEC_CTRL, x86_spec_ctrl_base);
+
+	/*
+	 * RHEL only: update the PER_CPU spec_ctrl_pcp cached values
+	 */
+
+	loval = x86_spec_ctrl_base & 0xffffffff;
+	hival = (x86_spec_ctrl_base >> 32) & 0xffffffff;
+
+	for_each_possible_cpu(cpu) {
+		WRITE_ONCE(per_cpu(spec_ctrl_pcp.hi32, cpu), hival);
+		WRITE_ONCE(per_cpu(spec_ctrl_pcp.entry, cpu), loval);
+		WRITE_ONCE(per_cpu(spec_ctrl_pcp.exit, cpu), loval);
+	}
+}
+
+/*
+ * RHEL note: We implement this in RHEL, but we don't use it directly since
+ * we have a lot of IBRS management code that touches SPEC_CTRL directly. It
+ * turns out to be cleaner to allow it to do that (we tested both approaches).
+ */
+void x86_spec_ctrl_set(u64 val)
+{
+	if (val & ~FEATURE_ENABLE_IBRS)
+		WARN_ONCE(1, "SPEC_CTRL MSR value 0x%16llx is unknown.\n", val);
+	else
+		native_wrmsrl(MSR_IA32_SPEC_CTRL, x86_spec_ctrl_base | val);
+}
+EXPORT_SYMBOL_GPL(x86_spec_ctrl_set);
+
+u64 x86_spec_ctrl_get_default(void)
+{
+	return x86_spec_ctrl_base;
+}
+EXPORT_SYMBOL_GPL(x86_spec_ctrl_get_default);
+
 static void set_spec_ctrl_pcp(bool entry, bool exit)
 {
 	unsigned int enabled   = this_cpu_read(spec_ctrl_pcp.enabled);
@@ -107,7 +178,8 @@ static void spec_ctrl_sync_all_cpus(u32 msr_nr, u64 val)
 static void sync_all_cpus_ibrs(bool enable)
 {
 	spec_ctrl_sync_all_cpus(MSR_IA32_SPEC_CTRL,
-				 enable ? FEATURE_ENABLE_IBRS : 0);
+				 enable ? (x86_spec_ctrl_base | FEATURE_ENABLE_IBRS)
+					: x86_spec_ctrl_base);
 }
 
 static void __sync_this_cpu_ibp(void *data)
@@ -324,7 +396,8 @@ void spec_ctrl_cpu_init(void)
 	}
 
 	if (ibrs_mode == IBRS_ENABLED_ALWAYS)
-		native_wrmsrl(MSR_IA32_SPEC_CTRL, FEATURE_ENABLE_IBRS);
+		native_wrmsrl(MSR_IA32_SPEC_CTRL,
+			      x86_spec_ctrl_base | FEATURE_ENABLE_IBRS);
 }
 
 static void spec_ctrl_reinit_all_cpus(void)

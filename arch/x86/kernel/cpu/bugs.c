@@ -25,10 +25,13 @@
 #include <asm/spec_ctrl.h>
 
 static void __init spectre_v2_select_mitigation(void);
+void __init spec_ctrl_save_msr(void);
 
 void __init check_bugs(void)
 {
 	identify_boot_cpu();
+
+	spec_ctrl_save_msr();
 
 	if (!IS_ENABLED(CONFIG_SMP)) {
 		pr_info("CPU: ");

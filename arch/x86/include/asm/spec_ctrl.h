@@ -249,6 +249,24 @@ static inline bool ibpb_enabled(void)
 		(ibrs_enabled_kernel() || retp_enabled()));
 }
 
+/*
+ * On VMENTER we must preserve whatever view of the SPEC_CTRL MSR
+ * the guest has, while on VMEXIT we restore the kernel view. This
+ * would be easier if SPEC_CTRL were architecturally maskable or
+ * shadowable for guests but this is not (currently) the case.
+ * Takes the guest view of SPEC_CTRL MSR as a parameter.
+ */
+
+/*
+ * RHEL note: Upstream implements two new functions to handle this:
+ *
+ *	- extern void x86_spec_ctrl_set_guest(u64);
+ *	- extern void x86_spec_ctrl_restore_host(u64);
+ *
+ * We already have the following two functions in RHEL so the
+ * above are not included in the RHEL version of the backport.
+ */
+
 static __always_inline u64 spec_ctrl_vmenter_ibrs(u64 vcpu_ibrs)
 {
 	/*
@@ -270,7 +288,8 @@ static __always_inline void __spec_ctrl_vmexit_ibrs(u64 host_ibrs, u64 vcpu_ibrs
 {
 	/* IBRS may have barrier semantics so it must be set during vmexit.  */
 	if (unlikely(host_ibrs || vcpu_ibrs != host_ibrs)) {
-		native_wrmsrl(MSR_IA32_SPEC_CTRL, host_ibrs);
+		native_wrmsrl(MSR_IA32_SPEC_CTRL,
+			      x86_spec_ctrl_base|host_ibrs);
 		return;
 	}
 
@@ -289,7 +308,8 @@ static __always_inline void spec_ctrl_ibrs_on(void)
 	 * mode.
 	 */
 	if (ibrs_enabled_kernel()) {
-		native_wrmsrl(MSR_IA32_SPEC_CTRL, FEATURE_ENABLE_IBRS);
+		native_wrmsrl(MSR_IA32_SPEC_CTRL,
+			      x86_spec_ctrl_base|FEATURE_ENABLE_IBRS);
 		return;
 	}
 
@@ -304,7 +324,7 @@ static __always_inline void spec_ctrl_ibrs_on(void)
 static __always_inline void spec_ctrl_ibrs_off(void)
 {
 	if (ibrs_enabled_kernel())
-		native_wrmsrl(MSR_IA32_SPEC_CTRL, 0);
+		native_wrmsrl(MSR_IA32_SPEC_CTRL, x86_spec_ctrl_base);
 	/* rmb not needed when disabling IBRS */
 }
 
@@ -325,7 +345,8 @@ static inline bool spec_ctrl_ibrs_on_firmware(void)
 	bool ibrs_on = false;
 
 	if (cpu_has_spec_ctrl() && retp_enabled() && !ibrs_enabled_kernel()) {
-		native_wrmsrl(MSR_IA32_SPEC_CTRL, FEATURE_ENABLE_IBRS);
+		native_wrmsrl(MSR_IA32_SPEC_CTRL,
+			      x86_spec_ctrl_base|FEATURE_ENABLE_IBRS);
 		ibrs_on = true;
 	} else {
 		/* rmb to prevent wrong speculation for security */
@@ -338,7 +359,7 @@ static inline bool spec_ctrl_ibrs_on_firmware(void)
 static inline void spec_ctrl_ibrs_off_firmware(bool ibrs_on)
 {
 	if (ibrs_on)
-		native_wrmsrl(MSR_IA32_SPEC_CTRL, 0);
+		native_wrmsrl(MSR_IA32_SPEC_CTRL, x86_spec_ctrl_base);
 	else
 		/* rmb to prevent wrong speculation for security */
 		rmb();
