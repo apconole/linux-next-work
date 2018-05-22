@@ -91,11 +91,11 @@ void __init check_bugs(void)
 #endif
 }
 
-void x86_amd_rds_enable(void)
+void x86_amd_ssbd_enable(void)
 {
-	u64 msrval = x86_amd_ls_cfg_base | x86_amd_ls_cfg_rds_mask;
+	u64 msrval = x86_amd_ls_cfg_base | x86_amd_ls_cfg_ssbd_mask;
 
-	if (boot_cpu_has(X86_FEATURE_AMD_RDS))
+	if (boot_cpu_has(X86_FEATURE_AMD_SSBD))
 		wrmsrl(MSR_AMD64_LS_CFG, msrval);
 }
 
@@ -300,7 +300,7 @@ static enum ssb_mitigation __ssb_select_mitigation(void)
 	enum ssb_mitigation mode = SPEC_STORE_BYPASS_NONE;
 	enum ssb_mitigation_cmd cmd = ssb_cmd;
 
-	if (!boot_cpu_has(X86_FEATURE_RDS))
+	if (!boot_cpu_has(X86_FEATURE_SSBD))
 		return mode;
 
 	if (!boot_cpu_has_bug(X86_BUG_SPEC_STORE_BYPASS) &&
@@ -326,7 +326,7 @@ static enum ssb_mitigation __ssb_select_mitigation(void)
 	/*
 	 * We have three CPU feature flags that are in play here:
 	 *  - X86_BUG_SPEC_STORE_BYPASS - CPU is susceptible.
-	 *  - X86_FEATURE_RDS - CPU is able to turn off speculative store bypass
+	 *  - X86_FEATURE_SSBD - CPU is able to turn off speculative store bypass
 	 *  - X86_FEATURE_SPEC_STORE_BYPASS_DISABLE - engage the mitigation
 	 */
 	if (mode == SPEC_STORE_BYPASS_DISABLE) {
@@ -337,10 +337,10 @@ static enum ssb_mitigation __ssb_select_mitigation(void)
 		 */
 		switch (boot_cpu_data.x86_vendor) {
 		case X86_VENDOR_INTEL:
-			x86_spec_ctrl_base |= FEATURE_ENABLE_RDS;
+			x86_spec_ctrl_base |= FEATURE_ENABLE_SSBD;
 			break;
 		case X86_VENDOR_AMD:
-			x86_amd_rds_enable();
+			x86_amd_ssbd_enable();
 			break;
 		}
 	}
@@ -360,21 +360,21 @@ void ssb_select_mitigation()
 
 static int ssb_prctl_set(struct task_struct *task, unsigned long ctrl)
 {
-	bool rds = !!test_tsk_thread_flag(task, TIF_RDS);
+	bool ssbd = !!test_tsk_thread_flag(task, TIF_SSBD);
 
 	if (ssb_mode != SPEC_STORE_BYPASS_PRCTL)
 		return -ENXIO;
 
 	if (ctrl == PR_SPEC_ENABLE)
-		clear_tsk_thread_flag(task, TIF_RDS);
+		clear_tsk_thread_flag(task, TIF_SSBD);
 	else
-		set_tsk_thread_flag(task, TIF_RDS);
+		set_tsk_thread_flag(task, TIF_SSBD);
 
 	/*
 	 * If being set on non-current task, delay setting the CPU
 	 * mitigation until it is next scheduled.
 	 */
-	if (task == current && rds != !!test_tsk_thread_flag(task, TIF_RDS))
+	if (task == current && ssbd != !!test_tsk_thread_flag(task, TIF_SSBD))
 		speculative_store_bypass_update();
 
 	return 0;
@@ -386,7 +386,7 @@ static int ssb_prctl_get(struct task_struct *task)
 	case SPEC_STORE_BYPASS_DISABLE:
 		return PR_SPEC_DISABLE;
 	case SPEC_STORE_BYPASS_PRCTL:
-		if (test_tsk_thread_flag(task, TIF_RDS))
+		if (test_tsk_thread_flag(task, TIF_SSBD))
 			return PR_SPEC_PRCTL | PR_SPEC_DISABLE;
 		return PR_SPEC_PRCTL | PR_SPEC_ENABLE;
 	default:

@@ -203,20 +203,20 @@ struct kernel_ibrs_spec_ctrl {
 
 DECLARE_PER_CPU_USER_MAPPED(struct kernel_ibrs_spec_ctrl, spec_ctrl_pcp);
 
-extern void x86_amd_rds_enable(void);
+extern void x86_amd_ssbd_enable(void);
 
 /* The Intel SPEC CTRL MSR base value cache */
 extern u64 x86_spec_ctrl_base;
 
-static inline u64 rds_tif_to_spec_ctrl(u64 tifn)
+static inline u64 ssbd_tif_to_spec_ctrl(u64 tifn)
 {
-	BUILD_BUG_ON(TIF_RDS < FEATURE_ENABLE_RDS_SHIFT);
-	return (tifn & _TIF_RDS) >> (TIF_RDS - FEATURE_ENABLE_RDS_SHIFT);
+	BUILD_BUG_ON(TIF_SSBD < FEATURE_ENABLE_SSBD_SHIFT);
+	return (tifn & _TIF_SSBD) >> (TIF_SSBD - FEATURE_ENABLE_SSBD_SHIFT);
 }
 
-static inline u64 rds_tif_to_amd_ls_cfg(u64 tifn)
+static inline u64 ssbd_tif_to_amd_ls_cfg(u64 tifn)
 {
-	return (tifn & _TIF_RDS) ? x86_amd_ls_cfg_rds_mask : 0ULL;
+	return (tifn & _TIF_SSBD) ? x86_amd_ls_cfg_ssbd_mask : 0ULL;
 }
 
 extern void speculative_store_bypass_update(void);
@@ -304,7 +304,7 @@ static __always_inline u64 spec_ctrl_vmenter_ibrs(u64 vcpu_ibrs)
 	u64 host_ibrs = ibrs_enabled_kernel() ? FEATURE_ENABLE_IBRS : 0;
 
 	if (boot_cpu_data.x86_vendor == X86_VENDOR_INTEL)
-		host_ibrs |= rds_tif_to_spec_ctrl(current_thread_info()->flags);
+		host_ibrs |= ssbd_tif_to_spec_ctrl(current_thread_info()->flags);
 
 	if (unlikely(vcpu_ibrs != host_ibrs))
 		native_wrmsrl(MSR_IA32_SPEC_CTRL, vcpu_ibrs);
@@ -322,7 +322,7 @@ static __always_inline void __spec_ctrl_vmexit_ibrs(u64 host_ibrs, u64 vcpu_ibrs
 	 */
 
 	if (boot_cpu_data.x86_vendor == X86_VENDOR_INTEL)
-		host_ibrs |= rds_tif_to_spec_ctrl(current_thread_info()->flags);
+		host_ibrs |= ssbd_tif_to_spec_ctrl(current_thread_info()->flags);
 
 	/* IBRS may have barrier semantics so it must be set during vmexit.  */
 	if (unlikely(host_ibrs || vcpu_ibrs != host_ibrs)) {

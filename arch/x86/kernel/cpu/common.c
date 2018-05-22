@@ -1054,10 +1054,10 @@ static void validate_apic_and_package_id(struct cpuinfo_x86 *c)
 
 	/*
 	 * If we're on an AMD system using non-architectural MSRs
-	 * and using big hammer, then set the RDS bit accordingly
+	 * and using big hammer, then set the SSBD bit accordingly
 	 */
 	if (ssb_mode == SPEC_STORE_BYPASS_DISABLE)
-		x86_amd_rds_enable();
+		x86_amd_ssbd_enable();
 }
 
 /*

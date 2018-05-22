@@ -435,8 +435,8 @@
 #define FEATURE_ENABLE_IBRS				(1<<0)
 #define FEATURE_ENABLE_STIBP				(1<<1)
 #define FEATURE_SET_IBPB				(1<<0)
-#define FEATURE_ENABLE_RDS_SHIFT	2
-#define FEATURE_ENABLE_RDS		(1<<FEATURE_ENABLE_RDS_SHIFT)  /* Reduced Data Speculation */
+#define FEATURE_ENABLE_SSBD_SHIFT	2
+#define FEATURE_ENABLE_SSBD		(1<<FEATURE_ENABLE_SSBD_SHIFT)  /* Speculative Store Bypass Disable */
 
 #define MSR_IA32_APICBASE		0x0000001b
 #define MSR_IA32_APICBASE_BSP		(1<<8)
