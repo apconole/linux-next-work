@@ -20,9 +20,14 @@
 #include <asm/msr-index.h>
 
 .macro __IBRS_ENTRY
-	movl $MSR_IA32_SPEC_CTRL, %ecx
 	movl IBRS_HI32_PCP, %edx
 	movl IBRS_ENTRY_PCP, %eax
+	GET_THREAD_INFO(%rcx)
+	bt   $TIF_SSBD, TI_flags(%rcx)
+	jnc  .Lno_rds_\@
+	orl  $FEATURE_ENABLE_SSBD, %eax
+.Lno_rds_\@:
+	movl $MSR_IA32_SPEC_CTRL, %ecx
 	wrmsr
 .endm
 
@@ -72,14 +77,16 @@
 	rdmsr
 	/*
 	 * If the content of the MSR matches the kernel entry value,
-	 * we can just leave.
+	 * we can just leave. Otherwise, transfer the content of the
+	 * SSBD bit in the MSR to the entry value.
 	 */
 	movl IBRS_ENTRY_PCP, %ecx
 	cmpl %eax, %ecx
 	je   .Lend_\@
 
 	movl %eax, \save_reg
-	movl %ecx, %eax
+	andl $FEATURE_ENABLE_SSBD, %eax
+	orl  %ecx, %eax
 	movl $MSR_IA32_SPEC_CTRL, %ecx
 	wrmsr
 	jmp .Lend_\@
@@ -90,9 +97,14 @@
 .endm
 
 .macro __IBRS_EXIT
-	movl $MSR_IA32_SPEC_CTRL, %ecx
 	movl IBRS_HI32_PCP, %edx
 	movl IBRS_EXIT_PCP, %eax
+	GET_THREAD_INFO(%rcx)
+	bt   $TIF_SSBD, TI_flags(%rcx)
+	jnc  .Lno_rds_\@
+	orl  $FEATURE_ENABLE_SSBD, %eax
+.Lno_rds_\@:
+	movl $MSR_IA32_SPEC_CTRL, %ecx
 	wrmsr
 .endm
 
@@ -346,8 +358,13 @@ static __always_inline void spec_ctrl_ibrs_on(void)
 	 * mode.
 	 */
 	if (ibrs_enabled_kernel()) {
-		native_wrmsrl(MSR_IA32_SPEC_CTRL,
-			      x86_spec_ctrl_base|FEATURE_ENABLE_IBRS);
+		u64 spec_ctrl = x86_spec_ctrl_base|FEATURE_ENABLE_IBRS;
+
+		if (boot_cpu_data.x86_vendor == X86_VENDOR_INTEL)
+			spec_ctrl |= ssbd_tif_to_spec_ctrl(
+					current_thread_info()->flags);
+
+		native_wrmsrl(MSR_IA32_SPEC_CTRL, spec_ctrl);
 		return;
 	}
 
@@ -361,8 +378,15 @@ static __always_inline void spec_ctrl_ibrs_on(void)
 
 static __always_inline void spec_ctrl_ibrs_off(void)
 {
-	if (ibrs_enabled_kernel())
-		native_wrmsrl(MSR_IA32_SPEC_CTRL, x86_spec_ctrl_base);
+	if (ibrs_enabled_kernel()) {
+		u64 spec_ctrl = x86_spec_ctrl_base;
+
+		if (boot_cpu_data.x86_vendor == X86_VENDOR_INTEL)
+		spec_ctrl |= ssbd_tif_to_spec_ctrl(
+				current_thread_info()->flags);
+
+		native_wrmsrl(MSR_IA32_SPEC_CTRL, spec_ctrl);
+	}
 	/* rmb not needed when disabling IBRS */
 }
 
@@ -383,8 +407,13 @@ static inline bool spec_ctrl_ibrs_on_firmware(void)
 	bool ibrs_on = false;
 
 	if (cpu_has_spec_ctrl() && retp_enabled() && !ibrs_enabled_kernel()) {
-		native_wrmsrl(MSR_IA32_SPEC_CTRL,
-			      x86_spec_ctrl_base|FEATURE_ENABLE_IBRS);
+		u64 spec_ctrl = x86_spec_ctrl_base|FEATURE_ENABLE_IBRS;
+
+		if (boot_cpu_data.x86_vendor == X86_VENDOR_INTEL)
+			spec_ctrl |= ssbd_tif_to_spec_ctrl(
+					current_thread_info()->flags);
+
+		native_wrmsrl(MSR_IA32_SPEC_CTRL, spec_ctrl);
 		ibrs_on = true;
 	} else {
 		/* rmb to prevent wrong speculation for security */
@@ -396,11 +425,18 @@ static inline bool spec_ctrl_ibrs_on_firmware(void)
 
 static inline void spec_ctrl_ibrs_off_firmware(bool ibrs_on)
 {
-	if (ibrs_on)
-		native_wrmsrl(MSR_IA32_SPEC_CTRL, x86_spec_ctrl_base);
-	else
+	if (ibrs_on) {
+		u64 spec_ctrl = x86_spec_ctrl_base;
+
+		if (boot_cpu_data.x86_vendor == X86_VENDOR_INTEL)
+			spec_ctrl |= ssbd_tif_to_spec_ctrl(
+					current_thread_info()->flags);
+
+		native_wrmsrl(MSR_IA32_SPEC_CTRL, spec_ctrl);
+	} else {
 		/* rmb to prevent wrong speculation for security */
 		rmb();
+	}
 }
 
 static inline void __spec_ctrl_ibpb(void)
