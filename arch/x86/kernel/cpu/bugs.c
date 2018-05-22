@@ -225,4 +225,12 @@ ssize_t cpu_show_spectre_v2(struct device *dev,
 {
 	return sprintf(buf, "%s\n", spectre_v2_strings[spec_ctrl_get_mitigation()]);
 }
+
+ssize_t cpu_show_spec_store_bypass(struct device *dev,
+				   struct device_attribute *attr, char *buf)
+{
+	if (!boot_cpu_has_bug(X86_BUG_SPEC_STORE_BYPASS))
+		return sprintf(buf, "Not affected\n");
+	return sprintf(buf, "Vulnerable\n");
+}
 #endif
