@@ -3786,11 +3786,14 @@ static int ext4_fill_super(struct super_block *sb, void *data, int silent)
 					EXT4_FEATURE_INCOMPAT_INLINE_DATA)) {
 			ext4_msg(sb, KERN_ERR, "Cannot use DAX on a filesystem"
 					" that may contain inline data");
-			goto failed_mount;
+			sbi->s_mount_opt &= ~EXT4_MOUNT_DAX;
 		}
 		err = bdev_dax_supported(sb, blocksize);
-		if (err)
-			goto failed_mount;
+		if (err) {
+			ext4_msg(sb, KERN_ERR,
+				"DAX unsupported by block device. Turning off DAX.");
+			sbi->s_mount_opt &= ~EXT4_MOUNT_DAX;
+		}
 		if (!printed) {
 			mark_tech_preview("ext4 direct access (dax)", NULL);
 			printed = true;
