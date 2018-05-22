@@ -2,24 +2,32 @@
 #define _ASM_X86_SPEC_CTRL_H
 
 #define SPEC_CTRL_PCP_IBRS_ENTRY	(1<<0)
-#define SPEC_CTRL_PCP_IBRS_EXIT		(1<<1)
+#define SPEC_CTRL_PCP_IBRS_EXIT 	(1<<1)
 
 #define SPEC_CTRL_PCP_IBRS (SPEC_CTRL_PCP_IBRS_ENTRY|SPEC_CTRL_PCP_IBRS_EXIT)
+
+#define IBRS_ENABLED_PCP	PER_CPU_VAR(spec_ctrl_pcp + \
+				KERNEL_IBRS_SPEC_CTRL_enabled)
+#define IBRS_ENTRY_PCP		PER_CPU_VAR(spec_ctrl_pcp + \
+				KERNEL_IBRS_SPEC_CTRL_entry)
+#define IBRS_EXIT_PCP		PER_CPU_VAR(spec_ctrl_pcp + \
+				KERNEL_IBRS_SPEC_CTRL_exit)
+#define IBRS_HI32_PCP		PER_CPU_VAR(spec_ctrl_pcp + \
+				KERNEL_IBRS_SPEC_CTRL_hi32)
 
 #ifdef __ASSEMBLY__
 
 #include <asm/msr-index.h>
 
 .macro __IBRS_ENTRY
-	movl $0, %edx
 	movl $MSR_IA32_SPEC_CTRL, %ecx
-	movl PER_CPU_VAR(spec_ctrl_pcp), %eax
-	andl $1, %eax
+	movl IBRS_HI32_PCP, %edx
+	movl IBRS_ENTRY_PCP, %eax
 	wrmsr
 .endm
 
 .macro IBRS_ENTRY
-	testl $SPEC_CTRL_PCP_IBRS, PER_CPU_VAR(spec_ctrl_pcp)
+	testl $SPEC_CTRL_PCP_IBRS_ENTRY, IBRS_ENABLED_PCP
 	jz .Lskip_\@
 
 	pushq %rax
@@ -37,7 +45,7 @@
 .endm
 
 .macro IBRS_ENTRY_CLOBBER
-	testl $SPEC_CTRL_PCP_IBRS, PER_CPU_VAR(spec_ctrl_pcp)
+	testl $SPEC_CTRL_PCP_IBRS_ENTRY, IBRS_ENABLED_PCP
 	jz .Lskip_\@
 
 	__IBRS_ENTRY
@@ -48,41 +56,48 @@
 .Lend_\@:
 .endm
 
+#define NO_IBRS_RESTORE		(-1)	/* No restore on exit */
+
+/*
+ * The save_reg is initialize to NO_IBRS_RESTORE just in case IBRS is
+ * enabled in the middle of an exception, this avoids the very remote risk
+ * of writing random save_reg content into the SPEC_CTRL MSR in such case.
+ */
 .macro IBRS_ENTRY_SAVE_AND_CLOBBER save_reg:req
-	testl $SPEC_CTRL_PCP_IBRS, PER_CPU_VAR(spec_ctrl_pcp)
+	movl $NO_IBRS_RESTORE, \save_reg
+	testl $SPEC_CTRL_PCP_IBRS_ENTRY, IBRS_ENABLED_PCP
 	jz .Lskip_\@
 
 	movl $MSR_IA32_SPEC_CTRL, %ecx
 	rdmsr
-	movl %eax, \save_reg
+	/*
+	 * If the content of the MSR matches the kernel entry value,
+	 * we can just leave.
+	 */
+	movl IBRS_ENTRY_PCP, %ecx
+	cmpl %eax, %ecx
+	je   .Lend_\@
 
-	__IBRS_ENTRY
+	movl %eax, \save_reg
+	movl %ecx, %eax
+	movl $MSR_IA32_SPEC_CTRL, %ecx
+	wrmsr
 	jmp .Lend_\@
 
 .Lskip_\@:
-	/*
-	 * Simulate no IBRS just in case IBRS is enabled in the middle
-	 * of an exception, this avoids the very remote risk of
-	 * writing random save_reg content into the SPEC_CTRL MSR in
-	 * such case.
-	 */
-	movl $FEATURE_ENABLE_IBRS, \save_reg
-
 	lfence
 .Lend_\@:
 .endm
 
 .macro __IBRS_EXIT
-	movl $0, %edx
 	movl $MSR_IA32_SPEC_CTRL, %ecx
-	movl PER_CPU_VAR(spec_ctrl_pcp), %eax
-	shrl $1, %eax
-	andl $1, %eax
+	movl IBRS_HI32_PCP, %edx
+	movl IBRS_EXIT_PCP, %eax
 	wrmsr
 .endm
 
 .macro IBRS_EXIT
-	testl $SPEC_CTRL_PCP_IBRS, PER_CPU_VAR(spec_ctrl_pcp)
+	testl $SPEC_CTRL_PCP_IBRS_EXIT, IBRS_ENABLED_PCP
 	jz .Lskip_\@
 
 	pushq %rax
@@ -97,14 +112,14 @@
 .endm
 
 .macro IBRS_EXIT_RESTORE_CLOBBER save_reg:req
-	testl $SPEC_CTRL_PCP_IBRS, PER_CPU_VAR(spec_ctrl_pcp)
+	testl $SPEC_CTRL_PCP_IBRS, IBRS_ENABLED_PCP
 	jz .Lskip_\@
 
-	cmpl $FEATURE_ENABLE_IBRS, \save_reg
+	cmpl $NO_IBRS_RESTORE, \save_reg
 	je .Lskip_\@
 
 	movl $MSR_IA32_SPEC_CTRL, %ecx
-	movl $0, %edx
+	movl IBRS_HI32_PCP, %edx
 	movl \save_reg, %eax
 	wrmsr
 
@@ -112,7 +127,7 @@
 .endm
 
 .macro IBRS_EXIT_CLOBBER
-	testl $SPEC_CTRL_PCP_IBRS, PER_CPU_VAR(spec_ctrl_pcp)
+	testl $SPEC_CTRL_PCP_IBRS_EXIT, IBRS_ENABLED_PCP
 	jz .Lskip_\@
 
 	__IBRS_EXIT
@@ -175,6 +190,18 @@ enum spectre_v2_mitigation spec_ctrl_get_mitigation(void);
 bool unprotected_firmware_begin(void);
 void unprotected_firmware_end(bool ibrs_on);
 
+/*
+ * Percpu IBRS kernel entry/exit control structure
+ */
+struct kernel_ibrs_spec_ctrl {
+	unsigned int enabled;	/* Entry and exit enabled control bits */
+	unsigned int entry;	/* Lower 32-bit of SPEC_CTRL MSR for entry */
+	unsigned int exit;	/* Lower 32-bit of SPEC_CTRL MSR for exit */
+	unsigned int hi32;	/* Upper 32-bit of SPEC_CTRL MSR */
+};
+
+DECLARE_PER_CPU_USER_MAPPED(struct kernel_ibrs_spec_ctrl, spec_ctrl_pcp);
+
 enum {
 	IBRS_DISABLED,
 
@@ -195,33 +222,12 @@ static __always_inline int cpu_has_spec_ctrl(void)
 	return static_key_false(&ibrs_present_key);
 }
 
-static __always_inline unsigned int ibrs_enabled(void)
-{
-	if (cpu_has_spec_ctrl()) {
-		unsigned int ibrs = __this_cpu_read(spec_ctrl_pcp);
-
-		if ((ibrs & SPEC_CTRL_PCP_IBRS_ENTRY) &&
-		    !(ibrs & SPEC_CTRL_PCP_IBRS_EXIT))
-			return IBRS_ENABLED;
-
-		if ((ibrs & SPEC_CTRL_PCP_IBRS_ENTRY) &&
-		    (ibrs & SPEC_CTRL_PCP_IBRS_EXIT))
-			return IBRS_ENABLED_ALWAYS;
-
-		if (!(ibrs & SPEC_CTRL_PCP_IBRS_ENTRY) &&
-		    (ibrs & SPEC_CTRL_PCP_IBRS_EXIT))
-			return IBRS_ENABLED_USER;
-	}
-
-	 return IBRS_DISABLED;
-}
-
 static __always_inline bool ibrs_enabled_kernel(void)
 {
 	if (cpu_has_spec_ctrl()) {
-		unsigned int ibrs = __this_cpu_read(spec_ctrl_pcp);
+		unsigned int ibrs = __this_cpu_read(spec_ctrl_pcp.entry);
 
-		return (ibrs & SPEC_CTRL_PCP_IBRS_ENTRY);
+		return ibrs & FEATURE_ENABLE_IBRS;
 	}
 
 	return false;

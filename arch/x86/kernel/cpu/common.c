@@ -1314,7 +1314,7 @@ DEFINE_PER_CPU(char *, irq_stack_ptr) =
 
 DEFINE_PER_CPU(unsigned int, irq_count) = -1;
 DEFINE_PER_CPU_USER_MAPPED(unsigned int, kaiser_enabled_pcp) ____cacheline_aligned;
-DEFINE_PER_CPU_USER_MAPPED(unsigned int, spec_ctrl_pcp);
+DEFINE_PER_CPU_USER_MAPPED(struct kernel_ibrs_spec_ctrl, spec_ctrl_pcp);
 EXPORT_PER_CPU_SYMBOL_GPL(spec_ctrl_pcp);
 DEFINE_PER_CPU_USER_MAPPED(unsigned long, kaiser_scratch);
 

@@ -20,21 +20,46 @@ static DEFINE_MUTEX(spec_ctrl_mutex);
 static bool noibrs_cmdline __read_mostly;
 static bool ibp_disabled __read_mostly;
 static bool unsafe_module __read_mostly;
+static unsigned int ibrs_mode __read_mostly;
 
 struct static_key retp_enabled_key = STATIC_KEY_INIT_FALSE;
 struct static_key ibrs_present_key = STATIC_KEY_INIT_FALSE;
 EXPORT_SYMBOL(retp_enabled_key);
 EXPORT_SYMBOL(ibrs_present_key);
 
-static void set_spec_ctrl_pcp(bool enable, int flag)
+static void set_spec_ctrl_pcp(bool entry, bool exit)
 {
-	int cpu, val = __this_cpu_read(spec_ctrl_pcp);
-	if (enable)
-		val |= flag;
+	unsigned int enabled   = this_cpu_read(spec_ctrl_pcp.enabled);
+	unsigned int entry_val = this_cpu_read(spec_ctrl_pcp.entry);
+	unsigned int exit_val  = this_cpu_read(spec_ctrl_pcp.exit);
+	int cpu;
+
+	/*
+	 * For ibrs_always, we only need to write the MSR at kernel entry
+	 * to fulfill the barrier semantics for some CPUs.
+	 */
+	if (entry && exit)
+		enabled = SPEC_CTRL_PCP_IBRS_ENTRY;
+	else if (entry != exit)
+		enabled = SPEC_CTRL_PCP_IBRS_ENTRY|SPEC_CTRL_PCP_IBRS_EXIT;
 	else
-		val &= ~flag;
-	for_each_possible_cpu(cpu)
-		WRITE_ONCE(per_cpu(spec_ctrl_pcp, cpu), val);
+		enabled = 0;
+
+	if (entry)
+		entry_val |= FEATURE_ENABLE_IBRS;
+	else
+		entry_val &= ~FEATURE_ENABLE_IBRS;
+
+	if (exit)
+		exit_val |= FEATURE_ENABLE_IBRS;
+	else
+		exit_val &= ~FEATURE_ENABLE_IBRS;
+
+	for_each_possible_cpu(cpu) {
+		WRITE_ONCE(per_cpu(spec_ctrl_pcp.enabled, cpu), enabled);
+		WRITE_ONCE(per_cpu(spec_ctrl_pcp.entry, cpu), entry_val);
+		WRITE_ONCE(per_cpu(spec_ctrl_pcp.exit, cpu), exit_val);
+	}
 }
 
 /*
@@ -48,26 +73,26 @@ static void set_spec_ctrl_pcp(bool enable, int flag)
 
 static void set_spec_ctrl_pcp_ibrs(void)
 {
-	set_spec_ctrl_pcp(true, SPEC_CTRL_PCP_IBRS_ENTRY);
-	set_spec_ctrl_pcp(false, SPEC_CTRL_PCP_IBRS_EXIT);
+	set_spec_ctrl_pcp(true, false);
+	ibrs_mode = IBRS_ENABLED;
 }
 
 static void set_spec_ctrl_pcp_ibrs_always(void)
 {
-	set_spec_ctrl_pcp(true, SPEC_CTRL_PCP_IBRS_ENTRY);
-	set_spec_ctrl_pcp(true, SPEC_CTRL_PCP_IBRS_EXIT);
+	set_spec_ctrl_pcp(true, true);
+	ibrs_mode = IBRS_ENABLED_ALWAYS;
 }
 
 static void set_spec_ctrl_pcp_ibrs_user(void)
 {
-	set_spec_ctrl_pcp(false, SPEC_CTRL_PCP_IBRS_ENTRY);
-	set_spec_ctrl_pcp(true, SPEC_CTRL_PCP_IBRS_EXIT);
+	set_spec_ctrl_pcp(false, true);
+	ibrs_mode = IBRS_ENABLED_USER;
 }
 
 void clear_spec_ctrl_pcp(void)
 {
-	set_spec_ctrl_pcp(false, SPEC_CTRL_PCP_IBRS_ENTRY);
-	set_spec_ctrl_pcp(false, SPEC_CTRL_PCP_IBRS_EXIT);
+	set_spec_ctrl_pcp(false, false);
+	ibrs_mode = IBRS_DISABLED;
 }
 
 static void spec_ctrl_sync_all_cpus(u32 msr_nr, u64 val)
@@ -125,7 +150,7 @@ static void spec_ctrl_disable_all(void)
 	int cpu;
 
 	for_each_possible_cpu(cpu)
-		WRITE_ONCE(per_cpu(spec_ctrl_pcp, cpu), 0);
+		WRITE_ONCE(per_cpu(spec_ctrl_pcp.enabled, cpu), 0);
 
 	set_spec_ctrl_retp(false);
 }
@@ -249,9 +274,9 @@ enum spectre_v2_mitigation spec_ctrl_get_mitigation(void)
 
 	if (ibp_disabled)
 		mode = SPECTRE_V2_IBP_DISABLED;
-	else if (ibrs_enabled() == IBRS_ENABLED_ALWAYS)
+	else if (ibrs_mode == IBRS_ENABLED_ALWAYS)
 		mode = SPECTRE_V2_IBRS_ALWAYS;
-	else if (ibrs_enabled() == IBRS_ENABLED)
+	else if (ibrs_mode == IBRS_ENABLED)
 		mode = SPECTRE_V2_IBRS;
 	else if (retp_enabled()) {
 		if (!retp_enabled_full())
@@ -262,7 +287,7 @@ enum spectre_v2_mitigation spec_ctrl_get_mitigation(void)
 			mode = SPECTRE_V2_RETPOLINE_SKYLAKE;
 		else if (unsafe_module)
 			mode = SPECTRE_V2_RETPOLINE_UNSAFE_MODULE;
-		else if (ibrs_enabled() == IBRS_ENABLED_USER)
+		else if (ibrs_mode == IBRS_ENABLED_USER)
 			mode = SPECTRE_V2_RETPOLINE_IBRS_USER;
 		else
 			mode = SPECTRE_V2_RETPOLINE;
@@ -298,20 +323,20 @@ void spec_ctrl_cpu_init(void)
 		return;
 	}
 
-	if (ibrs_enabled() == IBRS_ENABLED_ALWAYS)
+	if (ibrs_mode == IBRS_ENABLED_ALWAYS)
 		native_wrmsrl(MSR_IA32_SPEC_CTRL, FEATURE_ENABLE_IBRS);
 }
 
 static void spec_ctrl_reinit_all_cpus(void)
 {
 	if (boot_cpu_has(X86_FEATURE_IBP_DISABLE)) {
-		sync_all_cpus_ibp(!ibrs_enabled());
+		sync_all_cpus_ibp(!ibrs_mode);
 		return;
 	}
 
-	if (ibrs_enabled() == IBRS_ENABLED_ALWAYS)
+	if (ibrs_mode == IBRS_ENABLED_ALWAYS)
 		sync_all_cpus_ibrs(true);
-	else if (ibrs_enabled() == IBRS_DISABLED)
+	else if (ibrs_mode == IBRS_DISABLED)
 		sync_all_cpus_ibrs(false);
 }
 
@@ -399,7 +424,7 @@ static ssize_t __enabled_read(struct file *file, char __user *user_buf,
 static ssize_t ibrs_enabled_read(struct file *file, char __user *user_buf,
 				 size_t count, loff_t *ppos)
 {
-	unsigned int enabled = ibrs_enabled();
+	unsigned int enabled = ibrs_mode;
 
 	if (ibp_disabled)
 		enabled = IBRS_ENABLED_ALWAYS;
@@ -427,7 +452,7 @@ static ssize_t ibrs_enabled_write(struct file *file,
 		return -EINVAL;
 
 	mutex_lock(&spec_ctrl_mutex);
-	if ((!ibp_disabled && enable == ibrs_enabled()) ||
+	if ((!ibp_disabled && enable == ibrs_mode) ||
 	    (ibp_disabled && enable == IBRS_ENABLED_ALWAYS))
 		goto out_unlock;
 
@@ -535,10 +560,10 @@ static ssize_t retp_enabled_write(struct file *file,
 		if (ibp_disabled) {
 			sync_all_cpus_ibp(true);
 			ibp_disabled = false;
-		} else if (ibrs_enabled() == IBRS_ENABLED) {
+		} else if (ibrs_mode == IBRS_ENABLED) {
 			clear_spec_ctrl_pcp();
 			sync_all_cpus_ibrs(false);
-		} else if (ibrs_enabled() == IBRS_ENABLED_ALWAYS) {
+		} else if (ibrs_mode == IBRS_ENABLED_ALWAYS) {
 			set_spec_ctrl_pcp_ibrs_user();
 		}
 	}
