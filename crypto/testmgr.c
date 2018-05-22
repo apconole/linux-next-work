@@ -2040,8 +2040,11 @@ static int do_test_rsa(struct crypto_akcipher *tfm,
 	akcipher_request_set_callback(req, CRYPTO_TFM_REQ_MAY_BACKLOG,
 				      tcrypt_complete, &result);
 
-	/* Run RSA encrypt - c = m^e mod n;*/
-	err = wait_async_op(&result, crypto_akcipher_encrypt(req));
+	err = wait_async_op(&result, vecs->siggen_sigver_test ?
+				     /* Run asymmetric signature generation */
+				     crypto_akcipher_sign(req) :
+				     /* Run asymmetric encrypt */
+				     crypto_akcipher_encrypt(req));
 	if (err) {
 		pr_err("alg: rsa: encrypt test failed. err %d\n", err);
 		goto free_all;
@@ -2072,8 +2075,11 @@ static int do_test_rsa(struct crypto_akcipher *tfm,
 	init_completion(&result.completion);
 	akcipher_request_set_crypt(req, &src, &dst, vecs->c_size, out_len_max);
 
-	/* Run RSA decrypt - m = c^d mod n;*/
-	err = wait_async_op(&result, crypto_akcipher_decrypt(req));
+	err = wait_async_op(&result, vecs->siggen_sigver_test ?
+				     /* Run asymmetric signature verification */
+				     crypto_akcipher_verify(req) :
+				     /* Run asymmetric decrypt */
+				     crypto_akcipher_decrypt(req));
 	if (err) {
 		pr_err("alg: rsa: decrypt test failed. err %d\n", err);
 		goto free_all;
@@ -3639,6 +3645,25 @@ static const struct alg_test_desc alg_test_descs[] = {
 				}
 			}
 		}
+	}, {
+		.alg = "pkcs1pad(rsa,sha224)",
+		.test = alg_test_null,
+		.fips_allowed = 1,
+	}, {
+		.alg = "pkcs1pad(rsa,sha256)",
+		.test = alg_test_akcipher,
+		.fips_allowed = 1,
+		.suite = {
+			.akcipher = { pkcs1pad_rsa_tv_template }
+		}
+	}, {
+		.alg = "pkcs1pad(rsa,sha384)",
+		.test = alg_test_null,
+		.fips_allowed = 1,
+	}, {
+		.alg = "pkcs1pad(rsa,sha512)",
+		.test = alg_test_null,
+		.fips_allowed = 1,
 	}, {
 		.alg = "rfc3686(ctr(aes))",
 		.test = alg_test_skcipher,
