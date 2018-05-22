@@ -180,6 +180,7 @@ enum  hrtimer_base_type {
  * @cpu:		cpu number
  * @in_hrtirq:		hrtimer_interrupt() is currently executing
  * @migration_enabled: The migration of hrtimers to other cpus is enabled
+ * @nohz_active:	The nohz functionality is enabled
  */
 struct hrtimer_cpu_base {
 	raw_spinlock_t			lock;
@@ -198,6 +199,7 @@ struct hrtimer_cpu_base {
 	RH_KABI_EXTEND(int cpu)
 	RH_KABI_EXTEND(int in_hrtirq)
 	RH_KABI_EXTEND(bool migration_enabled)
+	RH_KABI_EXTEND(bool nohz_active)
 };
 
 static inline void hrtimer_set_expires(struct hrtimer *timer, ktime_t time)

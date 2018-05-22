@@ -91,6 +91,7 @@ struct tvec_base {
 	RH_KABI_EXTEND(unsigned long all_timers)
 	RH_KABI_EXTEND(int cpu)
 	RH_KABI_EXTEND(bool migration_enabled)
+	RH_KABI_EXTEND(bool nohz_active)
 } ____cacheline_aligned;
 
 /*
@@ -134,7 +135,7 @@ timer_set_base(struct timer_list *timer, struct tvec_base *new_base)
 #if defined(CONFIG_SMP) && defined(CONFIG_NO_HZ_COMMON)
 unsigned int sysctl_timer_migration = 1;
 
-void timers_update_migration(void)
+void timers_update_migration(bool update_nohz)
 {
 	bool on = sysctl_timer_migration && tick_nohz_active;
 	unsigned int cpu;
@@ -146,6 +147,10 @@ void timers_update_migration(void)
 	for_each_possible_cpu(cpu) {
 		per_cpu(tvec_bases, cpu)->migration_enabled = on;
 		per_cpu(hrtimer_bases.migration_enabled, cpu) = on;
+		if (!update_nohz)
+			continue;
+		per_cpu(tvec_bases, cpu)->nohz_active = true;
+		per_cpu(hrtimer_bases.nohz_active, cpu) = true;
 	}
 }
 
@@ -160,7 +165,7 @@ int timer_migration_handler(struct ctl_table *table, int write,
 	mutex_lock(&mutex);
 	ret = proc_dointvec(table, write, buffer, lenp, ppos);
 	if (!ret && write)
-		timers_update_migration();
+		timers_update_migration(false);
 	mutex_unlock(&mutex);
 	return ret;
 }
@@ -472,8 +477,11 @@ static void internal_add_timer(struct tvec_base *base, struct timer_list *timer)
 	 * require special care against races with idle_cpu(), lets deal
 	 * with that later.
 	 */
-	if (!tbase_get_deferrable(timer->base) || tick_nohz_full_cpu(base->cpu))
-		wake_up_nohz_cpu(base->cpu);
+	if (base->nohz_active) {
+		if (!tbase_get_deferrable(timer->base) ||
+		    tick_nohz_full_cpu(base->cpu))
+			wake_up_nohz_cpu(base->cpu);
+	}
 }
 
 #ifdef CONFIG_TIMER_STATS
