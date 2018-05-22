@@ -87,10 +87,22 @@ struct tvec_base {
 	struct tvec tv4;
 	struct tvec tv5;
 	RH_KABI_EXTEND(unsigned long all_timers)
+	RH_KABI_EXTEND(int cpu)
 } ____cacheline_aligned;
 
+/*
+ * __TIMER_INITIALIZER() needs to set ->base to a valid pointer (because we've
+ * made NULL special, hint: lock_timer_base()) and we cannot get a compile time
+ * pointer to per-cpu entries because we don't know where we'll map the section,
+ * even for the boot cpu.
+ *
+ * And so we use boot_tvec_bases for boot CPU and per-cpu __tvec_bases for the
+ * rest of them.
+ */
 struct tvec_base boot_tvec_bases;
 EXPORT_SYMBOL(boot_tvec_bases);
+static DEFINE_PER_CPU(struct tvec_base, __tvec_bases);
+
 static DEFINE_PER_CPU(struct tvec_base *, tvec_bases) = &boot_tvec_bases;
 
 /* Functions below help us manage 'deferrable' flag */
@@ -1525,44 +1537,22 @@ EXPORT_SYMBOL(schedule_timeout_uninterruptible);
 
 static int init_timers_cpu(int cpu)
 {
-	int j;
-	struct tvec_base *base;
+	struct tvec_base *base = per_cpu(tvec_bases, cpu);
 	static char tvec_base_done[NR_CPUS];
+	int j;
 
 	if (!tvec_base_done[cpu]) {
-		static char boot_done;
+		static char boot_cpu_skipped;
 
-		if (boot_done) {
-			/*
-			 * The APs use this path later in boot
-			 */
-			base = kmalloc_node(sizeof(*base),
-						GFP_KERNEL | __GFP_ZERO,
-						cpu_to_node(cpu));
-			if (!base)
-				return -ENOMEM;
-
-			/* Make sure that tvec_base is 2 byte aligned */
-			if (tbase_get_deferrable(base)) {
-				WARN_ON(1);
-				kfree(base);
-				return -ENOMEM;
-			}
-			per_cpu(tvec_bases, cpu) = base;
+		if (!boot_cpu_skipped) {
+			boot_cpu_skipped = 1; /* skip the boot cpu */
 		} else {
-			/*
-			 * This is for the boot CPU - we use compile-time
-			 * static initialisation because per-cpu memory isn't
-			 * ready yet and because the memory allocators are not
-			 * initialised either.
-			 */
-			boot_done = 1;
-			base = &boot_tvec_bases;
+			base = per_cpu_ptr(&__tvec_bases, cpu);
+			per_cpu(tvec_bases, cpu) = base;
 		}
 		spin_lock_init(&base->lock);
 		tvec_base_done[cpu] = 1;
-	} else {
-		base = per_cpu(tvec_bases, cpu);
+		base->cpu = cpu;
 	}
 
 
