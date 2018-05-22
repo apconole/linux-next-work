@@ -106,24 +106,16 @@ void spec_ctrl_save_msr(void)
 }
 
 /*
- * RHEL note: We implement this in RHEL, but we don't use it directly since
- * we have a lot of IBRS management code that touches SPEC_CTRL directly. It
- * turns out to be cleaner to allow it to do that (we tested both approaches).
+ * RHEL note:
+ * Upstream has implemented the following APIs for getting and setting
+ * the SPEC_CTRL MSR value.
+ *
+ *  - void x86_spec_ctrl_set(u64 val)
+ *  - u64 x86_spec_ctrl_get_default(void)
+ *
+ * We don't use it directly since we have a lot of IBRS management code
+ * that touches SPEC_CTRL directly.
  */
-void x86_spec_ctrl_set(u64 val)
-{
-	if (val & ~(FEATURE_ENABLE_IBRS | X86_FEATURE_SSBD))
-		WARN_ONCE(1, "SPEC_CTRL MSR value 0x%16llx is unknown.\n", val);
-	else
-		native_wrmsrl(MSR_IA32_SPEC_CTRL, x86_spec_ctrl_base | val);
-}
-EXPORT_SYMBOL_GPL(x86_spec_ctrl_set);
-
-u64 x86_spec_ctrl_get_default(void)
-{
-	return x86_spec_ctrl_base;
-}
-EXPORT_SYMBOL_GPL(x86_spec_ctrl_get_default);
 
 static void set_spec_ctrl_pcp(bool entry, bool exit)
 {
@@ -165,7 +157,7 @@ static void set_spec_ctrl_pcp(bool entry, bool exit)
  *
  *		entry	exit
  * ibrs		  1	 0
- * ibrs_always	  1	 1
+ * ibrs_always	  1	 x (not written on exit)
  * ibrs_user	  0	 1
  */
 

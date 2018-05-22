@@ -24,9 +24,9 @@
 	movl IBRS_ENTRY_PCP, %eax
 	GET_THREAD_INFO(%rcx)
 	bt   $TIF_SSBD, TI_flags(%rcx)
-	jnc  .Lno_rds_\@
+	jnc  .Lno_ssbd_\@
 	orl  $FEATURE_ENABLE_SSBD, %eax
-.Lno_rds_\@:
+.Lno_ssbd_\@:
 	movl $MSR_IA32_SPEC_CTRL, %ecx
 	wrmsr
 .endm
@@ -77,16 +77,25 @@
 	rdmsr
 	/*
 	 * If the content of the MSR matches the kernel entry value,
-	 * we can just leave. Otherwise, transfer the content of the
-	 * SSBD bit in the MSR to the entry value.
+	 * we should still rewrite the MSR anyway to enforce the
+	 * barrier-like semantics in some IBRS implementations.
+	 * Nowever, we can leave the save_reg as NO_IBRS_RESTORE
+	 * so that we won't do a rewrite on exit,
+	 *
+	 * When the values don't match, the state of the SSBD bit in the
+	 * MSR is transferred to new value.
+	 *
+	 * %edx is initialized by rdmsr above, and so it doesn't need
+	 * to be touched.
 	 */
 	movl IBRS_ENTRY_PCP, %ecx
 	cmpl %eax, %ecx
-	je   .Lend_\@
+	je   .Lwrmsr_\@
 
 	movl %eax, \save_reg
 	andl $FEATURE_ENABLE_SSBD, %eax
 	orl  %ecx, %eax
+.Lwrmsr_\@:
 	movl $MSR_IA32_SPEC_CTRL, %ecx
 	wrmsr
 	jmp .Lend_\@
@@ -101,9 +110,9 @@
 	movl IBRS_EXIT_PCP, %eax
 	GET_THREAD_INFO(%rcx)
 	bt   $TIF_SSBD, TI_flags(%rcx)
-	jnc  .Lno_rds_\@
+	jnc  .Lno_ssbd_\@
 	orl  $FEATURE_ENABLE_SSBD, %eax
-.Lno_rds_\@:
+.Lno_ssbd_\@:
 	movl $MSR_IA32_SPEC_CTRL, %ecx
 	wrmsr
 .endm
