@@ -90,6 +90,14 @@ void __init check_bugs(void)
 #endif
 }
 
+void x86_amd_rds_enable(void)
+{
+	u64 msrval = x86_amd_ls_cfg_base | x86_amd_ls_cfg_rds_mask;
+
+	if (boot_cpu_has(X86_FEATURE_AMD_RDS))
+		wrmsrl(MSR_AMD64_LS_CFG, msrval);
+}
+
 /* The kernel command line selection */
 enum spectre_v2_mitigation_cmd {
 	SPECTRE_V2_CMD_NONE,
@@ -298,6 +306,11 @@ static enum ssb_mitigation __ssb_select_mitigation(void)
 
 	switch (cmd) {
 	case SPEC_STORE_BYPASS_CMD_AUTO:
+		/*
+		 * AMD platforms by default don't need SSB mitigation.
+		 */
+		if (boot_cpu_data.x86_vendor == X86_VENDOR_AMD)
+			break;
 	case SPEC_STORE_BYPASS_CMD_ON:
 		mode = SPEC_STORE_BYPASS_DISABLE;
 		break;
@@ -322,6 +335,7 @@ static enum ssb_mitigation __ssb_select_mitigation(void)
 			x86_spec_ctrl_base |= FEATURE_ENABLE_RDS;
 			break;
 		case X86_VENDOR_AMD:
+			x86_amd_rds_enable();
 			break;
 		}
 	}

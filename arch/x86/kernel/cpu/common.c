@@ -871,6 +871,10 @@ static const __initconst struct x86_cpu_id cpu_no_spec_store_bypass[] = {
 	{ X86_VENDOR_CENTAUR,	5,					},
 	{ X86_VENDOR_INTEL,	5,					},
 	{ X86_VENDOR_NSC,	5,					},
+	{ X86_VENDOR_AMD,	0x12,					},
+	{ X86_VENDOR_AMD,	0x11,					},
+	{ X86_VENDOR_AMD,	0x10,					},
+	{ X86_VENDOR_AMD,	0xf,					},
 	{ X86_VENDOR_ANY,	4,					},
 	{}
 };
@@ -1047,6 +1051,13 @@ static void validate_apic_and_package_id(struct cpuinfo_x86 *c)
 #else
 	c->logical_proc_id = 0;
 #endif
+
+	/*
+	 * If we're on an AMD system using non-architectural MSRs
+	 * and using big hammer, then set the RDS bit accordingly
+	 */
+	if (ssb_mode == SPEC_STORE_BYPASS_DISABLE)
+		x86_amd_rds_enable();
 }
 
 /*

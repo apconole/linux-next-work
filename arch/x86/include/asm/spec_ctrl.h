@@ -203,6 +203,8 @@ struct kernel_ibrs_spec_ctrl {
 
 DECLARE_PER_CPU_USER_MAPPED(struct kernel_ibrs_spec_ctrl, spec_ctrl_pcp);
 
+extern void x86_amd_rds_enable(void);
+
 enum {
 	IBRS_DISABLED,
 

@@ -52,6 +52,13 @@ EXPORT_SYMBOL(ibrs_present_key);
 u64 __read_mostly x86_spec_ctrl_base;
 EXPORT_SYMBOL_GPL(x86_spec_ctrl_base);
 
+/*
+ * AMD specific MSR info for Store Bypass control.  x86_amd_ls_cfg_rds_mask
+ * is initialized in identify_boot_cpu().
+ */
+u64 __read_mostly x86_amd_ls_cfg_base;
+u64 __read_mostly x86_amd_ls_cfg_rds_mask;
+
 void spec_ctrl_save_msr(void)
 {
 	int cpu;
@@ -59,7 +66,8 @@ void spec_ctrl_save_msr(void)
 
 	/*
 	 * Read the SPEC_CTRL MSR to account for reserved bits which may have
-	 * unknown values.
+	 * unknown values. AMD64_LS_CFG MSR is cached in the early AMD
+	 * init code as it is not enumerated and depends on the family.
 	 */
 	if (boot_cpu_has(X86_FEATURE_IBRS))
 		rdmsrl(MSR_IA32_SPEC_CTRL, x86_spec_ctrl_base);
