@@ -19,6 +19,7 @@
 #include <linux/module.h>
 #include <linux/msi.h>
 #include <linux/pci.h>
+#include <linux/srcu.h>
 #include <linux/rculist.h>
 #include <linux/rcupdate.h>
 
@@ -37,7 +38,6 @@ static DEFINE_RAW_SPINLOCK(list_lock);
 /**
  * struct vmd_irq - private data to map driver IRQ to the VMD shared vector
  * @node:	list item for parent traversal.
- * @rcu:	RCU callback item for freeing.
  * @irq:	back pointer to parent.
  * @enabled:	true if driver enabled IRQ
  * @virq:	the virtual IRQ value provided to the requesting driver.
@@ -47,7 +47,6 @@ static DEFINE_RAW_SPINLOCK(list_lock);
  */
 struct vmd_irq {
 	struct list_head	node;
-	struct rcu_head		rcu;
 	struct vmd_irq_list	*irq;
 	bool			enabled;
 	unsigned int		virq;
@@ -56,11 +55,13 @@ struct vmd_irq {
 /**
  * struct vmd_irq_list - list of driver requested IRQs mapping to a VMD vector
  * @irq_list:	the list of irq's the VMD one demuxes to.
+ * @srcu:	SRCU struct for local synchronization.
  * @count:	number of child IRQs assigned to this vector; used to track
  *		sharing.
  */
 struct vmd_irq_list {
 	struct list_head	irq_list;
+	struct srcu_struct	srcu;
 	unsigned int		count;
 };
 
@@ -228,13 +229,13 @@ static void vmd_teardown_msi_irq(unsigned int irq)
 	struct vmd_irq *vmdirq = irq_get_handler_data(irq);
 	unsigned long flags;
 
-	synchronize_rcu();
+	synchronize_srcu(&vmdirq->irq->srcu);
 
 	raw_spin_lock_irqsave(&list_lock, flags);
 	vmdirq->irq->count--;
 	raw_spin_unlock_irqrestore(&list_lock, flags);
 
-	kfree_rcu(vmdirq, rcu);
+	kfree(vmdirq);
 }
 
 static struct x86_msi_ops vmd_msi = {
@@ -616,11 +617,12 @@ static irqreturn_t vmd_irq(int irq, void *data)
 {
 	struct vmd_irq_list *irqs = data;
 	struct vmd_irq *vmdirq;
+	int idx;
 
-	rcu_read_lock();
+	idx = srcu_read_lock(&irqs->srcu);
 	list_for_each_entry_rcu(vmdirq, &irqs->irq_list, node)
 		generic_handle_irq(vmdirq->virq);
-	rcu_read_unlock();
+	srcu_read_unlock(&irqs->srcu, idx);
 
 	return IRQ_HANDLED;
 }
@@ -666,6 +668,10 @@ static int vmd_probe(struct pci_dev *dev, const struct pci_device_id *id)
 		return -ENOMEM;
 
 	for (i = 0; i < vmd->msix_count; i++) {
+		err = init_srcu_struct(&vmd->irqs[i].srcu);
+		if (err)
+			return err;
+
 		INIT_LIST_HEAD(&vmd->irqs[i].irq_list);
 		err = devm_request_irq(&dev->dev, pci_irq_vector(dev, i),
 				       vmd_irq, 0, "vmd", &vmd->irqs[i]);
@@ -684,11 +690,20 @@ static int vmd_probe(struct pci_dev *dev, const struct pci_device_id *id)
 	return 0;
 }
 
+static void vmd_cleanup_srcu(struct vmd_dev *vmd)
+{
+	int i;
+
+	for (i = 0; i < vmd->msix_count; i++)
+		cleanup_srcu_struct(&vmd->irqs[i].srcu);
+}
+
 static void vmd_remove(struct pci_dev *dev)
 {
 	struct vmd_dev *vmd = pci_get_drvdata(dev);
 
 	vmd_detach_resources(vmd);
+	vmd_cleanup_srcu(vmd);
 	sysfs_remove_link(&vmd->dev->dev.kobj, "domain");
 	pci_stop_root_bus(vmd->bus);
 	pci_remove_root_bus(vmd->bus);
