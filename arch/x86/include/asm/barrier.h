@@ -25,6 +25,7 @@
 #endif
 
 #define gmb() alternative(ASM_NOP3, "lfence", X86_FEATURE_LFENCE_RDTSC)
+#define barrier_nospec() gmb()
 
 #ifdef CONFIG_X86_PPRO_FENCE
 #define dma_rmb()	rmb()
