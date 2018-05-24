@@ -51,7 +51,6 @@
 #include "../nfp_net_ctrl.h"
 #include "../nfp_net.h"
 
-#if 0 /* Not in RHEL7 */
 static int
 nfp_prog_prepare(struct nfp_prog *nfp_prog, const struct bpf_insn *prog,
 		 unsigned int cnt)
@@ -209,12 +208,10 @@ static int nfp_net_bpf_stop(struct nfp_net *nn)
 
 	return nfp_net_reconfig(nn, NFP_NET_CFG_UPDATE_GEN);
 }
-#endif
 
 int nfp_net_bpf_offload(struct nfp_net *nn, struct bpf_prog *prog,
 			bool old_prog)
 {
-#if 0 /* Not in RHEL7 */
 	int err;
 
 	if (prog) {
@@ -251,7 +248,4 @@ int nfp_net_bpf_offload(struct nfp_net *nn, struct bpf_prog *prog,
 		nfp_net_bpf_start(nn);
 
 	return 0;
-#else
-	return -EOPNOTSUPP;
-#endif
 }

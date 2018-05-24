@@ -36,9 +36,7 @@
 
 #include <linux/bitfield.h>
 #include <linux/bpf.h>
-#if 0 /* Not in RHEL7... */
 #include <linux/bpf_verifier.h>
-#endif
 #include <linux/list.h>
 #include <linux/types.h>
 
@@ -104,10 +102,8 @@ typedef int (*instr_cb_t)(struct nfp_prog *, struct nfp_insn_meta *);
  */
 struct nfp_insn_meta {
 	struct bpf_insn insn;
-#if 0 /* Not in RHEL7... */
 	struct bpf_reg_state ptr;
 	bool ptr_not_const;
-#endif
 	unsigned int off;
 	unsigned short n;
 	bool skip;
@@ -118,7 +114,6 @@ struct nfp_insn_meta {
 
 #define BPF_SIZE_MASK	0x18
 
-#if 0 /* Not in RHEL7, unused upstream */
 static inline u8 mbpf_class(const struct nfp_insn_meta *meta)
 {
 	return BPF_CLASS(meta->insn.code);
@@ -138,7 +133,6 @@ static inline u8 mbpf_mode(const struct nfp_insn_meta *meta)
 {
 	return BPF_MODE(meta->insn.code);
 }
-#endif
 
 /**
  * struct nfp_prog - nfp BPF program

@@ -114,7 +114,6 @@ static void nfp_bpf_vnic_free(struct nfp_app *app, struct nfp_net *nn)
 static int nfp_bpf_setup_tc_block_cb(enum tc_setup_type type,
 				     void *type_data, void *cb_priv)
 {
-#if 0 /* Not in RHEL7 */
 	struct tc_cls_bpf_offload *cls_bpf = type_data;
 	struct nfp_net *nn = cb_priv;
 	struct bpf_prog *oldprog;
@@ -154,9 +153,6 @@ static int nfp_bpf_setup_tc_block_cb(enum tc_setup_type type,
 
 	bv->tc_prog = cls_bpf->prog;
 	return 0;
-#else
-	return -EOPNOTSUPP;
-#endif
 }
 
 static int nfp_bpf_setup_tc_block(struct net_device *netdev,
