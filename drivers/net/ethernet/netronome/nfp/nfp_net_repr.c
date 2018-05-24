@@ -185,6 +185,13 @@ nfp_repr_get_offload_stats(int attr_id, const struct net_device *dev,
 	return -EINVAL;
 }
 
+static int nfp_repr_change_mtu(struct net_device *netdev, int new_mtu)
+{
+	struct nfp_repr *repr = netdev_priv(netdev);
+
+	return nfp_app_change_mtu(repr->app, netdev, new_mtu);
+}
+
 static netdev_tx_t nfp_repr_xmit(struct sk_buff *skb, struct net_device *netdev)
 {
 	struct nfp_repr *repr = netdev_priv(netdev);
@@ -250,6 +257,8 @@ const struct net_device_ops nfp_repr_netdev_ops = {
 	.ndo_set_vf_spoofchk	= nfp_app_set_vf_spoofchk,
 	.ndo_get_vf_config	= nfp_app_get_vf_config,
 	.ndo_set_vf_link_state	= nfp_app_set_vf_link_state,
+	.ndo_set_features	= nfp_port_set_features,
+	.extended.ndo_change_mtu	= nfp_repr_change_mtu,
 };
 
 static void nfp_repr_clean(struct nfp_repr *repr)
