@@ -1311,8 +1311,10 @@ read_again:
 			return true;
 		}
 		slot = r10_bio->read_slot;
-		max_sectors = min((int)blk_queue_get_max_sectors(mddev->queue,
-				bio->bi_rw), max_sectors);
+
+		if (mddev->queue)
+			max_sectors = min((int)blk_queue_get_max_sectors(mddev->queue,
+						bio->bi_rw), max_sectors);
 
 		read_bio = bio_clone_mddev(bio, GFP_NOIO, mddev);
 		bio_trim(read_bio, r10_bio->sector - bio->bi_sector,
@@ -1389,7 +1391,8 @@ read_again:
 retry_write:
 	blocked_rdev = NULL;
 	rcu_read_lock();
-	max_sectors = min((int)blk_queue_get_max_sectors(mddev->queue,
+	if (mddev->queue)
+		max_sectors = min((int)blk_queue_get_max_sectors(mddev->queue,
 				bio->bi_rw), r10_bio->sectors);
 
 	for (i = 0;  i < conf->copies; i++) {

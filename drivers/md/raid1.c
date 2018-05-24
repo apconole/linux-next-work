@@ -746,8 +746,9 @@ static int read_balance(struct r1conf *conf, struct r1bio *r1_bio, int *max_sect
 	}
 	rcu_read_unlock();
 
-	sectors = min(sectors, (int)blk_queue_get_max_sectors(conf->mddev->queue,
-				r1_bio->master_bio->bi_rw));
+	if (conf->mddev->queue)
+		sectors = min(sectors, (int)blk_queue_get_max_sectors(
+				conf->mddev->queue, r1_bio->master_bio->bi_rw));
 	sectors = align_to_barrier_unit_end(this_sector, sectors);
 	*max_sectors = sectors;
 
@@ -1396,7 +1397,8 @@ static bool raid1_write_request(struct mddev *mddev, struct bio *bio,
 		goto retry_write;
 	}
 
-	max_sectors = min(max_sectors,
+	if (mddev->queue)
+		max_sectors = min(max_sectors,
 			(int)blk_queue_get_max_sectors(mddev->queue, bio->bi_rw));
 	max_sectors = align_to_barrier_unit_end(r1_bio->sector, max_sectors);
 	if (max_sectors < r1_bio->sectors)
