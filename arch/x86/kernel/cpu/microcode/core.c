@@ -491,7 +491,7 @@ static ssize_t reload_store(struct device *dev,
 			    const char *buf, size_t size)
 {
 	enum ucode_state tmp_ret = UCODE_OK;
-	int bsp = boot_cpu_data.cpu_index;
+	int cpu;
 	unsigned long val;
 	ssize_t ret = 0;
 
@@ -502,10 +502,6 @@ static ssize_t reload_store(struct device *dev,
 	if (val != 1)
 		return size;
 
-	tmp_ret = microcode_ops->request_microcode_fw(bsp, &microcode_pdev->dev, true);
-	if (tmp_ret != UCODE_NEW)
-		return size;
-
 	get_online_cpus();
 
 	ret = check_online_cpus();
@@ -514,8 +510,17 @@ static ssize_t reload_store(struct device *dev,
 
 	mutex_lock(&microcode_mutex);
 
+	for_each_online_cpu(cpu) {
+		tmp_ret = microcode_ops->request_microcode_fw(cpu, &microcode_pdev->dev, true);
+		if (tmp_ret != UCODE_NEW) {
+			ret = size;
+			goto out;
+		}
+	}
+
 	ret = microcode_reload_late();
 
+out:
 	mutex_unlock(&microcode_mutex);
 
 put:
