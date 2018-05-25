@@ -310,8 +310,13 @@ decrementer_pSeries:
 	EXCEPTION_PROLOG_0(PACA_EXGEN)
 	b	decrementer_pSeries_OOL
 
-	/* TODO: convert to out-of-line exception handling */
-	STD_EXCEPTION_HV(0x980, 0x982, hdecrementer)
+	. = 0x980
+	.globl hv_hdecrementer_trampoline
+hv_hdecrementer_trampoline:
+	HMT_MEDIUM
+	SET_SCRATCH0(r13)
+	EXCEPTION_PROLOG_0(PACA_EXGEN)
+	b hdecrementer_hv
 
 	MASKABLE_EXCEPTION_PSERIES(0xa00, 0xa00, doorbell_super)
 	KVM_HANDLER_PR(PACA_EXGEN, EXC_STD, 0xa00)
@@ -982,6 +987,7 @@ kvmppc_skip_Hinterrupt:
 decrementer_pSeries_OOL:
 	_MASKABLE_EXCEPTION_PSERIES_OOL(0x900, decrementer, EXC_STD, SOFTEN_TEST_PR)
 	STD_EXCEPTION_COMMON(0x980, hdecrementer, hdec_interrupt)
+	STD_EXCEPTION_HV_OOL(0x982, hdecrementer)
 #ifdef CONFIG_PPC_DOORBELL
 	STD_EXCEPTION_COMMON_ASYNC(0xa00, doorbell_super, doorbell_exception)
 #else
