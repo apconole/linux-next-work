@@ -2592,7 +2592,7 @@ static void fm10k_io_resume(struct pci_dev *pdev)
 
 	if (err)
 		dev_warn(&pdev->dev,
-			 "fm10k_io_resume failed: %d\n", err);
+			 "%s failed: %d\n", __func__, err);
 	else
 		netif_device_attach(netdev);
 }
@@ -2624,7 +2624,7 @@ static void fm10k_io_reset_notify(struct pci_dev *pdev, bool prepare)
 
 	if (err) {
 		dev_warn(&pdev->dev,
-			 "fm10k_io_reset_notify failed: %d\n", err);
+			 "%s failed: %d\n", __func__, err);
 		netif_device_detach(interface->netdev);
 	}
 }
