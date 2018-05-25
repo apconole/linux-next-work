@@ -306,8 +306,9 @@ hardware_interrupt_hv:
 	. = 0x900
 	.globl decrementer_pSeries
 decrementer_pSeries:
-	/* TODO: convert to out-of-line exception handling */
-	_MASKABLE_EXCEPTION_PSERIES(0x900, decrementer, EXC_STD, SOFTEN_TEST_PR)
+	SET_SCRATCH0(r13)
+	EXCEPTION_PROLOG_0(PACA_EXGEN)
+	b	decrementer_pSeries_OOL
 
 	/* TODO: convert to out-of-line exception handling */
 	STD_EXCEPTION_HV(0x980, 0x982, hdecrementer)
@@ -977,6 +978,9 @@ kvmppc_skip_Hinterrupt:
 
 	STD_EXCEPTION_COMMON_ASYNC(0x500, hardware_interrupt, do_IRQ)
 	STD_EXCEPTION_COMMON_ASYNC(0x900, decrementer, timer_interrupt)
+.globl decrementer_pSeries_OOL
+decrementer_pSeries_OOL:
+	_MASKABLE_EXCEPTION_PSERIES_OOL(0x900, decrementer, EXC_STD, SOFTEN_TEST_PR)
 	STD_EXCEPTION_COMMON(0x980, hdecrementer, hdec_interrupt)
 #ifdef CONFIG_PPC_DOORBELL
 	STD_EXCEPTION_COMMON_ASYNC(0xa00, doorbell_super, doorbell_exception)
