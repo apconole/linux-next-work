@@ -758,6 +758,7 @@ static const struct net_device_ops cdc_ncm_netdev_ops = {
 	.ndo_start_xmit	     = usbnet_start_xmit,
 	.ndo_tx_timeout	     = usbnet_tx_timeout,
 	.ndo_change_mtu_rh74 = cdc_ncm_change_mtu,
+	.ndo_get_stats64     = usbnet_get_stats64,
 	.ndo_set_mac_address = eth_mac_addr,
 	.ndo_validate_addr   = eth_validate_addr,
 };
