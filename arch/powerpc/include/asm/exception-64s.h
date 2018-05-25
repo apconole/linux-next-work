@@ -51,6 +51,27 @@
 #define EX_PPR		88	/* SMT thread status register (priority) */
 #define EX_CTR		96
 
+#define STF_ENTRY_BARRIER_SLOT						\
+	STF_ENTRY_BARRIER_FIXUP_SECTION;				\
+	nop;								\
+	nop;								\
+	nop
+
+#define STF_EXIT_BARRIER_SLOT						\
+	STF_EXIT_BARRIER_FIXUP_SECTION;					\
+	nop;								\
+	nop;								\
+	nop;								\
+	nop;								\
+	nop;								\
+	nop
+
+/*
+ * r10 must be free to use, r13 must be paca
+ */
+#define INTERRUPT_TO_KERNEL						\
+	STF_ENTRY_BARRIER_SLOT
+
 /*
  * The nop instructions allow us to insert one or more instructions to flush the
  * L1-D cache when return to userspace or a guest.
@@ -79,16 +100,19 @@
 
 #define RFI_TO_USER							\
 	CHECK_TARGET_MSR_PR(SPRN_SRR1, 1);				\
+	STF_EXIT_BARRIER_SLOT;						\
 	RFI_FLUSH_SLOT;							\
 	rfid;								\
 	b	rfi_flush_fallback
 
 #define RFI_TO_USER_OR_KERNEL						\
+	STF_EXIT_BARRIER_SLOT;						\
 	RFI_FLUSH_SLOT;							\
 	rfid;								\
 	b	rfi_flush_fallback
 
 #define RFI_TO_GUEST							\
+	STF_EXIT_BARRIER_SLOT;						\
 	RFI_FLUSH_SLOT;							\
 	rfid;								\
 	b	rfi_flush_fallback
@@ -99,21 +123,25 @@
 
 #define HRFI_TO_USER							\
 	CHECK_TARGET_MSR_PR(SPRN_HSRR1, 1);				\
+	STF_EXIT_BARRIER_SLOT;						\
 	RFI_FLUSH_SLOT;							\
 	hrfid;								\
 	b	hrfi_flush_fallback
 
 #define HRFI_TO_USER_OR_KERNEL						\
+	STF_EXIT_BARRIER_SLOT;						\
 	RFI_FLUSH_SLOT;							\
 	hrfid;								\
 	b	hrfi_flush_fallback
 
 #define HRFI_TO_GUEST							\
+	STF_EXIT_BARRIER_SLOT;						\
 	RFI_FLUSH_SLOT;							\
 	hrfid;								\
 	b	hrfi_flush_fallback
 
 #define HRFI_TO_UNKNOWN							\
+	STF_EXIT_BARRIER_SLOT;						\
 	RFI_FLUSH_SLOT;							\
 	hrfid;								\
 	b	hrfi_flush_fallback
@@ -241,6 +269,7 @@ END_FTR_SECTION_NESTED(ftr,ftr,943)
 #define __EXCEPTION_PROLOG_1(area, extra, vec)				\
 	OPT_SAVE_REG_TO_PACA(area+EX_PPR, r9, CPU_FTR_HAS_PPR);		\
 	OPT_SAVE_REG_TO_PACA(area+EX_CFAR, r10, CPU_FTR_CFAR);		\
+	INTERRUPT_TO_KERNEL;						\
 	SAVE_CTR(r10, area);						\
 	mfcr	r9;							\
 	extra(vec);							\

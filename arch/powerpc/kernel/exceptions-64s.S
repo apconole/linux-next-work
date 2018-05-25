@@ -306,8 +306,10 @@ hardware_interrupt_hv:
 	. = 0x900
 	.globl decrementer_pSeries
 decrementer_pSeries:
+	/* TODO: convert to out-of-line exception handling */
 	_MASKABLE_EXCEPTION_PSERIES(0x900, decrementer, EXC_STD, SOFTEN_TEST_PR)
 
+	/* TODO: convert to out-of-line exception handling */
 	STD_EXCEPTION_HV(0x980, 0x982, hdecrementer)
 
 	MASKABLE_EXCEPTION_PSERIES(0xa00, 0xa00, doorbell_super)
@@ -326,8 +328,14 @@ system_call_pSeries:
 	std	r9,PACA_EXGEN+EX_R9(r13)
 	std	r10,PACA_EXGEN+EX_R10(r13)
 	mfcr	r9
+	INTERRUPT_TO_KERNEL
 	KVMTEST(0xc00)
 	GET_SCRATCH0(r13)
+#else
+	mr	r12,r13
+	GET_PACA(r13)
+	INTERRUPT_TO_KERNEL
+	mr	r13,r12
 #endif
 	SYSCALL_PSERIES_1
 	SYSCALL_PSERIES_2_RFID
@@ -753,6 +761,22 @@ masked_##_H##interrupt:					\
 	MASKED_INTERRUPT()
 	MASKED_INTERRUPT(H)
 
+	.globl stf_barrier_fallback
+stf_barrier_fallback:
+	ld	r13,PACA_AUX_PTR(r13)		/* r13 now = paca_aux pointer */
+	std	r9,PACA_AUX_EXRFI+EX_R9(r13)
+	std	r10,PACA_AUX_EXRFI+EX_R10(r13)
+	sync
+	ld	r9,PACA_AUX_EXRFI+EX_R9(r13)
+	ld	r10,PACA_AUX_EXRFI+EX_R10(r13)
+	ori	31,31,0
+	.rept 14
+	b	1f
+1:
+	.endr
+	GET_PACA(r13)
+	blr
+
 	.globl rfi_flush_fallback
 rfi_flush_fallback:
 	SET_SCRATCH0(r13);
@@ -1065,6 +1089,10 @@ hardware_interrupt_relon_hv:
 	.globl system_call_relon_pSeries
 system_call_relon_pSeries:
 	HMT_MEDIUM
+	mr	r12,r13
+	GET_PACA(r13)
+	INTERRUPT_TO_KERNEL
+	mr	r13,r12
 	SYSCALL_PSERIES_1
 	SYSCALL_PSERIES_2_DIRECT
 	SYSCALL_PSERIES_3
