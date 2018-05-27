@@ -32,6 +32,7 @@
 #include <linux/types.h>	/* For standard types */
 #include <linux/errno.h>	/* For the -ENODEV/... values */
 #include <linux/kernel.h>	/* For printk/panic/... */
+#include <linux/reboot.h>	/* For restart handler */
 #include <linux/watchdog.h>	/* For watchdog specific items */
 #include <linux/init.h>		/* For __init/__exit/... */
 #include <linux/idr.h>		/* For ida_* macros */
@@ -137,6 +138,25 @@ int watchdog_init_timeout(struct watchdog_device *wdd,
 }
 EXPORT_SYMBOL_GPL(watchdog_init_timeout);
 
+static int watchdog_reboot_notifier(struct notifier_block *nb,
+				    unsigned long code, void *data)
+{
+	struct watchdog_device *wdd = container_of(nb, struct watchdog_device,
+						   reboot_nb);
+
+	if (code == SYS_DOWN || code == SYS_HALT) {
+		if (watchdog_active(wdd)) {
+			int ret;
+
+			ret = wdd->ops->stop(wdd);
+			if (ret)
+				return NOTIFY_BAD;
+		}
+	}
+
+	return NOTIFY_DONE;
+}
+
 static int __watchdog_register_device(struct watchdog_device *wdd)
 {
 	int ret, id = -1, devno;
@@ -202,6 +222,21 @@ static int __watchdog_register_device(struct watchdog_device *wdd)
 		return ret;
 	}
 
+	if (test_bit(WDOG_STOP_ON_REBOOT, &wdd->status)) {
+		wdd->reboot_nb.notifier_call = watchdog_reboot_notifier;
+
+		ret = register_reboot_notifier(&wdd->reboot_nb);
+		if (ret) {
+			dev_err(wdd->dev, "Cannot register reboot notifier (%d)\n",
+				ret);
+			watchdog_dev_unregister(wdd);
+			device_destroy(watchdog_class, devno);
+			ida_simple_remove(&watchdog_ida, wdd->id);
+			wdd->dev = NULL;
+			return ret;
+		}
+	}
+
 	return 0;
 }
 
@@ -237,6 +272,9 @@ static void __watchdog_unregister_device(struct watchdog_device *wdd)
 
 	if (wdd == NULL)
 		return;
+
+	if (test_bit(WDOG_STOP_ON_REBOOT, &wdd->status))
+		unregister_reboot_notifier(&wdd->reboot_nb);
 
 	devno = wdd->cdev.dev;
 	ret = watchdog_dev_unregister(wdd);

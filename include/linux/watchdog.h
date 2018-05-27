@@ -62,6 +62,7 @@ struct watchdog_ops {
  * @timeout:	The watchdog devices timeout value (in seconds).
  * @min_timeout:The watchdog devices minimum timeout value (in seconds).
  * @max_timeout:The watchdog devices maximum timeout value (in seconds).
+ * @reboot_nb:	The notifier block to stop watchdog on reboot.
  * @driver-data:Pointer to the drivers private data.
  * @lock:	Lock for watchdog core internal use only.
  * @status:	Field that contains the devices internal status bits.
@@ -88,6 +89,7 @@ struct watchdog_device {
 	unsigned int timeout;
 	unsigned int min_timeout;
 	unsigned int max_timeout;
+	struct notifier_block reboot_nb;
 	void *driver_data;
 	struct mutex lock;
 	unsigned long status;
@@ -97,6 +99,7 @@ struct watchdog_device {
 #define WDOG_ALLOW_RELEASE	2	/* Did we receive the magic char ? */
 #define WDOG_NO_WAY_OUT		3	/* Is 'nowayout' feature set ? */
 #define WDOG_UNREGISTERED	4	/* Has the device been unregistered */
+#define WDOG_STOP_ON_REBOOT	5	/* Should be stopped on reboot */
 	struct list_head deferred;
 };
 
@@ -114,6 +117,12 @@ static inline void watchdog_set_nowayout(struct watchdog_device *wdd, bool noway
 {
 	if (nowayout)
 		set_bit(WDOG_NO_WAY_OUT, &wdd->status);
+}
+
+/* Use the following function to stop the watchdog on reboot */
+static inline void watchdog_stop_on_reboot(struct watchdog_device *wdd)
+{
+	set_bit(WDOG_STOP_ON_REBOOT, &wdd->status);
 }
 
 /* Use the following function to check if a timeout value is invalid */
