@@ -906,4 +906,10 @@ static inline int lpit_read_residency_count_address(u64 *address)
 }
 #endif
 
+#if defined(CONFIG_ACPI) && defined(CONFIG_ACPI_WATCHDOG)
+extern bool acpi_has_watchdog(void);
+#else
+static inline bool acpi_has_watchdog(void) { return false; }
+#endif
+
 #endif	/*_LINUX_ACPI_H*/
