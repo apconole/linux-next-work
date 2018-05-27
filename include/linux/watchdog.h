@@ -18,6 +18,7 @@
 struct watchdog_ops;
 struct watchdog_device;
 struct watchdog_core_data;
+struct watchdog_governor;
 
 /** struct watchdog_ops - The watchdog-devices operations
  *
@@ -58,6 +59,7 @@ struct watchdog_ops {
  *		watchdog device.
  * @info:	Pointer to a watchdog_info structure.
  * @ops:	Pointer to the list of watchdog operations.
+ * @gov:	Pointer to watchdog pretimeout governor.
  * @bootstatus:	Status of the watchdog device at boot.
  * @timeout:	The watchdog devices timeout value (in seconds).
  * @pretimeout: The watchdog devices pre_timeout value.
@@ -93,6 +95,7 @@ struct watchdog_device {
 	const struct attribute_group **groups;
 	const struct watchdog_info *info;
 	const struct watchdog_ops *ops;
+	const struct watchdog_governor *gov;
 	unsigned int bootstatus;
 	unsigned int timeout;
 	unsigned int pretimeout;
@@ -179,6 +182,16 @@ static inline void *watchdog_get_drvdata(struct watchdog_device *wdd)
 {
 	return wdd->driver_data;
 }
+
+/* Use the following functions to report watchdog pretimeout event */
+#if IS_ENABLED(CONFIG_WATCHDOG_PRETIMEOUT_GOV)
+void watchdog_notify_pretimeout(struct watchdog_device *wdd);
+#else
+static inline void watchdog_notify_pretimeout(struct watchdog_device *wdd)
+{
+	pr_alert("watchdog%d: pretimeout event\n", wdd->id);
+}
+#endif
 
 /* drivers/watchdog/watchdog_core.c */
 extern int watchdog_init_timeout(struct watchdog_device *wdd,
