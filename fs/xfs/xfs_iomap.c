@@ -694,6 +694,7 @@ xfs_iomap_write_allocate(
 	xfs_trans_t	*tp;
 	int		nimaps;
 	int		error = 0;
+	int		flags = XFS_BMAPI_DELALLOC;
 	int		nres;
 
 	/*
@@ -789,7 +790,7 @@ xfs_iomap_write_allocate(
 			 * pointer that the caller gave to us.
 			 */
 			error = xfs_bmapi_write(tp, ip, map_start_fsb,
-						count_fsb, 0, &first_block,
+						count_fsb, flags, &first_block,
 						nres, imap, &nimaps,
 						&dfops);
 			if (error)

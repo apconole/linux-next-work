@@ -4368,8 +4368,6 @@ xfs_bmapi_write(
 	int			n;		/* current extent index */
 	xfs_fileoff_t		obno;		/* old block number (offset) */
 	int			whichfork;	/* data or attr fork */
-	char			inhole;		/* current location is hole in file */
-	char			wasdelay;	/* old extent was delayed */
 
 #ifdef DEBUG
 	xfs_fileoff_t		orig_bno;	/* original block number value */
@@ -4452,14 +4450,36 @@ xfs_bmapi_write(
 	bma.firstblock = firstblock;
 
 	while (bno < end && n < *nmap) {
-		inhole = eof || bma.got.br_startoff > bno;
-		wasdelay = !inhole && isnullstartblock(bma.got.br_startblock);
+		bool			need_alloc = false, wasdelay = false;
+
+		/* in hole or beyoned EOF? */
+		if (eof || bma.got.br_startoff > bno) {
+			if (flags & XFS_BMAPI_DELALLOC) {
+				/*
+				 * We should never expect delalloc conversion
+				 * over a hole in the DATA fork. This indicates
+				 * that something is seriously wrong. We can't
+				 * allocate because delalloc conversion expects
+				 * that block and indlen reservations have
+				 * already been made at file write time. Return
+				 * an error to fail the writeback.
+				 */
+				ASSERT(0);
+				error = -EIO;
+				goto error0;
+			} else {
+				need_alloc = true;
+			}
+		} else {
+			if (isnullstartblock(bma.got.br_startblock))
+				wasdelay = true;
+		}
 
 		/*
 		 * First, deal with the hole before the allocated space
 		 * that we found, if any.
 		 */
-		if (inhole || wasdelay) {
+		if (need_alloc || wasdelay) {
 			bma.eof = eof;
 			bma.conv = !!(flags & XFS_BMAPI_CONVERT);
 			bma.wasdel = wasdelay;

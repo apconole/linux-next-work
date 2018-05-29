@@ -96,6 +96,9 @@ struct xfs_extent_free_item
  */
 #define XFS_BMAPI_ZERO		0x080
 
+/* Only convert delalloc space, don't allocate entirely new extents */
+#define XFS_BMAPI_DELALLOC	0x400
+
 #define XFS_BMAPI_FLAGS \
 	{ XFS_BMAPI_ENTIRE,	"ENTIRE" }, \
 	{ XFS_BMAPI_METADATA,	"METADATA" }, \
@@ -104,7 +107,8 @@ struct xfs_extent_free_item
 	{ XFS_BMAPI_IGSTATE,	"IGSTATE" }, \
 	{ XFS_BMAPI_CONTIG,	"CONTIG" }, \
 	{ XFS_BMAPI_CONVERT,	"CONVERT" }, \
-	{ XFS_BMAPI_ZERO,	"ZERO" }
+	{ XFS_BMAPI_ZERO,	"ZERO" }, \
+	{ XFS_BMAPI_DELALLOC,	"DELALLOC" }
 
 
 static inline int xfs_bmapi_aflag(int w)
