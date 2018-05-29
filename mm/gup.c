@@ -492,6 +492,8 @@ long __get_user_pages(struct task_struct *tsk, struct mm_struct *mm,
 		    !(vm_flags & vma->vm_flags))
 			return i ? : -EFAULT;
 
+		if (gup_flags & FOLL_ANON && !vma_is_anonymous(vma))
+			return i ? : -EFAULT;
 		/*
 		 * gups are always data accesses, not instruction
 		 * fetches, so execute=false here
