@@ -147,13 +147,9 @@ static void ceph_invalidatepage(struct page *page, unsigned long offset)
 		return;
 	}
 
-	/*
-	 * We can get non-dirty pages here due to races between
-	 * set_page_dirty and truncate_complete_page; just spit out a
-	 * warning, in case we end up with accounting problems later.
-	 */
-	if (!PageDirty(page))
-		pr_err("%p invalidatepage %p page not dirty\n", inode, page);
+	WARN_ON(!PageLocked(page));
+	if (!PagePrivate(page))
+		return;
 
 	ClearPageChecked(page);
 
