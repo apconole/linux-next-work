@@ -916,6 +916,7 @@ static ssize_t mem_rw(struct file *file, char __user *buf,
 	unsigned long addr = *ppos;
 	ssize_t copied;
 	char *page;
+	unsigned int flags;
 
 	if (!mm)
 		return 0;
@@ -927,6 +928,8 @@ static ssize_t mem_rw(struct file *file, char __user *buf,
 	copied = 0;
 	if (!atomic_inc_not_zero(&mm->mm_users))
 		goto free;
+
+	flags = write ? FOLL_WRITE : 0;
 
 	while (count > 0) {
 		int this_len = min_t(int, count, PAGE_SIZE);
