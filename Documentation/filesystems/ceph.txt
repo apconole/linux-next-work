@@ -146,6 +146,10 @@ Mount Options
   noasyncreaddir
 	Do not use the dcache as above for readdir.
 
+  noquotadf
+        Report overall filesystem usage in statfs instead of using the root
+        directory quota.
+
 More Information
 ================
 
