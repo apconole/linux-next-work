@@ -19,6 +19,7 @@
 #include <asm/unistd.h>
 #include <asm/page.h>
 #include <asm/sigp.h>
+#include <asm/nospec-insn.h>
 
 __PT_R0      =	__PT_GPRS
 __PT_R1      =	__PT_GPRS + 8
@@ -222,74 +223,16 @@ _TIF_TRACE    = (_TIF_SYSCALL_TRACE | _TIF_SYSCALL_AUDIT | _TIF_SECCOMP | \
 	.popsection
 	.endm
 
-#ifdef CONFIG_EXPOLINE
-
-	.macro GEN_BR_THUNK name,reg,tmp
-	.section .text.\name,"axG",@progbits,\name,comdat
-	.globl \name
-	.hidden \name
-	.type \name,@function
-\name:
-	.cfi_startproc
-#ifdef CONFIG_HAVE_MARCH_Z10_FEATURES
-	exrl	0,0f
-#else
-	larl	\tmp,0f
-	ex	0,0(\tmp)
-#endif
-	j	.
-0:	br	\reg
-	.cfi_endproc
-	.endm
-
-	GEN_BR_THUNK __s390x_indirect_jump_r1use_r9,%r9,%r1
-	GEN_BR_THUNK __s390x_indirect_jump_r1use_r14,%r14,%r1
-	GEN_BR_THUNK __s390x_indirect_jump_r11use_r14,%r14,%r11
-
-	.macro BASR_R14_R9
-0:	brasl	%r14,__s390x_indirect_jump_r1use_r9
-	.pushsection .s390_indirect_branches,"a",@progbits
-	.long	0b-.
-	.popsection
-	.endm
-
-	.macro BR_R1USE_R14
-0:	jg	__s390x_indirect_jump_r1use_r14
-	.pushsection .s390_indirect_branches,"a",@progbits
-	.long	0b-.
-	.popsection
-	.endm
-
-	.macro BR_R11USE_R14
-0:	jg	__s390x_indirect_jump_r11use_r14
-	.pushsection .s390_indirect_branches,"a",@progbits
-	.long	0b-.
-	.popsection
-	.endm
-
-#else	/* CONFIG_EXPOLINE */
-
-	.macro BASR_R14_R9
-	basr	%r14,%r9
-	.endm
-
-	.macro BR_R1USE_R14
-	br	%r14
-	.endm
-
-	.macro BR_R11USE_R14
-	br	%r14
-	.endm
-
-#endif /* CONFIG_EXPOLINE */
-
+	GEN_BR_THUNK %r9
+	GEN_BR_THUNK %r14
+	GEN_BR_THUNK %r14,%r11
 
 	.section .kprobes.text, "ax"
 
 ENTRY(__bpon)
 	.globl __bpon
 	BPON
-	BR_R1USE_R14
+	BR_EX	%r14
 
 /*
  * Scheduler resume function, called by switch_to
@@ -320,7 +263,7 @@ ENTRY(__switch_to)
 	tm      __LC_MACHINE_FLAGS+6,0x20       # MACHINE_FLAG_LPP
 	jz	0f
 	.insn	s,0xb2800000,__LC_LPP		# set program parameter
-0:	BR_R1USE_R14
+0:	BR_EX	%r14
 
 __critical_start:
 /*
@@ -367,7 +310,7 @@ sysc_nr_ok:
 	lgf	%r9,0(%r8,%r10)			# get system call add.
 	tm	__TI_flags+6(%r12),_TIF_TRACE >> 8
 	jnz	sysc_tracesys
-	BASR_R14_R9				# call sys_xxxx
+	BASR_EX	%r14,%r9			# call sys_xxxx
 	stg	%r2,__PT_R2(%r11)		# store return value
 
 sysc_return:
@@ -501,7 +444,7 @@ sysc_tracego:
 	lmg	%r3,%r7,__PT_R3(%r11)
 	stg	%r7,STACK_FRAME_OVERHEAD(%r15)
 	lg	%r2,__PT_ORIG_GPR2(%r11)
-	BASR_R14_R9			# call sys_xxx
+	BASR_EX	%r14,%r9		# call sys_xxx
 	stg	%r2,__PT_R2(%r11)	# store return value
 sysc_tracenogo:
 	tm	__TI_flags+6(%r12),_TIF_TRACE >> 8
@@ -525,7 +468,7 @@ ENTRY(ret_from_fork)
 	lmg	%r9,%r10,__PT_R9(%r11)	# load gprs
 ENTRY(kernel_thread_starter)
 	la	%r2,0(%r10)
-	BASR_R14_r9
+	BASR_EX	%r14,%r9
 	j	sysc_tracenogo
 
 /*
@@ -592,7 +535,7 @@ ENTRY(pgm_check_handler)
 	je	pgm_exit
 	lgf	%r9,0(%r10,%r1)		# load address of handler routine
 	lgr	%r2,%r11		# pass pointer to pt_regs
-	BASR_R14_R9			# branch to interrupt-handler
+	BASR_EX	%r14,%r9		# branch to interrupt-handler
 pgm_exit:
 	LOCKDEP_SYS_EXIT
 	tm	__PT_PSW+1(%r11),0x01	# returning to user ?
@@ -867,7 +810,7 @@ ENTRY(psw_idle)
 	stpt	__TIMER_IDLE_ENTER(%r2)
 psw_idle_lpsw:
 	lpswe	__SF_EMPTY(%r15)
-	BR_R1USE_R14
+	BR_EX	%r14
 psw_idle_end:
 
 __critical_end:
@@ -1047,7 +990,7 @@ cleanup_critical:
 	jl	0f
 	clg	%r9,BASED(cleanup_table+72)	# psw_idle_end
 	jl	cleanup_idle
-0:	BR_R11USE_R14
+0:	BR_EX	%r14
 
 
 cleanup_system_call:
@@ -1103,7 +1046,7 @@ cleanup_system_call:
 	stg	%r15,56(%r11)		# r15 stack pointer
 	# set new psw address and exit
 	larl	%r9,sysc_do_svc
-	BR_R11USE_R14
+	BR_EX	%r14,%r11
 cleanup_system_call_insn:
 	.quad	system_call
 	.quad	sysc_stmg
@@ -1113,7 +1056,7 @@ cleanup_system_call_insn:
 
 cleanup_sysc_tif:
 	larl	%r9,sysc_tif
-	BR_R11USE_R14
+	BR_EX	%r14,%r11
 
 cleanup_sysc_restore:
 	clg	%r9,BASED(cleanup_sysc_restore_insn)
@@ -1123,13 +1066,13 @@ cleanup_sysc_restore:
 	mvc	0(64,%r11),__PT_R8(%r9)
 	lmg	%r0,%r7,__PT_R0(%r9)
 0:	lmg	%r8,%r9,__LC_RETURN_PSW
-	BR_R11USE_R14
+	BR_EX	%r14,%r11
 cleanup_sysc_restore_insn:
 	.quad	sysc_done - 4
 
 cleanup_io_tif:
 	larl	%r9,io_tif
-	BR_R11USE_R14
+	BR_EX	%r14,%r11
 
 cleanup_io_restore:
 	clg	%r9,BASED(cleanup_io_restore_insn)
@@ -1139,7 +1082,7 @@ cleanup_io_restore:
 	mvc	0(64,%r11),__PT_R8(%r9)
 	lmg	%r0,%r7,__PT_R0(%r9)
 0:	lmg	%r8,%r9,__LC_RETURN_PSW
-	BR_R11USE_R14
+	BR_EX	%r14,%r11
 cleanup_io_restore_insn:
 	.quad	io_done - 4
 
@@ -1190,7 +1133,7 @@ cleanup_idle:
 	# prepare return psw
 	nihh	%r8,0xfcfd		# clear irq & wait state bits
 	lg	%r9,48(%r11)		# return from psw_idle
-	BR_R11USE_R14
+	BR_EX	%r14,%r11
 cleanup_idle_insn:
 	.quad	psw_idle_lpsw
 
@@ -1254,7 +1197,7 @@ sie_exit:
 	xgr	%r5,%r5
 	lmg	%r6,%r14,__SF_GPRS(%r15)	# restore kernel registers
 	lg	%r2,__SF_EMPTY+16(%r15)		# return exit reason code
-	BR_R1USE_R14
+	BR_EX	%r14
 sie_fault:
 	lghi	%r14,-EFAULT
 	stg	%r14,__SF_EMPTY+16(%r15)	# set exit reason code
