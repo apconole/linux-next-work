@@ -1416,6 +1416,12 @@ static inline int fixup_user_fault(struct task_struct *tsk,
 }
 #endif
 
+/* RHEL-only */
+long get_user_pages_remote_flags(struct task_struct *tsk, struct mm_struct *mm,
+		unsigned long start, unsigned long nr_pages,
+		unsigned int gup_flags, struct page **pages,
+		struct vm_area_struct **vmas);
+
 extern int access_process_vm(struct task_struct *tsk, unsigned long addr, void *buf, int len, int write);
 extern int access_remote_vm(struct mm_struct *mm, unsigned long addr,
 		void *buf, int len, int write);

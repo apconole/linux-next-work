@@ -3836,6 +3836,12 @@ static int __access_remote_vm(struct task_struct *tsk, struct mm_struct *mm,
 	void *old_buf = buf;
 	int write = gup_flags & FOLL_WRITE;
 
+	/*
+	 * doesn't match upstream, but we need to audit all the callers to
+	 * remove this unconditional FOLL_FORCE.
+	 */
+	gup_flags |= FOLL_FORCE;
+
 	down_read(&mm->mmap_sem);
 	/* ignore errors, just check how much was successfully transferred */
 	while (len) {
@@ -3843,8 +3849,8 @@ static int __access_remote_vm(struct task_struct *tsk, struct mm_struct *mm,
 		void *maddr;
 		struct page *page = NULL;
 
-		ret = get_user_pages_remote(tsk, mm, addr, 1,
-				write, 1, &page, &vma);
+		ret = get_user_pages_remote_flags(tsk, mm, addr, 1,
+				gup_flags, &page, &vma);
 		if (ret <= 0) {
 			/*
 			 * Check if this is a VM_IO | VM_PFNMAP VMA, which
