@@ -1955,8 +1955,7 @@ static int parse_tc_nic_actions(struct mlx5e_priv *priv, struct tcf_exts *exts,
 		}
 
 		if (is_tcf_mirred_egress_redirect(a)) {
-			int ifindex = tcf_mirred_ifindex(a);
-			struct net_device *peer_dev = __dev_get_by_index(dev_net(priv->netdev), ifindex);
+			struct net_device *peer_dev = tcf_mirred_dev(a);
 
 			if (priv->netdev->netdev_ops == peer_dev->netdev_ops &&
 			    same_hw_devs(priv, netdev_priv(peer_dev))) {
@@ -2496,11 +2495,10 @@ static int parse_tc_fdb_actions(struct mlx5e_priv *priv, struct tcf_exts *exts,
 		}
 
 		if (is_tcf_mirred_egress_redirect(a)) {
-			int ifindex = tcf_mirred_ifindex(a);
 			struct net_device *out_dev;
 			struct mlx5e_priv *out_priv;
 
-			out_dev = __dev_get_by_index(dev_net(priv->netdev), ifindex);
+			out_dev = tcf_mirred_dev(a);
 
 			if (switchdev_port_same_parent_id(priv->netdev,
 							  out_dev)) {
@@ -2510,7 +2508,7 @@ static int parse_tc_fdb_actions(struct mlx5e_priv *priv, struct tcf_exts *exts,
 				rpriv = out_priv->ppriv;
 				attr->out_rep = rpriv->rep;
 			} else if (encap) {
-				parse_attr->mirred_ifindex = ifindex;
+				parse_attr->mirred_ifindex = out_dev->ifindex;
 				parse_attr->tun_info = *info;
 				attr->parse_attr = parse_attr;
 				attr->action |= MLX5_FLOW_CONTEXT_ACTION_ENCAP |
