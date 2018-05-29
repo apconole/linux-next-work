@@ -666,6 +666,7 @@ struct kmem_cache *ceph_cap_cachep;
 struct kmem_cache *ceph_cap_flush_cachep;
 struct kmem_cache *ceph_dentry_cachep;
 struct kmem_cache *ceph_file_cachep;
+struct kmem_cache *ceph_dir_file_cachep;
 
 static void ceph_inode_init_once(void *foo)
 {
@@ -701,8 +702,14 @@ static int __init init_caches(void)
 	if (!ceph_file_cachep)
 		goto bad_file;
 
+	ceph_dir_file_cachep = KMEM_CACHE(ceph_dir_file_info, SLAB_MEM_SPREAD);
+	if (!ceph_dir_file_cachep)
+		goto bad_dir_file;
+
 	return 0;
 
+bad_dir_file:
+	kmem_cache_destroy(ceph_file_cachep);
 bad_file:
 	kmem_cache_destroy(ceph_dentry_cachep);
 bad_dentry:
@@ -726,6 +733,7 @@ static void destroy_caches(void)
 	kmem_cache_destroy(ceph_cap_flush_cachep);
 	kmem_cache_destroy(ceph_dentry_cachep);
 	kmem_cache_destroy(ceph_file_cachep);
+	kmem_cache_destroy(ceph_dir_file_cachep);
 }
 
 
