@@ -614,6 +614,7 @@ static bool ixgbevf_alloc_mapped_page(struct ixgbevf_ring *rx_ring,
 	bi->dma = dma;
 	bi->page = page;
 	bi->page_offset = 0;
+	bi->pagecnt_bias = 1;
 
 	return true;
 }
@@ -750,6 +751,7 @@ static void ixgbevf_reuse_rx_page(struct ixgbevf_ring *rx_ring,
 	new_buff->page = old_buff->page;
 	new_buff->dma = old_buff->dma;
 	new_buff->page_offset = old_buff->page_offset;
+	new_buff->pagecnt_bias = old_buff->pagecnt_bias;
 }
 
 static inline bool ixgbevf_page_is_reserved(struct page *page)
@@ -761,13 +763,15 @@ static bool ixgbevf_can_reuse_rx_page(struct ixgbevf_rx_buffer *rx_buffer,
 				      struct page *page,
 				      const unsigned int truesize)
 {
+	unsigned int pagecnt_bias = rx_buffer->pagecnt_bias--;
+
 	/* avoid re-using remote pages */
 	if (unlikely(ixgbevf_page_is_reserved(page)))
 		return false;
 
 #if (PAGE_SIZE < 8192)
 	/* if we are only owner of page we can reuse it */
-	if (unlikely(page_count(page) != 1))
+	if (unlikely(page_ref_count(page) != pagecnt_bias))
 		return false;
 
 	/* flip page offset to other buffer */
@@ -781,10 +785,15 @@ static bool ixgbevf_can_reuse_rx_page(struct ixgbevf_rx_buffer *rx_buffer,
 		return false;
 
 #endif
-	/* Even if we own the page, we are not allowed to use atomic_set()
-	 * This would break get_page_unless_zero() users.
+
+	/* If we have drained the page fragment pool we need to update
+	 * the pagecnt_bias and page count so that we fully restock the
+	 * number of references the driver holds.
 	 */
-	page_ref_inc(page);
+	if (unlikely(pagecnt_bias == 1)) {
+		page_ref_add(page, USHRT_MAX);
+		rx_buffer->pagecnt_bias = USHRT_MAX;
+	}
 
 	return true;
 }
@@ -830,7 +839,6 @@ static bool ixgbevf_add_rx_frag(struct ixgbevf_ring *rx_ring,
 			return true;
 
 		/* this page cannot be reused so discard it */
-		put_page(page);
 		return false;
 	}
 
@@ -903,12 +911,15 @@ static struct sk_buff *ixgbevf_fetch_rx_buffer(struct ixgbevf_ring *rx_ring,
 		/* hand second half of page back to the ring */
 		ixgbevf_reuse_rx_page(rx_ring, rx_buffer);
 	} else {
-		/* we are not reusing the buffer so unmap it */
+               /* We are not reusing the buffer so unmap it and free
+                * any references we are holding to it
+                */
 		dma_set_attr(DMA_ATTR_SKIP_CPU_SYNC, &attrs);
 		dma_set_attr(DMA_ATTR_WEAK_ORDERING, &attrs);
 		dma_unmap_page_attrs(rx_ring->dev, rx_buffer->dma,
 				     PAGE_SIZE, DMA_FROM_DEVICE,
 				     &attrs);
+               __page_frag_cache_drain(page, rx_buffer->pagecnt_bias);
 	}
 
 	/* clear contents of buffer_info */
@@ -2144,6 +2155,8 @@ static void ixgbevf_clean_rx_ring(struct ixgbevf_ring *rx_ring)
 		struct ixgbevf_rx_buffer *rx_buffer;
 
 		rx_buffer = &rx_ring->rx_buffer_info[i];
+		if (!rx_buffer->page)
+			continue;
 
 		/* Invalidate cache lines that may have been written to by
 		 * device so that we avoid corrupting memory.
@@ -2161,8 +2174,9 @@ static void ixgbevf_clean_rx_ring(struct ixgbevf_ring *rx_ring)
 				     DMA_FROM_DEVICE,
 				     &attrs);
 
-		if (rx_buffer->page)
-			__free_page(rx_buffer->page);
+		__page_frag_cache_drain(rx_buffer->page,
+					rx_buffer->pagecnt_bias);
+
 		rx_buffer->page = NULL;
 	}
 
