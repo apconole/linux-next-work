@@ -1176,6 +1176,7 @@ retry_lookup:
 				    ceph_snap(dn->d_inode) != tvino.snap)) {
 				dout(" dn %p points to wrong inode %p\n",
 				     dn, dn->d_inode);
+				ceph_dir_clear_ordered(dir);
 				d_delete(dn);
 				dput(dn);
 				goto retry_lookup;
@@ -1313,6 +1314,7 @@ retry_lookup:
 			dout(" %p links to %p %llx.%llx, not %llx.%llx\n",
 			     dn, dn->d_inode, ceph_vinop(dn->d_inode),
 			     ceph_vinop(in));
+			ceph_dir_clear_ordered(dir);
 			d_invalidate(dn);
 			have_lease = false;
 		}
@@ -1567,6 +1569,7 @@ retry_lookup:
 			    ceph_snap(dn->d_inode) != tvino.snap)) {
 			dout(" dn %p points to wrong inode %p\n",
 			     dn, dn->d_inode);
+			__ceph_dir_clear_ordered(ci);
 			d_delete(dn);
 			dput(dn);
 			goto retry_lookup;
@@ -1591,7 +1594,9 @@ retry_lookup:
 				 &req->r_caps_reservation);
 		if (ret < 0) {
 			pr_err("fill_inode badness on %p\n", in);
-			if (!dn->d_inode)
+			if (d_really_is_positive(dn))
+				__ceph_dir_clear_ordered(ci);
+			else
 				iput(in);
 			d_drop(dn);
 			err = ret;
