@@ -193,7 +193,7 @@ __dcache_find_get_entry(struct dentry *parent, u64 idx,
  */
 static int __dcache_readdir(struct file *filp,
 			    void *dirent, filldir_t filldir,
-			    u32 shared_gen)
+			    int shared_gen)
 {
 	struct ceph_file_info *fi = filp->private_data;
 	struct dentry *parent = filp->f_dentry;
@@ -204,7 +204,7 @@ static int __dcache_readdir(struct file *filp,
 	u64 idx = 0;
 	int err = 0;
 
-	dout("__dcache_readdir %p v%u at %llx\n", dir, shared_gen, filp->f_pos);
+	dout("__dcache_readdir %p v%u at %llx\n", dir, (unsigned)shared_gen, filp->f_pos);
 
 	/* search start position */
 	if (filp->f_pos > 2) {
@@ -354,7 +354,7 @@ static int ceph_readdir(struct file *filp, void *dirent, filldir_t filldir)
 	    ceph_snap(inode) != CEPH_SNAPDIR &&
 	    __ceph_dir_is_complete_ordered(ci) &&
 	    __ceph_caps_issued_mask(ci, CEPH_CAP_FILE_SHARED, 1)) {
-		u32 shared_gen = ci->i_shared_gen;
+		int shared_gen = atomic_read(&ci->i_shared_gen);
 		spin_unlock(&ci->i_ceph_lock);
 		err = __dcache_readdir(filp, dirent, filldir, shared_gen);
 		if (err != -EAGAIN)
@@ -777,7 +777,7 @@ static struct dentry *ceph_lookup(struct inode *dir, struct dentry *dentry,
 			spin_unlock(&ci->i_ceph_lock);
 			dout(" dir %p complete, -ENOENT\n", dir);
 			d_add(dentry, NULL);
-			di->lease_shared_gen = ci->i_shared_gen;
+			di->lease_shared_gen = atomic_read(&ci->i_shared_gen);
 			return NULL;
 		}
 		spin_unlock(&ci->i_ceph_lock);
@@ -1213,12 +1213,12 @@ static int dir_lease_is_valid(struct inode *dir, struct dentry *dentry)
 	int valid = 0;
 
 	spin_lock(&ci->i_ceph_lock);
-	if (ci->i_shared_gen == di->lease_shared_gen)
+	if (atomic_read(&ci->i_shared_gen) == di->lease_shared_gen)
 		valid = __ceph_caps_issued_mask(ci, CEPH_CAP_FILE_SHARED, 1);
 	spin_unlock(&ci->i_ceph_lock);
 	dout("dir_lease_is_valid dir %p v%u dentry %p v%u = %d\n",
-	     dir, (unsigned)ci->i_shared_gen, dentry,
-	     (unsigned)di->lease_shared_gen, valid);
+	     dir, (unsigned)atomic_read(&ci->i_shared_gen),
+	     dentry, (unsigned)di->lease_shared_gen, valid);
 	return valid;
 }
 
