@@ -1061,6 +1061,27 @@ static struct dentry *splice_dentry(struct dentry *dn, struct inode *in,
 
 	BUG_ON(dn->d_inode);
 
+	if (S_ISDIR(in->i_mode)) {
+		/* If inode is directory, d_splice_alias() below will remove
+		 * 'realdn' from its origin parent. We need to ensure that
+		 * origin parent's readdir cache will not reference 'realdn'
+		 */
+		realdn = d_find_any_alias(in);
+		if (realdn) {
+			struct ceph_dentry_info *di = ceph_dentry(realdn);
+			spin_lock(&realdn->d_lock);
+
+			realdn->d_op->d_prune(realdn);
+
+			di->time = jiffies;
+			di->lease_shared_gen = 0;
+			di->offset = 0;
+
+			spin_unlock(&realdn->d_lock);
+			dput(realdn);
+		}
+	}
+
 	/* dn must be unhashed */
 	if (!d_unhashed(dn))
 		d_drop(dn);
@@ -1285,8 +1306,8 @@ retry_lookup:
 		if (!rinfo->head->is_target) {
 			dout("fill_trace null dentry\n");
 			if (dn->d_inode) {
-				ceph_dir_clear_ordered(dir);
 				dout("d_delete %p\n", dn);
+				ceph_dir_clear_ordered(dir);
 				d_delete(dn);
 			} else if (have_lease) {
 				if (d_unhashed(dn))
@@ -1313,7 +1334,6 @@ retry_lookup:
 			dout(" %p links to %p %llx.%llx, not %llx.%llx\n",
 			     dn, dn->d_inode, ceph_vinop(dn->d_inode),
 			     ceph_vinop(in));
-			ceph_dir_clear_ordered(dir);
 			d_invalidate(dn);
 			have_lease = false;
 		}
@@ -1566,9 +1586,19 @@ retry_lookup:
 		} else if (dn->d_inode &&
 			   (ceph_ino(dn->d_inode) != tvino.ino ||
 			    ceph_snap(dn->d_inode) != tvino.snap)) {
+			struct ceph_dentry_info *di = ceph_dentry(dn);
 			dout(" dn %p points to wrong inode %p\n",
 			     dn, dn->d_inode);
-			__ceph_dir_clear_ordered(ci);
+
+			spin_lock(&dn->d_lock);
+			if (di->offset > 0 &&
+			    di->lease_shared_gen ==
+			    atomic_read(&ci->i_shared_gen)) {
+				__ceph_dir_clear_ordered(ci);
+				di->offset = 0;
+			}
+			spin_unlock(&dn->d_lock);
+
 			d_delete(dn);
 			dput(dn);
 			goto retry_lookup;
@@ -1593,9 +1623,7 @@ retry_lookup:
 				 &req->r_caps_reservation);
 		if (ret < 0) {
 			pr_err("fill_inode badness on %p\n", in);
-			if (d_really_is_positive(dn))
-				__ceph_dir_clear_ordered(ci);
-			else
+			if (d_really_is_negative(dn))
 				iput(in);
 			d_drop(dn);
 			err = ret;
