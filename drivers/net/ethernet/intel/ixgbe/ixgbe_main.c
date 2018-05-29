@@ -9804,6 +9804,7 @@ static void *ixgbe_fwd_add(struct net_device *pdev, struct net_device *vdev)
 	struct ixgbe_fwd_adapter *fwd_adapter = NULL;
 	struct ixgbe_adapter *adapter = netdev_priv(pdev);
 	int used_pools = adapter->num_vfs + adapter->num_rx_pools;
+	unsigned int limit;
 	int pool, err;
 
 	/* Hardware has a limited number of available pools. Each VF, and the
@@ -9840,10 +9841,11 @@ static void *ixgbe_fwd_add(struct net_device *pdev, struct net_device *vdev)
 
 	pool = find_first_zero_bit(&adapter->fwd_bitmask, 32);
 	set_bit(pool, &adapter->fwd_bitmask);
+	limit = find_last_bit(&adapter->fwd_bitmask, 32);
 
 	/* Enable VMDq flag so device will be set in VM mode */
 	adapter->flags |= IXGBE_FLAG_VMDQ_ENABLED | IXGBE_FLAG_SRIOV_ENABLED;
-	adapter->ring_feature[RING_F_VMDQ].limit = adapter->num_rx_pools;
+	adapter->ring_feature[RING_F_VMDQ].limit = limit + 1;
 	adapter->ring_feature[RING_F_RSS].limit = vdev->num_tx_queues;
 
 	/* Force reinit of ring allocation with VMDQ enabled */
@@ -9874,10 +9876,12 @@ static void ixgbe_fwd_del(struct net_device *pdev, void *priv)
 {
 	struct ixgbe_fwd_adapter *fwd_adapter = priv;
 	struct ixgbe_adapter *adapter = fwd_adapter->real_adapter;
+	unsigned int limit;
 
 	clear_bit(fwd_adapter->pool, &adapter->fwd_bitmask);
 
-	adapter->ring_feature[RING_F_VMDQ].limit = adapter->num_rx_pools;
+	limit = find_last_bit(&adapter->fwd_bitmask, 32);
+	adapter->ring_feature[RING_F_VMDQ].limit = limit + 1;
 	ixgbe_fwd_ring_down(fwd_adapter->netdev, fwd_adapter);
 
 	/* go back to full RSS if we're done with our VMQs */
