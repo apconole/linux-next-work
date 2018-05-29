@@ -2151,6 +2151,10 @@ int ceph_setattr(struct dentry *dentry, struct iattr *attr)
 {
 	int err;
 
+	if ((attr->ia_valid & ATTR_SIZE) &&
+	    ceph_quota_is_max_bytes_exceeded(dentry->d_inode, attr->ia_size))
+		return -EDQUOT;
+
 	err = __ceph_setattr(dentry, attr);
 
 	if (err >= 0 && (attr->ia_valid & ATTR_MODE))
