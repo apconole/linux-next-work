@@ -955,10 +955,10 @@ static void rbd_init_layout(struct rbd_device *rbd_dev)
 		rbd_dev->header.stripe_count = 1;
 	}
 
-	rbd_dev->layout.fl_stripe_unit = rbd_dev->header.stripe_unit;
-	rbd_dev->layout.fl_stripe_count = rbd_dev->header.stripe_count;
-	rbd_dev->layout.fl_object_size = rbd_obj_bytes(&rbd_dev->header);
-	rbd_dev->layout.fl_pg_pool = rbd_dev->header.data_pool_id == CEPH_NOPOOL ?
+	rbd_dev->layout.stripe_unit = rbd_dev->header.stripe_unit;
+	rbd_dev->layout.stripe_count = rbd_dev->header.stripe_count;
+	rbd_dev->layout.object_size = rbd_obj_bytes(&rbd_dev->header);
+	rbd_dev->layout.pool_id = rbd_dev->header.data_pool_id == CEPH_NOPOOL ?
 			  rbd_dev->spec->pool_id : rbd_dev->header.data_pool_id;
 }
 
@@ -1960,7 +1960,7 @@ __rbd_osd_req_create(struct rbd_device *rbd_dev,
 	req->r_callback = rbd_osd_req_callback;
 	req->r_priv = obj_request;
 
-	req->r_base_oloc.pool = ceph_file_layout_pg_pool(rbd_dev->layout);
+	req->r_base_oloc.pool = rbd_dev->layout.pool_id;
 	if (ceph_oid_aprintf(&req->r_base_oid, GFP_NOIO, name_format,
 			rbd_dev->header.object_prefix, obj_request->object_no))
 		goto err_req;
