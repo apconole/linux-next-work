@@ -9999,7 +9999,7 @@ static int ixgbe_xdp_setup(struct net_device *dev, struct bpf_prog *prog)
 	return 0;
 }
 
-static int ixgbe_xdp(struct net_device *dev, struct netdev_xdp *xdp)
+static int ixgbe_xdp(struct net_device *dev, struct netdev_bpf *xdp)
 {
 	struct ixgbe_adapter *adapter = netdev_priv(dev);
 
@@ -10062,7 +10062,7 @@ static const struct net_device_ops ixgbe_netdev_ops = {
 	.ndo_features_check	= ixgbe_features_check,
 	.extended.ndo_dfwd_add_station	= ixgbe_fwd_add,
 	.extended.ndo_dfwd_del_station	= ixgbe_fwd_del,
-	.extended.ndo_xdp	= ixgbe_xdp,
+	.extended.ndo_bpf	= ixgbe_xdp,
 };
 
 /**
