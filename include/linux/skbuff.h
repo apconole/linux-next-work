@@ -820,7 +820,8 @@ struct sk_buff {
 	RH_KABI_EXTEND(__u8	sw_hash:1)
 	RH_KABI_EXTEND(__u8     csum_not_inet:1)
 	RH_KABI_EXTEND(__u8	dst_pending_confirm:1)
-	/* 8 bit hole */
+	RH_KABI_EXTEND(__u8	offload_mr_fwd_mark:1)
+	/* 7 bit hole */
 	RH_KABI_EXTEND(kmemcheck_bitfield_end(flags3))
 
 	/* private: */
