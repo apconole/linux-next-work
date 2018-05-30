@@ -49,7 +49,7 @@ int handle_sch_mqprio_rh74(struct net_device *dev,
 			   const struct tc_mqprio_qopt_offload *mqprio)
 {
 	struct tc_to_netdev_rh74 tc74 = {
-		.type	= TC_SETUP_MQPRIO,
+		.type	= TC_SETUP_QDISC_MQPRIO,
 		.tc	= mqprio->qopt.num_tc,
 	};
 
@@ -187,8 +187,8 @@ int __rh_call_ndo_setup_tc(struct net_device *dev, enum tc_setup_type type,
 		/*
 		 * The drivers implementing .ndo_setup_tc_rh() should handle
 		 * only types >= TC_SETUP_BLOCK.
-		 * The types TC_SETUP_{MQPRIO,CLSU32,CLSFLOWER,CLSMATCHALL,
-		 * CLSBPF} are handled by TC setup callbacks.
+		 * The types TC_SETUP_{QDISC_MQPRIO,CLSU32,CLSFLOWER,
+		 * CLSMATCHALL,CLSBPF} are handled by TC setup callbacks.
 		 */
 		if (type < TC_SETUP_BLOCK)
 			return 0;
@@ -205,7 +205,7 @@ int __rh_call_ndo_setup_tc(struct net_device *dev, enum tc_setup_type type,
 		if (!tc_can_offload(dev) && type != TC_SETUP_CLSFLOWER)
 			return 0;
 		switch (type) {
-		case TC_SETUP_MQPRIO:
+		case TC_SETUP_QDISC_MQPRIO:
 			ret = handle_sch_mqprio_rh74(dev, type_data);
 			break;
 		case TC_SETUP_CLSU32:
@@ -220,7 +220,7 @@ int __rh_call_ndo_setup_tc(struct net_device *dev, enum tc_setup_type type,
 		default:
 			break;
 		}
-	} else if (ops->ndo_setup_tc_rh72 && type == TC_SETUP_MQPRIO) {
+	} else if (ops->ndo_setup_tc_rh72 && type == TC_SETUP_QDISC_MQPRIO) {
 		/* Drivers implementing .ndo_setup_tc_rh72()
 		 * Note that drivers that implement .ndo_setup_tc_rh72() can
 		 * only support mqprio so this entry-point can be called
