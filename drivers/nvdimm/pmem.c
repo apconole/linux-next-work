@@ -297,8 +297,7 @@ static int pmem_attach_disk(struct device *dev,
 		dev_warn(dev, "unable to guarantee persistence of writes\n");
 		fua = 0;
 	}
-	wbc = nvdimm_has_cache(nd_region) &&
-		!test_bit(ND_REGION_PERSIST_CACHE, &nd_region->flags);
+	wbc = nvdimm_has_cache(nd_region);
 	if (fua)
 		flush_flags |= REQ_FUA;
 	if (wbc)
