@@ -4526,6 +4526,7 @@ R:     Tatyana Nikolova <tatyana.e.nikolova@intel.com>
 L:     linux-rdma@vger.kernel.org
 S:     Supported
 F:     drivers/infiniband/hw/i40iw/
+F:     include/uapi/rdma/i40iw-abi.h
 
 INTEL PRO/WIRELESS 2100, 2200BG, 2915ABG NETWORK CONNECTION SUPPORT
 M:	Stanislav Yakovlev <stas.yakovlev@gmail.com>
