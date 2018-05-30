@@ -621,6 +621,27 @@ static int call_ipmr_vif_entry_notifier(struct notifier_block *nb,
 	return call_fib_notifier(nb, net, event_type, &info.info);
 }
 
+static int call_ipmr_vif_entry_notifiers(struct net *net,
+					 enum fib_event_type event_type,
+					 struct vif_device *vif,
+					 vifi_t vif_index, u32 tb_id)
+{
+	struct vif_entry_notifier_info info = {
+		.info = {
+			.family = RTNL_FAMILY_IPMR,
+			.net = net,
+		},
+		.dev = vif->dev,
+		.vif_index = vif_index,
+		.vif_flags = vif->flags,
+		.tb_id = tb_id,
+	};
+
+	ASSERT_RTNL();
+	net->ipv4_ipmr_seq++;
+	return call_fib_notifiers(net, event_type, &info.info);
+}
+
 static int call_ipmr_mfc_entry_notifier(struct notifier_block *nb,
 					struct net *net,
 					enum fib_event_type event_type,
@@ -638,6 +659,24 @@ static int call_ipmr_mfc_entry_notifier(struct notifier_block *nb,
 	return call_fib_notifier(nb, net, event_type, &info.info);
 }
 
+static int call_ipmr_mfc_entry_notifiers(struct net *net,
+					 enum fib_event_type event_type,
+					 struct mfc_cache *mfc, u32 tb_id)
+{
+	struct mfc_entry_notifier_info info = {
+		.info = {
+			.family = RTNL_FAMILY_IPMR,
+			.net = net,
+		},
+		.mfc = mfc,
+		.tb_id = tb_id
+	};
+
+	ASSERT_RTNL();
+	net->ipv4_ipmr_seq++;
+	return call_fib_notifiers(net, event_type, &info.info);
+}
+
 /**
  *	vif_delete - Delete a VIF entry
  *	@notify: Set to 1, if the caller is a notifier_call
@@ -645,6 +684,7 @@ static int call_ipmr_mfc_entry_notifier(struct notifier_block *nb,
 static int vif_delete(struct mr_table *mrt, int vifi, int notify,
 		      struct list_head *head)
 {
+	struct net *net = read_pnet(&mrt->net);
 	struct vif_device *v;
 	struct net_device *dev;
 	struct in_device *in_dev;
@@ -653,6 +693,10 @@ static int vif_delete(struct mr_table *mrt, int vifi, int notify,
 		return -EADDRNOTAVAIL;
 
 	v = &mrt->vif_table[vifi];
+
+	if (VIF_EXISTS(mrt, vifi))
+		call_ipmr_vif_entry_notifiers(net, FIB_EVENT_VIF_DEL, v, vifi,
+					      mrt->id);
 
 	write_lock_bh(&mrt_lock);
 	dev = v->dev;
@@ -903,6 +947,7 @@ static int vif_add(struct net *net, struct mr_table *mrt,
 	if (vifi+1 > mrt->maxvif)
 		mrt->maxvif = vifi+1;
 	write_unlock_bh(&mrt_lock);
+	call_ipmr_vif_entry_notifiers(net, FIB_EVENT_VIF_ADD, v, vifi, mrt->id);
 	return 0;
 }
 
@@ -1198,6 +1243,7 @@ static int ipmr_cache_unresolved(struct mr_table *mrt, vifi_t vifi,
 
 static int ipmr_mfc_delete(struct mr_table *mrt, struct mfcctl *mfc, int parent)
 {
+	struct net *net = read_pnet(&mrt->net);
 	struct mfc_cache *c;
 
 	/* The entries are added/deleted only under RTNL */
@@ -1209,6 +1255,7 @@ static int ipmr_mfc_delete(struct mr_table *mrt, struct mfcctl *mfc, int parent)
 		return -ENOENT;
 	rhltable_remove(&mrt->mfc_hash, &c->mnode, ipmr_rht_params);
 	list_del_rcu(&c->list);
+	call_ipmr_mfc_entry_notifiers(net, FIB_EVENT_ENTRY_DEL, c, mrt->id);
 	mroute_netlink_event(mrt, c, RTM_DELROUTE);
 	ipmr_cache_put(c);
 
@@ -1237,6 +1284,8 @@ static int ipmr_mfc_add(struct net *net, struct mr_table *mrt,
 		if (!mrtsock)
 			c->mfc_flags |= MFC_STATIC;
 		write_unlock_bh(&mrt_lock);
+		call_ipmr_mfc_entry_notifiers(net, FIB_EVENT_ENTRY_REPLACE, c,
+					      mrt->id);
 		mroute_netlink_event(mrt, c, RTM_NEWROUTE);
 		return 0;
 	}
@@ -1286,6 +1335,7 @@ static int ipmr_mfc_add(struct net *net, struct mr_table *mrt,
 		ipmr_cache_resolve(net, mrt, uc, c);
 		ipmr_cache_free(uc);
 	}
+	call_ipmr_mfc_entry_notifiers(net, FIB_EVENT_ENTRY_ADD, c, mrt->id);
 	mroute_netlink_event(mrt, c, RTM_NEWROUTE);
 	return 0;
 }
@@ -1293,6 +1343,7 @@ static int ipmr_mfc_add(struct net *net, struct mr_table *mrt,
 /* Close the multicast socket, and clear the vif tables etc */
 static void mroute_clean_tables(struct mr_table *mrt, bool all)
 {
+	struct net *net = read_pnet(&mrt->net);
 	struct mfc_cache *c, *tmp;
 	LIST_HEAD(list);
 	int i;
@@ -1311,6 +1362,8 @@ static void mroute_clean_tables(struct mr_table *mrt, bool all)
 			continue;
 		rhltable_remove(&mrt->mfc_hash, &c->mnode, ipmr_rht_params);
 		list_del_rcu(&c->list);
+		call_ipmr_mfc_entry_notifiers(net, FIB_EVENT_ENTRY_DEL, c,
+					      mrt->id);
 		mroute_netlink_event(mrt, c, RTM_DELROUTE);
 		ipmr_cache_put(c);
 	}
