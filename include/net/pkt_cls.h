@@ -706,6 +706,20 @@ struct tc_cls_matchall_offload {
 	unsigned long cookie;
 };
 
+enum tc_clsbpf_command {
+	TC_CLSBPF_ADD,
+	TC_CLSBPF_REPLACE,
+	TC_CLSBPF_DESTROY,
+};
+
+struct tc_cls_bpf_offload {
+	enum tc_clsbpf_command command;
+	struct tcf_exts *exts;
+	struct bpf_prog *prog;
+	const char *name;
+	bool exts_integrated;
+};
+
 struct tc_mqprio_qopt_offload {
 	/* struct tc_mqprio_qopt must always be the first element */
 	struct tc_mqprio_qopt qopt;
@@ -724,18 +738,33 @@ struct tc_cookie {
 	u32 len;
 };
 
-enum tc_clsbpf_command {
-	TC_CLSBPF_ADD,
-	TC_CLSBPF_REPLACE,
-	TC_CLSBPF_DESTROY,
+enum tc_red_command {
+	TC_RED_REPLACE,
+	TC_RED_DESTROY,
+	TC_RED_STATS,
+	TC_RED_XSTATS,
 };
 
-struct tc_cls_bpf_offload {
-	enum tc_clsbpf_command command;
-	struct tcf_exts *exts;
-	struct bpf_prog *prog;
-	const char *name;
-	bool exts_integrated;
+struct tc_red_qopt_offload_params {
+	u32 min;
+	u32 max;
+	u32 probability;
+	bool is_ecn;
+};
+struct tc_red_qopt_offload_stats {
+	struct gnet_stats_basic_packed *bstats;
+	struct gnet_stats_queue *qstats;
+};
+
+struct tc_red_qopt_offload {
+	enum tc_red_command command;
+	u32 handle;
+	u32 parent;
+	union {
+		struct tc_red_qopt_offload_params set;
+		struct tc_red_qopt_offload_stats stats;
+		struct red_stats *xstats;
+	};
 };
 
 #endif
