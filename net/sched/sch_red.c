@@ -274,11 +274,13 @@ static int red_dump_offload(struct Qdisc *sch, struct tc_red_qopt *opt)
 {
 	struct net_device *dev = qdisc_dev(sch);
 	struct tc_red_qopt_offload hw_stats = {
+		.command = TC_RED_STATS,
 		.handle = sch->handle,
 		.parent = sch->parent,
-		.command = TC_RED_STATS,
-		.stats.bstats = &sch->bstats,
-		.stats.qstats = &sch->qstats,
+		{
+			.stats.bstats = &sch->bstats,
+			.stats.qstats = &sch->qstats,
+		},
 	};
 	int err;
 
@@ -344,10 +346,12 @@ static int red_dump_stats(struct Qdisc *sch, struct gnet_dump *d)
 	if (tc_can_offload(dev) && __rh_has_ndo_setup_tc(dev)) {
 		struct red_stats hw_stats = {0};
 		struct tc_red_qopt_offload hw_stats_request = {
+			.command = TC_RED_XSTATS,
 			.handle = sch->handle,
 			.parent = sch->parent,
-			.command = TC_RED_XSTATS,
-			.xstats = &hw_stats,
+			{
+				.xstats = &hw_stats,
+			},
 		};
 		if (!__rh_call_ndo_setup_tc(dev,
 					    TC_SETUP_QDISC_RED,
