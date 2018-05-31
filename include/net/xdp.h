@@ -70,7 +70,7 @@ struct xdp_frame *convert_to_xdp_frame(struct xdp_buff *xdp)
 }
 
 static inline
-void xdp_return_frame(void *data, struct xdp_mem_info *mem)
+void xdp_return_frame(struct xdp_frame *xdpf)
 {
 	return;
 }
