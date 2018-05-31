@@ -892,3 +892,9 @@ out:
 	release_sock(sk);
 	return ret;
 }
+
+int xdp_do_redirect(struct net_device *dev, struct xdp_buff *xdp)
+{
+	return -EOPNOTSUPP;
+}
+EXPORT_SYMBOL_GPL(xdp_do_redirect);
