@@ -424,7 +424,7 @@ int arch_prctl_spec_ctrl_get(struct task_struct *task, unsigned long which)
 ssize_t cpu_show_meltdown(struct device *dev,
 			  struct device_attribute *attr, char *buf)
 {
-	if (boot_cpu_data.x86_vendor == X86_VENDOR_AMD)
+	if (!boot_cpu_has_bug(X86_BUG_CPU_MELTDOWN))
 		return sprintf(buf, "Not affected\n");
 	if (kaiser_enabled)
 		return sprintf(buf, "Mitigation: PTI\n");
@@ -434,12 +434,16 @@ ssize_t cpu_show_meltdown(struct device *dev,
 ssize_t cpu_show_spectre_v1(struct device *dev,
 			    struct device_attribute *attr, char *buf)
 {
+	if (!boot_cpu_has_bug(X86_BUG_SPECTRE_V1))
+		return sprintf(buf, "Not affected\n");
 	return sprintf(buf, "Mitigation: Load fences\n");
 }
 
 ssize_t cpu_show_spectre_v2(struct device *dev,
 			    struct device_attribute *attr, char *buf)
 {
+	if (!boot_cpu_has_bug(X86_BUG_SPECTRE_V2))
+		return sprintf(buf, "Not affected\n");
 	return sprintf(buf, "%s\n", spectre_v2_strings[spec_ctrl_get_mitigation()]);
 }
 
