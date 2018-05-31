@@ -940,6 +940,8 @@ static bool __init cpu_vulnerable_to_meltdown(struct cpuinfo_x86 *c)
  */
 static void __init early_identify_cpu(struct cpuinfo_x86 *c)
 {
+	u64 ia32_cap = 0;
+
 #ifdef CONFIG_X86_64
 	c->x86_clflush_size = 64;
 	c->x86_phys_bits = 36;
@@ -985,7 +987,11 @@ static void __init early_identify_cpu(struct cpuinfo_x86 *c)
 		setup_force_cpu_bug(X86_BUG_SPECTRE_V2);
 	}
 
-	if (!x86_match_cpu(cpu_no_spec_store_bypass))
+	if (cpu_has(c, X86_FEATURE_ARCH_CAPABILITIES))
+		rdmsrl(MSR_IA32_ARCH_CAPABILITIES, ia32_cap);
+
+	if (!x86_match_cpu(cpu_no_spec_store_bypass) &&
+	   !(ia32_cap & ARCH_CAP_SSB_NO))
 		setup_force_cpu_bug(X86_BUG_SPEC_STORE_BYPASS);
 }
 
