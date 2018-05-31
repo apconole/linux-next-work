@@ -90,7 +90,9 @@ static inline void bpf_warn_invalid_xdp_action(u32 act)
 }
 
 
-int xdp_do_redirect(struct net_device *dev, struct xdp_buff *xdp);
+int xdp_do_redirect(struct net_device *dev,
+		    struct xdp_buff *xdp,
+		    struct bpf_prog *prog);
 
 #ifdef CONFIG_BPF_JIT
 #include <stdarg.h>
