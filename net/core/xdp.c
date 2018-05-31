@@ -38,3 +38,10 @@ bool xdp_rxq_info_is_reg(struct xdp_rxq_info *xdp_rxq)
 	return true;
 }
 EXPORT_SYMBOL_GPL(xdp_rxq_info_is_reg);
+
+int xdp_rxq_info_reg_mem_model(struct xdp_rxq_info *xdp_rxq,
+			       enum xdp_mem_type type, void *allocator)
+{
+	return 0;
+}
+EXPORT_SYMBOL_GPL(xdp_rxq_info_reg_mem_model);
