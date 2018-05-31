@@ -32,3 +32,9 @@ void xdp_rxq_info_unused(struct xdp_rxq_info *xdp_rxq)
 	return;
 }
 EXPORT_SYMBOL_GPL(xdp_rxq_info_unused);
+
+bool xdp_rxq_info_is_reg(struct xdp_rxq_info *xdp_rxq)
+{
+	return true;
+}
+EXPORT_SYMBOL_GPL(xdp_rxq_info_is_reg);
