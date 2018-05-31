@@ -78,7 +78,7 @@ void spec_ctrl_save_msr(void)
 	 * unknown values. AMD64_LS_CFG MSR is cached in the early AMD
 	 * init code as it is not enumerated and depends on the family.
 	 */
-	if (boot_cpu_has(X86_FEATURE_IBRS) && !savecnt) {
+	if (boot_cpu_has(X86_FEATURE_MSR_SPEC_CTRL) && !savecnt) {
 		/*
 		 * This part is run only the first time it is called.
 		 */
