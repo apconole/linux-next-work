@@ -594,7 +594,9 @@ static void early_init_amd(struct cpuinfo_x86 *c)
 		switch (c->x86) {
 		case 0x15: bit = 54; break;
 		case 0x16: bit = 33; break;
-		case 0x17: bit = 10; break;
+		case 0x17: bit = 10;
+			   set_cpu_cap(c, X86_FEATURE_ZEN);
+			   break;
 		default: return;
 		}
 		/*
