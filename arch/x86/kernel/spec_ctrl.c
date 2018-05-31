@@ -68,6 +68,11 @@ static bool spec_ctrl_msr_write;
 u64 __read_mostly x86_amd_ls_cfg_base;
 u64 __read_mostly x86_amd_ls_cfg_ssbd_mask;
 
+static inline bool ssb_is_user_settable(unsigned int mode)
+{
+	return mode >= SPEC_STORE_BYPASS_PRCTL;
+}
+
 void spec_ctrl_save_msr(void)
 {
 	int cpu;
@@ -113,6 +118,25 @@ void spec_ctrl_save_msr(void)
 }
 
 /*
+ * This is called for setting the entry or exit values in the spec_ctrl_pcp
+ * structure when the SSDB is user settable. The state of the SSBD bit
+ * is maintained.
+ */
+static void set_spec_ctrl_value(unsigned int *ptr, unsigned int value)
+{
+	unsigned int old, new, val;
+
+	old = READ_ONCE(*ptr);
+	for (;;) {
+		new = value | (old & SPEC_CTRL_SSBD);
+		val = cmpxchg(ptr, old, new);
+		if (val == old)
+			break;
+		old = val;
+	}
+}
+
+/*
  * RHEL note:
  * Upstream has implemented the following APIs for getting and setting
  * the SPEC_CTRL MSR value.
@@ -129,7 +153,16 @@ static void set_spec_ctrl_pcp(bool entry, bool exit)
 	unsigned int enabled   = this_cpu_read(spec_ctrl_pcp.enabled);
 	unsigned int entry_val = this_cpu_read(spec_ctrl_pcp.entry);
 	unsigned int exit_val  = this_cpu_read(spec_ctrl_pcp.exit);
-	int cpu;
+	int cpu, redo_cnt;
+	bool ssb_user_settable = ssb_is_user_settable(READ_ONCE(ssb_mode));
+
+	/*
+	 * Mask off the SSBD bit first if it is user settable.
+	 */
+	if (ssb_user_settable) {
+		entry_val &= ~SPEC_CTRL_SSBD;
+		exit_val  &= ~SPEC_CTRL_SSBD;
+	}
 
 	/*
 	 * For ibrs_always, we only need to write the MSR at kernel entry
@@ -153,10 +186,53 @@ static void set_spec_ctrl_pcp(bool entry, bool exit)
 		exit_val &= ~SPEC_CTRL_IBRS;
 
 	for_each_possible_cpu(cpu) {
+		unsigned int *pentry = &per_cpu(spec_ctrl_pcp.entry, cpu);
+		unsigned int *pexit  = &per_cpu(spec_ctrl_pcp.exit, cpu);
+
 		WRITE_ONCE(per_cpu(spec_ctrl_pcp.enabled, cpu), enabled);
-		WRITE_ONCE(per_cpu(spec_ctrl_pcp.entry, cpu), entry_val);
-		WRITE_ONCE(per_cpu(spec_ctrl_pcp.exit, cpu), exit_val);
+		if (!ssb_user_settable) {
+			WRITE_ONCE(*pentry, entry_val);
+			WRITE_ONCE(*pexit, exit_val);
+		} else {
+			/*
+			 * Since the entry and exit fields can be modified
+			 * concurrently by spec_ctrl_set_ssbd() to set or
+			 * clear the SSBD bit, We need to maintain the
+			 * SSBD bit and use atomic instruction to do the
+			 * modification here.
+			 */
+			set_spec_ctrl_value(pentry, entry_val);
+			set_spec_ctrl_value(pexit, exit_val);
+		}
 	}
+
+	if (!ssb_user_settable)
+		return;
+
+	/*
+	 * Because of the non-atomic read-modify-write nature of
+	 * spec_ctrl_set_ssbd() function, the atomic entry/exit value changes
+	 * above may be lost. So we need to recheck it again and reapply the
+	 * change, if necessary.
+	 */
+recheck:
+	redo_cnt = 0;
+	smp_mb();
+	for_each_possible_cpu(cpu) {
+		unsigned int *pentry = &per_cpu(spec_ctrl_pcp.entry, cpu);
+		unsigned int *pexit  = &per_cpu(spec_ctrl_pcp.exit, cpu);
+
+		if ((READ_ONCE(*pentry) & ~SPEC_CTRL_SSBD) != entry_val) {
+			set_spec_ctrl_value(pentry, entry_val);
+			redo_cnt++;
+		}
+		if ((READ_ONCE(*pexit) & ~SPEC_CTRL_SSBD) != exit_val) {
+			set_spec_ctrl_value(pexit, exit_val);
+			redo_cnt++;
+		}
+	}
+	if (redo_cnt)
+		goto recheck;
 }
 
 /*
@@ -533,6 +609,29 @@ void spec_ctrl_rescan_cpuid(void)
 	}
 done:
 	mutex_unlock(&spec_ctrl_mutex);
+}
+
+/*
+ * Change the SSBD bit of the spec_ctrl structure of the current CPU.
+ * The caller has to make sure that preemption is disabled so that
+ * no CPU change is possible during the call.
+ *
+ * Since spec_ctrl_set_ssbd() is in the fast path, we are not doing
+ * any atomic update to the entry and exit values. The percpu logical
+ * operation used here is a single non-atomic read-modify-write instruction.
+ * As a result, we need to do more checking at the slowpath set_spec_ctrl_pcp()
+ * function to make sure that any changes in the ibrs_enabled value get
+ * reflected correctly in all the spec_ctrl_pcp structures.
+ */
+void spec_ctrl_set_ssbd(bool ssbd_on)
+{
+	if (ssbd_on) {
+		this_cpu_or(spec_ctrl_pcp.entry, SPEC_CTRL_SSBD);
+		this_cpu_or(spec_ctrl_pcp.exit,  SPEC_CTRL_SSBD);
+	} else {
+		this_cpu_and(spec_ctrl_pcp.entry, ~SPEC_CTRL_SSBD);
+		this_cpu_and(spec_ctrl_pcp.exit,  ~SPEC_CTRL_SSBD);
+	}
 }
 
 static ssize_t __enabled_read(struct file *file, char __user *user_buf,

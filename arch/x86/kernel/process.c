@@ -317,10 +317,8 @@ static __always_inline void amd_set_ssb_virt_state(unsigned long tifn)
 
 static __always_inline void intel_set_ssb_state(unsigned long tifn)
 {
-	u64 msr = this_cpu_read(spec_ctrl_pcp.entry64) |
-		  ssbd_tif_to_spec_ctrl(tifn);
-
-	wrmsrl(MSR_IA32_SPEC_CTRL, msr);
+	spec_ctrl_set_ssbd(ssbd_tif_to_spec_ctrl(tifn));
+	wrmsrl(MSR_IA32_SPEC_CTRL, this_cpu_read(spec_ctrl_pcp.entry64));
 }
 
 static __always_inline void __speculative_store_bypass_update(unsigned long tifn)

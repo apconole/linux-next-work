@@ -22,11 +22,6 @@
 .macro __IBRS_ENTRY
 	movl IBRS_HI32_PCP, %edx
 	movl IBRS_ENTRY_PCP, %eax
-	GET_THREAD_INFO(%rcx)
-	bt   $TIF_SSBD, TI_flags(%rcx)
-	jnc  .Lno_ssbd_\@
-	orl  $SPEC_CTRL_SSBD, %eax
-.Lno_ssbd_\@:
 	movl $MSR_IA32_SPEC_CTRL, %ecx
 	wrmsr
 .endm
@@ -82,9 +77,6 @@
 	 * Nowever, we can leave the save_reg as NO_IBRS_RESTORE
 	 * so that we won't do a rewrite on exit,
 	 *
-	 * When the values don't match, the state of the SSBD bit in the
-	 * MSR is transferred to new value.
-	 *
 	 * %edx is initialized by rdmsr above, and so it doesn't need
 	 * to be touched.
 	 */
@@ -93,8 +85,6 @@
 	je   .Lwrmsr_\@
 
 	movl %eax, \save_reg
-	andl $SPEC_CTRL_SSBD, %eax
-	orl  %ecx, %eax
 .Lwrmsr_\@:
 	movl $MSR_IA32_SPEC_CTRL, %ecx
 	wrmsr
@@ -108,11 +98,6 @@
 .macro __IBRS_EXIT
 	movl IBRS_HI32_PCP, %edx
 	movl IBRS_EXIT_PCP, %eax
-	GET_THREAD_INFO(%rcx)
-	bt   $TIF_SSBD, TI_flags(%rcx)
-	jnc  .Lno_ssbd_\@
-	orl  $SPEC_CTRL_SSBD, %eax
-.Lno_ssbd_\@:
 	movl $MSR_IA32_SPEC_CTRL, %ecx
 	wrmsr
 .endm
@@ -206,6 +191,7 @@ bool spec_ctrl_force_enable_ibp_disabled(void);
 bool spec_ctrl_cond_enable_ibp_disabled(void);
 void spec_ctrl_enable_retpoline(void);
 bool spec_ctrl_enable_retpoline_ibrs_user(void);
+void spec_ctrl_set_ssbd(bool ssbd_on);
 
 enum spectre_v2_mitigation spec_ctrl_get_mitigation(void);
 
