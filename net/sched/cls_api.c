@@ -371,18 +371,12 @@ struct tcf_net {
 
 static unsigned int tcf_net_id;
 
-static int tcf_block_insert(struct tcf_block *block, struct net *net,
-			    u32 block_index)
+static int tcf_block_insert(struct tcf_block *block, struct net *net)
 {
 	struct tcf_net *tn = net_generic(net, tcf_net_id);
-	int err;
 
-	err = idr_alloc_ext(&tn->idr, block, NULL, block_index,
-			    block_index + 1, GFP_KERNEL);
-	if (err)
-		return err;
-	block->index = block_index;
-	return 0;
+	return idr_alloc_ext(&tn->idr, block, NULL, block->index,
+			     block->index + 1, GFP_KERNEL);
 }
 
 static void tcf_block_remove(struct tcf_block *block, struct net *net)
@@ -392,7 +386,8 @@ static void tcf_block_remove(struct tcf_block *block, struct net *net)
 	idr_remove_ext(&tn->idr, block->index);
 }
 
-static struct tcf_block *tcf_block_create(struct net *net, struct Qdisc *q)
+static struct tcf_block *tcf_block_create(struct net *net, struct Qdisc *q,
+					  u32 block_index)
 {
 	struct tcf_block *block;
 	struct tcf_chain *chain;
@@ -412,10 +407,13 @@ static struct tcf_block *tcf_block_create(struct net *net, struct Qdisc *q)
 		err = -ENOMEM;
 		goto err_chain_create;
 	}
-	block->net = qdisc_net(q);
 	block->refcnt = 1;
 	block->net = net;
-	block->q = q;
+	block->index = block_index;
+
+	/* Don't store q pointer for blocks which are shared */
+	if (!tcf_block_shared(block))
+		block->q = q;
 	return block;
 
 err_chain_create:
@@ -510,13 +508,12 @@ int tcf_block_get_ext(struct tcf_block **p_block, struct Qdisc *q,
 	}
 
 	if (!block) {
-		block = tcf_block_create(net, q);
+		block = tcf_block_create(net, q, ei->block_index);
 		if (IS_ERR(block))
 			return PTR_ERR(block);
 		created = true;
-		if (ei->block_index) {
-			err = tcf_block_insert(block, net,
-					       ei->block_index);
+		if (tcf_block_shared(block)) {
+			err = tcf_block_insert(block, net);
 			if (err)
 				goto err_block_insert;
 		}
