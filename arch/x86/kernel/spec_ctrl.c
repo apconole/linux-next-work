@@ -194,11 +194,10 @@ static void spec_ctrl_sync_all_cpus(u32 msr_nr, u64 val)
 	put_online_cpus();
 }
 
-static void sync_all_cpus_ibrs(bool enable)
+static void sync_all_cpus_spec_ctrl(void)
 {
 	spec_ctrl_sync_all_cpus(MSR_IA32_SPEC_CTRL,
-				 enable ? (x86_spec_ctrl_base | SPEC_CTRL_IBRS)
-					: x86_spec_ctrl_base);
+				this_cpu_read(spec_ctrl_pcp.entry64));
 }
 
 static void __sync_this_cpu_ibp(void *data)
@@ -428,10 +427,8 @@ static void spec_ctrl_reinit_all_cpus(void)
 		return;
 	}
 
-	if (ibrs_mode == IBRS_ENABLED_ALWAYS)
-		sync_all_cpus_ibrs(true);
-	else if (ibrs_mode == IBRS_DISABLED)
-		sync_all_cpus_ibrs(false);
+	if ((ibrs_mode == IBRS_ENABLED_ALWAYS) || (ibrs_mode == IBRS_DISABLED))
+		sync_all_cpus_spec_ctrl();
 }
 
 void spec_ctrl_init(void)
@@ -513,7 +510,7 @@ void spec_ctrl_rescan_cpuid(void)
 				 * reset to the right percpu values.
 				 */
 				spec_ctrl_save_msr();
-				sync_all_cpus_ibrs(false);
+				sync_all_cpus_spec_ctrl();
 			}
 		}
 
@@ -607,14 +604,14 @@ static ssize_t ibrs_enabled_write(struct file *file,
 
 	if (enable == IBRS_DISABLED) {
 		clear_spec_ctrl_pcp();
-		sync_all_cpus_ibrs(false);
+		sync_all_cpus_spec_ctrl();
 	} else if (enable == IBRS_ENABLED) {
 		set_spec_ctrl_pcp_ibrs();
 		set_spec_ctrl_retp(false);
 	} else if (enable == IBRS_ENABLED_ALWAYS) {
 		set_spec_ctrl_pcp_ibrs_always();
 		set_spec_ctrl_retp(false);
-		sync_all_cpus_ibrs(true);
+		sync_all_cpus_spec_ctrl();
 	} else {
 		WARN_ON(enable != IBRS_ENABLED_USER);
 		set_spec_ctrl_pcp_ibrs_user();
@@ -688,7 +685,7 @@ static ssize_t retp_enabled_write(struct file *file,
 			ibp_disabled = false;
 		} else if (ibrs_mode == IBRS_ENABLED) {
 			clear_spec_ctrl_pcp();
-			sync_all_cpus_ibrs(false);
+			sync_all_cpus_spec_ctrl();
 		} else if (ibrs_mode == IBRS_ENABLED_ALWAYS) {
 			set_spec_ctrl_pcp_ibrs_user();
 		}
