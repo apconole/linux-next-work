@@ -324,7 +324,8 @@ static __always_inline u64 spec_ctrl_vmenter_ibrs(u64 vcpu_ibrs)
 
 	u64 host_ibrs = ibrs_enabled_kernel() ? SPEC_CTRL_IBRS : 0;
 
-	if (boot_cpu_data.x86_vendor == X86_VENDOR_INTEL)
+	/* SSBD controlled in MSR_SPEC_CTRL */
+	if (static_cpu_has(X86_FEATURE_SPEC_CTRL_SSBD))
 		host_ibrs |= ssbd_tif_to_spec_ctrl(current_thread_info()->flags);
 
 	if (unlikely(vcpu_ibrs != host_ibrs))
@@ -342,7 +343,8 @@ static __always_inline void __spec_ctrl_vmexit_ibrs(u64 host_ibrs, u64 vcpu_ibrs
 	 *            we actually are updating the whole SPEC_CTRL MSR
 	 */
 
-	if (boot_cpu_data.x86_vendor == X86_VENDOR_INTEL)
+	/* SSBD controlled in MSR_SPEC_CTRL */
+	if (static_cpu_has(X86_FEATURE_SPEC_CTRL_SSBD))
 		host_ibrs |= ssbd_tif_to_spec_ctrl(current_thread_info()->flags);
 
 	/* IBRS may have barrier semantics so it must be set during vmexit.  */
@@ -369,7 +371,8 @@ static __always_inline void spec_ctrl_ibrs_on(void)
 	if (ibrs_enabled_kernel()) {
 		u64 spec_ctrl = x86_spec_ctrl_base|SPEC_CTRL_IBRS;
 
-		if (boot_cpu_data.x86_vendor == X86_VENDOR_INTEL)
+		/* SSBD controlled in MSR_SPEC_CTRL */
+		if (static_cpu_has(X86_FEATURE_SPEC_CTRL_SSBD))
 			spec_ctrl |= ssbd_tif_to_spec_ctrl(
 					current_thread_info()->flags);
 
@@ -390,9 +393,10 @@ static __always_inline void spec_ctrl_ibrs_off(void)
 	if (ibrs_enabled_kernel()) {
 		u64 spec_ctrl = x86_spec_ctrl_base;
 
-		if (boot_cpu_data.x86_vendor == X86_VENDOR_INTEL)
-		spec_ctrl |= ssbd_tif_to_spec_ctrl(
-				current_thread_info()->flags);
+		/* SSBD controlled in MSR_SPEC_CTRL */
+		if (static_cpu_has(X86_FEATURE_SPEC_CTRL_SSBD))
+			spec_ctrl |= ssbd_tif_to_spec_ctrl(
+					current_thread_info()->flags);
 
 		native_wrmsrl(MSR_IA32_SPEC_CTRL, spec_ctrl);
 	}
@@ -418,7 +422,8 @@ static inline bool spec_ctrl_ibrs_on_firmware(void)
 	if (cpu_has_spec_ctrl() && retp_enabled() && !ibrs_enabled_kernel()) {
 		u64 spec_ctrl = x86_spec_ctrl_base|SPEC_CTRL_IBRS;
 
-		if (boot_cpu_data.x86_vendor == X86_VENDOR_INTEL)
+		/* SSBD controlled in MSR_SPEC_CTRL */
+		if (static_cpu_has(X86_FEATURE_SPEC_CTRL_SSBD))
 			spec_ctrl |= ssbd_tif_to_spec_ctrl(
 					current_thread_info()->flags);
 
@@ -437,7 +442,8 @@ static inline void spec_ctrl_ibrs_off_firmware(bool ibrs_on)
 	if (ibrs_on) {
 		u64 spec_ctrl = x86_spec_ctrl_base;
 
-		if (boot_cpu_data.x86_vendor == X86_VENDOR_INTEL)
+		/* SSBD controlled in MSR_SPEC_CTRL */
+		if (static_cpu_has(X86_FEATURE_SPEC_CTRL_SSBD))
 			spec_ctrl |= ssbd_tif_to_spec_ctrl(
 					current_thread_info()->flags);
 

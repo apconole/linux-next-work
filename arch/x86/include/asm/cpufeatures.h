@@ -205,11 +205,11 @@
 #define X86_FEATURE_INTEL_PPIN	( 7*32+14) /* Intel Processor Inventory Number */
 #define X86_FEATURE_INTEL_PT	( 7*32+15) /* Intel Processor Trace */
 #define X86_FEATURE_CDP_L2	( 7*32+16) /* Code and Data Prioritization L2 */
-
+#define X86_FEATURE_SSBD	( 7*32+17) /* Speculative Store Bypass Disable */
 #define X86_FEATURE_MBA		( 7*32+18) /* Memory Bandwidth Allocation */
 #define X86_FEATURE_IBP_DISABLE ( 7*32+21) /* Old AMD Indirect Branch Predictor Disable */
 #define X86_FEATURE_SPEC_STORE_BYPASS_DISABLE	(7*32+23) /* "" Disable Speculative Store Bypass. */
-#define X86_FEATURE_AMD_SSBD		( 7*32+24) /* "" AMD SSBD implementation */
+#define X86_FEATURE_LS_CFG_SSBD 	( 7*32+24) /* "" AMD SSBD implementation */
 #define X86_FEATURE_IBRS		( 7*32+25) /* Indirect Branch Restricted Speculation */
 #define X86_FEATURE_IBPB		( 7*32+26) /* Indirect Branch Prediction Barrier */
 #define X86_FEATURE_STIBP		( 7*32+27) /* Single Thread Indirect Branch Predictors */
@@ -324,7 +324,7 @@
 #define X86_FEATURE_SPEC_CTRL		(18*32+26) /* Speculation Control (IBRS + IBPB) */
 #define X86_FEATURE_INTEL_STIBP		(18*32+27) /* Single Thread Indirect Branch Predictors */
 #define X86_FEATURE_ARCH_CAPABILITIES	(18*32+29) /* IA32_ARCH_CAPABILITIES MSR (Intel) */
-#define X86_FEATURE_SSBD		(18*32+31) /* Speculative Store Bypass Disable */
+#define X86_FEATURE_SPEC_CTRL_SSBD	(18*32+31) /* "" Speculative Store Bypass Disable */
 
 /*
  * BUG word(s)

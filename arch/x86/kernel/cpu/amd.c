@@ -602,9 +602,9 @@ static void early_init_amd(struct cpuinfo_x86 *c)
 		 * avoid RMW. If that faults, do not enable SSBD.
 		 */
 		if (!rdmsrl_safe(MSR_AMD64_LS_CFG, &x86_amd_ls_cfg_base)) {
+			setup_force_cpu_cap(X86_FEATURE_LS_CFG_SSBD);
 			setup_force_cpu_cap(X86_FEATURE_SSBD);
-			setup_force_cpu_cap(X86_FEATURE_AMD_SSBD);
-			x86_amd_ls_cfg_ssbd_mask = (1ULL << bit);
+			x86_amd_ls_cfg_ssbd_mask = 1ULL << bit;
 		}
 	}
 }

@@ -466,8 +466,6 @@ void spec_ctrl_rescan_cpuid(void)
 	mutex_lock(&spec_ctrl_mutex);
 	if (boot_cpu_data.x86_vendor == X86_VENDOR_INTEL ||
 	    boot_cpu_data.x86_vendor == X86_VENDOR_AMD) {
-		bool amd_ssbd = boot_cpu_has(X86_FEATURE_AMD_SSBD);
-
 		old_ibrs = boot_cpu_has(X86_FEATURE_IBRS);
 		old_ibpb = boot_cpu_has(X86_FEATURE_IBPB);
 		old_ssbd = boot_cpu_has(X86_FEATURE_SSBD);
@@ -475,18 +473,6 @@ void spec_ctrl_rescan_cpuid(void)
 
 		/* detect spec ctrl related cpuid additions */
 		get_cpu_cap(&boot_cpu_data);
-
-		/*
-		 * For AMD family 0x15-0x17, the SSBD bit is specially
-		 * hard-coded. Hence, a call to get_cpu_cap() will clear
-		 * the SSBD bit as it is part of an architectural leaf.
-		 * The Linux internal AMD_SSBD bit may not be cleared.
-		 * We need to detect this situation and correct it.
-		 */
-		if (amd_ssbd && !boot_cpu_has(X86_FEATURE_SSBD)) {
-			setup_force_cpu_cap(X86_FEATURE_SSBD);
-			setup_force_cpu_cap(X86_FEATURE_AMD_SSBD);
-		}
 
 		/* if there were no spec ctrl related changes, we're done */
 		ssbd_changed = (old_ssbd != boot_cpu_has(X86_FEATURE_SSBD));
