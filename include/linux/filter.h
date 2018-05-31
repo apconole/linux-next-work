@@ -25,6 +25,7 @@ struct compat_sock_fprog {
 struct sk_buff;
 struct sock;
 struct bpf_prog_aux;
+struct xdp_buff;
 
 struct bpf_prog
 {
@@ -41,12 +42,6 @@ struct sk_filter
 	struct sock_filter     	insns[0];
 };
 
-struct xdp_buff {
-	void *data;
-	void *data_end;
-	void *data_hard_start;
-	struct xdp_rxq_info *rxq;
-};
 
 /* compute the linear packet data range [data, data_end) which
  * will be accessed by cls_bpf and act_bpf programs
