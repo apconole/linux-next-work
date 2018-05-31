@@ -318,6 +318,53 @@ static inline bool ibpb_enabled(void)
  * the guest's version of VIRT_SPEC_CTRL, if emulated.
  */
 
+static __always_inline void
+x86_virt_spec_ctrl(u64 guest_spec_ctrl, u64 guest_virt_spec_ctrl, bool setguest)
+{
+	/*
+	 * The per-cpu spec_ctrl_pcp.entry64 will be the SPEC_CTRL MSR value
+	 * to be used in host kernel. This is performance critical code.
+	 * Preemption is disabled, so we cannot race with sysfs writes.
+	 */
+	u64 msr, host_spec_ctrl = this_cpu_read(spec_ctrl_pcp.entry64);
+	struct thread_info *ti = current_thread_info();
+	bool write_msr;
+
+	if (static_cpu_has(X86_FEATURE_MSR_SPEC_CTRL)) {
+		/* SSBD controlled in MSR_SPEC_CTRL */
+		if (static_cpu_has(X86_FEATURE_SPEC_CTRL_SSBD))
+			host_spec_ctrl |= ssbd_tif_to_spec_ctrl(ti->flags);
+
+		/*
+		 * IBRS may have barrier semantics so it must be set
+		 * during vmexit (!setguest) if SPEC_CTRL MSR write is
+		 * enabled at kernel entry.
+		 */
+		write_msr = (!setguest &&
+			    (this_cpu_read(spec_ctrl_pcp.enabled) &
+					   SPEC_CTRL_PCP_IBRS_ENTRY)) ||
+			    (guest_spec_ctrl != host_spec_ctrl);
+
+		if (unlikely(write_msr)) {
+			msr = setguest ? guest_spec_ctrl : host_spec_ctrl;
+			native_wrmsrl(MSR_IA32_SPEC_CTRL, msr);
+		}
+	}
+
+	/* rmb not needed when entering guest */
+	if (!setguest) {
+		/*
+		 * This is an unconditional jump, no wrong speculation
+		 * is possible.
+		 */
+		if (retp_enabled_full())
+			return;
+
+		/* rmb to prevent wrong speculation for security */
+		rmb();
+	}
+}
+
 /**
  * x86_spec_ctrl_set_guest - Set speculation control registers for the guest
  * @guest_spec_ctrl:		The guest content of MSR_SPEC_CTRL
@@ -329,22 +376,7 @@ static inline bool ibpb_enabled(void)
 static __always_inline void x86_spec_ctrl_set_guest(u64 guest_spec_ctrl,
 						    u64 guest_virt_spec_ctrl)
 {
-
-	/*
-	 * The per-cpu spec_ctrl_pcp.entry64 will be the SPEC_CTRL MSR value
-	 * to be used in host kernel. This is performance critical code.
-	 * Preemption is disabled, so we cannot race with sysfs writes.
-	 */
-	u64 host_spec_ctrl = this_cpu_read(spec_ctrl_pcp.entry64);
-
-	/* SSBD controlled in MSR_SPEC_CTRL */
-	if (static_cpu_has(X86_FEATURE_SPEC_CTRL_SSBD))
-		host_spec_ctrl |= ssbd_tif_to_spec_ctrl(current_thread_info()->flags);
-
-	if (unlikely(guest_spec_ctrl != host_spec_ctrl))
-		native_wrmsrl(MSR_IA32_SPEC_CTRL, guest_spec_ctrl);
-
-	/* rmb not needed when disabling IBRS */
+	x86_virt_spec_ctrl(guest_spec_ctrl, guest_virt_spec_ctrl, true);
 }
 
 /**
@@ -358,30 +390,7 @@ static __always_inline void x86_spec_ctrl_set_guest(u64 guest_spec_ctrl,
 static __always_inline void x86_spec_ctrl_restore_host(u64 guest_spec_ctrl,
 						       u64 guest_virt_spec_ctrl)
 {
-
-	u64 host_spec_ctrl = this_cpu_read(spec_ctrl_pcp.entry64);
-
-	/* SSBD controlled in MSR_SPEC_CTRL */
-	if (static_cpu_has(X86_FEATURE_SPEC_CTRL_SSBD))
-		host_spec_ctrl |= ssbd_tif_to_spec_ctrl(current_thread_info()->flags);
-
-	/*
-	 * IBRS may have barrier semantics so it must be set during vmexit if
-	 * SPEC_CTRL MSR write is enabled at kernel entry.
-	 */
-	if (unlikely((this_cpu_read(spec_ctrl_pcp.enabled) &
-				   SPEC_CTRL_PCP_IBRS_ENTRY) ||
-		     (guest_spec_ctrl != host_spec_ctrl))) {
-		native_wrmsrl(MSR_IA32_SPEC_CTRL, host_spec_ctrl);
-		return;
-	}
-
-	/* This is an unconditional jump, no wrong speculation is possible.  */
-	if (retp_enabled_full())
-		return;
-
-	/* rmb to prevent wrong speculation for security */
-	rmb();
+	x86_virt_spec_ctrl(guest_spec_ctrl, guest_virt_spec_ctrl, false);
 }
 
 static __always_inline void spec_ctrl_ibrs_on(void)
