@@ -171,6 +171,14 @@ void __spectre_v2_select_mitigation(void)
 	const bool full_retpoline = IS_ENABLED(CONFIG_RETPOLINE) && retp_compiler();
 	enum spectre_v2_mitigation_cmd cmd = spectre_v2_cmd;
 
+	/*
+	 * If the CPU is not affected and the command line mode is NONE or AUTO
+	 * then nothing to do.
+	 */
+	if (!boot_cpu_has_bug(X86_BUG_SPECTRE_V2) &&
+	    (cmd == SPECTRE_V2_CMD_NONE || cmd == SPECTRE_V2_CMD_AUTO))
+		return;
+
 	switch (cmd) {
 	case SPECTRE_V2_CMD_NONE:
 		return;
