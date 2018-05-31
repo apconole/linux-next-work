@@ -427,8 +427,11 @@ static void spec_ctrl_reinit_all_cpus(void)
 		return;
 	}
 
-	if ((ibrs_mode == IBRS_ENABLED_ALWAYS) || (ibrs_mode == IBRS_DISABLED))
+	if ((ibrs_mode == IBRS_ENABLED_ALWAYS) ||
+	    (ibrs_mode == IBRS_DISABLED) || spec_ctrl_msr_write) {
 		sync_all_cpus_spec_ctrl();
+		spec_ctrl_msr_write = false;
+	}
 }
 
 void spec_ctrl_init(void)
@@ -438,16 +441,6 @@ void spec_ctrl_init(void)
 	else if (static_key_enabled(&ibrs_present_key) && !boot_cpu_has(X86_FEATURE_IBRS))
 		static_key_slow_dec(&ibrs_present_key);
 	spec_ctrl_print_features();
-
-	/*
-	 * If the x86_spec_ctrl_base is modified, propagate it to the
-	 * percpu spec_ctrl structure as well as forcing MSR write.
-	 */
-	if (x86_spec_ctrl_base) {
-		wrmsrl(MSR_IA32_SPEC_CTRL, x86_spec_ctrl_base);
-		spec_ctrl_save_msr();
-		spec_ctrl_msr_write = true;
-	}
 }
 
 void spec_ctrl_rescan_cpuid(void)
@@ -510,7 +503,8 @@ void spec_ctrl_rescan_cpuid(void)
 				 * reset to the right percpu values.
 				 */
 				spec_ctrl_save_msr();
-				sync_all_cpus_spec_ctrl();
+				spec_ctrl_msr_write = true;
+
 			}
 		}
 
