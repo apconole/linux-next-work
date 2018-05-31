@@ -339,10 +339,6 @@ x86_virt_spec_ctrl(u64 guest_spec_ctrl, u64 guest_virt_spec_ctrl, bool setguest)
 		guestval = hostval & ~x86_spec_ctrl_mask;
 		guestval |= guest_spec_ctrl & x86_spec_ctrl_mask;
 
-		/* SSBD controlled in MSR_SPEC_CTRL */
-		if (static_cpu_has(X86_FEATURE_SPEC_CTRL_SSBD))
-			hostval |= ssbd_tif_to_spec_ctrl(ti->flags);
-
 		/*
 		 * IBRS may have barrier semantics so it must be set
 		 * during vmexit (!setguest) if SPEC_CTRL MSR write is
@@ -432,6 +428,10 @@ static __always_inline void x86_spec_ctrl_restore_host(u64 guest_spec_ctrl,
 	x86_virt_spec_ctrl(guest_spec_ctrl, guest_virt_spec_ctrl, false);
 }
 
+/*
+ * The spec_ctrl_ibrs_off() is called before a cpu enters idle state and
+ * spec_ctrl_ibrs_off() is called after exit from an idle state.
+ */
 static __always_inline void spec_ctrl_ibrs_on(void)
 {
 	/*
@@ -440,11 +440,6 @@ static __always_inline void spec_ctrl_ibrs_on(void)
 	 */
 	if (ibrs_enabled_kernel()) {
 		u64 spec_ctrl = this_cpu_read(spec_ctrl_pcp.entry64);
-
-		/* SSBD controlled in MSR_SPEC_CTRL */
-		if (static_cpu_has(X86_FEATURE_SPEC_CTRL_SSBD))
-			spec_ctrl |= ssbd_tif_to_spec_ctrl(
-					current_thread_info()->flags);
 
 		native_wrmsrl(MSR_IA32_SPEC_CTRL, spec_ctrl);
 		return;
@@ -490,12 +485,8 @@ static inline bool spec_ctrl_ibrs_on_firmware(void)
 	bool ibrs_on = false;
 
 	if (cpu_has_spec_ctrl() && retp_enabled() && !ibrs_enabled_kernel()) {
-		u64 spec_ctrl = x86_spec_ctrl_base|SPEC_CTRL_IBRS;
-
-		/* SSBD controlled in MSR_SPEC_CTRL */
-		if (static_cpu_has(X86_FEATURE_SPEC_CTRL_SSBD))
-			spec_ctrl |= ssbd_tif_to_spec_ctrl(
-					current_thread_info()->flags);
+		u64 spec_ctrl = this_cpu_read(spec_ctrl_pcp.entry64) |
+				SPEC_CTRL_IBRS;
 
 		native_wrmsrl(MSR_IA32_SPEC_CTRL, spec_ctrl);
 		ibrs_on = true;
@@ -510,12 +501,7 @@ static inline bool spec_ctrl_ibrs_on_firmware(void)
 static inline void spec_ctrl_ibrs_off_firmware(bool ibrs_on)
 {
 	if (ibrs_on) {
-		u64 spec_ctrl = x86_spec_ctrl_base;
-
-		/* SSBD controlled in MSR_SPEC_CTRL */
-		if (static_cpu_has(X86_FEATURE_SPEC_CTRL_SSBD))
-			spec_ctrl |= ssbd_tif_to_spec_ctrl(
-					current_thread_info()->flags);
+		u64 spec_ctrl = this_cpu_read(spec_ctrl_pcp.entry64);
 
 		native_wrmsrl(MSR_IA32_SPEC_CTRL, spec_ctrl);
 	} else {
