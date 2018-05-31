@@ -51,6 +51,24 @@ struct xdp_rxq_info {
 } ____cacheline_aligned; /* perf critical, avoid false-sharing */
 
 
+struct xdp_frame {
+	void *data;
+	u16 len;
+	u16 headroom;
+	u16 metasize;
+	/* Lifetime of xdp_rxq_info is limited to NAPI/enqueue time,
+	 * while mem info is valid on remote CPU.
+	 */
+	struct xdp_mem_info mem;
+};
+
+/* Convert xdp_buff to xdp_frame */
+static inline
+struct xdp_frame *convert_to_xdp_frame(struct xdp_buff *xdp)
+{
+	return NULL;
+}
+
 static inline
 void xdp_return_frame(void *data, struct xdp_mem_info *mem)
 {
