@@ -339,6 +339,7 @@ void speculative_store_bypass_update(unsigned long tif)
 	__speculative_store_bypass_update(tif);
 	preempt_enable();
 }
+EXPORT_SYMBOL_GPL(speculative_store_bypass_update);
 
 void __switch_to_xtra(struct task_struct *prev_p, struct task_struct *next_p,
 		      struct tss_struct *tss)
