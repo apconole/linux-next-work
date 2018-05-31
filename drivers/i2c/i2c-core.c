@@ -879,7 +879,7 @@ static void i2c_init_recovery(struct i2c_adapter *adap)
 static int i2c_smbus_host_notify_to_irq(const struct i2c_client *client)
 {
 	struct i2c_adapter *adap = client->adapter;
-	unsigned int irq;
+	unsigned int irq = 0;
 
 	if (!adap->host_notify_domain)
 		return -ENXIO;
@@ -887,10 +887,12 @@ static int i2c_smbus_host_notify_to_irq(const struct i2c_client *client)
 	if (client->flags & I2C_CLIENT_TEN)
 		return -EINVAL;
 
+#ifdef CONFIG_GENERIC_HARDIRQS
 	irq = irq_find_mapping(adap->host_notify_domain, client->addr);
 	if (!irq)
 		irq = irq_create_mapping(adap->host_notify_domain,
 					 client->addr);
+#endif
 
 	return irq > 0 ? irq : -ENXIO;
 }
@@ -1736,6 +1738,8 @@ static int __process_new_adapter(struct device_driver *d, void *data)
 	return i2c_do_add_adapter(to_i2c_driver(d), data);
 }
 
+#ifdef CONFIG_GENERIC_HARDIRQS
+
 static void i2c_host_notify_irq_teardown(struct i2c_adapter *adap)
 {
 	struct irq_domain *domain = adap->host_notify_domain;
@@ -1809,6 +1813,8 @@ int i2c_handle_smbus_host_notify(struct i2c_adapter *adap, unsigned short addr)
 }
 EXPORT_SYMBOL_GPL(i2c_handle_smbus_host_notify);
 
+#endif /* CONFIG_GENERIC_HARDIRQS */
+
 static int i2c_register_adapter(struct i2c_adapter *adap)
 {
 	int res = -EINVAL;
@@ -1836,6 +1842,7 @@ static int i2c_register_adapter(struct i2c_adapter *adap)
 	if (adap->timeout == 0)
 		adap->timeout = HZ;
 
+#ifdef CONFIG_GENERIC_HARDIRQS
 	/* register soft irqs for Host Notify */
 	res = i2c_setup_host_notify_irq_domain(adap);
 	if (res) {
@@ -1843,6 +1850,7 @@ static int i2c_register_adapter(struct i2c_adapter *adap)
 		       adap->name, res);
 		goto out_list;
 	}
+#endif
 
 	dev_set_name(&adap->dev, "i2c-%d", adap->nr);
 	adap->dev.bus = &i2c_bus_type;
@@ -2081,7 +2089,9 @@ void i2c_del_adapter(struct i2c_adapter *adap)
 
 	pm_runtime_disable(&adap->dev);
 
+#ifdef CONFIG_GENERIC_HARDIRQS
 	i2c_host_notify_irq_teardown(adap);
+#endif
 
 	/* wait until all references to the device are gone
 	 *
