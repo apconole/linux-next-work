@@ -268,19 +268,13 @@ void clear_spec_ctrl_pcp(void)
 	ibrs_mode = IBRS_DISABLED;
 }
 
-static void spec_ctrl_sync_all_cpus(u32 msr_nr, u64 val)
+static void sync_all_cpus_spec_ctrl(void)
 {
 	int cpu;
 	get_online_cpus();
 	for_each_online_cpu(cpu)
-		wrmsrl_on_cpu(cpu, msr_nr, val);
+		wrmsrl_on_cpu(cpu, MSR_IA32_SPEC_CTRL, SPEC_CTRL_MSR_REFRESH);
 	put_online_cpus();
-}
-
-static void sync_all_cpus_spec_ctrl(void)
-{
-	spec_ctrl_sync_all_cpus(MSR_IA32_SPEC_CTRL,
-				this_cpu_read(spec_ctrl_pcp.entry64));
 }
 
 static void __sync_this_cpu_ibp(void *data)

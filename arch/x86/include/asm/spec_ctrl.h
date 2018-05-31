@@ -179,6 +179,11 @@
 extern struct static_key retp_enabled_key;
 extern struct static_key ibrs_present_key;
 
+/*
+ * Special SPEC_CTRL MSR value to write the content of the spec_ctrl_pcp.
+ */
+#define SPEC_CTRL_MSR_REFRESH	((unsigned)-1)
+
 extern void spec_ctrl_rescan_cpuid(void);
 extern void spec_ctrl_init(void);
 extern void spec_ctrl_cpu_init(void);
