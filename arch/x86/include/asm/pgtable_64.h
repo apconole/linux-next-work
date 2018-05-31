@@ -129,7 +129,7 @@ static inline pud_t native_pudp_get_and_clear(pud_t *xp)
 #endif
 }
 
-#ifdef CONFIG_KAISER
+#ifdef CONFIG_PAGE_TABLE_ISOLATION
 /*
  * All top-level KAISER page tables are order-1 pages (8k-aligned
  * and 8k in size).  The kernel one is at the beginning 4k and
@@ -165,7 +165,7 @@ static inline pgd_t *shadow_to_kernel_pgdp(pgd_t *pgdp)
 {
 	return ptr_clear_bit(pgdp, KAISER_PGTABLE_SWITCH_BIT);
 }
-#endif /* CONFIG_KAISER */
+#endif /* CONFIG_PAGE_TABLE_ISOLATION */
 
 /*
  * Page table pages are page-aligned.  The lower half of the top
@@ -222,7 +222,7 @@ static inline void kaiser_unpoison_pgd_atomic(pgd_t *pgd)
  */
 static inline pgd_t kaiser_set_shadow_pgd(pgd_t *pgdp, pgd_t pgd)
 {
-#ifdef CONFIG_KAISER
+#ifdef CONFIG_PAGE_TABLE_ISOLATION
 	if (pgd_userspace_access(pgd)) {
 		if (pgdp_maps_userspace(pgdp)) {
 			VM_WARN_ON_ONCE(!is_kaiser_pgd(pgdp));
@@ -280,9 +280,9 @@ static inline pgd_t kaiser_set_shadow_pgd(pgd_t *pgdp, pgd_t pgd)
 static inline void native_set_pgd(pgd_t *pgdp, pgd_t pgd)
 {
 	mm_track_pgd(pgdp);
-#ifdef CONFIG_KAISER
+#ifdef CONFIG_PAGE_TABLE_ISOLATION
 	*pgdp = kaiser_set_shadow_pgd(pgdp, pgd);
-#else /* CONFIG_KAISER */
+#else /* CONFIG_PAGE_TABLE_ISOLATION */
 	*pgdp = pgd;
 #endif
 }

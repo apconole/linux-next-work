@@ -2104,13 +2104,13 @@ config COMPAT_VDSO
 	---help---
 	  Map the 32-bit VDSO to the predictable old-style address too.
 		# The VSYSCALL page comes from the kernel page tables
-		# and is not available when KAISER is enabled.
-		depends on ! KAISER
+		# and is not available when PAGE_TABLE_ISOLATION is enabled.
+		depends on ! PAGE_TABLE_ISOLATION
 
-		  When KAISER is enabled, the vsyscall area will become
-		  unreadable.  This emulation option still works, but KAISER
-		  will make it harder to do things like trace code using the
-		  emulation.
+		  When PAGE_TABLE_ISOLATION is enabled, the vsyscall area
+		  will become unreadable.  This emulation option still
+		  works, but PAGE_TABLE_ISOLATION will make it harder
+		  to do things like trace code using the emulation.
 
 	  Say N here if you are running a sufficiently recent glibc
 	  version (2.3.3 or later), to remove the high-mapped

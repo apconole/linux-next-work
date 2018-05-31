@@ -27,7 +27,7 @@ static inline void paravirt_release_pud(unsigned long pfn) {}
  */
 extern gfp_t __userpte_alloc_gfp;
 
-#ifdef CONFIG_KAISER
+#ifdef CONFIG_PAGE_TABLE_ISOLATION
 /*
  * Instead of one pgd, we aquire two pgds.  Being order-1, it is
  * both 8k in size and 8k-aligned.  That lets us just flip bit 12

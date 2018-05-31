@@ -237,7 +237,7 @@ int machine_kexec_prepare(struct kimage *image)
 	if (result)
 		return result;
 
-#ifdef CONFIG_KAISER
+#ifdef CONFIG_PAGE_TABLE_ISOLATION
 	/*
 	 * The second page of control_code_page may be corrupted by the
 	 * PTI code, so just clear the page for safety.
