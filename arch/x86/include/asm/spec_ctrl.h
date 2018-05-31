@@ -309,10 +309,20 @@ static inline bool ibpb_enabled(void)
  * the guest has, while on VMEXIT we restore the kernel view. This
  * would be easier if SPEC_CTRL were architecturally maskable or
  * shadowable for guests but this is not (currently) the case.
- * Takes the guest view of SPEC_CTRL MSR as a parameter.
+ * Takes the guest view of SPEC_CTRL MSR as a parameter and also
+ * the guest's version of VIRT_SPEC_CTRL, if emulated.
  */
 
-static __always_inline void x86_spec_ctrl_set_guest(u64 guest_spec_ctrl)
+/**
+ * x86_spec_ctrl_set_guest - Set speculation control registers for the guest
+ * @guest_spec_ctrl:		The guest content of MSR_SPEC_CTRL
+ * @guest_virt_spec_ctrl:	The guest controlled bits of MSR_VIRT_SPEC_CTRL
+ *				(may get translated to MSR_AMD64_LS_CFG bits)
+ *
+ * Avoids writing to the MSR if the content/bits are the same
+ */
+static __always_inline void x86_spec_ctrl_set_guest(u64 guest_spec_ctrl,
+						    u64 guest_virt_spec_ctrl)
 {
 
 	/*
@@ -332,7 +342,16 @@ static __always_inline void x86_spec_ctrl_set_guest(u64 guest_spec_ctrl)
 	/* rmb not needed when disabling IBRS */
 }
 
-static __always_inline void x86_spec_ctrl_restore_host(u64 guest_spec_ctrl)
+/**
+ * x86_spec_ctrl_restore_host - Restore host speculation control registers
+ * @guest_spec_ctrl:		The guest content of MSR_SPEC_CTRL
+ * @guest_virt_spec_ctrl:	The guest controlled bits of MSR_VIRT_SPEC_CTRL
+ *				(may get translated to MSR_AMD64_LS_CFG bits)
+ *
+ * Avoids writing to the MSR if the content/bits are the same
+ */
+static __always_inline void x86_spec_ctrl_restore_host(u64 guest_spec_ctrl,
+						       u64 guest_virt_spec_ctrl)
 {
 
 	u64 host_spec_ctrl = this_cpu_read(spec_ctrl_pcp.entry64);
