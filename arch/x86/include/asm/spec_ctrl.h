@@ -178,6 +178,7 @@
 
 extern struct static_key retp_enabled_key;
 extern struct static_key ibrs_present_key;
+extern struct static_key ssbd_userset_key;
 
 /*
  * Special SPEC_CTRL MSR value to write the content of the spec_ctrl_pcp.

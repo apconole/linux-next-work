@@ -22,8 +22,13 @@ static bool ibp_disabled __read_mostly;
 static bool unsafe_module __read_mostly;
 static unsigned int ibrs_mode __read_mostly;
 
+/*
+ * The ssbd_userset_key is set to true if the SSDB mode is user settable.
+ */
+struct static_key ssbd_userset_key = STATIC_KEY_INIT_FALSE;
 struct static_key retp_enabled_key = STATIC_KEY_INIT_FALSE;
 struct static_key ibrs_present_key = STATIC_KEY_INIT_FALSE;
+EXPORT_SYMBOL(ssbd_userset_key);
 EXPORT_SYMBOL(retp_enabled_key);
 EXPORT_SYMBOL(ibrs_present_key);
 
@@ -912,6 +917,16 @@ static ssize_t ssbd_enabled_write(struct file *file,
 	if (mode == ssb_mode)
 		goto out_unlock;
 
+	WARN_ON_ONCE(ssb_is_user_settable(ssb_mode) !=
+		     static_key_enabled(&ssbd_userset_key));
+
+	/*
+	 * User settable  => !settable: clear ssbd_userset_key early
+	 * User !settable => settable : set ssbd_userset_key late
+	 */
+	if (static_key_enabled(&ssbd_userset_key) && !ssb_is_user_settable(mode))
+		static_key_slow_dec(&ssbd_userset_key);
+
 	/*
 	 * If both the old and new SSB modes are user settable or it is
 	 * transitioning from SPEC_STORE_BYPASS_NONE to a user settable
@@ -931,6 +946,8 @@ static ssize_t ssbd_enabled_write(struct file *file,
 
 out:
 	WRITE_ONCE(ssb_mode, mode);
+	if (!static_key_enabled(&ssbd_userset_key) && ssb_is_user_settable(mode))
+		static_key_slow_inc(&ssbd_userset_key);
 	ssb_print_mitigation();
 out_unlock:
 	mutex_unlock(&spec_ctrl_mutex);

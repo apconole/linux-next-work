@@ -323,6 +323,9 @@ static __always_inline void intel_set_ssb_state(unsigned long tifn)
 
 static __always_inline void __speculative_store_bypass_update(unsigned long tifn)
 {
+	if (!static_key_false(&ssbd_userset_key))
+		return;	/* Don't do anything if not user settable */
+
 	if (static_cpu_has(X86_FEATURE_VIRT_SSBD))
 		amd_set_ssb_virt_state(tifn);
 	else if (static_cpu_has(X86_FEATURE_LS_CFG_SSBD))

@@ -377,6 +377,13 @@ void ssb_select_mitigation()
 {
 	ssb_mode = __ssb_select_mitigation();
 
+	/*
+	 * Enable ssbd_userset_key if the SSBD is now user settable.
+	 */
+	if (!static_key_enabled(&ssbd_userset_key) &&
+	   (ssb_mode >= SPEC_STORE_BYPASS_PRCTL))
+		static_key_slow_inc(&ssbd_userset_key);
+
 	if (boot_cpu_has_bug(X86_BUG_SPEC_STORE_BYPASS))
 		ssb_print_mitigation();
 }
