@@ -35,7 +35,7 @@ static void __wrmsr_on_cpu(void *info)
 	 */
 	if (unlikely((rv->msr_no == MSR_IA32_SPEC_CTRL) &&
 		      ssbd_tif_to_spec_ctrl(current_thread_info()->flags)))
-		wrmsr(rv->msr_no, reg->l | FEATURE_ENABLE_SSBD, reg->h);
+		wrmsr(rv->msr_no, reg->l | SPEC_CTRL_SSBD, reg->h);
 	else
 		wrmsr(rv->msr_no, reg->l, reg->h);
 }

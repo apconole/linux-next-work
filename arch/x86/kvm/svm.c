@@ -3830,13 +3830,13 @@ static int svm_set_msr(struct kvm_vcpu *vcpu, struct msr_data *msr)
 		    !guest_cpuid_has(vcpu, X86_FEATURE_IBPB))
 			return 1;
 
-		if (data & ~FEATURE_SET_IBPB)
+		if (data & ~PRED_CMD_IBPB)
 			return 1;
 
 		if (!data)
 			break;
 
-		wrmsrl(MSR_IA32_PRED_CMD, FEATURE_SET_IBPB);
+		wrmsrl(MSR_IA32_PRED_CMD, PRED_CMD_IBPB);
 		if (is_guest_mode(vcpu))
 			break;
 		set_msr_interception(svm->msrpm, MSR_IA32_PRED_CMD, 0, 1);

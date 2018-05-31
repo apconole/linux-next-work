@@ -337,7 +337,7 @@ static enum ssb_mitigation __ssb_select_mitigation(void)
 		 */
 		switch (boot_cpu_data.x86_vendor) {
 		case X86_VENDOR_INTEL:
-			x86_spec_ctrl_base |= FEATURE_ENABLE_SSBD;
+			x86_spec_ctrl_base |= SPEC_CTRL_SSBD;
 			break;
 		case X86_VENDOR_AMD:
 			x86_amd_ssbd_enable();

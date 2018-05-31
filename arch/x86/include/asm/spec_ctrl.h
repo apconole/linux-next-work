@@ -25,7 +25,7 @@
 	GET_THREAD_INFO(%rcx)
 	bt   $TIF_SSBD, TI_flags(%rcx)
 	jnc  .Lno_ssbd_\@
-	orl  $FEATURE_ENABLE_SSBD, %eax
+	orl  $SPEC_CTRL_SSBD, %eax
 .Lno_ssbd_\@:
 	movl $MSR_IA32_SPEC_CTRL, %ecx
 	wrmsr
@@ -93,7 +93,7 @@
 	je   .Lwrmsr_\@
 
 	movl %eax, \save_reg
-	andl $FEATURE_ENABLE_SSBD, %eax
+	andl $SPEC_CTRL_SSBD, %eax
 	orl  %ecx, %eax
 .Lwrmsr_\@:
 	movl $MSR_IA32_SPEC_CTRL, %ecx
@@ -111,7 +111,7 @@
 	GET_THREAD_INFO(%rcx)
 	bt   $TIF_SSBD, TI_flags(%rcx)
 	jnc  .Lno_ssbd_\@
-	orl  $FEATURE_ENABLE_SSBD, %eax
+	orl  $SPEC_CTRL_SSBD, %eax
 .Lno_ssbd_\@:
 	movl $MSR_IA32_SPEC_CTRL, %ecx
 	wrmsr
@@ -231,8 +231,8 @@ extern u64 x86_spec_ctrl_base;
 
 static inline u64 ssbd_tif_to_spec_ctrl(u64 tifn)
 {
-	BUILD_BUG_ON(TIF_SSBD < FEATURE_ENABLE_SSBD_SHIFT);
-	return (tifn & _TIF_SSBD) >> (TIF_SSBD - FEATURE_ENABLE_SSBD_SHIFT);
+	BUILD_BUG_ON(TIF_SSBD < SPEC_CTRL_SSBD_SHIFT);
+	return (tifn & _TIF_SSBD) >> (TIF_SSBD - SPEC_CTRL_SSBD_SHIFT);
 }
 
 static inline u64 ssbd_tif_to_amd_ls_cfg(u64 tifn)
@@ -267,7 +267,7 @@ static __always_inline bool ibrs_enabled_kernel(void)
 	if (cpu_has_spec_ctrl()) {
 		unsigned int ibrs = __this_cpu_read(spec_ctrl_pcp.entry);
 
-		return ibrs & FEATURE_ENABLE_IBRS;
+		return ibrs & SPEC_CTRL_IBRS;
 	}
 
 	return false;
@@ -317,12 +317,12 @@ static __always_inline u64 spec_ctrl_vmenter_ibrs(u64 vcpu_ibrs)
 
 	/*
 	 * If IBRS is enabled for host kernel mode or host always mode
-	 * we must set FEATURE_ENABLE_IBRS at vmexit.  This is performance
+	 * we must set SPEC_CTRL_IBRS at vmexit.  This is performance
 	 * critical code so we pass host_ibrs back to KVM.  Preemption is
 	 * disabled, so we cannot race with sysfs writes.
 	 */
 
-	u64 host_ibrs = ibrs_enabled_kernel() ? FEATURE_ENABLE_IBRS : 0;
+	u64 host_ibrs = ibrs_enabled_kernel() ? SPEC_CTRL_IBRS : 0;
 
 	if (boot_cpu_data.x86_vendor == X86_VENDOR_INTEL)
 		host_ibrs |= ssbd_tif_to_spec_ctrl(current_thread_info()->flags);
@@ -367,7 +367,7 @@ static __always_inline void spec_ctrl_ibrs_on(void)
 	 * mode.
 	 */
 	if (ibrs_enabled_kernel()) {
-		u64 spec_ctrl = x86_spec_ctrl_base|FEATURE_ENABLE_IBRS;
+		u64 spec_ctrl = x86_spec_ctrl_base|SPEC_CTRL_IBRS;
 
 		if (boot_cpu_data.x86_vendor == X86_VENDOR_INTEL)
 			spec_ctrl |= ssbd_tif_to_spec_ctrl(
@@ -416,7 +416,7 @@ static inline bool spec_ctrl_ibrs_on_firmware(void)
 	bool ibrs_on = false;
 
 	if (cpu_has_spec_ctrl() && retp_enabled() && !ibrs_enabled_kernel()) {
-		u64 spec_ctrl = x86_spec_ctrl_base|FEATURE_ENABLE_IBRS;
+		u64 spec_ctrl = x86_spec_ctrl_base|SPEC_CTRL_IBRS;
 
 		if (boot_cpu_data.x86_vendor == X86_VENDOR_INTEL)
 			spec_ctrl |= ssbd_tif_to_spec_ctrl(
@@ -450,7 +450,7 @@ static inline void spec_ctrl_ibrs_off_firmware(bool ibrs_on)
 
 static inline void __spec_ctrl_ibpb(void)
 {
-	native_wrmsrl(MSR_IA32_PRED_CMD, FEATURE_SET_IBPB);
+	native_wrmsrl(MSR_IA32_PRED_CMD, PRED_CMD_IBPB);
 }
 
 static inline void spec_ctrl_ibpb(void)

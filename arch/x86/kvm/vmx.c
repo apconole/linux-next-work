@@ -3067,7 +3067,7 @@ static int vmx_set_msr(struct kvm_vcpu *vcpu, struct msr_data *msr_info)
 			return 1;
 
 		/* The STIBP bit doesn't fault even if it's not advertised */
-		if (data & ~(FEATURE_ENABLE_IBRS | FEATURE_ENABLE_STIBP | FEATURE_ENABLE_SSBD))
+		if (data & ~(SPEC_CTRL_IBRS | SPEC_CTRL_STIBP | SPEC_CTRL_SSBD))
 			return 1;
 
 		vmx->spec_ctrl = data;
@@ -3097,13 +3097,13 @@ static int vmx_set_msr(struct kvm_vcpu *vcpu, struct msr_data *msr_info)
 		    !guest_cpuid_has(vcpu, X86_FEATURE_SPEC_CTRL))
 			return 1;
 
-		if (data & ~FEATURE_SET_IBPB)
+		if (data & ~PRED_CMD_IBPB)
 			return 1;
 
 		if (!data)
 			break;
 
-		wrmsrl(MSR_IA32_PRED_CMD, FEATURE_SET_IBPB);
+		wrmsrl(MSR_IA32_PRED_CMD, PRED_CMD_IBPB);
 
 		/*
 		 * For non-nested:

@@ -30,7 +30,7 @@ EXPORT_SYMBOL(ibrs_present_key);
 /*
  * SPEC_CTRL MSR bits being managed by the kernel.
  */
-#define SPEC_CTRL_MANAGED_MASK	(FEATURE_ENABLE_IBRS|FEATURE_ENABLE_SSBD)
+#define SPEC_CTRL_MANAGED_MASK	(SPEC_CTRL_IBRS|SPEC_CTRL_SSBD)
 
 /*
  * The Intel specification for the SPEC_CTRL MSR requires that we
@@ -136,14 +136,14 @@ static void set_spec_ctrl_pcp(bool entry, bool exit)
 		enabled = 0;
 
 	if (entry)
-		entry_val |= FEATURE_ENABLE_IBRS;
+		entry_val |= SPEC_CTRL_IBRS;
 	else
-		entry_val &= ~FEATURE_ENABLE_IBRS;
+		entry_val &= ~SPEC_CTRL_IBRS;
 
 	if (exit)
-		exit_val |= FEATURE_ENABLE_IBRS;
+		exit_val |= SPEC_CTRL_IBRS;
 	else
-		exit_val &= ~FEATURE_ENABLE_IBRS;
+		exit_val &= ~SPEC_CTRL_IBRS;
 
 	for_each_possible_cpu(cpu) {
 		WRITE_ONCE(per_cpu(spec_ctrl_pcp.enabled, cpu), enabled);
@@ -197,7 +197,7 @@ static void spec_ctrl_sync_all_cpus(u32 msr_nr, u64 val)
 static void sync_all_cpus_ibrs(bool enable)
 {
 	spec_ctrl_sync_all_cpus(MSR_IA32_SPEC_CTRL,
-				 enable ? (x86_spec_ctrl_base | FEATURE_ENABLE_IBRS)
+				 enable ? (x86_spec_ctrl_base | SPEC_CTRL_IBRS)
 					: x86_spec_ctrl_base);
 }
 
