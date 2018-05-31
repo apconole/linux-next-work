@@ -5064,7 +5064,6 @@ static void svm_cancel_injection(struct kvm_vcpu *vcpu)
 static void svm_vcpu_run(struct kvm_vcpu *vcpu)
 {
 	struct vcpu_svm *svm = to_svm(vcpu);
-	u64 host_ibrs;
 
 	svm->vmcb->save.rax = vcpu->arch.regs[VCPU_REGS_RAX];
 	svm->vmcb->save.rsp = vcpu->arch.regs[VCPU_REGS_RSP];
@@ -5103,7 +5102,7 @@ static void svm_vcpu_run(struct kvm_vcpu *vcpu)
 
 	local_irq_enable();
 
-	host_ibrs = spec_ctrl_vmenter_ibrs(svm->spec_ctrl);
+	x86_spec_ctrl_set_guest(svm->spec_ctrl);
 
 	asm volatile (
 		"push %%" _ASM_BP "; \n\t"
@@ -5208,7 +5207,7 @@ static void svm_vcpu_run(struct kvm_vcpu *vcpu)
 
 	if (cpu_has_spec_ctrl()) {
 		svm->spec_ctrl = native_read_msr(MSR_IA32_SPEC_CTRL);
-		__spec_ctrl_vmexit_ibrs(host_ibrs, svm->spec_ctrl);
+		x86_spec_ctrl_restore_host(svm->spec_ctrl);
 	}
 
 	/* Eliminate branch target predictions from guest mode */

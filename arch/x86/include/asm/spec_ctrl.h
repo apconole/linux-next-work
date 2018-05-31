@@ -217,9 +217,18 @@ void unprotected_firmware_end(bool ibrs_on);
  */
 struct kernel_ibrs_spec_ctrl {
 	unsigned int enabled;	/* Entry and exit enabled control bits */
-	unsigned int entry;	/* Lower 32-bit of SPEC_CTRL MSR for entry */
 	unsigned int exit;	/* Lower 32-bit of SPEC_CTRL MSR for exit */
-	unsigned int hi32;	/* Upper 32-bit of SPEC_CTRL MSR */
+	union {
+		struct {
+			/*
+			 * The lower and upper 32-bit of SPEC_CTRL MSR
+			 * when entering kernel.
+			 */
+			unsigned int entry;
+			unsigned int hi32;
+		};
+		u64	entry64;	/* Full 64-bit SPEC_CTRL MSR */
+	};
 };
 
 DECLARE_PER_CPU_USER_MAPPED(struct kernel_ibrs_spec_ctrl, spec_ctrl_pcp);
@@ -303,60 +312,43 @@ static inline bool ibpb_enabled(void)
  * Takes the guest view of SPEC_CTRL MSR as a parameter.
  */
 
-/*
- * RHEL note: Upstream implements two new functions to handle this:
- *
- *	- extern void x86_spec_ctrl_set_guest(u64);
- *	- extern void x86_spec_ctrl_restore_host(u64);
- *
- * We already have the following two functions in RHEL so the
- * above are not included in the RHEL version of the backport.
- */
-
-static __always_inline u64 spec_ctrl_vmenter_ibrs(u64 vcpu_ibrs)
+static __always_inline void x86_spec_ctrl_set_guest(u64 guest_spec_ctrl)
 {
 
 	/*
-	 * RHEL TODO: rename this function to just spec_ctrl_enter since
-	 *            we actually are updating the whole SPEC_CTRL MSR
+	 * The per-cpu spec_ctrl_pcp.entry64 will be the SPEC_CTRL MSR value
+	 * to be used in host kernel. This is performance critical code.
+	 * Preemption is disabled, so we cannot race with sysfs writes.
 	 */
-
-	/*
-	 * If IBRS is enabled for host kernel mode or host always mode
-	 * we must set SPEC_CTRL_IBRS at vmexit.  This is performance
-	 * critical code so we pass host_ibrs back to KVM.  Preemption is
-	 * disabled, so we cannot race with sysfs writes.
-	 */
-
-	u64 host_ibrs = ibrs_enabled_kernel() ? SPEC_CTRL_IBRS : 0;
+	u64 host_spec_ctrl = this_cpu_read(spec_ctrl_pcp.entry64);
 
 	/* SSBD controlled in MSR_SPEC_CTRL */
 	if (static_cpu_has(X86_FEATURE_SPEC_CTRL_SSBD))
-		host_ibrs |= ssbd_tif_to_spec_ctrl(current_thread_info()->flags);
+		host_spec_ctrl |= ssbd_tif_to_spec_ctrl(current_thread_info()->flags);
 
-	if (unlikely(vcpu_ibrs != host_ibrs))
-		native_wrmsrl(MSR_IA32_SPEC_CTRL, vcpu_ibrs);
+	if (unlikely(guest_spec_ctrl != host_spec_ctrl))
+		native_wrmsrl(MSR_IA32_SPEC_CTRL, guest_spec_ctrl);
 
 	/* rmb not needed when disabling IBRS */
-	return host_ibrs;
 }
 
-static __always_inline void __spec_ctrl_vmexit_ibrs(u64 host_ibrs, u64 vcpu_ibrs)
+static __always_inline void x86_spec_ctrl_restore_host(u64 guest_spec_ctrl)
 {
 
-	/*
-	 * RHEL TODO: rename this function to just spec_ctrl_vmexit since
-	 *            we actually are updating the whole SPEC_CTRL MSR
-	 */
+	u64 host_spec_ctrl = this_cpu_read(spec_ctrl_pcp.entry64);
 
 	/* SSBD controlled in MSR_SPEC_CTRL */
 	if (static_cpu_has(X86_FEATURE_SPEC_CTRL_SSBD))
-		host_ibrs |= ssbd_tif_to_spec_ctrl(current_thread_info()->flags);
+		host_spec_ctrl |= ssbd_tif_to_spec_ctrl(current_thread_info()->flags);
 
-	/* IBRS may have barrier semantics so it must be set during vmexit.  */
-	if (unlikely(host_ibrs || vcpu_ibrs != host_ibrs)) {
-		native_wrmsrl(MSR_IA32_SPEC_CTRL,
-			      x86_spec_ctrl_base|host_ibrs);
+	/*
+	 * IBRS may have barrier semantics so it must be set during vmexit if
+	 * SPEC_CTRL MSR write is enabled at kernel entry.
+	 */
+	if (unlikely((this_cpu_read(spec_ctrl_pcp.enabled) &
+				   SPEC_CTRL_PCP_IBRS_ENTRY) ||
+		     (guest_spec_ctrl != host_spec_ctrl))) {
+		native_wrmsrl(MSR_IA32_SPEC_CTRL, host_spec_ctrl);
 		return;
 	}
 
@@ -375,7 +367,7 @@ static __always_inline void spec_ctrl_ibrs_on(void)
 	 * mode.
 	 */
 	if (ibrs_enabled_kernel()) {
-		u64 spec_ctrl = x86_spec_ctrl_base|SPEC_CTRL_IBRS;
+		u64 spec_ctrl = this_cpu_read(spec_ctrl_pcp.entry64);
 
 		/* SSBD controlled in MSR_SPEC_CTRL */
 		if (static_cpu_has(X86_FEATURE_SPEC_CTRL_SSBD))
