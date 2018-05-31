@@ -281,7 +281,7 @@ static void tcf_block_offload_cmd(struct tcf_block *block, struct Qdisc *q,
 	bo.command = command;
 	bo.binder_type = ei->binder_type;
 	bo.block = block;
-	__rh_call_ndo_setup_tc(dev, TC_SETUP_BLOCK, &bo);
+	__rh_call_ndo_setup_tc(dev, 0, TC_SETUP_BLOCK, &bo);
 }
 
 static void tcf_block_offload_bind(struct tcf_block *block, struct Qdisc *q,
@@ -1453,10 +1453,19 @@ int tc_setup_cb_call(struct tcf_block *block, struct tcf_exts *exts,
 	 * TC_SETUP_{MQPRIO,CLS*}.
 	 * For newer drivers and such types the __rh_call_ndo_setup_tc()
 	 * does nothing and immediately returns 0.
+	 *
+	 * Note that the compatibility for older external drivers is preserved
+	 * only when TC block is not shared. For such drivers we need to
+	 * provide qdisc handle but only non-shared blocks have exactly one
+	 * qdisc.
 	 */
-	ret = __rh_call_ndo_setup_tc(tcf_block_dev(block), type, type_data);
-	if (ret < 0 && err_stop)
-		return ret;
+	if (!tcf_block_shared(block)) {
+		ret = __rh_call_ndo_setup_tc(tcf_block_dev(block),
+					     tcf_block_q(block)->handle, type,
+					     type_data);
+		if (ret < 0 && err_stop)
+			return ret;
+	}
 
 	ret = tcf_block_cb_call(block, type, type_data, err_stop);
 	if (ret < 0)

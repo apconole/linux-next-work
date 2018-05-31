@@ -171,7 +171,7 @@ static int red_offload(struct Qdisc *sch, bool enable)
 		opt.command = TC_RED_DESTROY;
 	}
 
-	return __rh_call_ndo_setup_tc(dev, TC_SETUP_QDISC_RED, &opt);
+	return __rh_call_ndo_setup_tc(dev, 0, TC_SETUP_QDISC_RED, &opt);
 }
 
 static void red_destroy(struct Qdisc *sch)
@@ -293,7 +293,7 @@ static int red_dump_offload_stats(struct Qdisc *sch, struct tc_red_qopt *opt)
 	if (!tc_can_offload(dev) || !__rh_has_ndo_setup_tc(dev))
 		return 0;
 
-	err = __rh_call_ndo_setup_tc(dev, TC_SETUP_QDISC_RED,
+	err = __rh_call_ndo_setup_tc(dev, 0, TC_SETUP_QDISC_RED,
 				     &hw_stats);
 	if (err == -EOPNOTSUPP)
 		return 0;
@@ -357,7 +357,7 @@ static int red_dump_stats(struct Qdisc *sch, struct gnet_dump *d)
 				.xstats = &hw_stats,
 			},
 		};
-		if (!__rh_call_ndo_setup_tc(dev,
+		if (!__rh_call_ndo_setup_tc(dev, 0,
 					    TC_SETUP_QDISC_RED,
 					    &hw_stats_request)) {
 			st.early += hw_stats.prob_drop + hw_stats.forced_drop;

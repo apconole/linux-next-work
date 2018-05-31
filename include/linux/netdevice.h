@@ -2042,8 +2042,8 @@ bool __rh_has_ndo_setup_tc(const struct net_device *dev)
 		ops->ndo_setup_tc_rh72) ? true : false;
 }
 
-int __rh_call_ndo_setup_tc(struct net_device *dev, enum tc_setup_type type,
-			   void *type_data);
+int __rh_call_ndo_setup_tc(struct net_device *dev, u32 handle,
+			   enum tc_setup_type type, void *type_data);
 
 static inline
 int netdev_get_prio_tc_map(const struct net_device *dev, u32 prio)

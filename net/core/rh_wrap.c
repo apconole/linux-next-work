@@ -61,7 +61,7 @@ int handle_sch_mqprio_rh74(struct net_device *dev,
 }
 
 static inline
-int handle_cls_u32_rh74(struct net_device *dev,
+int handle_cls_u32_rh74(struct net_device *dev, u32 handle,
 			const struct tc_cls_u32_offload *cls_u32)
 {
 	struct tc_cls_u32_offload_rh74 cls_u32_rh74 = {
@@ -79,8 +79,8 @@ int handle_cls_u32_rh74(struct net_device *dev,
 	if (common->chain_index)
 		return -ENOTSUPP;
 
-	return dev->netdev_ops->ndo_setup_tc_rh74(dev, common->handle,
-						  common->protocol, &tc74);
+	return dev->netdev_ops->ndo_setup_tc_rh74(dev, handle, common->protocol,
+						  &tc74);
 }
 
 static inline
@@ -106,7 +106,7 @@ int tcf_exts_get_dev(struct net_device *dev, struct tcf_exts *exts,
 }
 
 static inline
-int handle_cls_flower_rh74(struct net_device *dev,
+int handle_cls_flower_rh74(struct net_device *dev, u32 handle,
 			   const struct tc_cls_flower_offload *cls_flower)
 {
 	struct tc_cls_flower_offload_rh74 cls_flower_rh74 = {
@@ -148,12 +148,12 @@ int handle_cls_flower_rh74(struct net_device *dev,
 		tc74.egress_dev = true;
 	}
 
-	return dev->netdev_ops->ndo_setup_tc_rh74(dev, common->handle,
-						  common->protocol, &tc74);
+	return dev->netdev_ops->ndo_setup_tc_rh74(dev, handle, common->protocol,
+						  &tc74);
 }
 
 static inline
-int handle_cls_matchall_rh74(struct net_device *dev,
+int handle_cls_matchall_rh74(struct net_device *dev, u32 handle,
 			     const struct tc_cls_matchall_offload *cls_mall)
 {
 	struct tc_cls_matchall_offload_rh74 cls_mall_rh74 = {
@@ -171,14 +171,14 @@ int handle_cls_matchall_rh74(struct net_device *dev,
 	if (common->chain_index)
 		return -ENOTSUPP;
 
-	return dev->netdev_ops->ndo_setup_tc_rh74(dev, common->handle,
-						  common->protocol, &tc74);
+	return dev->netdev_ops->ndo_setup_tc_rh74(dev, handle, common->protocol,
+						  &tc74);
 }
 
 static bool tech_preview_marked = false;
 
-int __rh_call_ndo_setup_tc(struct net_device *dev, enum tc_setup_type type,
-			   void *type_data)
+int __rh_call_ndo_setup_tc(struct net_device *dev, u32 handle,
+			   enum tc_setup_type type, void *type_data)
 {
 	const struct net_device_ops *ops = dev->netdev_ops;
 	int ret = -EOPNOTSUPP;
@@ -209,13 +209,13 @@ int __rh_call_ndo_setup_tc(struct net_device *dev, enum tc_setup_type type,
 			ret = handle_sch_mqprio_rh74(dev, type_data);
 			break;
 		case TC_SETUP_CLSU32:
-			ret = handle_cls_u32_rh74(dev, type_data);
+			ret = handle_cls_u32_rh74(dev, handle, type_data);
 			break;
 		case TC_SETUP_CLSFLOWER:
-			ret = handle_cls_flower_rh74(dev, type_data);
+			ret = handle_cls_flower_rh74(dev, handle, type_data);
 			break;
 		case TC_SETUP_CLSMATCHALL:
-			ret = handle_cls_matchall_rh74(dev, type_data);
+			ret = handle_cls_matchall_rh74(dev, handle, type_data);
 			break;
 		default:
 			break;

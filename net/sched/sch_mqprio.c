@@ -50,7 +50,7 @@ static void mqprio_destroy(struct Qdisc *sch)
 		switch (priv->mode) {
 		case TC_MQPRIO_MODE_DCB:
 		case TC_MQPRIO_MODE_CHANNEL:
-			__rh_call_ndo_setup_tc(dev,
+			__rh_call_ndo_setup_tc(dev, 0,
 					       TC_SETUP_QDISC_MQPRIO,
 					       &mqprio);
 			break;
@@ -265,7 +265,7 @@ static int mqprio_init(struct Qdisc *sch, struct nlattr *opt)
 		default:
 			return -EINVAL;
 		}
-		err = __rh_call_ndo_setup_tc(dev,
+		err = __rh_call_ndo_setup_tc(dev, 0,
 					     TC_SETUP_QDISC_MQPRIO,
 					     &mqprio);
 		if (err)

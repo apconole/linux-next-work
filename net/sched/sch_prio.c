@@ -163,7 +163,7 @@ static int prio_offload(struct Qdisc *sch, bool enable)
 		opt.command = TC_PRIO_DESTROY;
 	}
 
-	return __rh_call_ndo_setup_tc(dev, TC_SETUP_QDISC_PRIO, &opt);
+	return __rh_call_ndo_setup_tc(dev, 0, TC_SETUP_QDISC_PRIO, &opt);
 }
 
 static void
@@ -266,7 +266,7 @@ static int prio_dump_offload(struct Qdisc *sch)
 	if (!tc_can_offload(dev) || !__rh_has_ndo_setup_tc(dev))
 		return 0;
 
-	err = __rh_call_ndo_setup_tc(dev, TC_SETUP_QDISC_PRIO,
+	err = __rh_call_ndo_setup_tc(dev, 0, TC_SETUP_QDISC_PRIO,
 				     &hw_stats);
 	if (err == -EOPNOTSUPP)
 		return 0;
