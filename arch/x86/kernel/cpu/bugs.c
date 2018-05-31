@@ -368,12 +368,17 @@ static enum ssb_mitigation __ssb_select_mitigation(void)
 	return mode;
 }
 
+void ssb_print_mitigation()
+{
+	pr_info("%s\n", ssb_strings[ssb_mode]);
+}
+
 void ssb_select_mitigation()
 {
 	ssb_mode = __ssb_select_mitigation();
 
 	if (boot_cpu_has_bug(X86_BUG_SPEC_STORE_BYPASS))
-		pr_info("%s\n", ssb_strings[ssb_mode]);
+		ssb_print_mitigation();
 }
 
 #undef pr_fmt

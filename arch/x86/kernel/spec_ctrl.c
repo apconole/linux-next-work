@@ -154,14 +154,25 @@ static void set_spec_ctrl_pcp(bool entry, bool exit)
 	unsigned int entry_val = this_cpu_read(spec_ctrl_pcp.entry);
 	unsigned int exit_val  = this_cpu_read(spec_ctrl_pcp.exit);
 	int cpu, redo_cnt;
-	bool ssb_user_settable = ssb_is_user_settable(READ_ONCE(ssb_mode));
+	/*
+	 * Set if the SSBD bit of the SPEC_CTRL MSR is user settable.
+	 */
+	bool ssb_user_settable = boot_cpu_has(X86_FEATURE_SPEC_CTRL_SSBD) &&
+				 ssb_is_user_settable(READ_ONCE(ssb_mode));
 
 	/*
 	 * Mask off the SSBD bit first if it is user settable.
+	 * Otherwise, make sure that the SSBD bit of the entry and exit
+	 * values match that of the x86_spec_ctrl_base.
 	 */
 	if (ssb_user_settable) {
 		entry_val &= ~SPEC_CTRL_SSBD;
 		exit_val  &= ~SPEC_CTRL_SSBD;
+	} else {
+		entry_val = (entry_val & ~SPEC_CTRL_SSBD) |
+			    (x86_spec_ctrl_base & SPEC_CTRL_SSBD);
+		exit_val  = (exit_val & ~SPEC_CTRL_SSBD) |
+			    (x86_spec_ctrl_base & SPEC_CTRL_SSBD);
 	}
 
 	/*
@@ -812,8 +823,123 @@ static ssize_t ssbd_enabled_read(struct file *file, char __user *user_buf,
 	return __enabled_read(file, user_buf, count, ppos, &enabled);
 }
 
+static void ssbd_spec_ctrl_write(unsigned int mode)
+{
+	/*
+	 * We have to update the x86_spec_ctrl_base first and then all the
+	 * SPEC_CTRL MSRs. We also need to update the ssb_mode prior to
+	 * that if the new mode isn't user settable to make sure that
+	 * the existing SSBD bit in the spec_ctrl_pcp won't carry over.
+	 */
+	if (!ssb_is_user_settable(mode))
+		set_mb(ssb_mode, mode);
+
+	if (mode == SPEC_STORE_BYPASS_DISABLE)
+		x86_spec_ctrl_base |= SPEC_CTRL_SSBD;
+	else
+		x86_spec_ctrl_base &= ~SPEC_CTRL_SSBD;
+
+	switch (ibrs_mode) {
+		case IBRS_DISABLED:
+			clear_spec_ctrl_pcp();
+			break;
+		case IBRS_ENABLED:
+			set_spec_ctrl_pcp_ibrs();
+			break;
+		case IBRS_ENABLED_ALWAYS:
+			set_spec_ctrl_pcp_ibrs_always();
+			break;
+		case IBRS_ENABLED_USER:
+			set_spec_ctrl_pcp_ibrs_user();
+			break;
+	}
+	sync_all_cpus_spec_ctrl();
+}
+
+static void ssbd_amd_write(unsigned int mode)
+{
+	u64 msrval = x86_amd_ls_cfg_base;
+	int cpu;
+	int msr = boot_cpu_has(X86_FEATURE_VIRT_SSBD)
+		? MSR_AMD64_VIRT_SPEC_CTRL : MSR_AMD64_LS_CFG;
+
+	if (mode == SPEC_STORE_BYPASS_DISABLE)
+		msrval |= x86_amd_ls_cfg_ssbd_mask;
+
+	/*
+	 * If the new mode isn't settable, we have to update the
+	 * ssb_mode first.
+	 */
+	if (!ssb_is_user_settable(mode))
+		set_mb(ssb_mode, mode);
+
+	/*
+	 * If the old mode isn't user settable, it is assumed that no
+	 * existing task will have the TIF_SSBD bit set. So we can safely
+	 * overwrite the MSRs.
+	 */
+	get_online_cpus();
+	for_each_online_cpu(cpu)
+		wrmsrl_on_cpu(cpu, msr, msrval);
+	put_online_cpus();
+}
+
+static ssize_t ssbd_enabled_write(struct file *file,
+				  const char __user *user_buf,
+				  size_t count, loff_t *ppos)
+{
+	char buf[32];
+	ssize_t len;
+	unsigned int mode;
+
+	if (!boot_cpu_has_bug(X86_BUG_SPEC_STORE_BYPASS) ||
+	    !boot_cpu_has(X86_FEATURE_SSBD))
+		return -ENODEV;
+
+	len = min(count, sizeof(buf) - 1);
+	if (copy_from_user(buf, user_buf, len))
+		return -EFAULT;
+
+	buf[len] = '\0';
+	if (kstrtouint(buf, 0, &mode))
+		return -EINVAL;
+
+	if (mode >= SPEC_STORE_BYPASS_MAX)
+		return -EINVAL;
+
+	mutex_lock(&spec_ctrl_mutex);
+
+	if (mode == ssb_mode)
+		goto out_unlock;
+
+	/*
+	 * If both the old and new SSB modes are user settable or it is
+	 * transitioning from SPEC_STORE_BYPASS_NONE to a user settable
+	 * mode, we don't need to touch the spec_ctrl_pcp structure or the
+	 * AMD LS_CFG MSRs at all and so the change can be made directly.
+	 */
+	if (ssb_is_user_settable(mode) &&
+	   (ssb_is_user_settable(ssb_mode) ||
+	   (ssb_mode == SPEC_STORE_BYPASS_NONE)))
+		goto out;
+
+	if (boot_cpu_has(X86_FEATURE_SPEC_CTRL_SSBD))
+		ssbd_spec_ctrl_write(mode);
+	else if (boot_cpu_has(X86_FEATURE_LS_CFG_SSBD) ||
+		 boot_cpu_has(X86_FEATURE_VIRT_SSBD))
+		ssbd_amd_write(mode);
+
+out:
+	WRITE_ONCE(ssb_mode, mode);
+	ssb_print_mitigation();
+out_unlock:
+	mutex_unlock(&spec_ctrl_mutex);
+	return count;
+}
+
 static const struct file_operations fops_ssbd_enabled = {
 	.read = ssbd_enabled_read,
+	.write = ssbd_enabled_write,
 	.llseek = default_llseek,
 };
 
