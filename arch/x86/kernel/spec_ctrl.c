@@ -704,6 +704,26 @@ static const struct file_operations fops_retp_enabled = {
 	.llseek = default_llseek,
 };
 
+/*
+ * The ssb_mode variable controls the state of the Speculative Store Bypass
+ * Disable (SSBD) mitigation.
+ *  0 - SSBD is disabled (speculative store bypass is enabled).
+ *  1 - SSBD is enabled  (speculative store bypass is disabled).
+ *  2 - SSBD is controlled by prctl only.
+ *  3 - SSBD is controlled by both prctl and seccomp.
+ */
+static ssize_t ssbd_enabled_read(struct file *file, char __user *user_buf,
+				 size_t count, loff_t *ppos)
+{
+	unsigned int enabled = ssb_mode;
+	return __enabled_read(file, user_buf, count, ppos, &enabled);
+}
+
+static const struct file_operations fops_ssbd_enabled = {
+	.read = ssbd_enabled_read,
+	.llseek = default_llseek,
+};
+
 static int __init debugfs_spec_ctrl(void)
 {
 	debugfs_create_file("ibrs_enabled", S_IRUSR | S_IWUSR,
@@ -712,6 +732,8 @@ static int __init debugfs_spec_ctrl(void)
 			    arch_debugfs_dir, NULL, &fops_ibpb_enabled);
 	debugfs_create_file("retp_enabled", S_IRUSR | S_IWUSR,
 			    arch_debugfs_dir, NULL, &fops_retp_enabled);
+	debugfs_create_file("ssbd_enabled", S_IRUSR,
+			    arch_debugfs_dir, NULL, &fops_ssbd_enabled);
 	return 0;
 }
 late_initcall(debugfs_spec_ctrl);
