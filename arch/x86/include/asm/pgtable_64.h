@@ -260,13 +260,16 @@ static inline pgd_t kaiser_set_shadow_pgd(pgd_t *pgdp, pgd_t pgd)
 			WARN_ON_ONCE(1);
 		}
 	} else {
+		extern struct mutex kexec_mutex;
+
 		/*
 		 * _PAGE_USER was not set in either the PGD being set
 		 * or cleared.  All kernel PGDs should be
 		 * pre-populated so this should never happen after
-		 * boot.
+		 * boot except when kexec'ing a new kernel.
 		 */
 		VM_WARN_ON_ONCE(system_state == SYSTEM_RUNNING &&
+				!mutex_is_locked(&kexec_mutex) &&
 				is_kaiser_pgd(pgdp));
 	}
 #endif
