@@ -28,9 +28,12 @@ EXPORT_SYMBOL(retp_enabled_key);
 EXPORT_SYMBOL(ibrs_present_key);
 
 /*
- * SPEC_CTRL MSR bits being managed by the kernel.
+ * The vendor and possibly platform specific bits which can be modified in
+ * x86_spec_ctrl_base.
+ *
  */
-#define SPEC_CTRL_MANAGED_MASK	(SPEC_CTRL_IBRS|SPEC_CTRL_SSBD)
+u64 __read_mostly x86_spec_ctrl_mask = SPEC_CTRL_IBRS|SPEC_CTRL_SSBD;
+EXPORT_SYMBOL_GPL(x86_spec_ctrl_mask);
 
 /*
  * The Intel specification for the SPEC_CTRL MSR requires that we
@@ -73,6 +76,10 @@ void spec_ctrl_save_msr(void)
 
 	spec_ctrl_msr_write = false;
 
+	/* Allow STIBP in MSR_SPEC_CTRL if supported */
+	if (boot_cpu_has(X86_FEATURE_STIBP))
+		x86_spec_ctrl_mask |= SPEC_CTRL_STIBP;
+
 	/*
 	 * Read the SPEC_CTRL MSR to account for reserved bits which may have
 	 * unknown values. AMD64_LS_CFG MSR is cached in the early AMD
@@ -83,8 +90,8 @@ void spec_ctrl_save_msr(void)
 		 * This part is run only the first time it is called.
 		 */
 		rdmsrl(MSR_IA32_SPEC_CTRL, x86_spec_ctrl_base);
-		if (x86_spec_ctrl_base & SPEC_CTRL_MANAGED_MASK) {
-			x86_spec_ctrl_base &= ~SPEC_CTRL_MANAGED_MASK;
+		if (x86_spec_ctrl_base & x86_spec_ctrl_mask) {
+			x86_spec_ctrl_base &= ~x86_spec_ctrl_mask;
 			spec_ctrl_msr_write = true;
 			native_wrmsrl(MSR_IA32_SPEC_CTRL, x86_spec_ctrl_base);
 		}

@@ -237,6 +237,7 @@ extern void x86_amd_ssbd_enable(void);
 
 /* The Intel SPEC CTRL MSR base value cache */
 extern u64 x86_spec_ctrl_base;
+extern u64 x86_spec_ctrl_mask;
 
 static inline u64 ssbd_tif_to_spec_ctrl(u64 tifn)
 {
@@ -326,14 +327,22 @@ x86_virt_spec_ctrl(u64 guest_spec_ctrl, u64 guest_virt_spec_ctrl, bool setguest)
 	 * to be used in host kernel. This is performance critical code.
 	 * Preemption is disabled, so we cannot race with sysfs writes.
 	 */
-	u64 msr, host_spec_ctrl = this_cpu_read(spec_ctrl_pcp.entry64);
+	u64 msr, guestval, hostval = this_cpu_read(spec_ctrl_pcp.entry64);
 	struct thread_info *ti = current_thread_info();
 	bool write_msr;
 
 	if (static_cpu_has(X86_FEATURE_MSR_SPEC_CTRL)) {
+		/*
+		 *  Restrict guest_spec_ctrl to supported values. Clear the
+		 *  modifiable bits in the host base value and or the
+		 *  modifiable bits from the guest value.
+		 */
+		guestval = hostval & ~x86_spec_ctrl_mask;
+		guestval |= guest_spec_ctrl & x86_spec_ctrl_mask;
+
 		/* SSBD controlled in MSR_SPEC_CTRL */
 		if (static_cpu_has(X86_FEATURE_SPEC_CTRL_SSBD))
-			host_spec_ctrl |= ssbd_tif_to_spec_ctrl(ti->flags);
+			hostval |= ssbd_tif_to_spec_ctrl(ti->flags);
 
 		/*
 		 * IBRS may have barrier semantics so it must be set
@@ -343,10 +352,10 @@ x86_virt_spec_ctrl(u64 guest_spec_ctrl, u64 guest_virt_spec_ctrl, bool setguest)
 		write_msr = (!setguest &&
 			    (this_cpu_read(spec_ctrl_pcp.enabled) &
 					   SPEC_CTRL_PCP_IBRS_ENTRY)) ||
-			    (guest_spec_ctrl != host_spec_ctrl);
+			    (hostval != guestval);
 
 		if (unlikely(write_msr)) {
-			msr = setguest ? guest_spec_ctrl : host_spec_ctrl;
+			msr = setguest ? guestval : hostval;
 			native_wrmsrl(MSR_IA32_SPEC_CTRL, msr);
 		}
 	}
