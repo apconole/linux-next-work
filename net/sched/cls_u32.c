@@ -345,11 +345,9 @@ static void *tc_u_common_ptr(const struct tcf_proto *tp)
 	 * block is not shared, block->q is a valid pointer
 	 * and we can use that. That works for classful qdiscs.
 	 */
-#if 0 /* RHEL - does not support TC block sharing yet */
 	if (tcf_block_shared(block))
 		return block;
 	else
-#endif
 		return block->q;
 }
 
