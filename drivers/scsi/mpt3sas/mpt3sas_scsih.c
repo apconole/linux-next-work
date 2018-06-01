@@ -11368,13 +11368,13 @@ _mpt3sas_exit(void)
 				MPT3SAS_DRIVER_VERSION);
 #endif /* MPT2SAS_SCSI */
 
-	pci_unregister_driver(&mpt3sas_driver);
-
 #ifdef MPT2SAS_SCSI
 	mpt3sas_ctl_exit(1);
 #else
 	mpt3sas_ctl_exit(2);
 #endif /* MPT2SAS_SCSI */
+
+	pci_unregister_driver(&mpt3sas_driver);
 
 	scsih_exit();
 }
