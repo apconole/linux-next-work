@@ -4421,7 +4421,10 @@ static int mlxsw_sp_netdevice_port_upper_event(struct net_device *lower_dev,
 		}
 		if (!info->linking)
 			break;
-		if (netdev_has_any_upper_dev(upper_dev)) {
+		if (netdev_has_any_upper_dev(upper_dev) &&
+		    (!netif_is_bridge_master(upper_dev) ||
+		     !mlxsw_sp_bridge_device_is_offloaded(mlxsw_sp,
+							  upper_dev))) {
 			dev_err(mlxsw_sp->bus_info->dev,
 				"spectrum: Enslaving a port to a device that already has an upper device is not supported");
 			return -EINVAL;
@@ -4548,6 +4551,7 @@ static int mlxsw_sp_netdevice_port_vlan_event(struct net_device *vlan_dev,
 					      u16 vid)
 {
 	struct mlxsw_sp_port *mlxsw_sp_port = netdev_priv(dev);
+	struct mlxsw_sp *mlxsw_sp = mlxsw_sp_port->mlxsw_sp;
 	struct netdev_notifier_changeupper_info *info = ptr;
 	struct net_device *upper_dev;
 	int err = 0;
@@ -4561,7 +4565,10 @@ static int mlxsw_sp_netdevice_port_vlan_event(struct net_device *vlan_dev,
 		}
 		if (!info->linking)
 			break;
-		if (netdev_has_any_upper_dev(upper_dev)) {
+		if (netdev_has_any_upper_dev(upper_dev) &&
+		    (!netif_is_bridge_master(upper_dev) ||
+		     !mlxsw_sp_bridge_device_is_offloaded(mlxsw_sp,
+							  upper_dev))) {
 			netdev_err(dev, "spectrum: Enslaving a port to a device that already has an upper device is not supported");
 			return -EINVAL;
 		}
