@@ -677,11 +677,14 @@ static u32 __seccomp_filter(int this_syscall, struct pt_regs *regs)
 	default: {
 		siginfo_t info;
 		audit_seccomp(this_syscall, SIGSYS, action);
-		/* Show the original registers in the dump. */
-		syscall_rollback(current, task_pt_regs(current));
-		/* Trigger a manual coredump since do_exit skips it. */
-		seccomp_init_siginfo(&info, this_syscall, data);
-		do_coredump(&info);
+		/* Dump core only if this is the last remaining thread. */
+		if (get_nr_threads(current) == 1) {
+			/* Show the original registers in the dump. */
+			syscall_rollback(current, task_pt_regs(current));
+			/* Trigger a manual coredump since do_exit skips it. */
+			seccomp_init_siginfo(&info, this_syscall, data);
+			do_coredump(&info);
+		}
 		do_exit(SIGSYS);
 	}
 	}
