@@ -608,20 +608,8 @@ void secure_computing_strict(int this_syscall)
 		BUG();
 }
 #else
-int __secure_computing(void)
-{
-	u32 phase1_result = seccomp_phase1();
-
-	if (likely(phase1_result == SECCOMP_PHASE1_OK))
-		return 0;
-	else if (likely(phase1_result == SECCOMP_PHASE1_SKIP))
-		return -1;
-	else
-		return seccomp_phase2(phase1_result);
-}
-
 #ifdef CONFIG_SECCOMP_FILTER
-static u32 __seccomp_phase1_filter(int this_syscall, struct pt_regs *regs)
+static u32 __seccomp_filter(int this_syscall, struct pt_regs *regs)
 {
 	u32 filter_ret, action;
 	int data;
@@ -651,10 +639,33 @@ static u32 __seccomp_phase1_filter(int this_syscall, struct pt_regs *regs)
 		goto skip;
 
 	case SECCOMP_RET_TRACE:
-		return filter_ret;  /* Save the rest for phase 2. */
+		/* ENOSYS these calls if there is no tracer attached. */
+		if (!ptrace_event_enabled(current, PTRACE_EVENT_SECCOMP)) {
+			syscall_set_return_value(current,
+						 task_pt_regs(current),
+						 -ENOSYS, 0);
+			goto skip;
+		}
+
+		/* Allow the BPF to provide the event message */
+		ptrace_event(PTRACE_EVENT_SECCOMP, data);
+		/*
+		 * The delivery of a fatal signal during event
+		 * notification may silently skip tracer notification.
+		 * Terminating the task now avoids executing a system
+		 * call that may not be intended.
+		 */
+		if (fatal_signal_pending(current))
+			do_exit(SIGSYS);
+		/* Check if the tracer forced the syscall to be skipped. */
+		this_syscall = syscall_get_nr(current, task_pt_regs(current));
+		if (this_syscall < 0)
+			goto skip;
+
+		return 0;
 
 	case SECCOMP_RET_ALLOW:
-		return SECCOMP_PHASE1_OK;
+		return 0;
 
 	case SECCOMP_RET_KILL:
 	default:
@@ -666,31 +677,16 @@ static u32 __seccomp_phase1_filter(int this_syscall, struct pt_regs *regs)
 
 skip:
 	audit_seccomp(this_syscall, 0, action);
-	return SECCOMP_PHASE1_SKIP;
+	return -1;
+}
+#else
+static int __seccomp_filter(int this_syscall, struct pt_regs *regs)
+{
+	BUG();
 }
 #endif
 
-/**
- * seccomp_phase1() - run fast path seccomp checks on the current syscall
- *
- * This only reads pt_regs via the syscall_xyz helpers.  The only change
- * it will make to pt_regs is via syscall_set_return_value, and it will
- * only do that if it returns SECCOMP_PHASE1_SKIP.
- *
- * It may also call do_exit or force a signal; these actions must be
- * safe.
- *
- * If it returns SECCOMP_PHASE1_OK, the syscall passes checks and should
- * be processed normally.
- *
- * If it returns SECCOMP_PHASE1_SKIP, then the syscall should not be
- * invoked.  In this case, seccomp_phase1 will have set the return value
- * using syscall_set_return_value.
- *
- * If it returns anything else, then the return value should be passed
- * to seccomp_phase2 from a context in which ptrace hooks are safe.
- */
-u32 seccomp_phase1(void)
+int __secure_computing(void)
 {
 	int mode = current->seccomp.mode;
 	struct pt_regs *regs = task_pt_regs(current);
@@ -699,55 +695,12 @@ u32 seccomp_phase1(void)
 	switch (mode) {
 	case SECCOMP_MODE_STRICT:
 		__secure_computing_strict(this_syscall);  /* may call do_exit */
-		return SECCOMP_PHASE1_OK;
-#ifdef CONFIG_SECCOMP_FILTER
+		return 0;
 	case SECCOMP_MODE_FILTER:
-		return __seccomp_phase1_filter(this_syscall, regs);
-#endif
+		return __seccomp_filter(this_syscall, regs);
 	default:
 		BUG();
 	}
-}
-
-/**
- * seccomp_phase2() - finish slow path seccomp work for the current syscall
- * @phase1_result: The return value from seccomp_phase1()
- *
- * This must be called from a context in which ptrace hooks can be used.
- *
- * Returns 0 if the syscall should be processed or -1 to skip the syscall.
- */
-int seccomp_phase2(u32 phase1_result)
-{
-	struct pt_regs *regs = task_pt_regs(current);
-	u32 action = phase1_result & SECCOMP_RET_ACTION;
-	int data = phase1_result & SECCOMP_RET_DATA;
-
-	BUG_ON(action != SECCOMP_RET_TRACE);
-
-	audit_seccomp(syscall_get_nr(current, regs), 0, action);
-
-	/* Skip these calls if there is no tracer. */
-	if (!ptrace_event_enabled(current, PTRACE_EVENT_SECCOMP)) {
-		syscall_set_return_value(current, regs,
-					 -ENOSYS, 0);
-		return -1;
-	}
-
-	/* Allow the BPF to provide the event message */
-	ptrace_event(PTRACE_EVENT_SECCOMP, data);
-	/*
-	 * The delivery of a fatal signal during event
-	 * notification may silently skip tracer notification.
-	 * Terminating the task now avoids executing a system
-	 * call that may not be intended.
-	 */
-	if (fatal_signal_pending(current))
-		do_exit(SIGSYS);
-	if (syscall_get_nr(current, regs) < 0)
-		return -1;  /* Explicit request to skip. */
-
-	return 0;
 }
 #endif /* CONFIG_HAVE_ARCH_SECCOMP_FILTER */
 
