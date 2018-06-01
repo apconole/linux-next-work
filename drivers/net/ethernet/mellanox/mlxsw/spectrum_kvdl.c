@@ -286,8 +286,36 @@ static void mlxsw_sp_kvdl_parts_fini(struct mlxsw_sp *mlxsw_sp)
 		mlxsw_sp_kvdl_part_fini(mlxsw_sp, i);
 }
 
+u64 mlxsw_sp_kvdl_part_occ(struct mlxsw_sp_kvdl_part *part)
+{
+	unsigned int nr_entries;
+	int bit = -1;
+	u64 occ = 0;
+
+	nr_entries = (part->info->end_index -
+		      part->info->start_index + 1) /
+		      part->info->alloc_size;
+	while ((bit = find_next_bit(part->usage, nr_entries, bit + 1))
+		< nr_entries)
+		occ += part->info->alloc_size;
+	return occ;
+}
+
+static u64 mlxsw_sp_kvdl_occ_get(void *priv)
+{
+	const struct mlxsw_sp *mlxsw_sp = priv;
+	struct mlxsw_sp_kvdl_part *part;
+	u64 occ = 0;
+
+	list_for_each_entry(part, &mlxsw_sp->kvdl->parts_list, list)
+		occ += mlxsw_sp_kvdl_part_occ(part);
+
+	return occ;
+}
+
 int mlxsw_sp_kvdl_init(struct mlxsw_sp *mlxsw_sp)
 {
+	struct devlink *devlink = priv_to_devlink(mlxsw_sp->core);
 	struct mlxsw_sp_kvdl *kvdl;
 	int err;
 
@@ -300,6 +328,11 @@ int mlxsw_sp_kvdl_init(struct mlxsw_sp *mlxsw_sp)
 	if (err)
 		goto err_kvdl_parts_init;
 
+	devlink_resource_occ_get_register(devlink,
+					  MLXSW_SP_RESOURCE_KVD_LINEAR,
+					  mlxsw_sp_kvdl_occ_get,
+					  mlxsw_sp);
+
 	return 0;
 
 err_kvdl_parts_init:
@@ -309,6 +342,10 @@ err_kvdl_parts_init:
 
 void mlxsw_sp_kvdl_fini(struct mlxsw_sp *mlxsw_sp)
 {
+	struct devlink *devlink = priv_to_devlink(mlxsw_sp->core);
+
+	devlink_resource_occ_get_unregister(devlink,
+					    MLXSW_SP_RESOURCE_KVD_LINEAR);
 	mlxsw_sp_kvdl_parts_fini(mlxsw_sp);
 	kfree(mlxsw_sp->kvdl);
 }
