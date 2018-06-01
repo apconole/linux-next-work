@@ -2337,6 +2337,28 @@ out:
 	resource->size_valid = size_valid;
 }
 
+static int
+devlink_resource_validate_size(struct devlink_resource *resource, u64 size)
+{
+	u64 reminder;
+	int err = 0;
+
+	if (size > resource->size_params->size_max) {
+		err = -EINVAL;
+	}
+
+	if (size < resource->size_params->size_min) {
+		err = -EINVAL;
+	}
+
+	div64_u64_rem(size, resource->size_params->size_granularity, &reminder);
+	if (reminder) {
+		err = -EINVAL;
+	}
+
+	return err;
+}
+
 static int devlink_nl_cmd_resource_set(struct sk_buff *skb,
 				       struct genl_info *info)
 {
@@ -2355,11 +2377,8 @@ static int devlink_nl_cmd_resource_set(struct sk_buff *skb,
 	if (!resource)
 		return -EINVAL;
 
-	if (!resource->resource_ops->size_validate)
-		return -EINVAL;
-
 	size = nla_get_u64(info->attrs[DEVLINK_ATTR_RESOURCE_SIZE]);
-	err = resource->resource_ops->size_validate(devlink, size);
+	err = devlink_resource_validate_size(resource, size);
 	if (err)
 		return err;
 
