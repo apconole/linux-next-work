@@ -1128,8 +1128,7 @@ cxgbit_pass_accept_rpl(struct cxgbit_sock *csk, struct cpl_pass_accept_req *req)
 		return;
 	}
 
-	rpl5 = __skb_put(skb, len);
-	memset(rpl5, 0, len);
+	rpl5 = __skb_put_zero(skb, len);
 
 	INIT_TP_WR(rpl5, csk->tid);
 	OPCODE_TID(rpl5) = cpu_to_be32(MK_OPCODE_TID(CPL_PASS_ACCEPT_RPL,
@@ -1410,8 +1409,7 @@ u32 cxgbit_send_tx_flowc_wr(struct cxgbit_sock *csk)
 	flowclen16 = cxgbit_tx_flowc_wr_credits(csk, &nparams, &flowclen);
 
 	skb = __skb_dequeue(&csk->skbq);
-	flowc = __skb_put(skb, flowclen);
-	memset(flowc, 0, flowclen);
+	flowc = __skb_put_zero(skb, flowclen);
 
 	flowc->op_to_nparams = cpu_to_be32(FW_WR_OP_V(FW_FLOWC_WR) |
 					   FW_FLOWC_WR_NPARAMS_V(nparams));
@@ -1482,8 +1480,7 @@ int cxgbit_setup_conn_digest(struct cxgbit_sock *csk)
 		return -ENOMEM;
 
 	/*  set up ulp submode */
-	req = __skb_put(skb, len);
-	memset(req, 0, len);
+	req = __skb_put_zero(skb, len);
 
 	INIT_TP_WR(req, csk->tid);
 	OPCODE_TID(req) = htonl(MK_OPCODE_TID(CPL_SET_TCB_FIELD, csk->tid));
@@ -1519,8 +1516,7 @@ int cxgbit_setup_conn_pgidx(struct cxgbit_sock *csk, u32 pg_idx)
 	if (!skb)
 		return -ENOMEM;
 
-	req = __skb_put(skb, len);
-	memset(req, 0, len);
+	req = __skb_put_zero(skb, len);
 
 	INIT_TP_WR(req, csk->tid);
 	OPCODE_TID(req) = htonl(MK_OPCODE_TID(CPL_SET_TCB_FIELD, csk->tid));
