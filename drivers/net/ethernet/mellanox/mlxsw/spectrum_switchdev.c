@@ -46,6 +46,7 @@
 #include <linux/workqueue.h>
 #include <linux/jiffies.h>
 #include <linux/rtnetlink.h>
+#include <linux/netlink.h>
 #include <net/switchdev.h>
 
 #include "spectrum.h"
@@ -1739,8 +1740,10 @@ mlxsw_sp_bridge_8021q_port_join(struct mlxsw_sp_bridge_device *bridge_device,
 {
 	struct mlxsw_sp_port_vlan *mlxsw_sp_port_vlan;
 
-	if (is_vlan_dev(bridge_port->dev))
+	if (is_vlan_dev(bridge_port->dev)) {
+		netdev_err(bridge_device->dev, "spectrum: Can not enslave a VLAN device to a VLAN-aware bridge");
 		return -EINVAL;
+	}
 
 	mlxsw_sp_port_vlan = mlxsw_sp_port_vlan_find_by_vid(mlxsw_sp_port, 1);
 	if (WARN_ON(!mlxsw_sp_port_vlan))
@@ -1802,8 +1805,10 @@ mlxsw_sp_bridge_8021d_port_join(struct mlxsw_sp_bridge_device *bridge_device,
 	struct mlxsw_sp_port_vlan *mlxsw_sp_port_vlan;
 	u16 vid;
 
-	if (!is_vlan_dev(bridge_port->dev))
+	if (!is_vlan_dev(bridge_port->dev)) {
+		netdev_err(bridge_device->dev, "spectrum: Only VLAN devices can be enslaved to a VLAN-unaware bridge");
 		return -EINVAL;
+	}
 	vid = vlan_dev_vlan_id(bridge_port->dev);
 
 	mlxsw_sp_port_vlan = mlxsw_sp_port_vlan_find_by_vid(mlxsw_sp_port, vid);
@@ -1811,7 +1816,7 @@ mlxsw_sp_bridge_8021d_port_join(struct mlxsw_sp_bridge_device *bridge_device,
 		return -EINVAL;
 
 	if (mlxsw_sp_port_is_br_member(mlxsw_sp_port, bridge_device->dev)) {
-		netdev_err(mlxsw_sp_port->dev, "Can't bridge VLAN uppers of the same port\n");
+		netdev_err(bridge_port->dev, "spectrum: Can not bridge VLAN uppers of the same port");
 		return -EINVAL;
 	}
 
