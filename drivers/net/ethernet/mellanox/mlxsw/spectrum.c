@@ -3804,7 +3804,6 @@ static const struct mlxsw_config_profile mlxsw_sp_config_profile = {
 			.type		= MLXSW_PORT_SWID_TYPE_ETH,
 		}
 	},
-	.resource_query_enable		= 1,
 };
 
 static void
@@ -3987,6 +3986,7 @@ static struct mlxsw_driver mlxsw_sp_driver = {
 	.kvd_sizes_get			= mlxsw_sp_kvd_sizes_get,
 	.txhdr_len			= MLXSW_TXHDR_LEN,
 	.profile			= &mlxsw_sp_config_profile,
+	.res_query_enabled		= true,
 };
 
 bool mlxsw_sp_port_dev_check(const struct net_device *dev)
