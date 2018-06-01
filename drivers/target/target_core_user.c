@@ -27,6 +27,7 @@
 #include <linux/uio_driver.h>
 #include <linux/stringify.h>
 #include <linux/bitops.h>
+#include <linux/highmem.h>
 #include <linux/configfs.h>
 #include <net/genetlink.h>
 #include <asm/unaligned.h>
