@@ -1879,14 +1879,10 @@ mlxsw_sp_bridge_8021d_port_join(struct mlxsw_sp_bridge_device *bridge_device,
 				struct mlxsw_sp_port *mlxsw_sp_port)
 {
 	struct mlxsw_sp_port_vlan *mlxsw_sp_port_vlan;
+	struct net_device *dev = bridge_port->dev;
 	u16 vid;
 
-	if (!is_vlan_dev(bridge_port->dev)) {
-		netdev_err(bridge_device->dev, "spectrum: Only VLAN devices can be enslaved to a VLAN-unaware bridge");
-		return -EINVAL;
-	}
-	vid = vlan_dev_vlan_id(bridge_port->dev);
-
+	vid = is_vlan_dev(dev) ? vlan_dev_vlan_id(dev) : 1;
 	mlxsw_sp_port_vlan = mlxsw_sp_port_vlan_find_by_vid(mlxsw_sp_port, vid);
 	if (WARN_ON(!mlxsw_sp_port_vlan))
 		return -EINVAL;
@@ -1909,8 +1905,10 @@ mlxsw_sp_bridge_8021d_port_leave(struct mlxsw_sp_bridge_device *bridge_device,
 				 struct mlxsw_sp_port *mlxsw_sp_port)
 {
 	struct mlxsw_sp_port_vlan *mlxsw_sp_port_vlan;
-	u16 vid = vlan_dev_vlan_id(bridge_port->dev);
+	struct net_device *dev = bridge_port->dev;
+	u16 vid;
 
+	vid = is_vlan_dev(dev) ? vlan_dev_vlan_id(dev) : 1;
 	mlxsw_sp_port_vlan = mlxsw_sp_port_vlan_find_by_vid(mlxsw_sp_port, vid);
 	if (WARN_ON(!mlxsw_sp_port_vlan))
 		return;
