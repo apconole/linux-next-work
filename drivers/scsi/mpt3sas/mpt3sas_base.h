@@ -1184,6 +1184,9 @@ struct MPT3SAS_ADAPTER {
 	MPT_BUILD_SG    build_sg_mpi;
 	MPT_BUILD_ZERO_LEN_SGE build_zero_len_sge_mpi;
 
+	/* function ptr for NVMe PRP elements only */
+	NVME_BUILD_PRP  build_nvme_prp;
+
 	/* event log */
 	u32		event_type[MPI2_EVENT_NOTIFY_EVENTMASK_WORDS];
 	u32		event_context;
