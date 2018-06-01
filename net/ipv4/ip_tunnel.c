@@ -288,20 +288,6 @@ failed:
 	return ERR_PTR(err);
 }
 
-static inline void init_tunnel_flow(struct flowi4 *fl4,
-				    int proto,
-				    __be32 daddr, __be32 saddr,
-				    __be32 key, __u8 tos, int oif)
-{
-	memset(fl4, 0, sizeof(*fl4));
-	fl4->flowi4_oif = oif;
-	fl4->daddr = daddr;
-	fl4->saddr = saddr;
-	fl4->flowi4_tos = tos;
-	fl4->flowi4_proto = proto;
-	fl4->fl4_gre_key = key;
-}
-
 static int ip_tunnel_bind_dev(struct net_device *dev)
 {
 	struct net_device *tdev = NULL;
@@ -318,9 +304,9 @@ static int ip_tunnel_bind_dev(struct net_device *dev)
 		struct flowi4 fl4;
 		struct rtable *rt;
 
-		init_tunnel_flow(&fl4, iph->protocol, iph->daddr,
-				 iph->saddr, tunnel->parms.o_key,
-				 RT_TOS(iph->tos), tunnel->parms.link);
+		ip_tunnel_init_flow(&fl4, iph->protocol, iph->daddr,
+				    iph->saddr, tunnel->parms.o_key,
+				    RT_TOS(iph->tos), tunnel->parms.link);
 		rt = ip_route_output_key(tunnel->net, &fl4);
 
 		if (!IS_ERR(rt)) {
@@ -671,8 +657,9 @@ void ip_tunnel_xmit(struct sk_buff *skb, struct net_device *dev,
 		}
 	}
 
-	init_tunnel_flow(&fl4, protocol, dst, tnl_params->saddr,
-			 tunnel->parms.o_key, RT_TOS(tos), tunnel->parms.link);
+	ip_tunnel_init_flow(&fl4, protocol, dst, tnl_params->saddr,
+			    tunnel->parms.o_key, RT_TOS(tos),
+			    tunnel->parms.link);
 
 	if (ip_tunnel_encap(skb, tunnel, &protocol, &fl4) < 0)
 		goto tx_error;
