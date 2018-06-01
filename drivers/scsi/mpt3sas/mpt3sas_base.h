@@ -419,6 +419,8 @@ struct MPT3SAS_DEVICE {
 	 * thing while a SATL command is pending.
 	 */
 	unsigned long ata_command_pending;
+	/* Iopriority Command Handling */
+	u8	ncq_prio_enable;
 
 };
 
@@ -1572,5 +1574,8 @@ void
 mpt3sas_setup_direct_io(struct MPT3SAS_ADAPTER *ioc, struct scsi_cmnd *scmd,
 	struct _raid_device *raid_device, Mpi2SCSIIORequest_t *mpi_request,
 	u16 smid);
+
+/* NCQ Prio Handling Check */
+bool scsih_ncq_prio_supp(struct scsi_device *sdev);
 
 #endif /* MPT3SAS_BASE_H_INCLUDED */
