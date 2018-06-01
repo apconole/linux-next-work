@@ -367,6 +367,43 @@ static u64 mlxsw_sp_kvdl_occ_get(void *priv)
 	return occ;
 }
 
+static u64 mlxsw_sp_kvdl_single_occ_get(void *priv)
+{
+	struct mlxsw_sp *mlxsw_sp = priv;
+	struct mlxsw_sp_kvdl_part *part;
+
+	part = mlxsw_sp_kvdl_part_find(mlxsw_sp, MLXSW_SP_KVDL_PART_SINGLE);
+	if (!part)
+		return -EINVAL;
+
+	return mlxsw_sp_kvdl_part_occ(part);
+}
+
+static u64 mlxsw_sp_kvdl_chunks_occ_get(void *priv)
+{
+	struct mlxsw_sp *mlxsw_sp = priv;
+	struct mlxsw_sp_kvdl_part *part;
+
+	part = mlxsw_sp_kvdl_part_find(mlxsw_sp, MLXSW_SP_KVDL_PART_CHUNKS);
+	if (!part)
+		return -EINVAL;
+
+	return mlxsw_sp_kvdl_part_occ(part);
+}
+
+static u64 mlxsw_sp_kvdl_large_chunks_occ_get(void *priv)
+{
+	struct mlxsw_sp *mlxsw_sp = priv;
+	struct mlxsw_sp_kvdl_part *part;
+
+	part = mlxsw_sp_kvdl_part_find(mlxsw_sp,
+				       MLXSW_SP_KVDL_PART_LARGE_CHUNKS);
+	if (!part)
+		return -EINVAL;
+
+	return mlxsw_sp_kvdl_part_occ(part);
+}
+
 static struct devlink_resource_size_params mlxsw_sp_kvdl_single_size_params = {
 	.size_min = 0,
 	.size_granularity = 1,
@@ -448,6 +485,18 @@ int mlxsw_sp_kvdl_init(struct mlxsw_sp *mlxsw_sp)
 					  MLXSW_SP_RESOURCE_KVD_LINEAR,
 					  mlxsw_sp_kvdl_occ_get,
 					  mlxsw_sp);
+	devlink_resource_occ_get_register(devlink,
+					  MLXSW_SP_RESOURCE_KVD_LINEAR_SINGLE,
+					  mlxsw_sp_kvdl_single_occ_get,
+					  mlxsw_sp);
+	devlink_resource_occ_get_register(devlink,
+					  MLXSW_SP_RESOURCE_KVD_LINEAR_CHUNKS,
+					  mlxsw_sp_kvdl_chunks_occ_get,
+					  mlxsw_sp);
+	devlink_resource_occ_get_register(devlink,
+					  MLXSW_SP_RESOURCE_KVD_LINEAR_LARGE_CHUNKS,
+					  mlxsw_sp_kvdl_large_chunks_occ_get,
+					  mlxsw_sp);
 
 	return 0;
 
@@ -460,6 +509,12 @@ void mlxsw_sp_kvdl_fini(struct mlxsw_sp *mlxsw_sp)
 {
 	struct devlink *devlink = priv_to_devlink(mlxsw_sp->core);
 
+	devlink_resource_occ_get_unregister(devlink,
+					    MLXSW_SP_RESOURCE_KVD_LINEAR_LARGE_CHUNKS);
+	devlink_resource_occ_get_unregister(devlink,
+					    MLXSW_SP_RESOURCE_KVD_LINEAR_CHUNKS);
+	devlink_resource_occ_get_unregister(devlink,
+					    MLXSW_SP_RESOURCE_KVD_LINEAR_SINGLE);
 	devlink_resource_occ_get_unregister(devlink,
 					    MLXSW_SP_RESOURCE_KVD_LINEAR);
 	mlxsw_sp_kvdl_parts_fini(mlxsw_sp);
