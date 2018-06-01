@@ -25,6 +25,7 @@
 #include <net/inet_frag.h>
 #include <net/ping.h>
 #include <net/tcp_memcontrol.h>
+#include <net/netevent.h>
 
 static int zero;
 static int one = 1;
@@ -297,6 +298,23 @@ bad_key:
 	kfree(tbl.data);
 	return ret;
 }
+
+#ifdef CONFIG_IP_ROUTE_MULTIPATH
+static int proc_fib_multipath_hash_policy(struct ctl_table *table, int write,
+					  void __user *buffer, size_t *lenp,
+					  loff_t *ppos)
+{
+	struct net *net = container_of(table->data, struct net,
+	    ipv4_sysctl_fib_multipath_hash_policy);
+	int ret;
+
+	ret = proc_dointvec_minmax(table, write, buffer, lenp, ppos);
+	if (write && ret == 0)
+		call_netevent_notifiers(NETEVENT_MULTIPATH_HASH_UPDATE, net);
+
+	return ret;
+}
+#endif
 
 static struct ctl_table ipv4_table[] = {
 	{
@@ -763,7 +781,7 @@ static struct ctl_table ipv4_table[] = {
 		.data		= &sysctl_tcp_autocorking,
 		.maxlen		= sizeof(int),
 		.mode		= 0644,
-		.proc_handler	= proc_dointvec_minmax,
+		.proc_handler	= proc_fib_multipath_hash_policy,
 		.extra1		= &zero,
 		.extra2		= &one,
 	},
