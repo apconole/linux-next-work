@@ -674,11 +674,12 @@ static u32 __seccomp_filter(int this_syscall, struct pt_regs *regs)
 		return 0;
 
 	case SECCOMP_RET_KILL:
-	default: {
-		siginfo_t info;
+	default:
 		audit_seccomp(this_syscall, SIGSYS, action);
 		/* Dump core only if this is the last remaining thread. */
 		if (get_nr_threads(current) == 1) {
+			siginfo_t info;
+
 			/* Show the original registers in the dump. */
 			syscall_rollback(current, task_pt_regs(current));
 			/* Trigger a manual coredump since do_exit skips it. */
@@ -686,7 +687,6 @@ static u32 __seccomp_filter(int this_syscall, struct pt_regs *regs)
 			do_coredump(&info);
 		}
 		do_exit(SIGSYS);
-	}
 	}
 
 	unreachable();
