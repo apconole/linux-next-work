@@ -13,7 +13,7 @@
  *        of Berkeley Packet Filters/Linux Socket Filters.
  */
 
-#include <linux/atomic.h>
+#include <linux/refcount.h>
 #include <linux/audit.h>
 #include <linux/compat.h>
 #include <linux/nospec.h>
@@ -58,7 +58,7 @@
  * to a task_struct (other than @usage).
  */
 struct seccomp_filter {
-	atomic_t usage;
+	refcount_t usage;
 	struct seccomp_filter *prev;
 	unsigned short len;  /* Instruction count */
 	struct sock_filter insns[];
@@ -411,7 +411,7 @@ static struct seccomp_filter *seccomp_prepare_filter(struct sock_fprog *fprog)
 			 GFP_KERNEL|__GFP_NOWARN);
 	if (!filter)
 		return ERR_PTR(-ENOMEM);
-	atomic_set(&filter->usage, 1);
+	refcount_set(&filter->usage, 1);
 	filter->len = fprog->len;
 
 	/* Copy the instructions from fprog. */
@@ -517,7 +517,7 @@ void get_seccomp_filter(struct task_struct *tsk)
 	if (!orig)
 		return;
 	/* Reference count is bounded by the number of total processes. */
-	atomic_inc(&orig->usage);
+	refcount_inc(&orig->usage);
 }
 
 static inline void seccomp_filter_free(struct seccomp_filter *filter)
@@ -532,7 +532,7 @@ void put_seccomp_filter(struct task_struct *tsk)
 {
 	struct seccomp_filter *orig = tsk->seccomp.filter;
 	/* Clean up single-reference branches iteratively. */
-	while (orig && atomic_dec_and_test(&orig->usage)) {
+	while (orig && refcount_dec_and_test(&orig->usage)) {
 		struct seccomp_filter *freeme = orig;
 		orig = orig->prev;
 		seccomp_filter_free(freeme);
