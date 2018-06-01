@@ -2344,15 +2344,15 @@ devlink_resource_validate_size(struct devlink_resource *resource, u64 size)
 	u64 reminder;
 	int err = 0;
 
-	if (size > resource->size_params->size_max) {
+	if (size > resource->size_params.size_max) {
 		err = -EINVAL;
 	}
 
-	if (size < resource->size_params->size_min) {
+	if (size < resource->size_params.size_min) {
 		err = -EINVAL;
 	}
 
-	div64_u64_rem(size, resource->size_params->size_granularity, &reminder);
+	div64_u64_rem(size, resource->size_params.size_granularity, &reminder);
 	if (reminder) {
 		err = -EINVAL;
 	}
@@ -2396,7 +2396,7 @@ devlink_resource_size_params_put(struct devlink_resource *resource,
 {
 	struct devlink_resource_size_params *size_params;
 
-	size_params = resource->size_params;
+	size_params = &resource->size_params;
 	if (nla_put_u64_64bit(skb, DEVLINK_ATTR_RESOURCE_SIZE_GRAN,
 			      size_params->size_granularity, DEVLINK_ATTR_PAD) ||
 	    nla_put_u64_64bit(skb, DEVLINK_ATTR_RESOURCE_SIZE_MAX,
@@ -3172,7 +3172,7 @@ int devlink_resource_register(struct devlink *devlink,
 			      u64 resource_size,
 			      u64 resource_id,
 			      u64 parent_resource_id,
-			      struct devlink_resource_size_params *size_params,
+			      const struct devlink_resource_size_params *size_params,
 			      const struct devlink_resource_ops *resource_ops)
 {
 	struct devlink_resource *resource;
@@ -3215,7 +3215,8 @@ int devlink_resource_register(struct devlink *devlink,
 	resource->id = resource_id;
 	resource->resource_ops = resource_ops;
 	resource->size_valid = true;
-	resource->size_params = size_params;
+	memcpy(&resource->size_params, size_params,
+	       sizeof(resource->size_params));
 	INIT_LIST_HEAD(&resource->resource_list);
 	list_add_tail(&resource->list, resource_list);
 out:
