@@ -2100,7 +2100,7 @@ static int mmc_runtime_resume(struct mmc_host *host)
 	return 0;
 }
 
-int mmc_can_reset(struct mmc_card *card)
+static int mmc_can_reset(struct mmc_card *card)
 {
 	u8 rst_n_function;
 
@@ -2109,7 +2109,6 @@ int mmc_can_reset(struct mmc_card *card)
 		return 0;
 	return 1;
 }
-EXPORT_SYMBOL(mmc_can_reset);
 
 static int mmc_reset(struct mmc_host *host)
 {
