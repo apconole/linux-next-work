@@ -393,6 +393,9 @@ static int handle_dlpar_errorlog(struct pseries_hp_errorlog *hp_elog)
 	case PSERIES_HP_ELOG_RESOURCE_MEM:
 		rc = dlpar_memory(hp_elog);
 		break;
+	case PSERIES_HP_ELOG_RESOURCE_CPU:
+		rc = dlpar_cpu(hp_elog);
+		break;
 	default:
 		pr_warn_ratelimited("Invalid resource (%d) specified\n",
 				    hp_elog->resource);
@@ -453,6 +456,8 @@ static int dlpar_parse_resource(char **cmd, struct pseries_hp_errorlog *hp_elog)
 
 	if (sysfs_streq(arg, "memory")) {
 		hp_elog->resource = PSERIES_HP_ELOG_RESOURCE_MEM;
+	} else if (sysfs_streq(arg, "cpu")) {
+		hp_elog->resource = PSERIES_HP_ELOG_RESOURCE_CPU;
 	} else {
 		pr_err("Invalid resource specified.\n");
 		return -EINVAL;
