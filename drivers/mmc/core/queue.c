@@ -69,8 +69,8 @@ static inline bool mmc_cqe_can_dcmd(struct mmc_host *host)
 	return host->caps2 & MMC_CAP2_CQE_DCMD;
 }
 
-enum mmc_issue_type mmc_cqe_issue_type(struct mmc_host *host,
-				       struct request *req)
+static enum mmc_issue_type mmc_cqe_issue_type(struct mmc_host *host,
+					      struct request *req)
 {
 	if ((req->cmd_type == REQ_TYPE_DRV_PRIV) ||
 		(req->cmd_flags & REQ_DISCARD))
