@@ -278,7 +278,6 @@ int mmc_init_queue(struct mmc_queue *mq, struct mmc_card *card,
 
 	card->bouncesz = mmc_queue_calc_bouncesz(host);
 	if (card->bouncesz) {
-		blk_queue_bounce_limit(mq->queue, BLK_BOUNCE_ANY);
 		blk_queue_max_hw_sectors(mq->queue, card->bouncesz / 512);
 		blk_queue_max_segments(mq->queue, card->bouncesz / 512);
 		blk_queue_max_segment_size(mq->queue, card->bouncesz);
