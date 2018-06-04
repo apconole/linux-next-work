@@ -24,6 +24,7 @@
 #include "block.h"
 #include "core.h"
 #include "card.h"
+#include "host.h"
 
 /*
  * Prepare a MMC request. This just filters out odd stuff.
@@ -44,8 +45,37 @@ static int mmc_prep_request(struct request_queue *q, struct request *req)
 		return BLKPREP_KILL;
 
 	req->cmd_flags |= REQ_DONTPREP;
+	req_to_mmc_queue_req(req)->retries = 0;
 
 	return BLKPREP_OK;
+}
+
+/*
+ * RHEL: We don't have the full req_op conversion done for the block
+ * layer.  This means that simply testing req_op(req) == REQ_OP_READ or
+ * REQ_OP_WRITE doesn't actually work as expected.  For example, it may
+ * return REQ_OP_WRITE for a flush.  So, we make the logic a bit
+ * convoluted, here.  The idea is to only return MMC_ISSUE_ASYNC for
+ * reads and writes, so we first test for discard and flush, since they
+ * are encoded as types of writes (WRITE|REQ_DISCARD, for example).
+ * Then, it's safe to call req_op(req) and test for read or write.  Finally,
+ * fall back to sync for everything else (WRITE_SAME, etc).
+ */
+enum mmc_issue_type mmc_issue_type(struct mmc_queue *mq, struct request *req)
+{
+	if (req->cmd_flags & REQ_DISCARD || req->cmd_flags & REQ_FLUSH)
+		return MMC_ISSUE_SYNC;
+
+	if (req_op(req) == REQ_OP_READ || req_op(req) == REQ_OP_WRITE)
+		return MMC_ISSUE_ASYNC;
+
+	return MMC_ISSUE_SYNC;
+}
+
+static enum blk_eh_timer_return mmc_mq_timed_out(struct request *req,
+						 bool reserved)
+{
+	return BLK_EH_RESET_TIMER;
 }
 
 static int mmc_queue_thread(void *d)
@@ -166,11 +196,10 @@ static void mmc_queue_setup_discard(struct request_queue *q,
  * @req: the request
  * @gfp: memory allocation policy
  */
-static int mmc_init_request(struct request_queue *q, struct request *req,
-			    gfp_t gfp)
+static int __mmc_init_request(struct mmc_queue *mq, struct request *req,
+			      gfp_t gfp)
 {
 	struct mmc_queue_req *mq_rq = req_to_mmc_queue_req(req);
-	struct mmc_queue *mq = q->queuedata;
 	struct mmc_card *card = mq->card;
 	struct mmc_host *host = card->host;
 
@@ -181,6 +210,12 @@ static int mmc_init_request(struct request_queue *q, struct request *req,
 	return 0;
 }
 
+static int mmc_init_request(struct request_queue *q, struct request *req,
+			    gfp_t gfp)
+{
+	return __mmc_init_request(q->queuedata, req, gfp);
+}
+
 static void mmc_exit_request(struct request_queue *q, struct request *req)
 {
 	struct mmc_queue_req *mq_rq = req_to_mmc_queue_req(req);
@@ -188,6 +223,112 @@ static void mmc_exit_request(struct request_queue *q, struct request *req)
 	kfree(mq_rq->sg);
 	mq_rq->sg = NULL;
 }
+
+static int mmc_mq_init_request(struct blk_mq_tag_set *set, struct request *req,
+			       unsigned int hctx_idx, unsigned int numa_node)
+{
+	return __mmc_init_request(set->driver_data, req, GFP_KERNEL);
+}
+
+static void mmc_mq_exit_request(struct blk_mq_tag_set *set, struct request *req,
+				unsigned int hctx_idx)
+{
+	struct mmc_queue *mq = set->driver_data;
+
+	mmc_exit_request(mq->queue, req);
+}
+
+/*
+ * We use BLK_MQ_F_BLOCKING and have only 1 hardware queue, which means requests
+ * will not be dispatched in parallel.
+ */
+static int mmc_mq_queue_rq(struct blk_mq_hw_ctx *hctx,
+				    const struct blk_mq_queue_data *bd)
+{
+	struct request *req = bd->rq;
+	struct request_queue *q = req->q;
+	struct mmc_queue *mq = q->queuedata;
+	struct mmc_card *card = mq->card;
+	enum mmc_issue_type issue_type;
+	enum mmc_issued issued;
+	bool get_card;
+	int ret;
+
+	if (mmc_card_removed(mq->card)) {
+		req->cmd_flags |= REQ_QUIET;
+		return -EIO;
+	}
+
+	issue_type = mmc_issue_type(mq, req);
+
+	spin_lock_irq(q->queue_lock);
+
+	switch (issue_type) {
+	case MMC_ISSUE_ASYNC:
+		break;
+	default:
+		/*
+		 * Timeouts are handled by mmc core, and we don't have a host
+		 * API to abort requests, so we can't handle the timeout anyway.
+		 * However, when the timeout happens, blk_mq_complete_request()
+		 * no longer works (to stop the request disappearing under us).
+		 * To avoid racing with that, set a large timeout.
+		 */
+		req->timeout = 600 * HZ;
+		break;
+	}
+
+	mq->in_flight[issue_type] += 1;
+	get_card = (mmc_tot_in_flight(mq) == 1);
+
+	spin_unlock_irq(q->queue_lock);
+
+	if (!(req->cmd_flags & REQ_DONTPREP)) {
+		req_to_mmc_queue_req(req)->retries = 0;
+		req->cmd_flags |= REQ_DONTPREP;
+	}
+
+	if (get_card)
+		mmc_get_card(card, &mq->ctx);
+
+	blk_mq_start_request(req);
+
+	issued = mmc_blk_mq_issue_rq(mq, req);
+
+	switch (issued) {
+	case MMC_REQ_BUSY:
+		ret = -ENOMEM;
+		break;
+	case MMC_REQ_FAILED_TO_START:
+		ret = -EIO;
+		break;
+	default:
+		ret = 0;
+		break;
+	}
+
+	if (issued != MMC_REQ_STARTED) {
+		bool put_card = false;
+
+		spin_lock_irq(q->queue_lock);
+		mq->in_flight[issue_type] -= 1;
+		if (mmc_tot_in_flight(mq) == 0)
+			put_card = true;
+		spin_unlock_irq(q->queue_lock);
+		if (put_card)
+			mmc_put_card(card, &mq->ctx);
+	}
+
+	return ret;
+}
+
+static const struct blk_mq_ops mmc_mq_ops = {
+	.queue_rq	= mmc_mq_queue_rq,
+	.init_request	= mmc_mq_init_request,
+	.exit_request	= mmc_mq_exit_request,
+	.complete	= mmc_blk_mq_complete,
+	.timeout	= mmc_mq_timed_out,
+};
 
 static void mmc_setup_queue(struct mmc_queue *mq, struct mmc_card *card)
 {
@@ -210,6 +351,70 @@ static void mmc_setup_queue(struct mmc_queue *mq, struct mmc_card *card)
 
 	/* Initialize thread_sem even if it is not used */
 	sema_init(&mq->thread_sem, 1);
+
+	INIT_WORK(&mq->complete_work, mmc_blk_mq_complete_work);
+
+	mutex_init(&mq->complete_lock);
+
+	init_waitqueue_head(&mq->wait);
+}
+
+static int mmc_mq_init_queue(struct mmc_queue *mq, int q_depth,
+			     const struct blk_mq_ops *mq_ops, spinlock_t *lock)
+{
+	int ret;
+
+	memset(&mq->tag_set, 0, sizeof(mq->tag_set));
+	mq->tag_set.ops = mq_ops;
+	mq->tag_set.queue_depth = q_depth;
+	mq->tag_set.numa_node = NUMA_NO_NODE;
+	mq->tag_set.flags = BLK_MQ_F_SHOULD_MERGE | BLK_MQ_F_SG_MERGE |
+			    BLK_MQ_F_BLOCKING;
+	mq->tag_set.nr_hw_queues = 1;
+	mq->tag_set.cmd_size = sizeof(struct mmc_queue_req);
+	mq->tag_set.driver_data = mq;
+
+	ret = blk_mq_alloc_tag_set(&mq->tag_set);
+	if (ret)
+		return ret;
+
+	mq->queue = blk_mq_init_queue(&mq->tag_set);
+	if (IS_ERR(mq->queue)) {
+		ret = PTR_ERR(mq->queue);
+		goto free_tag_set;
+	}
+
+	mq->queue->queue_lock = lock;
+	mq->queue->queuedata = mq;
+
+	return 0;
+
+free_tag_set:
+	blk_mq_free_tag_set(&mq->tag_set);
+
+	return ret;
+}
+
+/* Set queue depth to get a reasonable value for q->nr_requests */
+#define MMC_QUEUE_DEPTH 64
+
+static int mmc_mq_init(struct mmc_queue *mq, struct mmc_card *card,
+			 spinlock_t *lock)
+{
+	int q_depth;
+	int ret;
+
+	q_depth = MMC_QUEUE_DEPTH;
+
+	ret = mmc_mq_init_queue(mq, q_depth, &mmc_mq_ops, lock);
+	if (ret)
+		return ret;
+
+	blk_queue_rq_timeout(mq->queue, 60 * HZ);
+
+	mmc_setup_queue(mq, card);
+
+	return 0;
 }
 
 /**
@@ -228,6 +433,10 @@ int mmc_init_queue(struct mmc_queue *mq, struct mmc_card *card,
 	int ret = -ENOMEM;
 
 	mq->card = card;
+
+	if (mmc_host_use_blk_mq(host))
+		return mmc_mq_init(mq, card, lock);
+
 	mq->queue = blk_alloc_queue(GFP_KERNEL);
 	if (!mq->queue)
 		return -ENOMEM;
@@ -263,37 +472,24 @@ cleanup_queue:
 	return ret;
 }
 
-void mmc_cleanup_queue(struct mmc_queue *mq)
+static void mmc_mq_queue_suspend(struct mmc_queue *mq)
 {
-	struct request_queue *q = mq->queue;
-	unsigned long flags;
+	blk_mq_quiesce_queue(mq->queue);
 
-	/* Make sure the queue isn't suspended, as that will deadlock */
-	mmc_queue_resume(mq);
-
-	/* Then terminate our worker thread */
-	kthread_stop(mq->thread);
-
-	/* Empty the queue */
-	spin_lock_irqsave(q->queue_lock, flags);
-	q->queuedata = NULL;
-	blk_start_queue(q);
-	spin_unlock_irqrestore(q->queue_lock, flags);
-
-	blk_cleanup_queue(q);
-
-	mq->card = NULL;
+	/*
+	 * The host remains claimed while there are outstanding requests, so
+	 * simply claiming and releasing here ensures there are none.
+	 */
+	mmc_claim_host(mq->card->host);
+	mmc_release_host(mq->card->host);
 }
 
-/**
- * mmc_queue_suspend - suspend a MMC request queue
- * @mq: MMC queue to suspend
- *
- * Stop the block request queue, and wait for our thread to
- * complete any outstanding requests.  This ensures that we
- * won't suspend while a request is being processed.
- */
-void mmc_queue_suspend(struct mmc_queue *mq)
+static void mmc_mq_queue_resume(struct mmc_queue *mq)
+{
+	blk_mq_unquiesce_queue(mq->queue);
+}
+
+static void __mmc_queue_suspend(struct mmc_queue *mq)
 {
 	struct request_queue *q = mq->queue;
 	unsigned long flags;
@@ -309,11 +505,7 @@ void mmc_queue_suspend(struct mmc_queue *mq)
 	}
 }
 
-/**
- * mmc_queue_resume - resume a previously suspended MMC request queue
- * @mq: MMC queue to resume
- */
-void mmc_queue_resume(struct mmc_queue *mq)
+static void __mmc_queue_resume(struct mmc_queue *mq)
 {
 	struct request_queue *q = mq->queue;
 	unsigned long flags;
@@ -327,6 +519,78 @@ void mmc_queue_resume(struct mmc_queue *mq)
 		blk_start_queue(q);
 		spin_unlock_irqrestore(q->queue_lock, flags);
 	}
+}
+
+void mmc_cleanup_queue(struct mmc_queue *mq)
+{
+	struct request_queue *q = mq->queue;
+	unsigned long flags;
+
+	if (q->mq_ops) {
+		/*
+		 * The legacy code handled the possibility of being suspended,
+		 * so do that here too.
+		 */
+		if (blk_queue_quiesced(q))
+			blk_mq_unquiesce_queue(q);
+		goto out_cleanup;
+	}
+
+	/* Make sure the queue isn't suspended, as that will deadlock */
+	mmc_queue_resume(mq);
+
+	/* Then terminate our worker thread */
+	kthread_stop(mq->thread);
+
+	/* Empty the queue */
+	spin_lock_irqsave(q->queue_lock, flags);
+	q->queuedata = NULL;
+	blk_start_queue(q);
+	spin_unlock_irqrestore(q->queue_lock, flags);
+
+out_cleanup:
+	blk_cleanup_queue(q);
+
+	/*
+	 * A request can be completed before the next request, potentially
+	 * leaving a complete_work with nothing to do. Such a work item might
+	 * still be queued at this point. Flush it.
+	 */
+	flush_work(&mq->complete_work);
+
+	mq->card = NULL;
+}
+
+/**
+ * mmc_queue_suspend - suspend a MMC request queue
+ * @mq: MMC queue to suspend
+ *
+ * Stop the block request queue, and wait for our thread to
+ * complete any outstanding requests.  This ensures that we
+ * won't suspend while a request is being processed.
+ */
+void mmc_queue_suspend(struct mmc_queue *mq)
+{
+	struct request_queue *q = mq->queue;
+
+	if (q->mq_ops)
+		mmc_mq_queue_suspend(mq);
+	else
+		__mmc_queue_suspend(mq);
+}
+
+/**
+ * mmc_queue_resume - resume a previously suspended MMC request queue
+ * @mq: MMC queue to resume
+ */
+void mmc_queue_resume(struct mmc_queue *mq)
+{
+	struct request_queue *q = mq->queue;
+
+	if (q->mq_ops)
+		mmc_mq_queue_resume(mq);
+	else
+		__mmc_queue_resume(mq);
 }
 
 /*
