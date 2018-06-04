@@ -563,8 +563,10 @@ static int mmc_blk_ioctl_cmd(struct block_device *bdev,
 {
 	struct mmc_blk_ioc_data *idata;
 	struct mmc_blk_data *md;
+	struct mmc_queue *mq;
 	struct mmc_card *card;
 	int err = 0, ioc_err = 0;
+	struct request *req;
 
 	/*
 	 * The caller must have CAP_SYS_RAWIO, and must be calling this on the
@@ -590,17 +592,18 @@ static int mmc_blk_ioctl_cmd(struct block_device *bdev,
 		goto cmd_done;
 	}
 
-	mmc_get_card(card);
-
-	ioc_err = __mmc_blk_ioctl_cmd(card, md, idata);
-
-	/* Always switch back to main area after RPMB access */
-	if (md->area_type & MMC_BLK_DATA_AREA_RPMB)
-		mmc_blk_part_switch(card, dev_get_drvdata(&card->dev));
-
-	mmc_put_card(card);
-
+	/*
+	 * Dispatch the ioctl() into the block request queue.
+	 */
+	mq = &md->queue;
+	req = blk_get_request(mq->queue,
+		idata->ic.write_flag ? WRITE : READ,
+		__GFP_WAIT);
+	req_to_mmc_queue_req(req)->idata = idata;
+	blk_execute_rq(mq->queue, NULL, req, 0);
+	ioc_err = req_to_mmc_queue_req(req)->ioc_result;
 	err = mmc_blk_ioctl_copy_to_user(ic_ptr, idata);
+	blk_put_request(req);
 
 cmd_done:
 	mmc_blk_put(md);
@@ -608,6 +611,31 @@ cmd_err:
 	kfree(idata->buf);
 	kfree(idata);
 	return ioc_err ? ioc_err : err;
+}
+
+/*
+ * The ioctl commands come back from the block layer after it queued it and
+ * processed it with all other requests and then they get issued in this
+ * function.
+ */
+static void mmc_blk_ioctl_cmd_issue(struct mmc_queue *mq, struct request *req)
+{
+	struct mmc_queue_req *mq_rq;
+	struct mmc_blk_ioc_data *idata;
+	struct mmc_card *card = mq->card;
+	struct mmc_blk_data *md = mq->blkdata;
+	int ioc_err;
+
+	mq_rq = req_to_mmc_queue_req(req);
+	idata = mq_rq->idata;
+	ioc_err = __mmc_blk_ioctl_cmd(card, md, idata);
+	mq_rq->ioc_result = ioc_err;
+
+	/* Always switch back to main area after RPMB access */
+	if (md->area_type & MMC_BLK_DATA_AREA_RPMB)
+		mmc_blk_part_switch(card, dev_get_drvdata(&card->dev));
+
+	blk_end_request_all(req, ioc_err);
 }
 
 static int mmc_blk_ioctl_multi_cmd(struct block_device *bdev,
@@ -1854,21 +1882,42 @@ void mmc_blk_issue_rq(struct mmc_queue *mq, struct request *req)
 		goto out;
 	}
 
-	if (cmd_flags & REQ_DISCARD) {
-		/* complete ongoing async transfer before issuing discard */
-		if (mq->qcnt)
-			mmc_blk_issue_rw_rq(mq, NULL);
-		if (req->cmd_flags & REQ_SECURE)
-			mmc_blk_issue_secdiscard_rq(mq, req);
-		else
-			mmc_blk_issue_discard_rq(mq, req);
-	} else if (cmd_flags & REQ_FLUSH) {
-		/* complete ongoing async transfer before issuing flush */
-		if (mq->qcnt)
-			mmc_blk_issue_rw_rq(mq, NULL);
-		mmc_blk_issue_flush(mq, req);
+	if (cmd_flags) {
+		if (req->cmd_type == REQ_TYPE_DRV_PRIV) {
+			/*
+			 * Complete ongoing async transfer before issuing
+			 * ioctl()s
+			 */
+			if (mq->qcnt)
+				mmc_blk_issue_rw_rq(mq, NULL);
+			mmc_blk_ioctl_cmd_issue(mq, req);
+		} else if (cmd_flags & REQ_DISCARD) {
+			/*
+			 * Complete ongoing async transfer before issuing
+			 * discard.
+			 */
+			if (mq->qcnt)
+				mmc_blk_issue_rw_rq(mq, NULL);
+			if (cmd_flags & REQ_SECURE)
+				mmc_blk_issue_secdiscard_rq(mq, req);
+			else
+				mmc_blk_issue_discard_rq(mq, req);
+		} else if (cmd_flags & REQ_FLUSH) {
+			/*
+			 * Complete ongoing async transfer before issuing
+			 * flush.
+			 */
+			if (mq->qcnt)
+				mmc_blk_issue_rw_rq(mq, NULL);
+			mmc_blk_issue_flush(mq, req);
+		} else {
+			/* Normal request, just issue it */
+			mmc_blk_issue_rw_rq(mq, req);
+			card->host->context_info.is_waiting_last_req = false;
+		}
 	} else {
-		mmc_blk_issue_rw_rq(mq, req);
+		/* No request, flushing the pipeline with NULL */
+		mmc_blk_issue_rw_rq(mq, NULL);
 		card->host->context_info.is_waiting_last_req = false;
 	}
 

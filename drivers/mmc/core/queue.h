@@ -16,6 +16,7 @@ static inline struct mmc_queue_req *req_to_mmc_queue_req(struct request *rq)
 
 struct task_struct;
 struct mmc_blk_data;
+struct mmc_blk_ioc_data;
 
 struct mmc_blk_request {
 	struct mmc_request	mrq;
@@ -34,6 +35,8 @@ struct mmc_queue_req {
 	struct scatterlist	*bounce_sg;
 	unsigned int		bounce_sg_len;
 	struct mmc_async_req	areq;
+	int			ioc_result;
+	struct mmc_blk_ioc_data	*idata;
 };
 
 struct mmc_queue {
