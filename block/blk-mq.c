@@ -1799,8 +1799,7 @@ void blk_mq_free_rqs(struct blk_mq_tag_set *set, struct blk_mq_tags *tags,
 
 			if (!rq)
 				continue;
-			set->ops->exit_request(set->driver_data, rq,
-						hctx_idx, i);
+			set->ops->exit_request(set, rq, hctx_idx);
 			tags->static_rqs[i] = NULL;
 		}
 	}
@@ -1922,8 +1921,7 @@ int blk_mq_alloc_rqs(struct blk_mq_tag_set *set, struct blk_mq_tags *tags,
 
 			tags->static_rqs[i] = rq;
 			if (set->ops->init_request) {
-				if (set->ops->init_request(set->driver_data,
-						rq, hctx_idx, i,
+				if (set->ops->init_request(set, rq, hctx_idx,
 						set->numa_node)) {
 					tags->static_rqs[i] = NULL;
 					goto fail;
@@ -1992,17 +1990,13 @@ static void blk_mq_exit_hctx(struct request_queue *q,
 		struct blk_mq_tag_set *set,
 		struct blk_mq_hw_ctx *hctx, unsigned int hctx_idx)
 {
-	unsigned flush_start_tag = set->queue_depth;
-
 	blk_mq_debugfs_unregister_hctx(hctx);
 
 	if (blk_mq_hw_queue_mapped(hctx))
 		blk_mq_tag_idle(hctx);
 
 	if (set->ops->exit_request)
-		set->ops->exit_request(set->driver_data,
-				       hctx->fq->flush_rq, hctx_idx,
-				       flush_start_tag + hctx_idx);
+		set->ops->exit_request(set, hctx->fq->flush_rq, hctx_idx);
 
 	blk_mq_sched_exit_hctx(q, hctx, hctx_idx);
 
@@ -2045,7 +2039,6 @@ static int blk_mq_init_hctx(struct request_queue *q,
 		struct blk_mq_hw_ctx *hctx, unsigned hctx_idx)
 {
 	int node;
-	unsigned flush_start_tag = set->queue_depth;
 
 	node = hctx->numa_node;
 	if (node == NUMA_NO_NODE)
@@ -2096,9 +2089,8 @@ static int blk_mq_init_hctx(struct request_queue *q,
 		goto sched_exit_hctx;
 
 	if (set->ops->init_request &&
-	    set->ops->init_request(set->driver_data,
-				   hctx->fq->flush_rq, hctx_idx,
-				   flush_start_tag + hctx_idx, node))
+	    set->ops->init_request(set, hctx->fq->flush_rq, hctx_idx,
+				   node))
 		goto free_fq;
 
 	if (hctx->flags & BLK_MQ_F_BLOCKING)

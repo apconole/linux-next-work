@@ -859,11 +859,10 @@ int dm_old_init_request_queue(struct mapped_device *md)
 	return 0;
 }
 
-static int dm_mq_init_request(void *data, struct request *rq,
-		       unsigned int hctx_idx, unsigned int request_idx,
-		       unsigned int numa_node)
+static int dm_mq_init_request(struct blk_mq_tag_set *set, struct request *rq,
+		unsigned int hctx_idx, unsigned int numa_node)
 {
-	struct mapped_device *md = data;
+	struct mapped_device *md = set->driver_data;
 	struct dm_rq_target_io *tio = blk_mq_rq_to_pdu(rq);
 
 	/*
