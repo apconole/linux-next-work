@@ -608,7 +608,7 @@ dlpar_store_out:
 static ssize_t dlpar_show(struct class *class, struct class_attribute *attr,
 			  char *buf)
 {
-	return sprintf(buf, "%s\n", "memory");
+	return sprintf(buf, "%s\n", "memory,cpu");
 }
 
 static CLASS_ATTR(dlpar, S_IWUSR | S_IRUSR, dlpar_show, dlpar_store);
