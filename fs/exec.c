@@ -1446,23 +1446,23 @@ int search_binary_handler(struct linux_binprm *bprm)
 		read_unlock(&binfmt_lock);
 		bprm->recursion_depth++;
 		retval = fmt->load_binary(bprm);
-		bprm->recursion_depth--;
-		if (retval >= 0) {
-			put_binfmt(fmt);
-			return retval;
-		}
 		read_lock(&binfmt_lock);
 		put_binfmt(fmt);
-		if (retval != -ENOEXEC || bprm->mm == NULL)
-			break;
-		if (!bprm->file) {
+		bprm->recursion_depth--;
+		if (retval < 0 && !bprm->mm) {
+			/* we got to flush_old_exec() and failed after it */
+			read_unlock(&binfmt_lock);
+			force_sigsegv(SIGSEGV, current);
+			return retval;
+		}
+		if (retval != -ENOEXEC || !bprm->file) {
 			read_unlock(&binfmt_lock);
 			return retval;
 		}
 	}
 	read_unlock(&binfmt_lock);
 
-	if (need_retry && retval == -ENOEXEC && bprm->mm) {
+	if (need_retry) {
 		if (printable(bprm->buf[0]) && printable(bprm->buf[1]) &&
 		    printable(bprm->buf[2]) && printable(bprm->buf[3]))
 			return retval;
