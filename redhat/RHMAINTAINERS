@@ -137,6 +137,7 @@ S:	Maintained
 F:	drivers/net/ethernet/atheros/
 
 AQUANTIA ETHERNET DRIVER
+M:	Igor Russkikh <irusskik@redhat.com>
 M:	David Arcari <darcari@redhat.com>
 S:	Maintained
 F:	drivers/net/ethernet/aquantia/
