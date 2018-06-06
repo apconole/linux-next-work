@@ -346,15 +346,6 @@ static struct ctl_table ipv4_table[] = {
 		.proc_handler	= proc_dointvec
 	},
 	{
-		.procname	= "ip_default_ttl",
-		.data		= &sysctl_ip_default_ttl,
-		.maxlen		= sizeof(int),
-		.mode		= 0644,
-		.proc_handler	= proc_dointvec_minmax,
-		.extra1		= &ip_ttl_min,
-		.extra2		= &ip_ttl_max,
-	},
-	{
 		.procname	= "tcp_syn_retries",
 		.data		= &sysctl_tcp_syn_retries,
 		.maxlen		= sizeof(int),
@@ -892,6 +883,15 @@ static struct ctl_table ipv4_net_table[] = {
 		.proc_handler	= proc_dointvec
 	},
 	{
+		.procname	= "ip_default_ttl",
+		.data		= &init_net.ipv4_sysctl_ip_default_ttl,
+		.maxlen		= sizeof(int),
+		.mode		= 0644,
+		.proc_handler	= proc_dointvec_minmax,
+		.extra1		= &ip_ttl_min,
+		.extra2		= &ip_ttl_max,
+	},
+	{
 		.procname	= "ip_local_port_range",
 		.maxlen		= sizeof(init_net.ipv4_sysctl_local_ports.range),
 		.data		= &init_net.ipv4_sysctl_local_ports.range,
@@ -992,6 +992,8 @@ static __net_init int ipv4_sysctl_init_net(struct net *net)
 	net->ipv4.ipv4_hdr = register_net_sysctl(net, "net/ipv4", table);
 	if (net->ipv4.ipv4_hdr == NULL)
 		goto err_reg;
+
+	net->ipv4_sysctl_ip_default_ttl = IPDEFTTL;
 
 	return 0;
 

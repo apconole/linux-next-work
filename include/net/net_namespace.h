@@ -189,6 +189,7 @@ struct net {
 #ifdef CONFIG_IP_ROUTE_MULTIPATH
 	RH_KABI_EXTEND(int ipv4_sysctl_fib_multipath_hash_policy)
 #endif
+	RH_KABI_EXTEND(int ipv4_sysctl_ip_default_ttl)
 };
 
 /*

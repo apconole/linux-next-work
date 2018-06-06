@@ -80,9 +80,6 @@
 #include <linux/netlink.h>
 #include <linux/tcp.h>
 
-int sysctl_ip_default_ttl __read_mostly = IPDEFTTL;
-EXPORT_SYMBOL(sysctl_ip_default_ttl);
-
 static int ip_fragment(struct sock *sk, struct sk_buff *skb,
 		       unsigned int mtu,
 		       int (*output)(struct sock *, struct sk_buff *));

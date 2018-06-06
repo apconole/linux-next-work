@@ -21,6 +21,7 @@ static struct iphdr *
 synproxy_build_ip(struct sk_buff *skb, u32 saddr, u32 daddr)
 {
 	struct iphdr *iph;
+	struct net *net = sock_net(skb->sk);
 
 	skb_reset_network_header(skb);
 	iph = skb_put(skb, sizeof(*iph));
@@ -29,7 +30,7 @@ synproxy_build_ip(struct sk_buff *skb, u32 saddr, u32 daddr)
 	iph->tos	= 0;
 	iph->id		= 0;
 	iph->frag_off	= htons(IP_DF);
-	iph->ttl	= sysctl_ip_default_ttl;
+	iph->ttl	= net->ipv4_sysctl_ip_default_ttl;
 	iph->protocol	= IPPROTO_TCP;
 	iph->check	= 0;
 	iph->saddr	= saddr;
