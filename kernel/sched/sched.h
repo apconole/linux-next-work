@@ -16,6 +16,12 @@
 #include "cpudeadline.h"
 #include "cpuacct.h"
 
+#ifdef CONFIG_SCHED_DEBUG
+#define SCHED_WARN_ON(x)	WARN_ONCE(x, #x)
+#else
+#define SCHED_WARN_ON(x)	((void)(x))
+#endif
+
 extern __read_mostly int scheduler_running;
 
 /*
