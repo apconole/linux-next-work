@@ -1087,8 +1087,10 @@ static int virtnet_vlan_rx_add_vid(struct net_device *dev,
 {
 	struct virtnet_info *vi = netdev_priv(dev);
 	struct scatterlist sg;
+	__virtio16 ctrl_vid;
 
-	sg_init_one(&sg, &vid, sizeof(vid));
+	ctrl_vid = cpu_to_virtio16(vi->vdev, vid);
+	sg_init_one(&sg, &ctrl_vid, sizeof(ctrl_vid));
 
 	if (!virtnet_send_command(vi, VIRTIO_NET_CTRL_VLAN,
 				  VIRTIO_NET_CTRL_VLAN_ADD, &sg, NULL))
@@ -1101,8 +1103,10 @@ static int virtnet_vlan_rx_kill_vid(struct net_device *dev,
 {
 	struct virtnet_info *vi = netdev_priv(dev);
 	struct scatterlist sg;
+	__virtio16 ctrl_vid;
 
-	sg_init_one(&sg, &vid, sizeof(vid));
+	ctrl_vid = cpu_to_virtio16(vi->vdev, vid);
+	sg_init_one(&sg, &ctrl_vid, sizeof(ctrl_vid));
 
 	if (!virtnet_send_command(vi, VIRTIO_NET_CTRL_VLAN,
 				  VIRTIO_NET_CTRL_VLAN_DEL, &sg, NULL))
