@@ -1194,9 +1194,9 @@ static const u32 prio_to_wmult[40] = {
 #define ENQUEUE_WAKEUP		0x01
 #define ENQUEUE_RESTORE 	0x02
 #ifdef CONFIG_SMP
-#define ENQUEUE_WAKING		0x04	/* sched_class::task_waking was called */
+#define ENQUEUE_MIGRATED	0x04
 #else
-#define ENQUEUE_WAKING		0x00
+#define ENQUEUE_MIGRATED	0x00
 #endif
 #define ENQUEUE_HEAD		0x08
 #define ENQUEUE_REPLENISH	0x10
@@ -1223,7 +1223,7 @@ struct sched_class {
 
 	void (*pre_schedule) (struct rq *this_rq, struct task_struct *task);
 	void (*post_schedule) (struct rq *this_rq);
-	void (*task_waking) (struct task_struct *task);
+	RH_KABI_DEPRECATE_FN(void, task_waking, struct task_struct *task)
 	void (*task_woken) (struct rq *this_rq, struct task_struct *task);
 
 	void (*set_cpus_allowed)(struct task_struct *p,

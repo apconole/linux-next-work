@@ -2821,7 +2821,7 @@ static inline void check_schedstat_required(void)
  *
  * WAKEUP (remote)
  *
- *	->task_waking_fair()
+ *	->migrate_task_rq_fair() (p->state == TASK_WAKING)
  *	  vruntime -= min_vruntime
  *
  *	enqueue
@@ -2840,7 +2840,7 @@ enqueue_entity(struct cfs_rq *cfs_rq, struct sched_entity *se, int flags)
 	 * Update the normalized vruntime before updating min_vruntime
 	 * through callig update_curr().
 	 */
-	if (!(flags & ENQUEUE_WAKEUP) || (flags & ENQUEUE_WAKING))
+	if (!(flags & ENQUEUE_WAKEUP) || (flags & ENQUEUE_MIGRATED))
 		se->vruntime += cfs_rq->min_vruntime;
 
 	/*
@@ -4127,33 +4127,6 @@ static unsigned long cpu_avg_load_per_task(int cpu)
 	return 0;
 }
 
-/*
- * Called to migrate a waking task; as blocked tasks retain absolute vruntime
- * the migration needs to deal with this by subtracting the old and adding the
- * new min_vruntime -- the latter is done by enqueue_entity() when placing
- * the task on the new runqueue.
- */
-static void task_waking_fair(struct task_struct *p)
-{
-	struct sched_entity *se = &p->se;
-	struct cfs_rq *cfs_rq = cfs_rq_of(se);
-	u64 min_vruntime;
-
-#ifndef CONFIG_64BIT
-	u64 min_vruntime_copy;
-
-	do {
-		min_vruntime_copy = cfs_rq->min_vruntime_copy;
-		smp_rmb();
-		min_vruntime = cfs_rq->min_vruntime;
-	} while (min_vruntime != min_vruntime_copy);
-#else
-	min_vruntime = cfs_rq->min_vruntime;
-#endif
-
-	se->vruntime -= min_vruntime;
-}
-
 #ifdef CONFIG_FAIR_GROUP_SCHED
 /*
  * effective_load() calculates the load change as seen from the root_task_group
@@ -4654,10 +4627,37 @@ migrate_task_rq_fair(struct task_struct *p, int next_cpu)
 	struct cfs_rq *cfs_rq = cfs_rq_of(se);
 
 	/*
+	 * As blocked tasks retain absolute vruntime the migration needs to
+	 * deal with this by subtracting the old and adding the new
+	 * min_vruntime -- the latter is done by enqueue_entity() when placing
+	 * the task on the new runqueue.
+	 */
+	if (p->state == TASK_WAKING) {
+		struct sched_entity *se = &p->se;
+		struct cfs_rq *cfs_rq = cfs_rq_of(se);
+		u64 min_vruntime;
+
+#ifndef CONFIG_64BIT
+		u64 min_vruntime_copy;
+
+		do {
+			min_vruntime_copy = cfs_rq->min_vruntime_copy;
+			smp_rmb();
+			min_vruntime = cfs_rq->min_vruntime;
+		} while (min_vruntime != min_vruntime_copy);
+#else
+		min_vruntime = cfs_rq->min_vruntime;
+#endif
+
+		se->vruntime -= min_vruntime;
+	}
+
+	/*
 	 * Load tracking: accumulate removed load so that it can be processed
 	 * when we next update owning cfs_rq under rq->lock.  Tasks contribute
 	 * to blocked load iff they have a positive decay-count.  It can never
 	 * be negative here since on-rq tasks have decay-count == 0.
+	 *
 	 */
 	if (se->avg.decay_count) {
 		se->avg.decay_count = -__synchronize_entity_decay(se);
@@ -7841,8 +7841,6 @@ const struct sched_class fair_sched_class = {
 #endif
 	.rq_online		= rq_online_fair,
 	.rq_offline		= rq_offline_fair,
-
-	.task_waking		= task_waking_fair,
 #endif
 
 	.set_curr_task          = set_curr_task_fair,
