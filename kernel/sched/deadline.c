@@ -679,7 +679,7 @@ static enum hrtimer_restart dl_task_timer(struct hrtimer *timer)
 	 * We can be both throttled and !queued. Replenish the counter
 	 * but do not enqueue -- wait for our wakeup to do that.
 	 */
-	if (!p->on_rq) {
+	if (!task_on_rq_queued(p)) {
 		replenish_dl_entity(dl_se, dl_se);
 		goto unlock;
 	}
@@ -1447,7 +1447,8 @@ static struct rq *find_lock_later_rq(struct task_struct *task, struct rq *rq)
 			if (unlikely(task_rq(task) != rq ||
 				     !cpumask_test_cpu(later_rq->cpu,
 				                       &task->cpus_allowed) ||
-				     task_running(rq, task) || !task->on_rq)) {
+				     task_running(rq, task) ||
+				     !task_on_rq_queued(task))) {
 				double_unlock_balance(rq, later_rq);
 				later_rq = NULL;
 				break;
@@ -1486,7 +1487,7 @@ static struct task_struct *pick_next_pushable_dl_task(struct rq *rq)
 	BUG_ON(task_current(rq, p));
 	BUG_ON(p->nr_cpus_allowed <= 1);
 
-	BUG_ON(!p->on_rq);
+	BUG_ON(!task_on_rq_queued(p));
 	BUG_ON(!dl_task(p));
 
 	return p;
@@ -1634,7 +1635,7 @@ static int pull_dl_task(struct rq *this_rq)
 		     dl_time_before(p->dl.deadline,
 				    this_rq->dl.earliest_dl.curr))) {
 			WARN_ON(p == src_rq->curr);
-			WARN_ON(!p->on_rq);
+			WARN_ON(!task_on_rq_queued(p));
 
 			/*
 			 * Then we pull iff p has actually an earlier
@@ -1800,7 +1801,7 @@ static void switched_from_dl(struct rq *rq, struct task_struct *p)
 	 * this is the right place to try to pull some other one
 	 * from an overloaded cpu, if any.
 	 */
-	if (!p->on_rq || rq->dl.dl_nr_running)
+	if (!task_on_rq_queued(p) || rq->dl.dl_nr_running)
 		return;
 
 	if (pull_dl_task(rq))
@@ -1818,7 +1819,7 @@ static void switched_to_dl(struct rq *rq, struct task_struct *p)
 	if (dl_time_before(p->dl.deadline, rq_clock(rq)))
 		setup_new_dl_entity(&p->dl, &p->dl);
 
-	if (p->on_rq && rq->curr != p) {
+	if (task_on_rq_queued(p) && rq->curr != p) {
 #ifdef CONFIG_SMP
 		if (p->nr_cpus_allowed > 1 && rq->dl.overloaded &&
 		    push_dl_task(rq) && rq != task_rq(p))
@@ -1841,7 +1842,7 @@ static void switched_to_dl(struct rq *rq, struct task_struct *p)
 static void prio_changed_dl(struct rq *rq, struct task_struct *p,
 			    int oldprio)
 {
-	if (p->on_rq || rq->curr == p) {
+	if (task_on_rq_queued(p) || rq->curr == p) {
 #ifdef CONFIG_SMP
 		/*
 		 * This might be too much, but unfortunately

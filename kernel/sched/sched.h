@@ -22,6 +22,9 @@
 # define SCHED_WARN_ON(x)	({ (void)(x), 0; })
 #endif
 
+/* task_struct::on_rq states: */
+#define TASK_ON_RQ_QUEUED	1
+
 extern __read_mostly int scheduler_running;
 
 /*
@@ -1022,6 +1025,10 @@ static inline int task_running(struct rq *rq, struct task_struct *p)
 #endif
 }
 
+static inline int task_on_rq_queued(struct task_struct *p)
+{
+	return p->on_rq == TASK_ON_RQ_QUEUED;
+}
 
 #ifndef prepare_arch_switch
 # define prepare_arch_switch(next)	do { } while (0)
