@@ -76,15 +76,14 @@
  * the total size is 256K * PAGE_SIZE.
  */
 #define DATA_BLOCK_INIT_BITS 128
-#define DATA_BLOCK_BITS_DEF 32768
-#define DATA_BLOCKS_BITS_MAX 262144
 #define DATA_BLOCK_SIZE PAGE_SIZE
 #define DATA_BLOCK_SHIFT PAGE_SHIFT
+#define DATA_BLOCK_BITS_DEF (256 * 1024)
 #define TCMU_MBS_TO_BLOCKS(_mbs) (_mbs << (20 - DATA_BLOCK_SHIFT))
 #define TCMU_BLOCKS_TO_MBS(_blocks) (_blocks >> (20 - DATA_BLOCK_SHIFT))
 
 /* Default maximum of the global data blocks(512K * PAGE_SIZE) */
-#define TCMU_GLOBAL_MAX_BLOCKS (512 * 1024)
+#define TCMU_GLOBAL_MAX_BLOCKS_DEF (512 * 1024)
 
 static u8 tcmu_kern_cmd_reply_supported;
 
@@ -184,6 +183,47 @@ static struct kmem_cache *tcmu_cmd_cache;
 
 static atomic_t global_db_count = ATOMIC_INIT(0);
 static struct work_struct tcmu_unmap_work;
+static int tcmu_global_max_blocks = TCMU_GLOBAL_MAX_BLOCKS_DEF;
+
+static int tcmu_set_global_max_data_area(const char *str,
+					 const struct kernel_param *kp)
+{
+	int ret, max_area_mb;
+
+	ret = kstrtoint(str, 10, &max_area_mb);
+	if (ret)
+		return -EINVAL;
+
+	if (max_area_mb <= 0) {
+		pr_err("global_max_data_area must be larger than 0.\n");
+		return -EINVAL;
+	}
+
+	tcmu_global_max_blocks = TCMU_MBS_TO_BLOCKS(max_area_mb);
+	if (atomic_read(&global_db_count) > tcmu_global_max_blocks)
+		schedule_work(&tcmu_unmap_work);
+	else
+		cancel_work_sync(&tcmu_unmap_work);
+
+	return 0;
+}
+
+static int tcmu_get_global_max_data_area(char *buffer,
+					 const struct kernel_param *kp)
+{
+	return sprintf(buffer, "%d", TCMU_BLOCKS_TO_MBS(tcmu_global_max_blocks));
+}
+
+static const struct kernel_param_ops tcmu_global_max_data_area_op = {
+	.set = tcmu_set_global_max_data_area,
+	.get = tcmu_get_global_max_data_area,
+};
+
+module_param_cb(global_max_data_area_mb, &tcmu_global_max_data_area_op, NULL,
+		S_IWUSR | S_IRUGO);
+MODULE_PARM_DESC(global_max_data_area_mb,
+		 "Max MBs allowed to be allocated to all the tcmu device's "
+		 "data areas.");
 
 static DEFINE_IDR(devices_idr);
 static DEFINE_MUTEX(device_mutex);
@@ -347,7 +387,7 @@ static inline bool tcmu_get_empty_block(struct tcmu_dev *udev,
 	page = radix_tree_lookup(&udev->data_blocks, dbi);
 	if (!page) {
 		if (atomic_add_return(1, &global_db_count) >
-					TCMU_GLOBAL_MAX_BLOCKS) {
+				      tcmu_global_max_blocks) {
 			atomic_dec(&global_db_count);
 			return false;
 		}
@@ -685,8 +725,8 @@ static bool is_ring_space_avail(struct tcmu_dev *udev, struct tcmu_cmd *cmd,
 
 	space = spc_free(cmd_head, udev->cmdr_last_cleaned, udev->cmdr_size);
 	if (space < cmd_needed) {
-		pr_debug("no cmd space: %u %u %u %lu %lu\n", cmd_head,
-		       udev->cmdr_last_cleaned, udev->cmdr_size, cmd_needed, space);
+		pr_debug("no cmd space: %u %u %u\n", cmd_head,
+		       udev->cmdr_last_cleaned, udev->cmdr_size);
 		return false;
 	}
 
@@ -1205,7 +1245,7 @@ static struct page *tcmu_try_get_block_page(struct tcmu_dev *udev, uint32_t dbi)
 
 		/*
 		 * Since this case is rare in page fault routine, here we
-		 * will allow the global_db_count >= TCMU_GLOBAL_MAX_BLOCKS
+		 * will allow the global_db_count >= tcmu_global_max_blocks
 		 * to reduce possible page fault call trace.
 		 */
 		atomic_inc(&global_db_count);
@@ -1445,7 +1485,6 @@ static int tcmu_configure_device(struct se_device *dev)
 	if (!udev->data_bitmap)
 		goto err_bitmap_alloc;
 
-	udev->ring_size = CMDR_SIZE + (udev->max_blocks * DATA_BLOCK_SIZE);
 	udev->mb_addr = vzalloc(CMDR_SIZE);
 	if (!udev->mb_addr) {
 		ret = -ENOMEM;
@@ -1476,7 +1515,7 @@ static int tcmu_configure_device(struct se_device *dev)
 
 	info->mem[0].name = "tcm-user command & data buffer";
 	info->mem[0].addr = (phys_addr_t)(uintptr_t)udev->mb_addr;
-	info->mem[0].size = udev->ring_size;
+	info->mem[0].size = udev->ring_size = udev->data_size + CMDR_SIZE;
 	info->mem[0].memtype = UIO_MEM_NONE;
 
 	info->irqcontrol = tcmu_irqcontrol;
@@ -1720,11 +1759,11 @@ static ssize_t tcmu_set_configfs_dev_params(struct se_device *dev,
 			}
 
 			udev->max_blocks = TCMU_MBS_TO_BLOCKS(tmpval);
-			if (udev->max_blocks > DATA_BLOCKS_BITS_MAX) {
+			if (udev->max_blocks > tcmu_global_max_blocks) {
 				pr_err("%d is too large. Adjusting max_data_area_mb to global limit of %u\n",
 				       tmpval,
-				       TCMU_BLOCKS_TO_MBS(DATA_BLOCKS_BITS_MAX));
-				udev->max_blocks = DATA_BLOCKS_BITS_MAX;
+				       TCMU_BLOCKS_TO_MBS(tcmu_global_max_blocks));
+				udev->max_blocks = tcmu_global_max_blocks;
 			}
 			break;
 		default:
