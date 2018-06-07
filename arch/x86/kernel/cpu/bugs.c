@@ -356,13 +356,14 @@ static enum ssb_mitigation __ssb_select_mitigation(void)
 		 * a completely different MSR and bit dependent on family.
 		 */
 		switch (boot_cpu_data.x86_vendor) {
-		case X86_VENDOR_INTEL:
-			x86_spec_ctrl_base |= SPEC_CTRL_SSBD;
-			break;
 		case X86_VENDOR_AMD:
 			x86_amd_ssbd_enable();
 			break;
 		}
+		/*
+		 * Always set the SSBD bit for both AMD & Intel.
+		 */
+		x86_spec_ctrl_base |= SPEC_CTRL_SSBD;
 	}
 
 	return mode;

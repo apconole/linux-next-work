@@ -207,7 +207,6 @@ enum ssb_mitigation {
 	SPEC_STORE_BYPASS_DISABLE,
 	SPEC_STORE_BYPASS_PRCTL,
 	SPEC_STORE_BYPASS_SECCOMP,
-	SPEC_STORE_BYPASS_MAX,
 };
 
 /* AMD specific Speculative Store Bypass MSR data */

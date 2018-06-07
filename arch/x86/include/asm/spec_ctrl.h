@@ -364,12 +364,12 @@ x86_virt_spec_ctrl(u64 guest_spec_ctrl, u64 guest_virt_spec_ctrl, bool setguest)
 		goto ret;
 
 	/*
-	 * If the host has SSBD mitigation enabled, force it in the host's
-	 * virtual MSR value. If its not permanently enabled, evaluate
-	 * current's TIF_SSBD thread flag.
+	 * If the SSBD mode is not user settable, grab the SSBD bit
+	 * from x86_spec_ctrl_base. Otherwise, evaluate current's TIF_SSBD
+	 * thread flag.
 	 */
-	if (static_cpu_has(X86_FEATURE_SPEC_STORE_BYPASS_DISABLE))
-		hostval = SPEC_CTRL_SSBD;
+	if (!static_key_false(&ssbd_userset_key))
+		hostval = x86_spec_ctrl_base & SPEC_CTRL_SSBD;
 	else
 		hostval = ssbd_tif_to_spec_ctrl(ti->flags);
 

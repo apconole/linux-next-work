@@ -141,18 +141,6 @@ static void set_spec_ctrl_value(unsigned int *ptr, unsigned int value)
 	}
 }
 
-/*
- * RHEL note:
- * Upstream has implemented the following APIs for getting and setting
- * the SPEC_CTRL MSR value.
- *
- *  - void x86_spec_ctrl_set(u64 val)
- *  - u64 x86_spec_ctrl_get_default(void)
- *
- * We don't use it directly since we have a lot of IBRS management code
- * that touches SPEC_CTRL directly.
- */
-
 static void set_spec_ctrl_pcp(bool entry, bool exit)
 {
 	unsigned int enabled   = this_cpu_read(spec_ctrl_pcp.enabled);
@@ -839,11 +827,6 @@ static void ssbd_spec_ctrl_write(unsigned int mode)
 	if (!ssb_is_user_settable(mode))
 		set_mb(ssb_mode, mode);
 
-	if (mode == SPEC_STORE_BYPASS_DISABLE)
-		x86_spec_ctrl_base |= SPEC_CTRL_SSBD;
-	else
-		x86_spec_ctrl_base &= ~SPEC_CTRL_SSBD;
-
 	switch (ibrs_mode) {
 		case IBRS_DISABLED:
 			clear_spec_ctrl_pcp();
@@ -863,13 +846,19 @@ static void ssbd_spec_ctrl_write(unsigned int mode)
 
 static void ssbd_amd_write(unsigned int mode)
 {
-	u64 msrval = x86_amd_ls_cfg_base;
-	int cpu;
-	int msr = boot_cpu_has(X86_FEATURE_VIRT_SSBD)
-		? MSR_AMD64_VIRT_SPEC_CTRL : MSR_AMD64_LS_CFG;
+	u64 msrval;
+	int msr, cpu;
 
-	if (mode == SPEC_STORE_BYPASS_DISABLE)
-		msrval |= x86_amd_ls_cfg_ssbd_mask;
+	if (boot_cpu_has(X86_FEATURE_VIRT_SSBD)) {
+		msr    = MSR_AMD64_VIRT_SPEC_CTRL;
+		msrval = (mode == SPEC_STORE_BYPASS_DISABLE)
+		       ? SPEC_CTRL_SSBD : 0;
+	} else {
+		msr    = MSR_AMD64_LS_CFG;
+		msrval = x86_amd_ls_cfg_base;
+		if (mode == SPEC_STORE_BYPASS_DISABLE)
+			msrval |= x86_amd_ls_cfg_ssbd_mask;
+	}
 
 	/*
 	 * If the new mode isn't settable, we have to update the
@@ -896,6 +885,9 @@ static ssize_t ssbd_enabled_write(struct file *file,
 	char buf[32];
 	ssize_t len;
 	unsigned int mode;
+	const unsigned int mode_max = IS_ENABLED(CONFIG_SECCOMP)
+				    ? SPEC_STORE_BYPASS_SECCOMP
+				    : SPEC_STORE_BYPASS_PRCTL;
 
 	if (!boot_cpu_has_bug(X86_BUG_SPEC_STORE_BYPASS) ||
 	    !boot_cpu_has(X86_FEATURE_SSBD))
@@ -909,7 +901,7 @@ static ssize_t ssbd_enabled_write(struct file *file,
 	if (kstrtouint(buf, 0, &mode))
 		return -EINVAL;
 
-	if (mode >= SPEC_STORE_BYPASS_MAX)
+	if (mode > mode_max)
 		return -EINVAL;
 
 	mutex_lock(&spec_ctrl_mutex);
@@ -924,8 +916,15 @@ static ssize_t ssbd_enabled_write(struct file *file,
 	 * User settable  => !settable: clear ssbd_userset_key early
 	 * User !settable => settable : set ssbd_userset_key late
 	 */
-	if (static_key_enabled(&ssbd_userset_key) && !ssb_is_user_settable(mode))
+	if (static_key_enabled(&ssbd_userset_key) &&
+	   !ssb_is_user_settable(mode))
 		static_key_slow_dec(&ssbd_userset_key);
+
+	/* Set/clear the SSBD bit in x86_spec_ctrl_base accordingly */
+	if (mode == SPEC_STORE_BYPASS_DISABLE)
+		x86_spec_ctrl_base |= SPEC_CTRL_SSBD;
+	else
+		x86_spec_ctrl_base &= ~SPEC_CTRL_SSBD;
 
 	/*
 	 * If both the old and new SSB modes are user settable or it is

@@ -5229,10 +5229,9 @@ static void svm_vcpu_run(struct kvm_vcpu *vcpu)
 #endif
 #endif
 
-	if (cpu_has_spec_ctrl()) {
+	if (cpu_has_spec_ctrl())
 		svm->spec_ctrl = native_read_msr(MSR_IA32_SPEC_CTRL);
-		x86_spec_ctrl_restore_host(svm->spec_ctrl, svm->virt_spec_ctrl);
-	}
+	x86_spec_ctrl_restore_host(svm->spec_ctrl, svm->virt_spec_ctrl);
 
 	/* Eliminate branch target predictions from guest mode */
 	fill_RSB();
