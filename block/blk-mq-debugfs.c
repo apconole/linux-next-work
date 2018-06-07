@@ -226,11 +226,20 @@ static const char *const cmd_flag_name[] = {
 };
 #undef CMD_FLAG_NAME
 
+#define RQAF_NAME(name) [REQ_ATOM_##name] = #name
+static const char *const rqaf_name[] = {
+	RQAF_NAME(COMPLETE),
+	RQAF_NAME(STARTED),
+};
+#undef RQAF_NAME
+
 int __blk_mq_debugfs_rq_show(struct seq_file *m, struct request *rq)
 {
 	seq_puts(m, ", .cmd_flags=");
 	blk_flags_show(m, rq->cmd_flags, cmd_flag_name,
 		       ARRAY_SIZE(cmd_flag_name));
+	seq_puts(m, ", .atomic_flags=");
+	blk_flags_show(m, rq->atomic_flags, rqaf_name, ARRAY_SIZE(rqaf_name));
 	seq_printf(m, ", .tag=%d, .internal_tag=%d}\n", rq->tag,
 		   rq_aux(rq)->internal_tag);
 	return 0;
