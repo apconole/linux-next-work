@@ -1303,6 +1303,7 @@ static int tcmu_open(struct uio_info *info, struct inode *inode)
 		return -EBUSY;
 
 	udev->inode = inode;
+	kref_get(&udev->kref);
 
 	pr_debug("open\n");
 
@@ -1334,7 +1335,7 @@ static int tcmu_release(struct uio_info *info, struct inode *inode)
 	clear_bit(TCMU_DEV_BIT_OPEN, &udev->flags);
 
 	pr_debug("close\n");
-	/* release ref from configure */
+	/* release ref from open */
 	kref_put(&udev->kref, tcmu_dev_kref_release);
 	return 0;
 }
@@ -1647,8 +1648,6 @@ static void tcmu_destroy_device(struct se_device *dev)
 	tcmu_netlink_event(udev, TCMU_CMD_REMOVED_DEVICE, 0, NULL);
 
 	uio_unregister_device(&udev->uio_info);
-	kfree(udev->uio_info.name);
-	kfree(udev->name);
 
 	mutex_lock(&device_mutex);
 	idr_remove(&devices_idr, udev->dev_index);
@@ -1670,6 +1669,9 @@ static void tcmu_destroy_device(struct se_device *dev)
 	spin_unlock_irq(&udev->commands_lock);
 	WARN_ON(!all_expired);
 	kfree(udev->data_bitmap);
+
+	/* release ref from configure */
+	kref_put(&udev->kref, tcmu_dev_kref_release);
 }
 
 enum {
