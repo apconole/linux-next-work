@@ -152,6 +152,8 @@ struct tcmu_dev {
 	wait_queue_head_t nl_cmd_wq;
 
 	char dev_config[TCMU_CONFIG_LEN];
+
+	int nl_reply_supported;
 };
 
 #define TCMU_DEV(_se_dev) container_of(_se_dev, struct tcmu_dev, se_dev)
@@ -1343,6 +1345,10 @@ static void tcmu_init_genl_cmd_reply(struct tcmu_dev *udev, int cmd)
 
 	if (!tcmu_kern_cmd_reply_supported)
 		return;
+
+	if (udev->nl_reply_supported <= 0)
+		return;
+
 relock:
 	spin_lock(&udev->nl_cmd_lock);
 
@@ -1367,6 +1373,9 @@ static int tcmu_wait_genl_cmd_reply(struct tcmu_dev *udev)
 	DEFINE_WAIT(__wait);
 
 	if (!tcmu_kern_cmd_reply_supported)
+		return 0;
+
+	if (udev->nl_reply_supported <= 0)
 		return 0;
 
 	pr_debug("sleeping for nl reply\n");
@@ -1536,6 +1545,12 @@ static int tcmu_configure_device(struct se_device *dev)
 		dev->dev_attrib.hw_max_sectors = 128;
 	dev->dev_attrib.hw_queue_depth = 128;
 
+	/* If user didn't explicitly disable netlink reply support, use
+	 * module scope setting.
+	 */
+	if (udev->nl_reply_supported >= 0)
+		udev->nl_reply_supported = tcmu_kern_cmd_reply_supported;
+
 	/*
 	 * Get a ref incase userspace does a close on the uio device before
 	 * LIO has initiated tcmu_free_device.
@@ -1652,7 +1667,7 @@ static void tcmu_destroy_device(struct se_device *dev)
 
 enum {
 	Opt_dev_config, Opt_dev_size, Opt_hw_block_size, Opt_hw_max_sectors,
-	Opt_max_data_area_mb, Opt_err,
+	Opt_nl_reply_supported, Opt_max_data_area_mb, Opt_err,
 };
 
 static match_table_t tokens = {
@@ -1660,6 +1675,7 @@ static match_table_t tokens = {
 	{Opt_dev_size, "dev_size=%u"},
 	{Opt_hw_block_size, "hw_block_size=%u"},
 	{Opt_hw_max_sectors, "hw_max_sectors=%u"},
+	{Opt_nl_reply_supported, "nl_reply_supported=%d"},
 	{Opt_max_data_area_mb, "max_data_area_mb=%u"},
 	{Opt_err, NULL}
 };
@@ -1734,6 +1750,18 @@ static ssize_t tcmu_set_configfs_dev_params(struct se_device *dev,
 		case Opt_hw_max_sectors:
 			ret = tcmu_set_dev_attrib(&args[0],
 					&(dev->dev_attrib.hw_max_sectors));
+			break;
+		case Opt_nl_reply_supported:
+			arg_p = match_strdup(&args[0]);
+			if (!arg_p) {
+				ret = -ENOMEM;
+				break;
+			}
+			ret = kstrtol(arg_p, 0,
+					(long int *) &udev->nl_reply_supported);
+			kfree(arg_p);
+			if (ret < 0)
+				pr_err("kstrtoul() failed for nl_reply_supported=\n");
 			break;
 		case Opt_max_data_area_mb:
 			if (dev->export_count) {
@@ -1913,6 +1941,34 @@ static ssize_t tcmu_dev_size_store(struct config_item *item, const char *page,
 }
 CONFIGFS_ATTR(tcmu_, dev_size);
 
+static ssize_t tcmu_nl_reply_supported_show(struct config_item *item,
+		char *page)
+{
+	struct se_dev_attrib *da = container_of(to_config_group(item),
+						struct se_dev_attrib, da_group);
+	struct tcmu_dev *udev = TCMU_DEV(da->da_dev);
+
+	return snprintf(page, PAGE_SIZE, "%d\n", udev->nl_reply_supported);
+}
+
+static ssize_t tcmu_nl_reply_supported_store(struct config_item *item,
+		const char *page, size_t count)
+{
+	struct se_dev_attrib *da = container_of(to_config_group(item),
+						struct se_dev_attrib, da_group);
+	struct tcmu_dev *udev = TCMU_DEV(da->da_dev);
+	s8 val;
+	int ret;
+
+	ret = kstrtos8(page, 0, &val);
+	if (ret < 0)
+		return ret;
+
+	udev->nl_reply_supported = val;
+	return count;
+}
+CONFIGFS_ATTR(tcmu_, nl_reply_supported);
+
 static ssize_t tcmu_max_data_area_mb_show(struct config_item *item, char *page)
 {
 	struct se_dev_attrib *da = container_of(to_config_group(item),
@@ -1929,6 +1985,7 @@ struct configfs_attribute *tcmu_attrib_attrs[] = {
 	&tcmu_attr_qfull_time_out,
 	&tcmu_attr_max_data_area_mb,
 	&tcmu_attr_dev_size,
+	&tcmu_attr_nl_reply_supported,
 	NULL,
 };
 
