@@ -1644,17 +1644,15 @@ static void tcmu_destroy_device(struct se_device *dev)
 	tcmu_blocks_release(&udev->data_blocks, 0, udev->dbi_max + 1);
 	mutex_unlock(&udev->cmdr_lock);
 
-	if (tcmu_dev_configured(udev)) {
-		tcmu_netlink_event(udev, TCMU_CMD_REMOVED_DEVICE, 0, NULL);
+	tcmu_netlink_event(udev, TCMU_CMD_REMOVED_DEVICE, 0, NULL);
 
-		uio_unregister_device(&udev->uio_info);
-		kfree(udev->uio_info.name);
-		kfree(udev->name);
+	uio_unregister_device(&udev->uio_info);
+	kfree(udev->uio_info.name);
+	kfree(udev->name);
 
-		mutex_lock(&device_mutex);
-		idr_remove(&devices_idr, udev->dev_index);
-		mutex_unlock(&device_mutex);
-	}
+	mutex_lock(&device_mutex);
+	idr_remove(&devices_idr, udev->dev_index);
+	mutex_unlock(&device_mutex);
 
 	mutex_lock(&root_udev_mutex);
 	list_del(&udev->node);
