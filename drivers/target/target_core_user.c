@@ -1915,6 +1915,42 @@ static ssize_t tcmu_qfull_time_out_store(struct config_item *item,
 }
 CONFIGFS_ATTR(tcmu_, qfull_time_out);
 
+static ssize_t tcmu_dev_config_show(struct config_item *item, char *page)
+{
+	struct se_dev_attrib *da = container_of(to_config_group(item),
+						struct se_dev_attrib, da_group);
+	struct tcmu_dev *udev = TCMU_DEV(da->da_dev);
+
+	return snprintf(page, PAGE_SIZE, "%s\n", udev->dev_config);
+}
+
+static ssize_t tcmu_dev_config_store(struct config_item *item, const char *page,
+				     size_t count)
+{
+	struct se_dev_attrib *da = container_of(to_config_group(item),
+						struct se_dev_attrib, da_group);
+	struct tcmu_dev *udev = TCMU_DEV(da->da_dev);
+	int ret, len;
+
+	len = strlen(page);
+	if (!len || len > TCMU_CONFIG_LEN - 1)
+		return -EINVAL;
+
+	/* Check if device has been configured before */
+	if (tcmu_dev_configured(udev)) {
+		ret = tcmu_netlink_event(udev, TCMU_CMD_RECONFIG_DEVICE,
+					 TCMU_ATTR_DEV_CFG, page);
+		if (ret) {
+			pr_err("Unable to reconfigure device\n");
+			return ret;
+		}
+	}
+	strlcpy(udev->dev_config, page, TCMU_CONFIG_LEN);
+
+	return count;
+}
+CONFIGFS_ATTR(tcmu_, dev_config);
+
 static ssize_t tcmu_dev_size_show(struct config_item *item, char *page)
 {
 	struct se_dev_attrib *da = container_of(to_config_group(item),
@@ -2032,6 +2068,7 @@ struct configfs_attribute *tcmu_attrib_attrs[] = {
 	&tcmu_attr_cmd_time_out,
 	&tcmu_attr_qfull_time_out,
 	&tcmu_attr_max_data_area_mb,
+	&tcmu_attr_dev_config,
 	&tcmu_attr_dev_size,
 	&tcmu_attr_emulate_write_cache,
 	&tcmu_attr_nl_reply_supported,
