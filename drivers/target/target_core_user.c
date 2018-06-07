@@ -139,7 +139,6 @@ struct tcmu_dev {
 	struct radix_tree_root data_blocks;
 
 	struct idr commands;
-	spinlock_t commands_lock;
 
 	struct timer_list timeout;
 	unsigned int cmd_time_out;
@@ -1077,12 +1076,9 @@ static unsigned int tcmu_handle_completions(struct tcmu_dev *udev)
 		}
 		WARN_ON(tcmu_hdr_get_op(entry->hdr.len_op) != TCMU_OP_CMD);
 
-		spin_lock(&udev->commands_lock);
 		cmd = idr_find(&udev->commands, entry->hdr.cmd_id);
 		if (cmd)
 			idr_remove(&udev->commands, cmd->cmd_id);
-		spin_unlock(&udev->commands_lock);
-
 		if (!cmd) {
 			pr_err("cmd_id not found, ring is broken\n");
 			set_bit(TCMU_DEV_BIT_BROKEN, &udev->flags);
@@ -1182,7 +1178,6 @@ static struct se_device *tcmu_alloc_device(struct se_hba *hba, const char *name)
 
 	INIT_LIST_HEAD(&udev->timedout_entry);
 	idr_init(&udev->commands);
-	spin_lock_init(&udev->commands_lock);
 
 	setup_timer(&udev->timeout, tcmu_device_timedout,
 		(unsigned long)udev);
@@ -1667,13 +1662,13 @@ static void tcmu_destroy_device(struct se_device *dev)
 	spin_unlock_bh(&timed_out_udevs_lock);
 
 	/* Upper layer should drain all requests before calling this */
-	spin_lock_irq(&udev->commands_lock);
+	mutex_lock(&udev->cmdr_lock);
 	idr_for_each_entry(&udev->commands, cmd, i) {
 		if (tcmu_check_and_free_pending_cmd(cmd) != 0)
 			all_expired = false;
 	}
 	idr_destroy(&udev->commands);
-	spin_unlock_irq(&udev->commands_lock);
+	mutex_unlock(&udev->cmdr_lock);
 	WARN_ON(!all_expired);
 	kfree(udev->data_bitmap);
 
@@ -2189,9 +2184,9 @@ static void check_timedout_devices(void)
 		list_del_init(&udev->timedout_entry);
 		spin_unlock_bh(&timed_out_udevs_lock);
 
-		spin_lock(&udev->commands_lock);
+		mutex_lock(&udev->cmdr_lock);
 		idr_for_each(&udev->commands, tcmu_check_expired_cmd, NULL);
-		spin_unlock(&udev->commands_lock);
+		mutex_unlock(&udev->cmdr_lock);
 
 		spin_lock_bh(&timed_out_udevs_lock);
 	}
