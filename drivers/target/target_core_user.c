@@ -883,6 +883,7 @@ static sense_reason_t queue_cmd_ring(struct tcmu_cmd *tcmu_cmd, int *scsi_err)
 	/*
 	 * Must be a certain minimum size for response sense info, but
 	 * also may be larger if the iov array is large.
+	 *
 	 * We prepare as many iovs as possbile for potential uses here,
 	 * because it's expensive to tell how many regions are freed in
 	 * the bitmap & global data pool, as the size calculated here
@@ -891,8 +892,7 @@ static sense_reason_t queue_cmd_ring(struct tcmu_cmd *tcmu_cmd, int *scsi_err)
 	 * The size will be recalculated later as actually needed to save
 	 * cmd area memories.
 	 */
-	base_command_size = tcmu_cmd_get_base_cmd_size(
-					tcmu_cmd_get_block_cnt(tcmu_cmd));
+	base_command_size = tcmu_cmd_get_base_cmd_size(tcmu_cmd->dbi_cnt);
 	command_size = tcmu_cmd_get_cmd_size(tcmu_cmd, base_command_size);
 
 	if (!list_empty(&udev->cmdr_queue))
