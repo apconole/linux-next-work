@@ -1421,10 +1421,17 @@ static int tcmu_netlink_event(struct tcmu_dev *udev, enum tcmu_genl_cmd cmd,
 
 	if (cmd == TCMU_CMD_RECONFIG_DEVICE) {
 		switch (reconfig_attr) {
+		case TCMU_ATTR_DEV_CFG:
+			ret = nla_put_string(skb, reconfig_attr, reconfig_data);
+			break;
 		case TCMU_ATTR_DEV_SIZE:
 			ret = nla_put_u64_64bit(skb, reconfig_attr,
 						*((u64 *)reconfig_data),
 						TCMU_ATTR_PAD);
+			break;
+		case TCMU_ATTR_WRITECACHE:
+			ret = nla_put_u8(skb, reconfig_attr,
+					  *((u8 *)reconfig_data));
 			break;
 		default:
 			BUG();
@@ -1543,6 +1550,8 @@ static int tcmu_configure_device(struct se_device *dev)
 	/* Other attributes can be configured in userspace */
 	if (!dev->dev_attrib.hw_max_sectors)
 		dev->dev_attrib.hw_max_sectors = 128;
+	if (!dev->dev_attrib.emulate_write_cache)
+		dev->dev_attrib.emulate_write_cache = 0;
 	dev->dev_attrib.hw_queue_depth = 128;
 
 	/* If user didn't explicitly disable netlink reply support, use
@@ -1971,6 +1980,43 @@ static ssize_t tcmu_nl_reply_supported_store(struct config_item *item,
 }
 CONFIGFS_ATTR(tcmu_, nl_reply_supported);
 
+static ssize_t tcmu_emulate_write_cache_show(struct config_item *item,
+					     char *page)
+{
+	struct se_dev_attrib *da = container_of(to_config_group(item),
+					struct se_dev_attrib, da_group);
+
+	return snprintf(page, PAGE_SIZE, "%i\n", da->emulate_write_cache);
+}
+
+static ssize_t tcmu_emulate_write_cache_store(struct config_item *item,
+					      const char *page, size_t count)
+{
+	struct se_dev_attrib *da = container_of(to_config_group(item),
+					struct se_dev_attrib, da_group);
+	struct tcmu_dev *udev = TCMU_DEV(da->da_dev);
+	u8 val;
+	int ret;
+
+	ret = kstrtou8(page, 0, &val);
+	if (ret < 0)
+		return ret;
+
+	/* Check if device has been configured before */
+	if (tcmu_dev_configured(udev)) {
+		ret = tcmu_netlink_event(udev, TCMU_CMD_RECONFIG_DEVICE,
+					 TCMU_ATTR_WRITECACHE, &val);
+		if (ret) {
+			pr_err("Unable to reconfigure device\n");
+			return ret;
+		}
+	}
+
+	da->emulate_write_cache = val;
+	return count;
+}
+CONFIGFS_ATTR(tcmu_, emulate_write_cache);
+
 static ssize_t tcmu_max_data_area_mb_show(struct config_item *item, char *page)
 {
 	struct se_dev_attrib *da = container_of(to_config_group(item),
@@ -1987,6 +2033,7 @@ struct configfs_attribute *tcmu_attrib_attrs[] = {
 	&tcmu_attr_qfull_time_out,
 	&tcmu_attr_max_data_area_mb,
 	&tcmu_attr_dev_size,
+	&tcmu_attr_emulate_write_cache,
 	&tcmu_attr_nl_reply_supported,
 	NULL,
 };
