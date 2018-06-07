@@ -75,7 +75,6 @@
  * For data area, the block size is PAGE_SIZE and
  * the total size is 256K * PAGE_SIZE.
  */
-#define DATA_BLOCK_INIT_BITS 128
 #define DATA_BLOCK_SIZE PAGE_SIZE
 #define DATA_BLOCK_SHIFT PAGE_SHIFT
 #define DATA_BLOCK_BITS_DEF (256 * 1024)
@@ -742,7 +741,6 @@ static bool is_ring_space_avail(struct tcmu_dev *udev, struct tcmu_cmd *cmd,
 	if ((space * DATA_BLOCK_SIZE) < data_needed) {
 		unsigned long blocks_left =
 				(udev->max_blocks - udev->dbi_thresh) + space;
-		unsigned long grow;
 
 		if (blocks_left < blocks_needed) {
 			pr_debug("no data space: only %lu available, but ask for %zu\n",
@@ -751,23 +749,9 @@ static bool is_ring_space_avail(struct tcmu_dev *udev, struct tcmu_cmd *cmd,
 			return false;
 		}
 
-		/* Try to expand the thresh */
-		if (!udev->dbi_thresh) {
-			/* From idle state */
-			uint32_t init_thresh = DATA_BLOCK_INIT_BITS;
-
-			udev->dbi_thresh = max(blocks_needed, init_thresh);
-		} else {
-			/*
-			 * Grow the data area by max(blocks needed,
-			 * dbi_thresh / 2), but limited to the max
-			 * DATA_BLOCK_BITS size.
-			 */
-			grow = max(blocks_needed, udev->dbi_thresh / 2);
-			udev->dbi_thresh += grow;
-			if (udev->dbi_thresh > udev->max_blocks)
-				udev->dbi_thresh = udev->max_blocks;
-		}
+		udev->dbi_thresh += blocks_needed;
+		if (udev->dbi_thresh > udev->max_blocks)
+			udev->dbi_thresh = udev->max_blocks;
 	}
 
 	return tcmu_get_empty_blocks(udev, cmd);
