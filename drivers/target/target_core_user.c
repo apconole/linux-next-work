@@ -482,25 +482,49 @@ static void free_data_area(struct tcmu_dev *udev, struct tcmu_cmd *cmd)
 		   udev->max_blocks);
 }
 
-static void gather_data_area(struct tcmu_dev *udev, unsigned long *cmd_bitmap,
-		struct scatterlist *data_sg, unsigned int data_nents)
+static void gather_data_area(struct tcmu_dev *udev, struct tcmu_cmd *cmd,
+			     bool bidi)
 {
+	struct se_cmd *se_cmd = cmd->se_cmd;
 	int i, block;
 	int block_remaining = 0;
 	void *from, *to;
 	size_t copy_bytes, from_offset;
-	struct scatterlist *sg;
+	struct scatterlist *sg, *data_sg;
+	unsigned int data_nents;
+	unsigned long *bitmap = cmd->data_bitmap;
+
+	if (!bidi) {
+		data_sg = se_cmd->t_data_sg;
+		data_nents = se_cmd->t_data_nents;
+	} else {
+		uint32_t count;
+
+		/*
+		 * For bidi case, the first count blocks are for Data-Out
+		 * buffer blocks, and before gathering the Data-In buffer
+		 * the Data-Out buffer blocks should be discarded.
+		 */
+		count = DIV_ROUND_UP(se_cmd->data_length, DATA_BLOCK_SIZE);
+		while (count--) {
+			block = find_first_bit(bitmap, udev->max_blocks);
+			clear_bit(block, bitmap);
+		}
+
+		data_sg = se_cmd->t_bidi_data_sg;
+		data_nents = se_cmd->t_bidi_data_nents;
+	}
 
 	for_each_sg(data_sg, sg, data_nents, i) {
 		int sg_remaining = sg->length;
 		to = kmap_atomic(sg_page(sg)) + sg->offset;
 		while (sg_remaining > 0) {
 			if (block_remaining == 0) {
-				block = find_first_bit(cmd_bitmap,
+				block = find_first_bit(bitmap,
 						       udev->max_blocks);
 				block_remaining = DATA_BLOCK_SIZE;
 				clear_bit(block, udev->data_bitmap);
-				clear_bit(block, cmd_bitmap);
+				clear_bit(block, bitmap);
 			}
 			copy_bytes = min_t(size_t, sg_remaining,
 					block_remaining);
@@ -799,11 +823,9 @@ static void tcmu_handle_completion(struct tcmu_cmd *cmd, struct tcmu_cmd_entry *
 		free_data_area(udev, cmd);
 	} else if (se_cmd->se_cmd_flags & SCF_BIDI) {
 		/* Get Data-In buffer before clean up */
-		gather_data_area(udev, cmd->data_bitmap,
-			se_cmd->t_bidi_data_sg, se_cmd->t_bidi_data_nents);
+		gather_data_area(udev, cmd, true);
 	} else if (se_cmd->data_direction == DMA_FROM_DEVICE) {
-		gather_data_area(udev, cmd->data_bitmap,
-			se_cmd->t_data_sg, se_cmd->t_data_nents);
+		gather_data_area(udev, cmd, false);
 	} else if (se_cmd->data_direction == DMA_TO_DEVICE) {
 		free_data_area(udev, cmd);
 	} else if (se_cmd->data_direction != DMA_NONE) {
