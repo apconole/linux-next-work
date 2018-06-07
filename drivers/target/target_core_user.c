@@ -106,7 +106,6 @@ struct tcmu_dev {
 	struct list_head node;
 	struct kref kref;
 	struct se_device se_dev;
-	int dev_index;
 
 	char *name;
 	struct se_hba *hba;
@@ -227,9 +226,6 @@ MODULE_PARM_DESC(global_max_data_area_mb,
 		 "Max MBs allowed to be allocated to all the tcmu device's "
 		 "data areas.");
 
-static DEFINE_IDR(devices_idr);
-static DEFINE_MUTEX(device_mutex);
-
 /* multicast group */
 enum tcmu_multicast_groups {
 	TCMU_MCGRP_CONFIG,
@@ -253,6 +249,7 @@ static int tcmu_genl_cmd_done(struct genl_info *info, int completed_cmd)
 	struct tcmu_dev *udev;
 	struct tcmu_nl_cmd *nl_cmd;
 	int dev_id, rc, ret = 0;
+	bool is_removed = (completed_cmd == TCMU_CMD_REMOVED_DEVICE);
 
 	if (!info->attrs[TCMU_ATTR_CMD_STATUS] ||
 	    !info->attrs[TCMU_ATTR_DEVICE_ID]) {
@@ -263,9 +260,7 @@ static int tcmu_genl_cmd_done(struct genl_info *info, int completed_cmd)
 	dev_id = nla_get_u32(info->attrs[TCMU_ATTR_DEVICE_ID]);
 	rc = nla_get_s32(info->attrs[TCMU_ATTR_CMD_STATUS]);
 
-	mutex_lock(&device_mutex);
-	dev = idr_find(&devices_idr, dev_id);
-	mutex_unlock(&device_mutex);
+	dev = target_find_device(dev_id, !is_removed);
 	if (!dev) {
 		printk(KERN_ERR "tcmu nl cmd %u/%u completion could not find device with dev id %u.\n",
 		       completed_cmd, rc, dev_id);
@@ -288,6 +283,8 @@ static int tcmu_genl_cmd_done(struct genl_info *info, int completed_cmd)
 	}
 
 	spin_unlock(&udev->nl_cmd_lock);
+	if (!is_removed)
+		target_undepend_item(&dev->dev_group.cg_item);
 	if (!ret)
 		complete(&nl_cmd->complete);
 	return ret;
@@ -1416,7 +1413,7 @@ static int tcmu_netlink_event(struct tcmu_dev *udev, enum tcmu_genl_cmd cmd,
 	if (ret < 0)
 		goto free_skb;
 
-	ret = nla_put_u32(skb, TCMU_ATTR_DEVICE_ID, udev->dev_index);
+	ret = nla_put_u32(skb, TCMU_ATTR_DEVICE_ID, udev->se_dev.dev_index);
 	if (ret < 0)
 		goto free_skb;
 
@@ -1468,15 +1465,8 @@ static int tcmu_configure_device(struct se_device *dev)
 	struct tcmu_mailbox *mb;
 	size_t size;
 	size_t used;
-	int id, ret = 0;
+	int ret = 0;
 	char *str;
-
-	mutex_lock(&device_mutex);
-	id = idr_alloc_cyclic(&devices_idr, dev, 0, INT_MAX, GFP_KERNEL);
-	mutex_unlock(&device_mutex);
-	if (id < 0)
-		return -ENOMEM;
-	udev->dev_index = id;
 
 	info = &udev->uio_info;
 
@@ -1484,10 +1474,8 @@ static int tcmu_configure_device(struct se_device *dev)
 			udev->dev_config);
 	size += 1; /* for \0 */
 	str = kmalloc(size, GFP_KERNEL);
-	if (!str) {
-		ret = -ENOMEM;
-		goto err_kmalloc;
-	}
+	if (!str)
+		return -ENOMEM;
 
 	used = snprintf(str, size, "tcm-user/%u/%s", hba->host_id, udev->name);
 
@@ -1587,10 +1575,6 @@ err_vzalloc:
 err_bitmap_alloc:
 	kfree(info->name);
 	info->name = NULL;
-err_kmalloc:
-	mutex_lock(&device_mutex);
-	idr_remove(&devices_idr, udev->dev_index);
-	mutex_unlock(&device_mutex);
 
 	return ret;
 }
@@ -1648,10 +1632,6 @@ static void tcmu_destroy_device(struct se_device *dev)
 	tcmu_netlink_event(udev, TCMU_CMD_REMOVED_DEVICE, 0, NULL);
 
 	uio_unregister_device(&udev->uio_info);
-
-	mutex_lock(&device_mutex);
-	idr_remove(&devices_idr, udev->dev_index);
-	mutex_unlock(&device_mutex);
 
 	mutex_lock(&root_udev_mutex);
 	list_del(&udev->node);
@@ -2225,8 +2205,6 @@ static int __init tcmu_module_init(void)
 	if (ret)
 		goto out_attrs;
 
-	idr_init(&devices_idr);
-
 	return 0;
 
 out_attrs:
@@ -2244,7 +2222,6 @@ out_free_cache:
 static void __exit tcmu_module_exit(void)
 {
 	cancel_work_sync(&tcmu_unmap_work);
-	idr_destroy(&devices_idr);
 	target_backend_unregister(&tcmu_ops);
 	kfree(tcmu_attrs);
 	genl_unregister_family(&tcmu_genl_family);
