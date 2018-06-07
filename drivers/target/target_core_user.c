@@ -601,7 +601,7 @@ tcmu_queue_cmd_ring(struct tcmu_cmd *tcmu_cmd)
 	uint32_t cmd_head;
 	uint64_t cdb_off;
 	bool copy_to_data_area;
-	size_t data_length;
+	size_t data_length = tcmu_cmd_get_data_length(tcmu_cmd);
 
 	if (test_bit(TCMU_DEV_BIT_BROKEN, &udev->flags))
 		return TCM_LOGICAL_UNIT_COMMUNICATION_FAILURE;
@@ -625,11 +625,6 @@ tcmu_queue_cmd_ring(struct tcmu_cmd *tcmu_cmd)
 
 	mb = udev->mb_addr;
 	cmd_head = mb->cmd_head % udev->cmdr_size; /* UAM */
-	data_length = se_cmd->data_length;
-	if (se_cmd->se_cmd_flags & SCF_BIDI) {
-		BUG_ON(!(se_cmd->t_bidi_data_sg && se_cmd->t_bidi_data_nents));
-		data_length += se_cmd->t_bidi_data_sg->length;
-	}
 	if ((command_size > (udev->cmdr_size / 2)) ||
 	    data_length > udev->data_size) {
 		pr_warn("TCMU: Request of size %zu/%zu is too big for %u/%zu "
@@ -713,11 +708,15 @@ tcmu_queue_cmd_ring(struct tcmu_cmd *tcmu_cmd)
 	entry->req.iov_dif_cnt = 0;
 
 	/* Handle BIDI commands */
-	iov_cnt = 0;
-	alloc_and_scatter_data_area(udev, tcmu_cmd->data_bitmap,
-		se_cmd->t_bidi_data_sg, se_cmd->t_bidi_data_nents, &iov,
-		&iov_cnt, false);
-	entry->req.iov_bidi_cnt = iov_cnt;
+	if (se_cmd->se_cmd_flags & SCF_BIDI) {
+		iov_cnt = 0;
+		iov++;
+		alloc_and_scatter_data_area(udev, tcmu_cmd->data_bitmap,
+				se_cmd->t_bidi_data_sg,
+				se_cmd->t_bidi_data_nents, &iov, &iov_cnt,
+				false);
+		entry->req.iov_bidi_cnt = iov_cnt;
+	}
 
 	/*
 	 * Recalaulate the command's base size and size according
