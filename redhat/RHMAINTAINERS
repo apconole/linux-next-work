@@ -158,7 +158,14 @@ M:	Vivek Goyal <vgoyal@redhat.com>
 S:	Maintained
 F:	block/
 
-BLUETOOTH SUBYSTEM
+MMC LAYER
+M:	Gopal Tiwari <gtiwari@redhat.com>
+S:	Maintained
+F:	Documentation/mmc/
+F:	include/linux/mmc/
+F:	drivers/mmc/
+
+BLUETOOTH SUBSYSTEM
 M:	Gopal Tiwari <gtiwari@redhat.com>
 S:	Maintained
 F:	drivers/bluetooth
