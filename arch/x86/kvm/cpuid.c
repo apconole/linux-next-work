@@ -391,7 +391,8 @@ static inline int __do_cpuid_ent(struct kvm_cpuid_entry2 *entry, u32 function,
 
 	/* cpuid 0x80000008.ebx */
 	const u32 kvm_cpuid_8000_0008_ebx_x86_features =
-		F(AMD_IBPB) | F(AMD_IBRS) | F(AMD_STIBP) | F(VIRT_SSBD);
+		F(AMD_IBPB) | F(AMD_IBRS) | F(AMD_STIBP) | F(VIRT_SSBD) |
+		F(AMD_SSB_NO);
 
 	/* all calls to cpuid_count() should be made on the same cpu */
 	get_cpu();
