@@ -352,18 +352,23 @@ static enum ssb_mitigation __ssb_select_mitigation(void)
 	if (mode == SPEC_STORE_BYPASS_DISABLE) {
 		setup_force_cpu_cap(X86_FEATURE_SPEC_STORE_BYPASS_DISABLE);
 		/*
-		 * Intel uses the SPEC CTRL MSR Bit(2) for this, while AMD uses
-		 * a completely different MSR and bit dependent on family.
+		 * Intel uses the SPEC CTRL MSR Bit(2) for this, while AMD may
+		 * use a completely different MSR and bit dependent on family.
 		 */
 		switch (boot_cpu_data.x86_vendor) {
+		case X86_VENDOR_INTEL:
 		case X86_VENDOR_AMD:
-			x86_amd_ssbd_enable();
+			/*
+			 * Always set the SSBD bit for both AMD & Intel.
+			 */
+			x86_spec_ctrl_base |= SPEC_CTRL_SSBD;
+			if (!static_cpu_has(X86_FEATURE_MSR_SPEC_CTRL)) {
+				x86_amd_ssbd_enable();
+				break;
+			}
+			x86_spec_ctrl_mask |= SPEC_CTRL_SSBD;
+			wrmsrl(MSR_IA32_SPEC_CTRL, x86_spec_ctrl_base);
 			break;
-		}
-		/*
-		 * Always set the SSBD bit for both AMD & Intel.
-		 */
-		x86_spec_ctrl_base |= SPEC_CTRL_SSBD;
 	}
 
 	return mode;
