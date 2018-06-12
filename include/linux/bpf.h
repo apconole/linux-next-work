@@ -46,45 +46,6 @@ struct bpf_map_type_list {
 	enum bpf_map_type type;
 };
 
-void bpf_register_map_type(struct bpf_map_type_list *tl);
-
-static inline struct bpf_prog *bpf_prog_get(u32 ufd)
-{
-	return NULL;
-}
-
-static inline struct bpf_prog *bpf_prog_get_type(u32 ufd, enum bpf_prog_type type)
-{
-	return NULL;
-}
-
-static inline struct bpf_prog *bpf_prog_add(struct bpf_prog *prog, int i)
-{
-	return NULL;
-}
-
-static inline struct bpf_prog *bpf_prog_inc(struct bpf_prog *prog)
-{
-	return prog;
-}
-
-static inline void bpf_prog_sub(struct bpf_prog *prog, int i)
-{
-}
-
-static inline void bpf_prog_put(struct bpf_prog *prog)
-{
-	return;
-}
-
-
-struct bpf_map *bpf_map_get_with_uref(u32 ufd);
-struct bpf_map *__bpf_map_get(struct fd f);
-struct bpf_map *bpf_map_inc(struct bpf_map *map, bool uref);
-void bpf_map_put_with_uref(struct bpf_map *map);
-void bpf_map_put(struct bpf_map *map);
-struct bpf_map *bpf_map_get(struct fd f);
-
 /* eBPF function prototype used by verifier to allow BPF_CALLs from eBPF programs
  * to in-kernel helper functions and for adjusting imm32 field in BPF_CALL
  * instructions after verifying
@@ -104,8 +65,6 @@ struct bpf_prog_type_list {
 	struct bpf_verifier_ops *ops;
 	enum bpf_prog_type type;
 };
-
-void bpf_register_prog_type(struct bpf_prog_type_list *tl);
 
 struct bpf_prog;
 
@@ -141,5 +100,56 @@ struct bpf_array {
 u64 bpf_tail_call(u64 ctx, u64 r2, u64 index, u64 r4, u64 r5);
 void bpf_fd_array_map_clear(struct bpf_map *map);
 bool bpf_prog_array_compatible(struct bpf_array *array, const struct bpf_prog *fp);
+const struct bpf_func_proto *bpf_get_trace_printk_proto(void);
 
+#ifdef CONFIG_BPF_SYSCALL
+void bpf_register_prog_type(struct bpf_prog_type_list *tl);
+void bpf_register_map_type(struct bpf_map_type_list *tl);
+
+struct bpf_prog *bpf_prog_get(u32 ufd);
+
+void bpf_prog_put(struct bpf_prog *prog);
+void bpf_prog_put_rcu(struct bpf_prog *prog);
+
+struct bpf_map *__bpf_map_get(struct fd f);
+struct bpf_map *bpf_map_get_with_uref(u32 ufd);
+void bpf_map_inc(struct bpf_map *map, bool uref);
+void bpf_map_put_with_uref(struct bpf_map *map);
+void bpf_map_put(struct bpf_map *map);
+struct bpf_map *bpf_map_get(struct fd f);
+
+extern int sysctl_unprivileged_bpf_disabled;
+#else
+static inline void bpf_register_prog_type(struct bpf_prog_type_list *tl)
+{
+}
+
+static inline struct bpf_prog *bpf_prog_get(u32 ufd)
+{
+	return ERR_PTR(-EOPNOTSUPP);
+}
+
+static inline void bpf_prog_put(struct bpf_prog *prog)
+{
+}
+
+static inline struct bpf_prog *bpf_prog_get_type(u32 ufd, enum bpf_prog_type type)
+{
+	return NULL;
+}
+
+static inline struct bpf_prog *bpf_prog_add(struct bpf_prog *prog, int i)
+{
+	return NULL;
+}
+
+static inline struct bpf_prog *bpf_prog_inc(struct bpf_prog *prog)
+{
+	return prog;
+}
+
+static inline void bpf_prog_sub(struct bpf_prog *prog, int i)
+{
+}
+#endif /* CONFIG_BPF_SYSCALL */
 #endif /* _LINUX_BPF_H */
