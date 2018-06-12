@@ -8,6 +8,7 @@
 #include <linux/compat.h>
 #include <uapi/linux/filter.h>
 #include <asm/cacheflush.h>
+#include <uapi/linux/bpf.h>
 #ifndef __GENKSYMS__
 #include <net/xdp.h>
 #include <net/sch_generic.h>
