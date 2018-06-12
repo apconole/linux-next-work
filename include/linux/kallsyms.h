@@ -13,9 +13,6 @@
 #define KSYM_SYMBOL_LEN (sizeof("%s+%#lx/%#lx [%s]") + (KSYM_NAME_LEN - 1) + \
 			 2*(BITS_PER_LONG*3/10) + (MODULE_NAME_LEN - 1) + 1)
 
-/* How and when do we show kallsyms values? */
-extern int kallsyms_show_value(void);
-
 struct module;
 
 #ifdef CONFIG_KALLSYMS
@@ -47,6 +44,9 @@ extern void __print_symbol(const char *fmt, unsigned long address);
 
 int lookup_symbol_name(unsigned long addr, char *symname);
 int lookup_symbol_attrs(unsigned long addr, unsigned long *size, unsigned long *offset, char *modname, char *name);
+
+/* How and when do we show kallsyms values? */
+extern int kallsyms_show_value(void);
 
 #else /* !CONFIG_KALLSYMS */
 
@@ -104,6 +104,11 @@ static inline int lookup_symbol_name(unsigned long addr, char *symname)
 static inline int lookup_symbol_attrs(unsigned long addr, unsigned long *size, unsigned long *offset, char *modname, char *name)
 {
 	return -ERANGE;
+}
+
+static inline int kallsyms_show_value(void)
+{
+	return false;
 }
 
 /* Stupid that this does nothing, but I didn't create this mess. */
