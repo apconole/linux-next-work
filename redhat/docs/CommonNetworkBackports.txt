@@ -1,0 +1,169 @@
+Common Network Backports (Continuous Integration)
+=================================================
+
+The Common Network Backports is an initiative that helps network drivers
+maintainers to backport drivers from upstream. The driver-updates picked by
+the maintainers from upstream usually require network core features or changes
+currently not present in RHEL.
+
+The practice in the past was that a driver maintainer backported required
+non-driver changes or network core features by himself. This approcah had
+several disadvantages:
+
+- Non-driver change or network feature was backported several times
+  * Additional main kernel maintainer effort during merging
+  * Superfluous driver maintainers effort
+- Bigger network feature backported often incomplete (missing subfeature /
+  follow-up)
+
+For these reasons the concept of the Common Network Backports (CNB) was
+established. The non-driver changes in kernel code required by one or multiple
+network drivers are tracked under a special BZ and this BZ is then a dependency
+for driver updates BZs.
+
+Terminology & roles
+-------------------
+**CNB user**		- a driver maintainer that requests non-driver specific
+			  backport or feature
+**CNB maintainer**	- CNB tracker BZ assignee that observes underlying CNB
+			  processes
+**CNB backporter**	- **CNB sub-BZ** assignee that backports, tests (via
+			  LNST) and submits to RHKL requested commits/feature
+**RHEL-net maintainer**	- merges backported CNB commits; does not need to test
+			  them via LNST
+**CNB tracker BZ**	- pure tracker BZ used to record requests and tracks
+			  backports (sub-BZs)
+**CNB sub-BZ**		- used for a specific requested commits/feature
+**Main CNB branch**	- based on main RHEL kernel branch and automatically
+			  generated daily from sub-BZ branches. CNB users use
+			  it as base for their work.
+**Sub-BZ branch**	- created and maintained by **CNB backporter**.
+			  The contained commits have to correspond with patches
+			  submitted by the backporter to RHKL.
+
+Workflow (request life-cycle)
+-----------------------------
+1. A **CNB user** finds a non-driver upstream commit(s) currently missing
+   in RHEL and required for his driver update. It is important to identify
+   these dependencies as soon as possible to avoid pressures caused by
+   forthcoming submission deadline. Easily recognizable dependencies should
+   be requested early in planning phase.
+
+2. The **CNB user** puts a request into the CNB tracker BZ that contains ID(s)
+   of required commit(s) and a reason for them.
+
+3. The **CNB maintainer** analyzes the request (portability, dependencies etc.)
+   and accepts or denies it.
+
+4. The **CNB maintainer** creates a new **CNB sub-BZ** for these accepted
+   patches. This BZ is a dependency for the **CNB tracker BZ**.
+
+5. This **CNB sub-BZ** is assigned to a CNB backporter. This can be the **CNB
+   maintainer** him/herself but this can be also anybody else, e.g. the **CNB
+   user**. This approach would provide a scalability for this model.
+
+6. The assigned **CNB backporter** backports requested commits/feature, ensures
+   that the backport is buildable, preserves kABI and passes LNST testing. Then
+   (s)he pushes them into newly created **Sub-BZ branch** and submits the
+   patches to RHKL. The URL of this git branch is recorded in the BZ's URL
+   field.
+
+7. Automated script maintained by the **CNB maintainer** walks daily through
+   all CNB sub-BZs already submitted to RHKL but not merged to the main kernel
+   tree and fetches the git branch URL for each of these BZs. All these
+   branches are merged together and the result pushed into the **Main CNB
+   branch**.  Any conflict unresolvable automatically by the script is reported
+   to the **CNB maintainer** that fixes it.
+
+   Note that the **Main CNB branch** is rebased every time by taking the main
+   RHEL branch and applying all **Sub-BZ branches** on top.
+
+8. Submitted and reviewed patches are taken by **RHEL-net maintainer**, pushed
+   into RHEL-net branch and tested again by LNST if deemed necessary to avoid
+   possible regressions caused by combination of features - however these
+   possible regressions should be rare.
+
+9. The patches are merged into RHEL kernel main branch by its maintainer.
+
+Cookbook for **CNB backporter**
+-------------------------------
+
+Let's say the **CNB maintainer** creates a new BZ with the following info
+and assignes it to you:
+
+<snip>
+   Product: Red Hat Enterprise Linux 7/8/...
+   Component: kernel
+   Sub Component: Networking (but can be more specific e.g. bridge, ipv4...)
+   Version: Target minor release (e.g. 7.6)
+   Summary: CNB: <summary of your backport>
+   Blocks: <CNB-tracker>
+   Description:
+   The following commits were requested via CNB tracker (bug#<CNB-tracker>)
+   required for <reason>:
+
+   commit1
+   commit2
+   ...
+   commit n
+</snip>
+
+Your workflow:
+1. Move the BZ to ASSIGNED state to indicate that the backport is in-progress
+
+2. Analyze requested commits. It is possible that they are part of bigger
+   upstream series and it should be reasonable to extend the list of commits
+   to be backported. It could be also possible that the requested commits
+   requires another ones that are covered by different **CNB sub-BZ**. In this
+   case add that sub-BZ to the dependency list.
+
+3. Provide QA some testing info in order to get qa_ack+.
+
+4. Backport requested commits and possibly their follow-ups.
+
+5. Adequately test the backport using both LNST and also feature specific
+   tests.
+
+   If you don't know how to start a LNST job, brew the kernel and ask Ivan
+   Vecera <ivecera@redhat.com>, Aniss Loughlam <aloughla@redhat.com> or
+   Jan Tluka <jtluka@redhat.com> to help you.
+
+   Note that the LNST testing is not needed in specific cases (e.g. a CNB
+   backport adds only new functions but nothing calls them yet, new macros
+   or enums). If unsure, it's always safer to run the LNST tests.
+
+6. Push the backported commits to your git repository.
+   (E.g.: git://git.engineering.redhat.com/users/ivecera/rhel7.git as
+   branch bz1234568)
+
+7. Fill URL field of the BZ in this format: git://host/repo.git#refspec)
+   (E.g.: git://git.engineering.redhat.com/users/ivecera/rhel7.git#bz12345678)
+
+   Note that refspec is usually a branch but it can be also a tag.
+
+8. Format patches, send them to RHKL and move the BZ to POST state
+
+9. Keep in mind if any of patches are changed during review or new one is added
+   you have to update the repository as well. The rule is: Patches related to
+   this BZ have to correspond with commits that are in the repository.
+
+10. Once the BZ is moved to MODIFIED state your job is done.
+
+Frequently asked questions
+--------------------------
+1. Who can be a **CNB backporter** ?
+   Anybody who is interesed and will follow the CNB rules & aspects.
+
+2. Who does create **CNB sub-BZ** ?
+   **CNB maintainer**. A **CNB sub-BZ** should always contain related commits
+   (e.g. commits that belong to an upstream series). It is much easier for
+   QA to provide qa_ack+ to such BZ as it can be clearly tested.
+
+3. Should I work directly with **Sub-BZ branch** ?
+   It depends on your role:
+   **CNB user** - No, you should always work with **Main CNB branch**
+   **CNB backporter** - Yes, but only in case that your **CNB sub-BZ** depends
+                        on other **CNB sub-BZ**.
+
+-- Feel free to add another questions here --
+
