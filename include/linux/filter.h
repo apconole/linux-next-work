@@ -7,6 +7,7 @@
 #include <linux/atomic.h>
 #include <linux/compat.h>
 #include <uapi/linux/filter.h>
+#include <asm/cacheflush.h>
 #ifndef __GENKSYMS__
 #include <net/xdp.h>
 #include <net/sch_generic.h>
@@ -85,6 +86,26 @@ static inline unsigned int bpf_prog_size(unsigned int proglen)
 
 #define bpf_classic_proglen(fprog) (fprog->len * sizeof(fprog->filter[0]))
 
+#ifdef CONFIG_DEBUG_SET_MODULE_RONX
+static inline void bpf_prog_lock_ro(struct bpf_prog *fp)
+{
+	set_memory_ro((unsigned long)fp, fp->pages);
+}
+
+static inline void bpf_prog_unlock_ro(struct bpf_prog *fp)
+{
+	set_memory_rw((unsigned long)fp, fp->pages);
+}
+#else
+static inline void bpf_prog_lock_ro(struct bpf_prog *fp)
+{
+}
+
+static inline void bpf_prog_unlock_ro(struct bpf_prog *fp)
+{
+}
+#endif /* CONFIG_DEBUG_SET_MODULE_RONX */
+
 /* compute the linear packet data range [data, data_end) which
  * will be accessed by cls_bpf and act_bpf programs
  */
@@ -136,6 +157,17 @@ int xdp_do_redirect(struct net_device *dev,
 		    struct xdp_buff *xdp,
 		    struct bpf_prog *prog);
 void xdp_do_flush_map(void);
+
+struct bpf_prog *bpf_prog_alloc(unsigned int size, gfp_t gfp_extra_flags);
+struct bpf_prog *bpf_prog_realloc(struct bpf_prog *fp_old, unsigned int size,
+				  gfp_t gfp_extra_flags);
+void __bpf_prog_free(struct bpf_prog *fp);
+
+static inline void bpf_prog_unlock_free(struct bpf_prog *fp)
+{
+	bpf_prog_unlock_ro(fp);
+	__bpf_prog_free(fp);
+}
 
 #ifdef CONFIG_BPF_JIT
 #include <stdarg.h>
