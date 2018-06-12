@@ -71,13 +71,6 @@ enum bpf_cmd {
 	 */
 	BPF_MAP_CREATE,
 
-	/* verify and load eBPF program
-	 * prog_fd = bpf(BPF_PROG_LOAD, union bpf_attr *attr, u32 size)
-	 * Using attr->prog_type, attr->insns, attr->license
-	 * returns fd or negative error
-	 */
-	BPF_PROG_LOAD,
-
 	/* lookup key in a given map
 	 * err = bpf(BPF_MAP_LOOKUP_ELEM, union bpf_attr *attr, u32 size)
 	 * Using attr->map_fd, attr->key, attr->value
@@ -106,6 +99,13 @@ enum bpf_cmd {
 	 * returns zero and stores next key or negative error
 	 */
 	BPF_MAP_GET_NEXT_KEY,
+
+	/* verify and load eBPF program
+	 * prog_fd = bpf(BPF_PROG_LOAD, union bpf_attr *attr, u32 size)
+	 * Using attr->prog_type, attr->insns, attr->license
+	 * returns fd or negative error
+	 */
+	BPF_PROG_LOAD,
 };
 
 enum bpf_map_type {
@@ -140,6 +140,15 @@ union bpf_attr {
 			__aligned_u64 next_key;
 		};
 		__u64		flags;
+	};
+	struct { /* anonymous struct used by BPF_PROG_LOAD command */
+		__u32		prog_type;	/* one of enum bpf_prog_type */
+		__u32		insn_cnt;
+		__aligned_u64	insns;
+		__aligned_u64	license;
+		__u32		log_level;	/* verbosity level of verifier */
+		__u32		log_size;	/* size of user buffer */
+		__aligned_u64	log_buf;	/* user supplied buffer */
 	};
 } __attribute__((aligned(8)));
 
