@@ -41,6 +41,8 @@
  *          Chris Telfer <chris.telfer@netronome.com>
  */
 
+#undef CONFIG_BPF_SYSCALL
+
 #include <linux/bitfield.h>
 #include <linux/bpf.h>
 #include <linux/bpf_trace.h>

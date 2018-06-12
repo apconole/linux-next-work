@@ -8,6 +8,8 @@
  * the Free Software Foundation.
  */
 
+#undef CONFIG_BPF_SYSCALL
+
 #include <linux/module.h>
 
 #include <linux/stringify.h>

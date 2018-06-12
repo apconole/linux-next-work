@@ -31,6 +31,8 @@
  *
  */
 
+#undef CONFIG_BPF_SYSCALL
+
 #include <linux/bpf.h>
 #include <linux/etherdevice.h>
 #include <linux/tcp.h>

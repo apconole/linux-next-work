@@ -30,6 +30,8 @@
  * SOFTWARE.
  */
 
+#undef CONFIG_BPF_SYSCALL
+
 /* Dummy; This macro is used in an XDP function that will never be called by
  * the RHEL kernel.
  */
