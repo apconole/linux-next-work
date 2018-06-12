@@ -120,7 +120,7 @@ extern struct trace_event_functions exit_syscall_print_funcs;
 		.name                   = "sys_enter"#sname,		\
 		.class			= &event_class_syscall_enter,	\
 		.event.funcs            = &enter_syscall_print_funcs,	\
-		.data			= (void *)&__syscall_meta_##sname,\
+		.rh_data		= (void *)&__syscall_meta_##sname,\
 		.flags			= TRACE_EVENT_FL_CAP_ANY,	\
 	};								\
 	static struct ftrace_event_call __used				\
@@ -134,7 +134,7 @@ extern struct trace_event_functions exit_syscall_print_funcs;
 		.name                   = "sys_exit"#sname,		\
 		.class			= &event_class_syscall_exit,	\
 		.event.funcs		= &exit_syscall_print_funcs,	\
-		.data			= (void *)&__syscall_meta_##sname,\
+		.rh_data		= (void *)&__syscall_meta_##sname,\
 		.flags			= TRACE_EVENT_FL_CAP_ANY,	\
 	};								\
 	static struct ftrace_event_call __used				\

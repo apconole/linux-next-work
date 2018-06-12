@@ -250,6 +250,10 @@ enum {
 	TRACE_EVENT_FL_KPROBE		= (1 << TRACE_EVENT_FL_KPROBE_BIT),
 };
 
+struct ftrace_event_data {
+	void	*data;
+};
+
 struct ftrace_event_call {
 	struct list_head	list;
 	struct ftrace_event_class *class;
@@ -259,7 +263,7 @@ struct ftrace_event_call {
 	struct event_filter	*filter;
 	struct list_head	*files;
 	void			*mod;
-	void			*data;
+	RH_KABI_REPLACE(void *data, struct ftrace_event_data *rh_data)
 	/*
 	 *   bit 0:		filter_active
 	 *   bit 1:		allow trace by non root (cap any)

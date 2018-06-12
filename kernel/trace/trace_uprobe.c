@@ -805,11 +805,16 @@ static void probe_event_disable(struct trace_uprobe *tu, int flag)
 	tu->flags &= ~flag;
 }
 
+static struct trace_uprobe* trace_uprobe(struct ftrace_event_call *call)
+{
+	return call->rh_data->data;
+}
+
 static int uprobe_event_define_fields(struct ftrace_event_call *event_call)
 {
 	int ret, i, size;
 	struct uprobe_trace_entry_head field;
-	struct trace_uprobe *tu = event_call->data;
+	struct trace_uprobe *tu = trace_uprobe(event_call);
 
 	if (is_ret_probe(tu)) {
 		DEFINE_FIELD(unsigned long, vaddr[0], FIELD_STRING_FUNC, 0);
@@ -1037,7 +1042,7 @@ static void uretprobe_perf_func(struct trace_uprobe *tu, unsigned long func,
 static
 int trace_uprobe_register(struct ftrace_event_call *event, enum trace_reg type, void *data)
 {
-	struct trace_uprobe *tu = event->data;
+	struct trace_uprobe *tu = trace_uprobe(event);
 
 	switch (type) {
 	case TRACE_REG_REGISTER:
@@ -1139,7 +1144,7 @@ static int register_uprobe_event(struct trace_uprobe *tu)
 	}
 	call->flags = 0;
 	call->class->reg = trace_uprobe_register;
-	call->data = tu;
+	call->rh_data = (void *) tu;
 	ret = trace_add_event_call(call);
 
 	if (ret) {

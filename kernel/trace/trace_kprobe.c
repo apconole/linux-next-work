@@ -1214,11 +1214,16 @@ partial:
 }
 
 
+static struct trace_probe* trace_probe(struct ftrace_event_call *call)
+{
+	return call->rh_data->data;
+}
+
 static int kprobe_event_define_fields(struct ftrace_event_call *event_call)
 {
 	int ret, i;
 	struct kprobe_trace_entry_head field;
-	struct trace_probe *tp = (struct trace_probe *)event_call->data;
+	struct trace_probe *tp = trace_probe(event_call);
 
 	DEFINE_FIELD(unsigned long, ip, FIELD_STRING_IP, 0);
 	/* Set argument names as fields */
@@ -1239,7 +1244,7 @@ static int kretprobe_event_define_fields(struct ftrace_event_call *event_call)
 {
 	int ret, i;
 	struct kretprobe_trace_entry_head field;
-	struct trace_probe *tp = (struct trace_probe *)event_call->data;
+	struct trace_probe *tp = trace_probe(event_call);
 
 	DEFINE_FIELD(unsigned long, func, FIELD_STRING_FUNC, 0);
 	DEFINE_FIELD(unsigned long, ret_ip, FIELD_STRING_RETIP, 0);
@@ -1388,7 +1393,7 @@ static __kprobes
 int kprobe_register(struct ftrace_event_call *event,
 		    enum trace_reg type, void *data)
 {
-	struct trace_probe *tp = (struct trace_probe *)event->data;
+	struct trace_probe *tp = trace_probe(event);
 	struct ftrace_event_file *file = data;
 
 	switch (type) {
@@ -1475,7 +1480,7 @@ static int register_probe_event(struct trace_probe *tp)
 	}
 	call->flags = TRACE_EVENT_FL_KPROBE;
 	call->class->reg = kprobe_register;
-	call->data = tp;
+	call->rh_data = (void *) tp;
 	ret = trace_add_event_call(call);
 	if (ret) {
 		pr_info("Failed to register kprobe event: %s\n", call->name);

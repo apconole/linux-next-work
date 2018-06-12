@@ -1637,6 +1637,28 @@ static void event_remove(struct ftrace_event_call *call)
 	list_del(&call->list);
 }
 
+static void destroy_rh_data(struct ftrace_event_call *call)
+{
+	struct ftrace_event_data *rh_data = call->rh_data;
+	void *ptr = rh_data->data;
+
+	kfree(rh_data);
+	call->rh_data = ptr;
+}
+
+static int alloc_rh_data(struct ftrace_event_call *call)
+{
+	struct ftrace_event_data *rh_data;
+
+	rh_data = kzalloc(sizeof(*rh_data), GFP_KERNEL);
+	if (!rh_data)
+		return -ENOMEM;
+
+	rh_data->data = call->rh_data;
+	call->rh_data = rh_data;
+	return 0;
+}
+
 static int event_init(struct ftrace_event_call *call)
 {
 	int ret = 0;
@@ -1644,11 +1666,16 @@ static int event_init(struct ftrace_event_call *call)
 	if (WARN_ON(!call->name))
 		return -EINVAL;
 
+	if (alloc_rh_data(call))
+		return -ENOMEM;
+
 	if (call->class->raw_init) {
 		ret = call->class->raw_init(call);
 		if (ret < 0 && ret != -ENOSYS)
 			pr_warn("Could not initialize trace events/%s\n",
 				call->name);
+		if (ret < 0)
+			destroy_rh_data(call);
 	}
 
 	return ret;
@@ -1871,6 +1898,7 @@ static void __trace_remove_event_call(struct ftrace_event_call *call)
 	event_remove(call);
 	trace_destroy_fields(call);
 	destroy_preds(call);
+	destroy_rh_data(call);
 }
 
 static int probe_remove_event_call(struct ftrace_event_call *call)
