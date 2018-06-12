@@ -192,6 +192,8 @@ static u64 bpf_perf_event_read(u64 r1, u64 index, u64 r3, u64 r4, u64 r5)
 	struct bpf_array *array = container_of(map, struct bpf_array, map);
 	struct perf_event *event;
 	struct file *file;
+	u64 value = 0;
+	int err;
 
 	if (unlikely(index >= array->map.max_entries))
 		return -E2BIG;
@@ -202,16 +204,14 @@ static u64 bpf_perf_event_read(u64 r1, u64 index, u64 r3, u64 r4, u64 r5)
 
 	event = file->private_data;
 
-	/* make sure event is local and doesn't have pmu::count */
-	if (event->oncpu != smp_processor_id())
-		return -EINVAL;
-
+	err = perf_event_read_local(event, &value, NULL, NULL);
 	/*
-	 * we don't know if the function is run successfully by the
-	 * return value. It can be judged in other places, such as
-	 * eBPF programs.
+	 * this api is ugly since we miss [-22..-2] range of valid
+	 * counter values, but that's uapi
 	 */
-	return perf_event_read_local(event);
+	if (err)
+		return err;
+	return value;
 }
 
 static const struct bpf_func_proto bpf_perf_event_read_proto = {
