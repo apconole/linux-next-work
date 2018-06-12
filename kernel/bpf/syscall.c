@@ -114,11 +114,12 @@ static int bpf_map_release(struct inode *inode, struct file *filp)
 }
 
 #ifdef CONFIG_PROC_FS
-static void bpf_map_show_fdinfo(struct seq_file *m, struct file *filp)
+static int bpf_map_show_fdinfo(struct seq_file *m, struct file *filp)
 {
 	const struct bpf_map *map = filp->private_data;
+	int ret;
 
-	seq_printf(m,
+	ret = seq_printf(m,
 		   "map_type:\t%u\n"
 		   "key_size:\t%u\n"
 		   "value_size:\t%u\n"
@@ -127,6 +128,8 @@ static void bpf_map_show_fdinfo(struct seq_file *m, struct file *filp)
 		   map->key_size,
 		   map->value_size,
 		   map->max_entries);
+
+	return ret;
 }
 #endif
 
