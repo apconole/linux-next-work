@@ -17,11 +17,11 @@
 /*
  * assembly code in arch/x86/net/bpf_jit.S
  */
-extern u8 sk_load_word[], sk_load_half[], sk_load_byte[];
-extern u8 sk_load_word_positive_offset[], sk_load_half_positive_offset[];
-extern u8 sk_load_byte_positive_offset[];
-extern u8 sk_load_word_negative_offset[], sk_load_half_negative_offset[];
-extern u8 sk_load_byte_negative_offset[];
+extern u8 trace_sk_load_word[], trace_sk_load_half[], trace_sk_load_byte[];
+extern u8 trace_sk_load_word_positive_offset[], trace_sk_load_half_positive_offset[];
+extern u8 trace_sk_load_byte_positive_offset[];
+extern u8 trace_sk_load_word_negative_offset[], trace_sk_load_half_negative_offset[];
+extern u8 trace_sk_load_byte_negative_offset[];
 
 static u8 *emit_code(u8 *ptr, u32 bytes, unsigned int len)
 {
@@ -973,10 +973,10 @@ emit_jmp:
 			break;
 
 		case BPF_LD | BPF_IND | BPF_W:
-			func = sk_load_word;
+			func = trace_sk_load_word;
 			goto common_load;
 		case BPF_LD | BPF_ABS | BPF_W:
-			func = CHOOSE_LOAD_FUNC(imm32, sk_load_word);
+			func = CHOOSE_LOAD_FUNC(imm32, trace_sk_load_word);
 common_load:
 			ctx->seen_ld_abs = seen_ld_abs = true;
 			jmp_offset = func - (image + addrs[i]);
@@ -1002,23 +1002,23 @@ common_load:
 			}
 			/* skb pointer is in R6 (%rbx), it will be copied into
 			 * %rdi if skb_copy_bits() call is necessary.
-			 * sk_load_* helpers also use %r10 and %r9d.
+			 * trace_sk_load_* helpers also use %r10 and %r9d.
 			 * See bpf_jit.S
 			 */
 			EMIT1_off32(0xE8, jmp_offset); /* call */
 			break;
 
 		case BPF_LD | BPF_IND | BPF_H:
-			func = sk_load_half;
+			func = trace_sk_load_half;
 			goto common_load;
 		case BPF_LD | BPF_ABS | BPF_H:
-			func = CHOOSE_LOAD_FUNC(imm32, sk_load_half);
+			func = CHOOSE_LOAD_FUNC(imm32, trace_sk_load_half);
 			goto common_load;
 		case BPF_LD | BPF_IND | BPF_B:
-			func = sk_load_byte;
+			func = trace_sk_load_byte;
 			goto common_load;
 		case BPF_LD | BPF_ABS | BPF_B:
-			func = CHOOSE_LOAD_FUNC(imm32, sk_load_byte);
+			func = CHOOSE_LOAD_FUNC(imm32, trace_sk_load_byte);
 			goto common_load;
 
 		case BPF_JMP | BPF_EXIT:
