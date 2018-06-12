@@ -202,4 +202,18 @@ static inline void bpf_prog_sub(struct bpf_prog *prog, int i)
 {
 }
 #endif /* CONFIG_BPF_SYSCALL */
+
+/* verifier prototypes for helper functions called from eBPF programs */
+extern const struct bpf_func_proto bpf_map_lookup_elem_proto;
+extern const struct bpf_func_proto bpf_map_update_elem_proto;
+extern const struct bpf_func_proto bpf_map_delete_elem_proto;
+
+extern const struct bpf_func_proto bpf_get_prandom_u32_proto;
+extern const struct bpf_func_proto bpf_get_smp_processor_id_proto;
+extern const struct bpf_func_proto bpf_tail_call_proto;
+extern const struct bpf_func_proto bpf_ktime_get_ns_proto;
+extern const struct bpf_func_proto bpf_get_current_pid_tgid_proto;
+extern const struct bpf_func_proto bpf_get_current_uid_gid_proto;
+extern const struct bpf_func_proto bpf_get_current_comm_proto;
+
 #endif /* _LINUX_BPF_H */
