@@ -203,8 +203,7 @@ static u64 bpf_perf_event_read(u64 r1, u64 index, u64 r3, u64 r4, u64 r5)
 	event = file->private_data;
 
 	/* make sure event is local and doesn't have pmu::count */
-	if (event->oncpu != smp_processor_id() ||
-	    event->pmu->count)
+	if (event->oncpu != smp_processor_id())
 		return -EINVAL;
 
 	/*
@@ -322,7 +321,7 @@ static bool kprobe_prog_is_valid_access(int off, int size, enum bpf_access_type 
 	return true;
 }
 
-static const struct bpf_verifier_ops kprobe_prog_ops = {
+static struct bpf_verifier_ops kprobe_prog_ops = {
 	.get_func_proto  = kprobe_prog_func_proto,
 	.is_valid_access = kprobe_prog_is_valid_access,
 };
