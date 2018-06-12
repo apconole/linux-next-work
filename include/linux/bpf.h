@@ -100,6 +100,8 @@ enum bpf_access_type {
 	BPF_WRITE = 2
 };
 
+struct bpf_prog;
+
 struct bpf_verifier_ops {
 	/* return eBPF function prototype for verification */
 	const struct bpf_func_proto *(*get_func_proto)(enum bpf_func_id func_id);
@@ -108,6 +110,10 @@ struct bpf_verifier_ops {
 	 * with 'type' (read or write) is allowed
 	 */
 	bool (*is_valid_access)(int off, int size, enum bpf_access_type type);
+
+	u32 (*convert_ctx_access)(enum bpf_access_type type, int dst_reg,
+				  int src_reg, int ctx_off,
+				  struct bpf_insn *insn, struct bpf_prog *prog);
 };
 
 struct bpf_prog_type_list {
@@ -115,8 +121,6 @@ struct bpf_prog_type_list {
 	struct bpf_verifier_ops *ops;
 	enum bpf_prog_type type;
 };
-
-struct bpf_prog;
 
 struct bpf_prog_aux {
 	atomic_t refcnt;
@@ -169,6 +173,9 @@ void bpf_map_put(struct bpf_map *map);
 struct bpf_map *bpf_map_get(struct fd f);
 
 extern int sysctl_unprivileged_bpf_disabled;
+
+/* verify correctness of eBPF program */
+int bpf_check(struct bpf_prog **fp, union bpf_attr *attr);
 #else
 static inline void bpf_register_prog_type(struct bpf_prog_type_list *tl)
 {
