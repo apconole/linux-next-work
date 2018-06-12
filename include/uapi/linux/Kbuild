@@ -68,6 +68,7 @@ header-y += blkpg.h
 header-y += blktrace_api.h
 header-y += bpf.h
 header-y += bpf_common.h
+header-y += bpf_perf_event.h
 header-y += bpqether.h
 header-y += bsg.h
 header-y += bt-bmc.h
