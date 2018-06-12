@@ -55,7 +55,7 @@
  *
  * Exported for the bpf jit load helper.
  */
-void *bpf_internal_load_pointer_neg_helper(const struct sk_buff *skb, int k, unsigned int size)
+void *trace_bpf_internal_load_pointer_neg_helper(const struct sk_buff *skb, int k, unsigned int size)
 {
 	u8 *ptr = NULL;
 
@@ -171,7 +171,7 @@ bpf_jit_binary_alloc(unsigned int proglen, u8 **image_ptr,
 
 void bpf_jit_binary_free(struct bpf_binary_header *hdr)
 {
-	module_memfree(hdr);
+	module_free(NULL, hdr);
 }
 #endif /* CONFIG_BPF_JIT */
 
@@ -733,7 +733,18 @@ static DEFINE_PER_CPU(struct rnd_state, bpf_user_rnd_state);
 
 void bpf_user_rnd_init_once(void)
 {
-	prandom_init_once(&bpf_user_rnd_state);
+	static DEFINE_MUTEX(once_lock);
+	static bool once;
+
+	if (once)
+		return;
+
+	mutex_lock(&once_lock);
+	if (!once) {
+		once = true;
+		prandom_seed_full_state(&bpf_user_rnd_state);
+	}
+	mutex_unlock(&once_lock);
 }
 
 u64 bpf_user_rnd_u32(u64 r1, u64 r2, u64 r3, u64 r4, u64 r5)
