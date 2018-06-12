@@ -50,6 +50,9 @@ struct xdp_buff;
 #define BPF_REG_X	BPF_REG_7
 #define BPF_REG_TMP	BPF_REG_8
 
+/* BPF program can access up to 512 bytes of stack space. */
+#define MAX_BPF_STACK	512
+
 struct bpf_prog {
 	u16			pages;		/* Number of allocated pages */
 	kmemcheck_bitfield_begin(meta);
