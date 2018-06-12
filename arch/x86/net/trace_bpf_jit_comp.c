@@ -14,8 +14,6 @@
 #include <asm/cacheflush.h>
 #include <linux/bpf.h>
 
-int bpf_jit_enable __read_mostly;
-
 /*
  * assembly code in arch/x86/net/bpf_jit.S
  */
@@ -337,6 +335,11 @@ static void emit_load_skb_data_hlen(u8 **pprog)
 	/* mov %r10, off32(%rdi) */
 	EMIT3_off32(0x4c, 0x8b, 0x97, offsetof(struct sk_buff, data));
 	*pprog = prog;
+}
+
+static bool bpf_helper_changes_skb_data(void *func)
+{
+	return false;
 }
 
 static int do_jit(struct bpf_prog *bpf_prog, int *addrs, u8 *image,
