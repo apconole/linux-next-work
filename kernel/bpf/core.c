@@ -687,6 +687,15 @@ static int bpf_check_tail_call(const struct bpf_prog *fp)
 	return 0;
 }
 
+/* For classic BPF JITs that don't implement bpf_int_jit_compile(). */
+void __weak trace_bpf_int_jit_compile(struct bpf_prog *prog)
+{
+}
+
+void __weak trace_bpf_jit_free(struct bpf_prog *fp)
+{
+}
+
 /**
  *	bpf_prog_select_runtime - select exec runtime for BPF program
  *	@fp: bpf_prog populated with internal BPF program
@@ -698,7 +707,7 @@ int bpf_prog_select_runtime(struct bpf_prog *fp)
 {
 	fp->bpf_func = (void *) __bpf_prog_run;
 
-	bpf_int_jit_compile(fp);
+	trace_bpf_int_jit_compile(fp);
 	bpf_prog_lock_ro(fp);
 
 	/* The tail call compatibility check can only be done at
@@ -715,7 +724,7 @@ static void bpf_prog_free_deferred(struct work_struct *work)
 	struct bpf_prog_aux *aux;
 
 	aux = container_of(work, struct bpf_prog_aux, work);
-	bpf_jit_free(aux->prog);
+	trace_bpf_jit_free(aux->prog);
 }
 
 /* Free internal BPF program */
@@ -790,11 +799,6 @@ const struct bpf_func_proto bpf_tail_call_proto = {
 	.arg2_type	= ARG_CONST_MAP_PTR,
 	.arg3_type	= ARG_ANYTHING,
 };
-
-/* For classic BPF JITs that don't implement bpf_int_jit_compile(). */
-void __weak bpf_int_jit_compile(struct bpf_prog *prog)
-{
-}
 
 /* To execute LD_ABS/LD_IND instructions __bpf_prog_run() may call
  * skb_copy_bits(), so provide a weak definition of it for NET-less config.

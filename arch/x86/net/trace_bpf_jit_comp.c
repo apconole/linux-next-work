@@ -1072,11 +1072,11 @@ common_load:
 	return proglen;
 }
 
-void bpf_jit_compile(struct bpf_prog *prog)
+void trace_bpf_jit_compile(struct bpf_prog *prog)
 {
 }
 
-void bpf_int_jit_compile(struct bpf_prog *prog)
+void trace_bpf_int_jit_compile(struct bpf_prog *prog)
 {
 	struct bpf_binary_header *header = NULL;
 	int proglen, oldproglen = 0;
@@ -1148,7 +1148,7 @@ out:
 	kfree(addrs);
 }
 
-void bpf_jit_free(struct bpf_prog *fp)
+void trace_bpf_jit_free(struct bpf_prog *fp)
 {
 	unsigned long addr = (unsigned long)fp->bpf_func & PAGE_MASK;
 	struct bpf_binary_header *header = (void *)addr;
