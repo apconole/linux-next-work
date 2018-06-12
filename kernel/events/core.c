@@ -4109,7 +4109,6 @@ static void free_event_rcu(struct rcu_head *head)
 	if (event->ns)
 		put_pid_ns(event->ns);
 	perf_event_free_filter(event);
-	perf_event_free_bpf_prog(event);
 	kfree(event);
 }
 
@@ -4314,6 +4313,8 @@ static void _free_event(struct perf_event *event)
 
 	perf_addr_filters_splice(event, NULL);
 	kfree(event->addr_filters_offs);
+
+	perf_event_free_bpf_prog(event);
 
 	if (event->destroy)
 		event->destroy(event);
