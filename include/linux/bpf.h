@@ -36,13 +36,16 @@ struct bpf_map {
 	u32 key_size;
 	u32 value_size;
 	u32 max_entries;
-	struct bpf_map_ops *ops;
+	u32 pages;
+	struct user_struct *user;
+	const struct bpf_map_ops *ops;
 	struct work_struct work;
+	atomic_t usercnt;
 };
 
 struct bpf_map_type_list {
 	struct list_head list_node;
-	struct bpf_map_ops *ops;
+	const struct bpf_map_ops *ops;
 	enum bpf_map_type type;
 };
 
@@ -124,14 +127,16 @@ struct bpf_prog_type_list {
 
 struct bpf_prog_aux {
 	atomic_t refcnt;
-	bool is_gpl_compatible;
-	enum bpf_prog_type prog_type;
-	struct bpf_verifier_ops *ops;
-	u32 id;
-	struct bpf_map **used_maps;
 	u32 used_map_cnt;
+	u32 id;
+	const struct bpf_verifier_ops *ops;
+	struct bpf_map **used_maps;
 	struct bpf_prog *prog;
-	struct work_struct work;
+	struct user_struct *user;
+	union {
+		struct work_struct work;
+		struct rcu_head rcu;
+	};
 };
 
 struct bpf_array {
