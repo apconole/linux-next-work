@@ -44,9 +44,25 @@ struct xdp_buff;
 #define BPF_REG_X	BPF_REG_7
 #define BPF_REG_TMP	BPF_REG_8
 
-struct bpf_prog
-{
-	struct bpf_prog_aux	*aux;	/* Auxiliary fields */
+struct bpf_prog {
+	u16			pages;		/* Number of allocated pages */
+	kmemcheck_bitfield_begin(meta);
+	u16			jited:1,	/* Is our filter JIT'ed? */
+				gpl_compatible:1, /* Is filter GPL compatible? */
+				cb_access:1,	/* Is control block accessed? */
+				dst_needed:1;	/* Do we need dst entry? */
+	kmemcheck_bitfield_end(meta);
+	u32			len;		/* Number of filter blocks */
+	enum bpf_prog_type	type;		/* Type of BPF program */
+	struct bpf_prog_aux	*aux;		/* Auxiliary fields */
+	struct sock_fprog_kern	*orig_prog;	/* Original BPF program */
+	unsigned int		(*bpf_func)(const struct sk_buff *skb,
+					    const struct bpf_insn *filter);
+	/* Instructions for interpreter */
+	union {
+		struct sock_filter	insns[0];
+		struct bpf_insn		insnsi[0];
+	};
 };
 
 struct sk_filter
@@ -59,6 +75,15 @@ struct sk_filter
 	struct sock_filter     	insns[0];
 };
 
+#define BPF_PROG_RUN(filter, ctx)  (*filter->bpf_func)(ctx, filter->insnsi)
+
+static inline unsigned int bpf_prog_size(unsigned int proglen)
+{
+	return max(sizeof(struct bpf_prog),
+		   offsetof(struct bpf_prog, insns[proglen]));
+}
+
+#define bpf_classic_proglen(fprog) (fprog->len * sizeof(fprog->filter[0]))
 
 /* compute the linear packet data range [data, data_end) which
  * will be accessed by cls_bpf and act_bpf programs
@@ -90,7 +115,10 @@ extern int sk_chk_filter(struct sock_filter *filter, unsigned int flen);
 extern int sk_get_filter(struct sock *sk, struct sock_filter __user *filter, unsigned len);
 extern void sk_decode_filter(struct sock_filter *filt, struct sock_filter *to);
 
+u64 __bpf_call_base(u64 r1, u64 r2, u64 r3, u64 r4, u64 r5);
+
 int bpf_prog_select_runtime(struct bpf_prog *fp);
+void bpf_prog_free(struct bpf_prog *fp);
 
 static inline u32 bpf_prog_run_xdp(const struct bpf_prog *prog,
 				   struct xdp_buff *xdp)
@@ -114,8 +142,11 @@ void xdp_do_flush_map(void);
 #include <linux/linkage.h>
 #include <linux/printk.h>
 
-extern void bpf_jit_compile(struct sk_filter *fp);
-extern void bpf_jit_free(struct sk_filter *fp);
+void bpf_jit_compile(struct sk_filter *fp);
+void bpf_jit_free(struct sk_filter *fp);
+
+void trace_bpf_jit_compile(struct bpf_prog *fp);
+void trace_bpf_jit_free(struct bpf_prog *fp);
 
 static inline void bpf_jit_dump(unsigned int flen, unsigned int proglen,
 				u32 pass, void *image)
