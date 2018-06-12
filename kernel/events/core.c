@@ -44,6 +44,8 @@
 #include <linux/compat.h>
 #include <linux/namei.h>
 #include <linux/parser.h>
+#include <linux/bpf.h>
+#include <linux/filter.h>
 
 #include "internal.h"
 
@@ -4097,6 +4099,7 @@ errout:
 }
 
 static void perf_event_free_filter(struct perf_event *event);
+static void perf_event_free_bpf_prog(struct perf_event *event);
 
 static void free_event_rcu(struct rcu_head *head)
 {
@@ -4106,6 +4109,7 @@ static void free_event_rcu(struct rcu_head *head)
 	if (event->ns)
 		put_pid_ns(event->ns);
 	perf_event_free_filter(event);
+	perf_event_free_bpf_prog(event);
 	kfree(event);
 }
 
@@ -4869,6 +4873,7 @@ static inline int perf_fget_light(int fd, struct fd *p)
 static int perf_event_set_output(struct perf_event *event,
 				 struct perf_event *output_event);
 static int perf_event_set_filter(struct perf_event *event, void __user *arg);
+static int perf_event_set_bpf_prog(struct perf_event *event, u32 prog_fd);
 
 static long _perf_ioctl(struct perf_event *event, unsigned int cmd, unsigned long arg)
 {
@@ -4921,6 +4926,9 @@ static long _perf_ioctl(struct perf_event *event, unsigned int cmd, unsigned lon
 
 	case PERF_EVENT_IOC_SET_FILTER:
 		return perf_event_set_filter(event, (void __user *)arg);
+
+	case PERF_EVENT_IOC_SET_BPF:
+		return perf_event_set_bpf_prog(event, arg);
 
 	case PERF_EVENT_IOC_PAUSE_OUTPUT: {
 		struct ring_buffer *rb;
@@ -7975,6 +7983,61 @@ static void perf_event_free_filter(struct perf_event *event)
 	ftrace_profile_free_filter(event);
 }
 
+static struct bpf_prog* get_bpf_prog(struct perf_event *event)
+{
+	return event->tp_event->rh_data->prog;
+}
+
+static void set_bpf_prog(struct perf_event *event, struct bpf_prog *prog)
+{
+	struct ftrace_event_data *rh_data = event->tp_event->rh_data;
+
+	rh_data->prog = prog;
+}
+
+static int perf_event_set_bpf_prog(struct perf_event *event, u32 prog_fd)
+{
+	struct bpf_prog *prog;
+
+	if (event->attr.type != PERF_TYPE_TRACEPOINT)
+		return -EINVAL;
+
+	if (get_bpf_prog(event))
+		return -EEXIST;
+
+	if (!(event->tp_event->flags & TRACE_EVENT_FL_KPROBE))
+		/* bpf programs can only be attached to kprobes */
+		return -EINVAL;
+
+	prog = bpf_prog_get(prog_fd);
+	if (IS_ERR(prog))
+		return PTR_ERR(prog);
+
+	if (prog->type != BPF_PROG_TYPE_KPROBE) {
+		/* valid fd, but invalid bpf program type */
+		bpf_prog_put(prog);
+		return -EINVAL;
+	}
+
+	set_bpf_prog(event, prog);
+
+	return 0;
+}
+
+static void perf_event_free_bpf_prog(struct perf_event *event)
+{
+	struct bpf_prog *prog;
+
+	if (!event->tp_event)
+		return;
+
+	prog = get_bpf_prog(event);
+	if (prog) {
+		set_bpf_prog(event, NULL);
+		bpf_prog_put(prog);
+	}
+}
+
 #else
 
 static inline void perf_tp_register(void)
@@ -7985,6 +8048,14 @@ static void perf_event_free_filter(struct perf_event *event)
 {
 }
 
+static int perf_event_set_bpf_prog(struct perf_event *event, u32 prog_fd)
+{
+	return -ENOENT;
+}
+
+static void perf_event_free_bpf_prog(struct perf_event *event)
+{
+}
 #endif /* CONFIG_EVENT_TRACING */
 
 #ifdef CONFIG_HAVE_HW_BREAKPOINT
