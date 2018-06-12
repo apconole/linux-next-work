@@ -90,6 +90,8 @@ extern int sk_chk_filter(struct sock_filter *filter, unsigned int flen);
 extern int sk_get_filter(struct sock *sk, struct sock_filter __user *filter, unsigned len);
 extern void sk_decode_filter(struct sock_filter *filt, struct sock_filter *to);
 
+int bpf_prog_select_runtime(struct bpf_prog *fp);
+
 static inline u32 bpf_prog_run_xdp(const struct bpf_prog *prog,
 				   struct xdp_buff *xdp)
 {

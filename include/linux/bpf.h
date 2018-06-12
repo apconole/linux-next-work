@@ -117,4 +117,25 @@ struct bpf_prog_aux {
 	struct work_struct work;
 };
 
+struct bpf_array {
+	struct bpf_map map;
+	u32 elem_size;
+	/* 'ownership' of prog_array is claimed by the first program that
+	 * is going to use this map or by the first program which FD is stored
+	 * in the map to make sure that all callers and callees have the same
+	 * prog_type and JITed flag
+	 */
+	enum bpf_prog_type owner_prog_type;
+	bool owner_jited;
+	union {
+		char value[0] __aligned(8);
+		struct bpf_prog *prog[0] __aligned(8);
+	};
+};
+#define MAX_TAIL_CALL_CNT 32
+
+u64 bpf_tail_call(u64 ctx, u64 r2, u64 index, u64 r4, u64 r5);
+void bpf_prog_array_map_clear(struct bpf_map *map);
+bool bpf_prog_array_compatible(struct bpf_array *array, const struct bpf_prog *fp);
+
 #endif /* _LINUX_BPF_H */
