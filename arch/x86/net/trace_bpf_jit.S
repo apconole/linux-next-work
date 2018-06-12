@@ -111,7 +111,7 @@ bpf_slow_path_byte:
 	push	SKBDATA;					\
 /* rsi already has offset */					\
 	mov	$SIZE,%edx;	/* size */			\
-	call	bpf_internal_load_pointer_neg_helper;		\
+	call	trace_bpf_internal_load_pointer_neg_helper;	\
 	test	%rax,%rax;					\
 	pop	SKBDATA;					\
 	pop	%r9;						\
