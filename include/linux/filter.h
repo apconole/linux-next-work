@@ -23,6 +23,11 @@ struct compat_sock_fprog {
 };
 #endif
 
+struct bpf_binary_header {
+	unsigned int pages;
+	u8 image[];
+};
+
 struct sk_buff;
 struct sock;
 struct bpf_prog_aux;
@@ -168,6 +173,14 @@ static inline void bpf_prog_unlock_free(struct bpf_prog *fp)
 	bpf_prog_unlock_ro(fp);
 	__bpf_prog_free(fp);
 }
+
+typedef void (*bpf_jit_fill_hole_t)(void *area, unsigned int size);
+
+struct bpf_binary_header *
+bpf_jit_binary_alloc(unsigned int proglen, u8 **image_ptr,
+		     unsigned int alignment,
+		     bpf_jit_fill_hole_t bpf_fill_ill_insns);
+void bpf_jit_binary_free(struct bpf_binary_header *hdr);
 
 #ifdef CONFIG_BPF_JIT
 #include <stdarg.h>
