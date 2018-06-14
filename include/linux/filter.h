@@ -733,4 +733,9 @@ enum {
 	BPF_S_ANC_PAY_OFFSET,
 };
 
+static inline bool bpf_prog_is_dev_bound(struct bpf_prog_aux *aux)
+{
+	return false;
+}
+
 #endif /* __LINUX_FILTER_H__ */
