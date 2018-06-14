@@ -331,6 +331,14 @@ enum bpf_func_id {
 	 * Return: >= 0 stackid on success or negative error
 	 */
 	BPF_FUNC_get_stackid,
+
+	/**
+	 * u64 bpf_get_current_task(void)
+	 * Returns current task_struct
+	 * Return: current
+	 */
+	BPF_FUNC_get_current_task,
+
 	__BPF_FUNC_MAX_ID,
 };
 
