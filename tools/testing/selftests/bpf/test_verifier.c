@@ -74,6 +74,7 @@ struct bpf_test {
 	} result, result_unpriv;
 	enum bpf_prog_type prog_type;
 	uint8_t flags;
+	bool disabled;
 };
 
 /* Note we want this to be 64 bit aligned so that the end of our array is
@@ -813,6 +814,7 @@ static struct bpf_test tests[] = {
 		.errstr = "R1 !read_ok",
 		.result = REJECT,
 		.prog_type = BPF_PROG_TYPE_SCHED_CLS,
+		.disabled = true,
 	},
 	{
 		"non-invalid argument register",
@@ -827,6 +829,7 @@ static struct bpf_test tests[] = {
 		},
 		.result = ACCEPT,
 		.prog_type = BPF_PROG_TYPE_SCHED_CLS,
+		.disabled = true,
 	},
 	{
 		"check valid spill/fill",
@@ -857,6 +860,7 @@ static struct bpf_test tests[] = {
 		},
 		.result = ACCEPT,
 		.result_unpriv = ACCEPT,
+		.disabled = true,
 	},
 	{
 		"check corrupted spill/fill",
@@ -1253,6 +1257,7 @@ static struct bpf_test tests[] = {
 			BPF_EXIT_INSN(),
 		},
 		.result = ACCEPT,
+		.disabled = true,
 	},
 	{
 		"access skb fields bad1",
@@ -1284,6 +1289,7 @@ static struct bpf_test tests[] = {
 		.errstr = "different pointers",
 		.errstr_unpriv = "R1 pointer comparison",
 		.result = REJECT,
+		.disabled = true,
 	},
 	{
 		"access skb fields bad3",
@@ -1307,6 +1313,7 @@ static struct bpf_test tests[] = {
 		.errstr = "different pointers",
 		.errstr_unpriv = "R1 pointer comparison",
 		.result = REJECT,
+		.disabled = true,
 	},
 	{
 		"access skb fields bad4",
@@ -1331,6 +1338,7 @@ static struct bpf_test tests[] = {
 		.errstr = "different pointers",
 		.errstr_unpriv = "R1 pointer comparison",
 		.result = REJECT,
+		.disabled = true,
 	},
 	{
 		"invalid access __sk_buff family",
@@ -1341,6 +1349,7 @@ static struct bpf_test tests[] = {
 		},
 		.errstr = "invalid bpf_context access",
 		.result = REJECT,
+		.disabled = true,
 	},
 	{
 		"invalid access __sk_buff remote_ip4",
@@ -1351,6 +1360,7 @@ static struct bpf_test tests[] = {
 		},
 		.errstr = "invalid bpf_context access",
 		.result = REJECT,
+		.disabled = true,
 	},
 	{
 		"invalid access __sk_buff local_ip4",
@@ -1361,6 +1371,7 @@ static struct bpf_test tests[] = {
 		},
 		.errstr = "invalid bpf_context access",
 		.result = REJECT,
+		.disabled = true,
 	},
 	{
 		"invalid access __sk_buff remote_ip6",
@@ -1371,6 +1382,7 @@ static struct bpf_test tests[] = {
 		},
 		.errstr = "invalid bpf_context access",
 		.result = REJECT,
+		.disabled = true,
 	},
 	{
 		"invalid access __sk_buff local_ip6",
@@ -1381,6 +1393,7 @@ static struct bpf_test tests[] = {
 		},
 		.errstr = "invalid bpf_context access",
 		.result = REJECT,
+		.disabled = true,
 	},
 	{
 		"invalid access __sk_buff remote_port",
@@ -1391,6 +1404,7 @@ static struct bpf_test tests[] = {
 		},
 		.errstr = "invalid bpf_context access",
 		.result = REJECT,
+		.disabled = true,
 	},
 	{
 		"invalid access __sk_buff remote_port",
@@ -1411,6 +1425,7 @@ static struct bpf_test tests[] = {
 		},
 		.result = ACCEPT,
 		.prog_type = BPF_PROG_TYPE_SK_SKB,
+		.disabled = true,
 	},
 	{
 		"valid access __sk_buff remote_ip4",
@@ -1421,6 +1436,7 @@ static struct bpf_test tests[] = {
 		},
 		.result = ACCEPT,
 		.prog_type = BPF_PROG_TYPE_SK_SKB,
+		.disabled = true,
 	},
 	{
 		"valid access __sk_buff local_ip4",
@@ -1431,6 +1447,7 @@ static struct bpf_test tests[] = {
 		},
 		.result = ACCEPT,
 		.prog_type = BPF_PROG_TYPE_SK_SKB,
+		.disabled = true,
 	},
 	{
 		"valid access __sk_buff remote_ip6",
@@ -1447,6 +1464,7 @@ static struct bpf_test tests[] = {
 		},
 		.result = ACCEPT,
 		.prog_type = BPF_PROG_TYPE_SK_SKB,
+		.disabled = true,
 	},
 	{
 		"valid access __sk_buff local_ip6",
@@ -1463,6 +1481,7 @@ static struct bpf_test tests[] = {
 		},
 		.result = ACCEPT,
 		.prog_type = BPF_PROG_TYPE_SK_SKB,
+		.disabled = true,
 	},
 	{
 		"valid access __sk_buff remote_port",
@@ -1473,6 +1492,7 @@ static struct bpf_test tests[] = {
 		},
 		.result = ACCEPT,
 		.prog_type = BPF_PROG_TYPE_SK_SKB,
+		.disabled = true,
 	},
 	{
 		"valid access __sk_buff remote_port",
@@ -1483,6 +1503,7 @@ static struct bpf_test tests[] = {
 		},
 		.result = ACCEPT,
 		.prog_type = BPF_PROG_TYPE_SK_SKB,
+		.disabled = true,
 	},
 	{
 		"invalid access of tc_classid for SK_SKB",
@@ -1494,6 +1515,7 @@ static struct bpf_test tests[] = {
 		.result = REJECT,
 		.prog_type = BPF_PROG_TYPE_SK_SKB,
 		.errstr = "invalid bpf_context access",
+		.disabled = true,
 	},
 	{
 		"invalid access of skb->mark for SK_SKB",
@@ -1505,6 +1527,7 @@ static struct bpf_test tests[] = {
 		.result =  REJECT,
 		.prog_type = BPF_PROG_TYPE_SK_SKB,
 		.errstr = "invalid bpf_context access",
+		.disabled = true,
 	},
 	{
 		"check skb->mark is not writeable by SK_SKB",
@@ -1517,6 +1540,7 @@ static struct bpf_test tests[] = {
 		.result =  REJECT,
 		.prog_type = BPF_PROG_TYPE_SK_SKB,
 		.errstr = "invalid bpf_context access",
+		.disabled = true,
 	},
 	{
 		"check skb->tc_index is writeable by SK_SKB",
@@ -1528,6 +1552,7 @@ static struct bpf_test tests[] = {
 		},
 		.result = ACCEPT,
 		.prog_type = BPF_PROG_TYPE_SK_SKB,
+		.disabled = true,
 	},
 	{
 		"check skb->priority is writeable by SK_SKB",
@@ -1539,6 +1564,7 @@ static struct bpf_test tests[] = {
 		},
 		.result = ACCEPT,
 		.prog_type = BPF_PROG_TYPE_SK_SKB,
+		.disabled = true,
 	},
 	{
 		"direct packet read for SK_SKB",
@@ -1556,6 +1582,7 @@ static struct bpf_test tests[] = {
 		},
 		.result = ACCEPT,
 		.prog_type = BPF_PROG_TYPE_SK_SKB,
+		.disabled = true,
 	},
 	{
 		"direct packet write for SK_SKB",
@@ -1573,6 +1600,7 @@ static struct bpf_test tests[] = {
 		},
 		.result = ACCEPT,
 		.prog_type = BPF_PROG_TYPE_SK_SKB,
+		.disabled = true,
 	},
 	{
 		"overlapping checks for direct packet access SK_SKB",
@@ -1593,6 +1621,7 @@ static struct bpf_test tests[] = {
 		},
 		.result = ACCEPT,
 		.prog_type = BPF_PROG_TYPE_SK_SKB,
+		.disabled = true,
 	},
 	{
 		"check skb->mark is not writeable by sockets",
@@ -1703,6 +1732,7 @@ static struct bpf_test tests[] = {
 			BPF_EXIT_INSN(),
 		},
 		.result = ACCEPT,
+		.disabled = true,
 	},
 	{
 		"__sk_buff->hash, offset 0, byte store not permitted",
@@ -1740,6 +1770,7 @@ static struct bpf_test tests[] = {
 			BPF_EXIT_INSN(),
 		},
 		.result = ACCEPT,
+		.disabled = true,
 	},
 	{
 		"check skb->hash byte load not permitted 1",
@@ -1790,6 +1821,7 @@ static struct bpf_test tests[] = {
 		.errstr = "invalid bpf_context access",
 		.result = REJECT,
 		.prog_type = BPF_PROG_TYPE_CGROUP_SOCK,
+		.disabled = true,
 	},
 	{
 		"check cb access: half",
@@ -1838,6 +1870,7 @@ static struct bpf_test tests[] = {
 			BPF_EXIT_INSN(),
 		},
 		.result = ACCEPT,
+		.disabled = true,
 	},
 	{
 		"check cb access: half, unaligned",
@@ -1887,6 +1920,7 @@ static struct bpf_test tests[] = {
 			BPF_EXIT_INSN(),
 		},
 		.result = ACCEPT,
+		.disabled = true,
 	},
 	{
 		"check skb->hash half load not permitted",
@@ -1915,6 +1949,7 @@ static struct bpf_test tests[] = {
 		.errstr = "invalid bpf_context access",
 		.result = REJECT,
 		.prog_type = BPF_PROG_TYPE_CGROUP_SOCK,
+		.disabled = true,
 	},
 	{
 		"check cb access: word",
@@ -1943,6 +1978,7 @@ static struct bpf_test tests[] = {
 			BPF_EXIT_INSN(),
 		},
 		.result = ACCEPT,
+		.disabled = true,
 	},
 	{
 		"check cb access: word, unaligned 1",
@@ -2007,6 +2043,7 @@ static struct bpf_test tests[] = {
 			BPF_EXIT_INSN(),
 		},
 		.result = ACCEPT,
+		.disabled = true,
 	},
 	{
 		"check cb access: double, unaligned 1",
@@ -2087,6 +2124,7 @@ static struct bpf_test tests[] = {
 		.errstr = "invalid bpf_context access",
 		.result = REJECT,
 		.prog_type = BPF_PROG_TYPE_CGROUP_SOCK,
+		.disabled = true,
 	},
 	{
 		"check out of range skb->cb access",
@@ -2120,6 +2158,7 @@ static struct bpf_test tests[] = {
 		.result = ACCEPT,
 		.errstr_unpriv = "R1 leaks addr",
 		.result_unpriv = REJECT,
+		.disabled = true,
 	},
 	{
 		"write skb fields from tc_cls_act prog",
@@ -2140,6 +2179,7 @@ static struct bpf_test tests[] = {
 		.result_unpriv = REJECT,
 		.result = ACCEPT,
 		.prog_type = BPF_PROG_TYPE_SCHED_CLS,
+		.disabled = true,
 	},
 	{
 		"PTR_TO_STACK store/load",
@@ -2389,6 +2429,7 @@ static struct bpf_test tests[] = {
 		},
 		.result = ACCEPT,
 		.prog_type = BPF_PROG_TYPE_SCHED_CLS,
+		.disabled = true,
 	},
 	{
 		"unpriv: spill/fill of ctx 3",
@@ -2405,6 +2446,7 @@ static struct bpf_test tests[] = {
 		.result = REJECT,
 		.errstr = "R1 type=fp expected=ctx",
 		.prog_type = BPF_PROG_TYPE_SCHED_CLS,
+		.disabled = true,
 	},
 	{
 		"unpriv: spill/fill of ctx 4",
@@ -2423,6 +2465,7 @@ static struct bpf_test tests[] = {
 		.result = REJECT,
 		.errstr = "R1 type=inv expected=ctx",
 		.prog_type = BPF_PROG_TYPE_SCHED_CLS,
+		.disabled = true,
 	},
 	{
 		"unpriv: spill/fill of different pointers stx",
@@ -2445,6 +2488,7 @@ static struct bpf_test tests[] = {
 		.result = REJECT,
 		.errstr = "same insn cannot be used with different pointers",
 		.prog_type = BPF_PROG_TYPE_SCHED_CLS,
+		.disabled = true,
 	},
 	{
 		"unpriv: spill/fill of different pointers ldx",
@@ -2663,6 +2707,7 @@ static struct bpf_test tests[] = {
 		.result = REJECT,
 		.errstr = "R4 min value is negative",
 		.prog_type = BPF_PROG_TYPE_SCHED_CLS,
+		.disabled = true,
 	},
 	{
 		"raw_stack: skb_load_bytes, negative len 2",
@@ -2680,6 +2725,7 @@ static struct bpf_test tests[] = {
 		.result = REJECT,
 		.errstr = "R4 min value is negative",
 		.prog_type = BPF_PROG_TYPE_SCHED_CLS,
+		.disabled = true,
 	},
 	{
 		"raw_stack: skb_load_bytes, zero len",
@@ -2697,6 +2743,7 @@ static struct bpf_test tests[] = {
 		.result = REJECT,
 		.errstr = "invalid stack type R3",
 		.prog_type = BPF_PROG_TYPE_SCHED_CLS,
+		.disabled = true,
 	},
 	{
 		"raw_stack: skb_load_bytes, no init",
@@ -2713,6 +2760,7 @@ static struct bpf_test tests[] = {
 		},
 		.result = ACCEPT,
 		.prog_type = BPF_PROG_TYPE_SCHED_CLS,
+		.disabled = true,
 	},
 	{
 		"raw_stack: skb_load_bytes, init",
@@ -2730,6 +2778,7 @@ static struct bpf_test tests[] = {
 		},
 		.result = ACCEPT,
 		.prog_type = BPF_PROG_TYPE_SCHED_CLS,
+		.disabled = true,
 	},
 	{
 		"raw_stack: skb_load_bytes, spilled regs around bounds",
@@ -2754,6 +2803,7 @@ static struct bpf_test tests[] = {
 		},
 		.result = ACCEPT,
 		.prog_type = BPF_PROG_TYPE_SCHED_CLS,
+		.disabled = true,
 	},
 	{
 		"raw_stack: skb_load_bytes, spilled regs corruption",
@@ -2774,6 +2824,7 @@ static struct bpf_test tests[] = {
 		.result = REJECT,
 		.errstr = "R0 invalid mem access 'inv'",
 		.prog_type = BPF_PROG_TYPE_SCHED_CLS,
+		.disabled = true,
 	},
 	{
 		"raw_stack: skb_load_bytes, spilled regs corruption 2",
@@ -2804,6 +2855,7 @@ static struct bpf_test tests[] = {
 		.result = REJECT,
 		.errstr = "R3 invalid mem access 'inv'",
 		.prog_type = BPF_PROG_TYPE_SCHED_CLS,
+		.disabled = true,
 	},
 	{
 		"raw_stack: skb_load_bytes, spilled regs + data",
@@ -2831,6 +2883,7 @@ static struct bpf_test tests[] = {
 		},
 		.result = ACCEPT,
 		.prog_type = BPF_PROG_TYPE_SCHED_CLS,
+		.disabled = true,
 	},
 	{
 		"raw_stack: skb_load_bytes, invalid access 1",
@@ -2848,6 +2901,7 @@ static struct bpf_test tests[] = {
 		.result = REJECT,
 		.errstr = "invalid stack type R3 off=-513 access_size=8",
 		.prog_type = BPF_PROG_TYPE_SCHED_CLS,
+		.disabled = true,
 	},
 	{
 		"raw_stack: skb_load_bytes, invalid access 2",
@@ -2865,6 +2919,7 @@ static struct bpf_test tests[] = {
 		.result = REJECT,
 		.errstr = "invalid stack type R3 off=-1 access_size=8",
 		.prog_type = BPF_PROG_TYPE_SCHED_CLS,
+		.disabled = true,
 	},
 	{
 		"raw_stack: skb_load_bytes, invalid access 3",
@@ -2882,6 +2937,7 @@ static struct bpf_test tests[] = {
 		.result = REJECT,
 		.errstr = "R4 min value is negative",
 		.prog_type = BPF_PROG_TYPE_SCHED_CLS,
+		.disabled = true,
 	},
 	{
 		"raw_stack: skb_load_bytes, invalid access 4",
@@ -2899,6 +2955,7 @@ static struct bpf_test tests[] = {
 		.result = REJECT,
 		.errstr = "R4 unbounded memory access, use 'var &= const' or 'if (var < const)'",
 		.prog_type = BPF_PROG_TYPE_SCHED_CLS,
+		.disabled = true,
 	},
 	{
 		"raw_stack: skb_load_bytes, invalid access 5",
@@ -2916,6 +2973,7 @@ static struct bpf_test tests[] = {
 		.result = REJECT,
 		.errstr = "R4 unbounded memory access, use 'var &= const' or 'if (var < const)'",
 		.prog_type = BPF_PROG_TYPE_SCHED_CLS,
+		.disabled = true,
 	},
 	{
 		"raw_stack: skb_load_bytes, invalid access 6",
@@ -2933,6 +2991,7 @@ static struct bpf_test tests[] = {
 		.result = REJECT,
 		.errstr = "invalid stack type R3 off=-512 access_size=0",
 		.prog_type = BPF_PROG_TYPE_SCHED_CLS,
+		.disabled = true,
 	},
 	{
 		"raw_stack: skb_load_bytes, large access",
@@ -2949,6 +3008,7 @@ static struct bpf_test tests[] = {
 		},
 		.result = ACCEPT,
 		.prog_type = BPF_PROG_TYPE_SCHED_CLS,
+		.disabled = true,
 	},
 	{
 		"context stores via ST",
@@ -2989,6 +3049,7 @@ static struct bpf_test tests[] = {
 		},
 		.result = ACCEPT,
 		.prog_type = BPF_PROG_TYPE_SCHED_CLS,
+		.disabled = true,
 	},
 	{
 		"direct packet access: test2",
@@ -3023,6 +3084,7 @@ static struct bpf_test tests[] = {
 		},
 		.result = ACCEPT,
 		.prog_type = BPF_PROG_TYPE_SCHED_CLS,
+		.disabled = true,
 	},
 	{
 		"direct packet access: test3",
@@ -3052,6 +3114,7 @@ static struct bpf_test tests[] = {
 		},
 		.result = ACCEPT,
 		.prog_type = BPF_PROG_TYPE_SCHED_CLS,
+		.disabled = true,
 	},
 	{
 		"direct packet access: test5 (pkt_end >= reg, good access)",
@@ -3071,6 +3134,7 @@ static struct bpf_test tests[] = {
 		},
 		.result = ACCEPT,
 		.prog_type = BPF_PROG_TYPE_SCHED_CLS,
+		.disabled = true,
 	},
 	{
 		"direct packet access: test6 (pkt_end >= reg, bad access)",
@@ -3091,6 +3155,7 @@ static struct bpf_test tests[] = {
 		.errstr = "invalid access to packet",
 		.result = REJECT,
 		.prog_type = BPF_PROG_TYPE_SCHED_CLS,
+		.disabled = true,
 	},
 	{
 		"direct packet access: test7 (pkt_end >= reg, both accesses)",
@@ -3112,6 +3177,7 @@ static struct bpf_test tests[] = {
 		.errstr = "invalid access to packet",
 		.result = REJECT,
 		.prog_type = BPF_PROG_TYPE_SCHED_CLS,
+		.disabled = true,
 	},
 	{
 		"direct packet access: test8 (double test, variant 1)",
@@ -3133,6 +3199,7 @@ static struct bpf_test tests[] = {
 		},
 		.result = ACCEPT,
 		.prog_type = BPF_PROG_TYPE_SCHED_CLS,
+		.disabled = true,
 	},
 	{
 		"direct packet access: test9 (double test, variant 2)",
@@ -3154,6 +3221,7 @@ static struct bpf_test tests[] = {
 		},
 		.result = ACCEPT,
 		.prog_type = BPF_PROG_TYPE_SCHED_CLS,
+		.disabled = true,
 	},
 	{
 		"direct packet access: test10 (write invalid)",
@@ -3174,6 +3242,7 @@ static struct bpf_test tests[] = {
 		.errstr = "invalid access to packet",
 		.result = REJECT,
 		.prog_type = BPF_PROG_TYPE_SCHED_CLS,
+		.disabled = true,
 	},
 	{
 		"direct packet access: test11 (shift, good access)",
@@ -3199,6 +3268,7 @@ static struct bpf_test tests[] = {
 		.result = ACCEPT,
 		.prog_type = BPF_PROG_TYPE_SCHED_CLS,
 		.retval = 1,
+		.disabled = true,
 	},
 	{
 		"direct packet access: test12 (and, good access)",
@@ -3224,6 +3294,7 @@ static struct bpf_test tests[] = {
 		.result = ACCEPT,
 		.prog_type = BPF_PROG_TYPE_SCHED_CLS,
 		.retval = 1,
+		.disabled = true,
 	},
 	{
 		"direct packet access: test13 (branches, good access)",
@@ -3255,6 +3326,7 @@ static struct bpf_test tests[] = {
 		.result = ACCEPT,
 		.prog_type = BPF_PROG_TYPE_SCHED_CLS,
 		.retval = 1,
+		.disabled = true,
 	},
 	{
 		"direct packet access: test14 (pkt_ptr += 0, CONST_IMM, good access)",
@@ -3279,6 +3351,7 @@ static struct bpf_test tests[] = {
 		.result = ACCEPT,
 		.prog_type = BPF_PROG_TYPE_SCHED_CLS,
 		.retval = 1,
+		.disabled = true,
 	},
 	{
 		"direct packet access: test15 (spill with xadd)",
@@ -3303,6 +3376,7 @@ static struct bpf_test tests[] = {
 		.errstr = "R2 invalid mem access 'inv'",
 		.result = REJECT,
 		.prog_type = BPF_PROG_TYPE_SCHED_CLS,
+		.disabled = true,
 	},
 	{
 		"direct packet access: test16 (arith on data_end)",
@@ -3322,6 +3396,7 @@ static struct bpf_test tests[] = {
 		.errstr = "R3 pointer arithmetic on PTR_TO_PACKET_END",
 		.result = REJECT,
 		.prog_type = BPF_PROG_TYPE_SCHED_CLS,
+		.disabled = true,
 	},
 	{
 		"direct packet access: test17 (pruning, alignment)",
@@ -3346,6 +3421,7 @@ static struct bpf_test tests[] = {
 		.result = REJECT,
 		.prog_type = BPF_PROG_TYPE_SCHED_CLS,
 		.flags = F_LOAD_WITH_STRICT_ALIGNMENT,
+		.disabled = true,
 	},
 	{
 		"direct packet access: test18 (imm += pkt_ptr, 1)",
@@ -3363,6 +3439,7 @@ static struct bpf_test tests[] = {
 		},
 		.result = ACCEPT,
 		.prog_type = BPF_PROG_TYPE_SCHED_CLS,
+		.disabled = true,
 	},
 	{
 		"direct packet access: test19 (imm += pkt_ptr, 2)",
@@ -3382,6 +3459,7 @@ static struct bpf_test tests[] = {
 		},
 		.result = ACCEPT,
 		.prog_type = BPF_PROG_TYPE_SCHED_CLS,
+		.disabled = true,
 	},
 	{
 		"direct packet access: test20 (x += pkt_ptr, 1)",
@@ -3405,6 +3483,7 @@ static struct bpf_test tests[] = {
 		},
 		.prog_type = BPF_PROG_TYPE_SCHED_CLS,
 		.result = ACCEPT,
+		.disabled = true,
 	},
 	{
 		"direct packet access: test21 (x += pkt_ptr, 2)",
@@ -3430,6 +3509,7 @@ static struct bpf_test tests[] = {
 		},
 		.prog_type = BPF_PROG_TYPE_SCHED_CLS,
 		.result = ACCEPT,
+		.disabled = true,
 	},
 	{
 		"direct packet access: test22 (x += pkt_ptr, 3)",
@@ -3460,6 +3540,7 @@ static struct bpf_test tests[] = {
 		},
 		.prog_type = BPF_PROG_TYPE_SCHED_CLS,
 		.result = ACCEPT,
+		.disabled = true,
 	},
 	{
 		"direct packet access: test23 (x += pkt_ptr, 4)",
@@ -3486,6 +3567,7 @@ static struct bpf_test tests[] = {
 		.prog_type = BPF_PROG_TYPE_SCHED_CLS,
 		.result = REJECT,
 		.errstr = "invalid access to packet, off=0 size=8, R5(id=1,off=0,r=0)",
+		.disabled = true,
 	},
 	{
 		"direct packet access: test24 (x += pkt_ptr, 5)",
@@ -3511,6 +3593,7 @@ static struct bpf_test tests[] = {
 		},
 		.prog_type = BPF_PROG_TYPE_SCHED_CLS,
 		.result = ACCEPT,
+		.disabled = true,
 	},
 	{
 		"direct packet access: test25 (marking on <, good access)",
@@ -3529,6 +3612,7 @@ static struct bpf_test tests[] = {
 		},
 		.result = ACCEPT,
 		.prog_type = BPF_PROG_TYPE_SCHED_CLS,
+		.disabled = true,
 	},
 	{
 		"direct packet access: test26 (marking on <, bad access)",
@@ -3548,6 +3632,7 @@ static struct bpf_test tests[] = {
 		.result = REJECT,
 		.errstr = "invalid access to packet",
 		.prog_type = BPF_PROG_TYPE_SCHED_CLS,
+		.disabled = true,
 	},
 	{
 		"direct packet access: test27 (marking on <=, good access)",
@@ -3566,6 +3651,7 @@ static struct bpf_test tests[] = {
 		.result = ACCEPT,
 		.prog_type = BPF_PROG_TYPE_SCHED_CLS,
 		.retval = 1,
+		.disabled = true,
 	},
 	{
 		"direct packet access: test28 (marking on <=, bad access)",
@@ -3585,6 +3671,7 @@ static struct bpf_test tests[] = {
 		.result = REJECT,
 		.errstr = "invalid access to packet",
 		.prog_type = BPF_PROG_TYPE_SCHED_CLS,
+		.disabled = true,
 	},
 	{
 		"helper access to packet: test1, valid packet_ptr range",
@@ -3608,6 +3695,7 @@ static struct bpf_test tests[] = {
 		.result_unpriv = ACCEPT,
 		.result = ACCEPT,
 		.prog_type = BPF_PROG_TYPE_XDP,
+		.disabled = true,
 	},
 	{
 		"helper access to packet: test2, unchecked packet_ptr",
@@ -3624,6 +3712,7 @@ static struct bpf_test tests[] = {
 		.result = REJECT,
 		.errstr = "invalid access to packet",
 		.prog_type = BPF_PROG_TYPE_XDP,
+		.disabled = true,
 	},
 	{
 		"helper access to packet: test3, variable add",
@@ -3651,6 +3740,7 @@ static struct bpf_test tests[] = {
 		.fixup_map1 = { 11 },
 		.result = ACCEPT,
 		.prog_type = BPF_PROG_TYPE_XDP,
+		.disabled = true,
 	},
 	{
 		"helper access to packet: test4, packet_ptr with bad range",
@@ -3674,6 +3764,7 @@ static struct bpf_test tests[] = {
 		.result = REJECT,
 		.errstr = "invalid access to packet",
 		.prog_type = BPF_PROG_TYPE_XDP,
+		.disabled = true,
 	},
 	{
 		"helper access to packet: test5, packet_ptr with too short range",
@@ -3696,6 +3787,7 @@ static struct bpf_test tests[] = {
 		.result = REJECT,
 		.errstr = "invalid access to packet",
 		.prog_type = BPF_PROG_TYPE_XDP,
+		.disabled = true,
 	},
 	{
 		"helper access to packet: test6, cls valid packet_ptr range",
@@ -3718,6 +3810,7 @@ static struct bpf_test tests[] = {
 		.fixup_map1 = { 5 },
 		.result = ACCEPT,
 		.prog_type = BPF_PROG_TYPE_SCHED_CLS,
+		.disabled = true,
 	},
 	{
 		"helper access to packet: test7, cls unchecked packet_ptr",
@@ -3734,6 +3827,7 @@ static struct bpf_test tests[] = {
 		.result = REJECT,
 		.errstr = "invalid access to packet",
 		.prog_type = BPF_PROG_TYPE_SCHED_CLS,
+		.disabled = true,
 	},
 	{
 		"helper access to packet: test8, cls variable add",
@@ -3761,6 +3855,7 @@ static struct bpf_test tests[] = {
 		.fixup_map1 = { 11 },
 		.result = ACCEPT,
 		.prog_type = BPF_PROG_TYPE_SCHED_CLS,
+		.disabled = true,
 	},
 	{
 		"helper access to packet: test9, cls packet_ptr with bad range",
@@ -3784,6 +3879,7 @@ static struct bpf_test tests[] = {
 		.result = REJECT,
 		.errstr = "invalid access to packet",
 		.prog_type = BPF_PROG_TYPE_SCHED_CLS,
+		.disabled = true,
 	},
 	{
 		"helper access to packet: test10, cls packet_ptr with too short range",
@@ -3806,6 +3902,7 @@ static struct bpf_test tests[] = {
 		.result = REJECT,
 		.errstr = "invalid access to packet",
 		.prog_type = BPF_PROG_TYPE_SCHED_CLS,
+		.disabled = true,
 	},
 	{
 		"helper access to packet: test11, cls unsuitable helper 1",
@@ -3829,6 +3926,7 @@ static struct bpf_test tests[] = {
 		.result = REJECT,
 		.errstr = "helper access to the packet",
 		.prog_type = BPF_PROG_TYPE_SCHED_CLS,
+		.disabled = true,
 	},
 	{
 		"helper access to packet: test12, cls unsuitable helper 2",
@@ -3850,6 +3948,7 @@ static struct bpf_test tests[] = {
 		.result = REJECT,
 		.errstr = "helper access to the packet",
 		.prog_type = BPF_PROG_TYPE_SCHED_CLS,
+		.disabled = true,
 	},
 	{
 		"helper access to packet: test13, cls helper ok",
@@ -3874,6 +3973,7 @@ static struct bpf_test tests[] = {
 		},
 		.result = ACCEPT,
 		.prog_type = BPF_PROG_TYPE_SCHED_CLS,
+		.disabled = true,
 	},
 	{
 		"helper access to packet: test14, cls helper ok sub",
@@ -3898,6 +3998,7 @@ static struct bpf_test tests[] = {
 		},
 		.result = ACCEPT,
 		.prog_type = BPF_PROG_TYPE_SCHED_CLS,
+		.disabled = true,
 	},
 	{
 		"helper access to packet: test15, cls helper fail sub",
@@ -3923,6 +4024,7 @@ static struct bpf_test tests[] = {
 		.result = REJECT,
 		.errstr = "invalid access to packet",
 		.prog_type = BPF_PROG_TYPE_SCHED_CLS,
+		.disabled = true,
 	},
 	{
 		"helper access to packet: test16, cls helper fail range 1",
@@ -3948,6 +4050,7 @@ static struct bpf_test tests[] = {
 		.result = REJECT,
 		.errstr = "invalid access to packet",
 		.prog_type = BPF_PROG_TYPE_SCHED_CLS,
+		.disabled = true,
 	},
 	{
 		"helper access to packet: test17, cls helper fail range 2",
@@ -3973,6 +4076,7 @@ static struct bpf_test tests[] = {
 		.result = REJECT,
 		.errstr = "R2 min value is negative",
 		.prog_type = BPF_PROG_TYPE_SCHED_CLS,
+		.disabled = true,
 	},
 	{
 		"helper access to packet: test18, cls helper fail range 3",
@@ -3998,6 +4102,7 @@ static struct bpf_test tests[] = {
 		.result = REJECT,
 		.errstr = "R2 min value is negative",
 		.prog_type = BPF_PROG_TYPE_SCHED_CLS,
+		.disabled = true,
 	},
 	{
 		"helper access to packet: test19, cls helper range zero",
@@ -4022,6 +4127,7 @@ static struct bpf_test tests[] = {
 		},
 		.result = ACCEPT,
 		.prog_type = BPF_PROG_TYPE_SCHED_CLS,
+		.disabled = true,
 	},
 	{
 		"helper access to packet: test20, pkt end as input",
@@ -4047,6 +4153,7 @@ static struct bpf_test tests[] = {
 		.result = REJECT,
 		.errstr = "R1 type=pkt_end expected=fp",
 		.prog_type = BPF_PROG_TYPE_SCHED_CLS,
+		.disabled = true,
 	},
 	{
 		"helper access to packet: test21, wrong reg",
@@ -4071,6 +4178,7 @@ static struct bpf_test tests[] = {
 		.result = REJECT,
 		.errstr = "invalid access to packet",
 		.prog_type = BPF_PROG_TYPE_SCHED_CLS,
+		.disabled = true,
 	},
 	{
 		"valid map access into an array with a constant",
@@ -4547,6 +4655,7 @@ static struct bpf_test tests[] = {
 		.errstr = "cannot write into packet",
 		.result = REJECT,
 		.prog_type = BPF_PROG_TYPE_LWT_IN,
+		.disabled = true,
 	},
 	{
 		"invalid direct packet write for LWT_OUT",
@@ -4565,6 +4674,7 @@ static struct bpf_test tests[] = {
 		.errstr = "cannot write into packet",
 		.result = REJECT,
 		.prog_type = BPF_PROG_TYPE_LWT_OUT,
+		.disabled = true,
 	},
 	{
 		"direct packet write for LWT_XMIT",
@@ -4582,6 +4692,7 @@ static struct bpf_test tests[] = {
 		},
 		.result = ACCEPT,
 		.prog_type = BPF_PROG_TYPE_LWT_XMIT,
+		.disabled = true,
 	},
 	{
 		"direct packet read for LWT_IN",
@@ -4599,6 +4710,7 @@ static struct bpf_test tests[] = {
 		},
 		.result = ACCEPT,
 		.prog_type = BPF_PROG_TYPE_LWT_IN,
+		.disabled = true,
 	},
 	{
 		"direct packet read for LWT_OUT",
@@ -4616,6 +4728,7 @@ static struct bpf_test tests[] = {
 		},
 		.result = ACCEPT,
 		.prog_type = BPF_PROG_TYPE_LWT_OUT,
+		.disabled = true,
 	},
 	{
 		"direct packet read for LWT_XMIT",
@@ -4633,6 +4746,7 @@ static struct bpf_test tests[] = {
 		},
 		.result = ACCEPT,
 		.prog_type = BPF_PROG_TYPE_LWT_XMIT,
+		.disabled = true,
 	},
 	{
 		"overlapping checks for direct packet access",
@@ -4653,6 +4767,7 @@ static struct bpf_test tests[] = {
 		},
 		.result = ACCEPT,
 		.prog_type = BPF_PROG_TYPE_LWT_XMIT,
+		.disabled = true,
 	},
 	{
 		"invalid access of tc_classid for LWT_IN",
@@ -4700,6 +4815,7 @@ static struct bpf_test tests[] = {
 		.result_unpriv = REJECT,
 		.result = REJECT,
 		.errstr = "BPF_XADD stores into R1 context is not allowed",
+		.disabled = true,
 	},
 	{
 		"leak pointer into ctx 2",
@@ -4715,6 +4831,7 @@ static struct bpf_test tests[] = {
 		.result_unpriv = REJECT,
 		.result = REJECT,
 		.errstr = "BPF_XADD stores into R1 context is not allowed",
+		.disabled = true,
 	},
 	{
 		"leak pointer into ctx 3",
@@ -4729,6 +4846,7 @@ static struct bpf_test tests[] = {
 		.errstr_unpriv = "R2 leaks addr into ctx",
 		.result_unpriv = REJECT,
 		.result = ACCEPT,
+		.disabled = true,
 	},
 	{
 		"leak pointer into map val",
@@ -6058,6 +6176,7 @@ static struct bpf_test tests[] = {
 		},
 		.result = ACCEPT,
 		.prog_type = BPF_PROG_TYPE_SCHED_CLS,
+		.disabled = true,
 	},
 	{
 		"helper access to variable memory: size > 0 not allowed on NULL (ARG_PTR_TO_MEM_OR_NULL)",
@@ -6076,6 +6195,7 @@ static struct bpf_test tests[] = {
 		.errstr = "R1 type=inv expected=fp",
 		.result = REJECT,
 		.prog_type = BPF_PROG_TYPE_SCHED_CLS,
+		.disabled = true,
 	},
 	{
 		"helper access to variable memory: size = 0 allowed on != NULL stack pointer (ARG_PTR_TO_MEM_OR_NULL)",
@@ -6093,6 +6213,7 @@ static struct bpf_test tests[] = {
 		},
 		.result = ACCEPT,
 		.prog_type = BPF_PROG_TYPE_SCHED_CLS,
+		.disabled = true,
 	},
 	{
 		"helper access to variable memory: size = 0 allowed on != NULL map pointer (ARG_PTR_TO_MEM_OR_NULL)",
@@ -6115,6 +6236,7 @@ static struct bpf_test tests[] = {
 		.fixup_map1 = { 3 },
 		.result = ACCEPT,
 		.prog_type = BPF_PROG_TYPE_SCHED_CLS,
+		.disabled = true,
 	},
 	{
 		"helper access to variable memory: size possible = 0 allowed on != NULL stack pointer (ARG_PTR_TO_MEM_OR_NULL)",
@@ -6140,6 +6262,7 @@ static struct bpf_test tests[] = {
 		.fixup_map1 = { 3 },
 		.result = ACCEPT,
 		.prog_type = BPF_PROG_TYPE_SCHED_CLS,
+		.disabled = true,
 	},
 	{
 		"helper access to variable memory: size possible = 0 allowed on != NULL map pointer (ARG_PTR_TO_MEM_OR_NULL)",
@@ -6163,6 +6286,7 @@ static struct bpf_test tests[] = {
 		.fixup_map1 = { 3 },
 		.result = ACCEPT,
 		.prog_type = BPF_PROG_TYPE_SCHED_CLS,
+		.disabled = true,
 	},
 	{
 		"helper access to variable memory: size possible = 0 allowed on != NULL packet pointer (ARG_PTR_TO_MEM_OR_NULL)",
@@ -6186,6 +6310,7 @@ static struct bpf_test tests[] = {
 		.result = ACCEPT,
 		.prog_type = BPF_PROG_TYPE_SCHED_CLS,
 		.retval = 0 /* csum_diff of 64-byte packet */,
+		.disabled = true,
 	},
 	{
 		"helper access to variable memory: size = 0 not allowed on NULL (!ARG_PTR_TO_MEM_OR_NULL)",
@@ -6244,6 +6369,7 @@ static struct bpf_test tests[] = {
 		.fixup_map1 = { 3 },
 		.result = ACCEPT,
 		.prog_type = BPF_PROG_TYPE_TRACEPOINT,
+		.disabled = true,
 	},
 	{
 		"helper access to variable memory: size possible = 0 allowed on != NULL stack pointer (!ARG_PTR_TO_MEM_OR_NULL)",
@@ -6285,6 +6411,7 @@ static struct bpf_test tests[] = {
 		.fixup_map1 = { 3 },
 		.result = ACCEPT,
 		.prog_type = BPF_PROG_TYPE_TRACEPOINT,
+		.disabled = true,
 	},
 	{
 		"helper access to variable memory: 8 bytes leak",
@@ -6555,6 +6682,7 @@ static struct bpf_test tests[] = {
 		.prog_type = BPF_PROG_TYPE_SCHED_CLS,
 		.result = ACCEPT,
 		.retval = 42 /* ultimate return value */,
+		.disabled = true,
 	},
 	{
 		"ld_ind: check calling conv, r1",
@@ -6719,6 +6847,7 @@ static struct bpf_test tests[] = {
 		.result = REJECT,
 		.errstr = "invalid bpf_context access",
 		.prog_type = BPF_PROG_TYPE_LWT_IN,
+		.disabled = true,
 	},
 	{
 		"bounds checks mixing signed and unsigned, positive bounds",
@@ -6888,6 +7017,7 @@ static struct bpf_test tests[] = {
 		},
 		.errstr = "R4 min value is negative, either use unsigned",
 		.result = REJECT,
+		.disabled = true,
 	},
 	{
 		"bounds checks mixing signed and unsigned, variant 7",
@@ -7100,6 +7230,7 @@ static struct bpf_test tests[] = {
 		.fixup_map1 = { 4 },
 		.errstr = "R0 invalid mem access 'inv'",
 		.result = REJECT,
+		.disabled = true,
 	},
 	{
 		"bounds checks mixing signed and unsigned, variant 15",
@@ -7282,6 +7413,7 @@ static struct bpf_test tests[] = {
 		.errstr = "value_size=8 off=1073741825",
 		.result = REJECT,
 		.prog_type = BPF_PROG_TYPE_SCHED_CLS,
+		.disabled = true,
 	},
 	{
 		"bounds check based on reg_off + var_off + insn_off. test2",
@@ -7307,6 +7439,7 @@ static struct bpf_test tests[] = {
 		.errstr = "value 1073741823",
 		.result = REJECT,
 		.prog_type = BPF_PROG_TYPE_SCHED_CLS,
+		.disabled = true,
 	},
 	{
 		"bounds check after truncation of non-boundary-crossing range",
@@ -7657,6 +7790,7 @@ static struct bpf_test tests[] = {
 		.errstr = "variable ctx access var_off=(0x0; 0x4)",
 		.result = REJECT,
 		.prog_type = BPF_PROG_TYPE_LWT_IN,
+		.disabled = true,
 	},
 	{
 		"variable-offset stack access",
@@ -7679,6 +7813,7 @@ static struct bpf_test tests[] = {
 		.errstr = "variable stack access var_off=(0xfffffffffffffff8; 0x4)",
 		.result = REJECT,
 		.prog_type = BPF_PROG_TYPE_LWT_IN,
+		.disabled = true,
 	},
 	{
 		"indirect variable-offset stack access",
@@ -7705,6 +7840,7 @@ static struct bpf_test tests[] = {
 		.errstr = "variable stack read R2",
 		.result = REJECT,
 		.prog_type = BPF_PROG_TYPE_LWT_IN,
+		.disabled = true,
 	},
 	{
 		"direct stack access with 32-bit wraparound. test1",
@@ -7760,6 +7896,7 @@ static struct bpf_test tests[] = {
 		.errstr = "R0 !read_ok",
 		.result = REJECT,
 		.prog_type = BPF_PROG_TYPE_LWT_IN,
+		.disabled = true,
 	},
 	{
 		"varlen_map_value_access pruning",
@@ -7818,6 +7955,7 @@ static struct bpf_test tests[] = {
 		.result = ACCEPT,
 		.prog_type = BPF_PROG_TYPE_XDP,
 		.retval = 1,
+		.disabled = true,
 	},
 	{
 		"meta access, test1",
@@ -7835,6 +7973,7 @@ static struct bpf_test tests[] = {
 		},
 		.result = ACCEPT,
 		.prog_type = BPF_PROG_TYPE_XDP,
+		.disabled = true,
 	},
 	{
 		"meta access, test2",
@@ -7855,6 +7994,7 @@ static struct bpf_test tests[] = {
 		.result = REJECT,
 		.errstr = "invalid access to packet, off=-8",
 		.prog_type = BPF_PROG_TYPE_XDP,
+		.disabled = true,
 	},
 	{
 		"meta access, test3",
@@ -7873,6 +8013,7 @@ static struct bpf_test tests[] = {
 		.result = REJECT,
 		.errstr = "invalid access to packet",
 		.prog_type = BPF_PROG_TYPE_XDP,
+		.disabled = true,
 	},
 	{
 		"meta access, test4",
@@ -7893,6 +8034,7 @@ static struct bpf_test tests[] = {
 		.result = REJECT,
 		.errstr = "invalid access to packet",
 		.prog_type = BPF_PROG_TYPE_XDP,
+		.disabled = true,
 	},
 	{
 		"meta access, test5",
@@ -7914,6 +8056,7 @@ static struct bpf_test tests[] = {
 		.result = REJECT,
 		.errstr = "R3 !read_ok",
 		.prog_type = BPF_PROG_TYPE_XDP,
+		.disabled = true,
 	},
 	{
 		"meta access, test6",
@@ -7934,6 +8077,7 @@ static struct bpf_test tests[] = {
 		.result = REJECT,
 		.errstr = "invalid access to packet",
 		.prog_type = BPF_PROG_TYPE_XDP,
+		.disabled = true,
 	},
 	{
 		"meta access, test7",
@@ -7953,6 +8097,7 @@ static struct bpf_test tests[] = {
 		},
 		.result = ACCEPT,
 		.prog_type = BPF_PROG_TYPE_XDP,
+		.disabled = true,
 	},
 	{
 		"meta access, test8",
@@ -7970,6 +8115,7 @@ static struct bpf_test tests[] = {
 		},
 		.result = ACCEPT,
 		.prog_type = BPF_PROG_TYPE_XDP,
+		.disabled = true,
 	},
 	{
 		"meta access, test9",
@@ -7989,6 +8135,7 @@ static struct bpf_test tests[] = {
 		.result = REJECT,
 		.errstr = "invalid access to packet",
 		.prog_type = BPF_PROG_TYPE_XDP,
+		.disabled = true,
 	},
 	{
 		"meta access, test10",
@@ -8017,6 +8164,7 @@ static struct bpf_test tests[] = {
 		.result = REJECT,
 		.errstr = "invalid access to packet",
 		.prog_type = BPF_PROG_TYPE_XDP,
+		.disabled = true,
 	},
 	{
 		"meta access, test11",
@@ -8042,6 +8190,7 @@ static struct bpf_test tests[] = {
 		},
 		.result = ACCEPT,
 		.prog_type = BPF_PROG_TYPE_XDP,
+		.disabled = true,
 	},
 	{
 		"meta access, test12",
@@ -8065,6 +8214,7 @@ static struct bpf_test tests[] = {
 		},
 		.result = ACCEPT,
 		.prog_type = BPF_PROG_TYPE_XDP,
+		.disabled = true,
 	},
 	{
 		"arithmetic ops make PTR_TO_CTX unusable",
@@ -8093,6 +8243,7 @@ static struct bpf_test tests[] = {
 		.result = ACCEPT,
 		.retval = TEST_DATA_LEN,
 		.prog_type = BPF_PROG_TYPE_SCHED_CLS,
+		.disabled = true,
 	},
 	{
 		"XDP pkt read, pkt_end mangling, bad access 1",
@@ -8112,6 +8263,7 @@ static struct bpf_test tests[] = {
 		.errstr = "R3 pointer arithmetic on PTR_TO_PACKET_END",
 		.result = REJECT,
 		.prog_type = BPF_PROG_TYPE_XDP,
+		.disabled = true,
 	},
 	{
 		"XDP pkt read, pkt_end mangling, bad access 2",
@@ -8131,6 +8283,7 @@ static struct bpf_test tests[] = {
 		.errstr = "R3 pointer arithmetic on PTR_TO_PACKET_END",
 		.result = REJECT,
 		.prog_type = BPF_PROG_TYPE_XDP,
+		.disabled = true,
 	},
 	{
 		"XDP pkt read, pkt_data' > pkt_end, good access",
@@ -8148,6 +8301,7 @@ static struct bpf_test tests[] = {
 		},
 		.result = ACCEPT,
 		.prog_type = BPF_PROG_TYPE_XDP,
+		.disabled = true,
 	},
 	{
 		"XDP pkt read, pkt_data' > pkt_end, bad access 1",
@@ -8167,6 +8321,7 @@ static struct bpf_test tests[] = {
 		.result = REJECT,
 		.prog_type = BPF_PROG_TYPE_XDP,
 		.flags = F_NEEDS_EFFICIENT_UNALIGNED_ACCESS,
+		.disabled = true,
 	},
 	{
 		"XDP pkt read, pkt_data' > pkt_end, bad access 2",
@@ -8185,6 +8340,7 @@ static struct bpf_test tests[] = {
 		.errstr = "R1 offset is outside of the packet",
 		.result = REJECT,
 		.prog_type = BPF_PROG_TYPE_XDP,
+		.disabled = true,
 	},
 	{
 		"XDP pkt read, pkt_end > pkt_data', good access",
@@ -8204,6 +8360,7 @@ static struct bpf_test tests[] = {
 		.result = ACCEPT,
 		.prog_type = BPF_PROG_TYPE_XDP,
 		.flags = F_NEEDS_EFFICIENT_UNALIGNED_ACCESS,
+		.disabled = true,
 	},
 	{
 		"XDP pkt read, pkt_end > pkt_data', bad access 1",
@@ -8223,6 +8380,7 @@ static struct bpf_test tests[] = {
 		.errstr = "R1 offset is outside of the packet",
 		.result = REJECT,
 		.prog_type = BPF_PROG_TYPE_XDP,
+		.disabled = true,
 	},
 	{
 		"XDP pkt read, pkt_end > pkt_data', bad access 2",
@@ -8241,6 +8399,7 @@ static struct bpf_test tests[] = {
 		.errstr = "R1 offset is outside of the packet",
 		.result = REJECT,
 		.prog_type = BPF_PROG_TYPE_XDP,
+		.disabled = true,
 	},
 	{
 		"XDP pkt read, pkt_data' < pkt_end, good access",
@@ -8260,6 +8419,7 @@ static struct bpf_test tests[] = {
 		.result = ACCEPT,
 		.prog_type = BPF_PROG_TYPE_XDP,
 		.flags = F_NEEDS_EFFICIENT_UNALIGNED_ACCESS,
+		.disabled = true,
 	},
 	{
 		"XDP pkt read, pkt_data' < pkt_end, bad access 1",
@@ -8279,6 +8439,7 @@ static struct bpf_test tests[] = {
 		.errstr = "R1 offset is outside of the packet",
 		.result = REJECT,
 		.prog_type = BPF_PROG_TYPE_XDP,
+		.disabled = true,
 	},
 	{
 		"XDP pkt read, pkt_data' < pkt_end, bad access 2",
@@ -8297,6 +8458,7 @@ static struct bpf_test tests[] = {
 		.errstr = "R1 offset is outside of the packet",
 		.result = REJECT,
 		.prog_type = BPF_PROG_TYPE_XDP,
+		.disabled = true,
 	},
 	{
 		"XDP pkt read, pkt_end < pkt_data', good access",
@@ -8314,6 +8476,7 @@ static struct bpf_test tests[] = {
 		},
 		.result = ACCEPT,
 		.prog_type = BPF_PROG_TYPE_XDP,
+		.disabled = true,
 	},
 	{
 		"XDP pkt read, pkt_end < pkt_data', bad access 1",
@@ -8333,6 +8496,7 @@ static struct bpf_test tests[] = {
 		.result = REJECT,
 		.prog_type = BPF_PROG_TYPE_XDP,
 		.flags = F_NEEDS_EFFICIENT_UNALIGNED_ACCESS,
+		.disabled = true,
 	},
 	{
 		"XDP pkt read, pkt_end < pkt_data', bad access 2",
@@ -8351,6 +8515,7 @@ static struct bpf_test tests[] = {
 		.errstr = "R1 offset is outside of the packet",
 		.result = REJECT,
 		.prog_type = BPF_PROG_TYPE_XDP,
+		.disabled = true,
 	},
 	{
 		"XDP pkt read, pkt_data' >= pkt_end, good access",
@@ -8369,6 +8534,7 @@ static struct bpf_test tests[] = {
 		.result = ACCEPT,
 		.prog_type = BPF_PROG_TYPE_XDP,
 		.flags = F_NEEDS_EFFICIENT_UNALIGNED_ACCESS,
+		.disabled = true,
 	},
 	{
 		"XDP pkt read, pkt_data' >= pkt_end, bad access 1",
@@ -8387,6 +8553,7 @@ static struct bpf_test tests[] = {
 		.errstr = "R1 offset is outside of the packet",
 		.result = REJECT,
 		.prog_type = BPF_PROG_TYPE_XDP,
+		.disabled = true,
 	},
 	{
 		"XDP pkt read, pkt_data' >= pkt_end, bad access 2",
@@ -8406,6 +8573,7 @@ static struct bpf_test tests[] = {
 		.result = REJECT,
 		.prog_type = BPF_PROG_TYPE_XDP,
 		.flags = F_NEEDS_EFFICIENT_UNALIGNED_ACCESS,
+		.disabled = true,
 	},
 	{
 		"XDP pkt read, pkt_end >= pkt_data', good access",
@@ -8424,6 +8592,7 @@ static struct bpf_test tests[] = {
 		},
 		.result = ACCEPT,
 		.prog_type = BPF_PROG_TYPE_XDP,
+		.disabled = true,
 	},
 	{
 		"XDP pkt read, pkt_end >= pkt_data', bad access 1",
@@ -8444,6 +8613,7 @@ static struct bpf_test tests[] = {
 		.result = REJECT,
 		.prog_type = BPF_PROG_TYPE_XDP,
 		.flags = F_NEEDS_EFFICIENT_UNALIGNED_ACCESS,
+		.disabled = true,
 	},
 	{
 		"XDP pkt read, pkt_end >= pkt_data', bad access 2",
@@ -8462,6 +8632,7 @@ static struct bpf_test tests[] = {
 		.errstr = "R1 offset is outside of the packet",
 		.result = REJECT,
 		.prog_type = BPF_PROG_TYPE_XDP,
+		.disabled = true,
 	},
 	{
 		"XDP pkt read, pkt_data' <= pkt_end, good access",
@@ -8480,6 +8651,7 @@ static struct bpf_test tests[] = {
 		},
 		.result = ACCEPT,
 		.prog_type = BPF_PROG_TYPE_XDP,
+		.disabled = true,
 	},
 	{
 		"XDP pkt read, pkt_data' <= pkt_end, bad access 1",
@@ -8500,6 +8672,7 @@ static struct bpf_test tests[] = {
 		.result = REJECT,
 		.prog_type = BPF_PROG_TYPE_XDP,
 		.flags = F_NEEDS_EFFICIENT_UNALIGNED_ACCESS,
+		.disabled = true,
 	},
 	{
 		"XDP pkt read, pkt_data' <= pkt_end, bad access 2",
@@ -8518,6 +8691,7 @@ static struct bpf_test tests[] = {
 		.errstr = "R1 offset is outside of the packet",
 		.result = REJECT,
 		.prog_type = BPF_PROG_TYPE_XDP,
+		.disabled = true,
 	},
 	{
 		"XDP pkt read, pkt_end <= pkt_data', good access",
@@ -8536,6 +8710,7 @@ static struct bpf_test tests[] = {
 		.result = ACCEPT,
 		.prog_type = BPF_PROG_TYPE_XDP,
 		.flags = F_NEEDS_EFFICIENT_UNALIGNED_ACCESS,
+		.disabled = true,
 	},
 	{
 		"XDP pkt read, pkt_end <= pkt_data', bad access 1",
@@ -8554,6 +8729,7 @@ static struct bpf_test tests[] = {
 		.errstr = "R1 offset is outside of the packet",
 		.result = REJECT,
 		.prog_type = BPF_PROG_TYPE_XDP,
+		.disabled = true,
 	},
 	{
 		"XDP pkt read, pkt_end <= pkt_data', bad access 2",
@@ -8573,6 +8749,7 @@ static struct bpf_test tests[] = {
 		.result = REJECT,
 		.prog_type = BPF_PROG_TYPE_XDP,
 		.flags = F_NEEDS_EFFICIENT_UNALIGNED_ACCESS,
+		.disabled = true,
 	},
 	{
 		"XDP pkt read, pkt_meta' > pkt_data, good access",
@@ -8590,6 +8767,7 @@ static struct bpf_test tests[] = {
 		},
 		.result = ACCEPT,
 		.prog_type = BPF_PROG_TYPE_XDP,
+		.disabled = true,
 	},
 	{
 		"XDP pkt read, pkt_meta' > pkt_data, bad access 1",
@@ -8609,6 +8787,7 @@ static struct bpf_test tests[] = {
 		.result = REJECT,
 		.prog_type = BPF_PROG_TYPE_XDP,
 		.flags = F_NEEDS_EFFICIENT_UNALIGNED_ACCESS,
+		.disabled = true,
 	},
 	{
 		"XDP pkt read, pkt_meta' > pkt_data, bad access 2",
@@ -8627,6 +8806,7 @@ static struct bpf_test tests[] = {
 		.errstr = "R1 offset is outside of the packet",
 		.result = REJECT,
 		.prog_type = BPF_PROG_TYPE_XDP,
+		.disabled = true,
 	},
 	{
 		"XDP pkt read, pkt_data > pkt_meta', good access",
@@ -8646,6 +8826,7 @@ static struct bpf_test tests[] = {
 		.result = ACCEPT,
 		.prog_type = BPF_PROG_TYPE_XDP,
 		.flags = F_NEEDS_EFFICIENT_UNALIGNED_ACCESS,
+		.disabled = true,
 	},
 	{
 		"XDP pkt read, pkt_data > pkt_meta', bad access 1",
@@ -8665,6 +8846,7 @@ static struct bpf_test tests[] = {
 		.errstr = "R1 offset is outside of the packet",
 		.result = REJECT,
 		.prog_type = BPF_PROG_TYPE_XDP,
+		.disabled = true,
 	},
 	{
 		"XDP pkt read, pkt_data > pkt_meta', bad access 2",
@@ -8683,6 +8865,7 @@ static struct bpf_test tests[] = {
 		.errstr = "R1 offset is outside of the packet",
 		.result = REJECT,
 		.prog_type = BPF_PROG_TYPE_XDP,
+		.disabled = true,
 	},
 	{
 		"XDP pkt read, pkt_meta' < pkt_data, good access",
@@ -8702,6 +8885,7 @@ static struct bpf_test tests[] = {
 		.result = ACCEPT,
 		.prog_type = BPF_PROG_TYPE_XDP,
 		.flags = F_NEEDS_EFFICIENT_UNALIGNED_ACCESS,
+		.disabled = true,
 	},
 	{
 		"XDP pkt read, pkt_meta' < pkt_data, bad access 1",
@@ -8721,6 +8905,7 @@ static struct bpf_test tests[] = {
 		.errstr = "R1 offset is outside of the packet",
 		.result = REJECT,
 		.prog_type = BPF_PROG_TYPE_XDP,
+		.disabled = true,
 	},
 	{
 		"XDP pkt read, pkt_meta' < pkt_data, bad access 2",
@@ -8739,6 +8924,7 @@ static struct bpf_test tests[] = {
 		.errstr = "R1 offset is outside of the packet",
 		.result = REJECT,
 		.prog_type = BPF_PROG_TYPE_XDP,
+		.disabled = true,
 	},
 	{
 		"XDP pkt read, pkt_data < pkt_meta', good access",
@@ -8756,6 +8942,7 @@ static struct bpf_test tests[] = {
 		},
 		.result = ACCEPT,
 		.prog_type = BPF_PROG_TYPE_XDP,
+		.disabled = true,
 	},
 	{
 		"XDP pkt read, pkt_data < pkt_meta', bad access 1",
@@ -8775,6 +8962,7 @@ static struct bpf_test tests[] = {
 		.result = REJECT,
 		.prog_type = BPF_PROG_TYPE_XDP,
 		.flags = F_NEEDS_EFFICIENT_UNALIGNED_ACCESS,
+		.disabled = true,
 	},
 	{
 		"XDP pkt read, pkt_data < pkt_meta', bad access 2",
@@ -8793,6 +8981,7 @@ static struct bpf_test tests[] = {
 		.errstr = "R1 offset is outside of the packet",
 		.result = REJECT,
 		.prog_type = BPF_PROG_TYPE_XDP,
+		.disabled = true,
 	},
 	{
 		"XDP pkt read, pkt_meta' >= pkt_data, good access",
@@ -8811,6 +9000,7 @@ static struct bpf_test tests[] = {
 		.result = ACCEPT,
 		.prog_type = BPF_PROG_TYPE_XDP,
 		.flags = F_NEEDS_EFFICIENT_UNALIGNED_ACCESS,
+		.disabled = true,
 	},
 	{
 		"XDP pkt read, pkt_meta' >= pkt_data, bad access 1",
@@ -8829,6 +9019,7 @@ static struct bpf_test tests[] = {
 		.errstr = "R1 offset is outside of the packet",
 		.result = REJECT,
 		.prog_type = BPF_PROG_TYPE_XDP,
+		.disabled = true,
 	},
 	{
 		"XDP pkt read, pkt_meta' >= pkt_data, bad access 2",
@@ -8848,6 +9039,7 @@ static struct bpf_test tests[] = {
 		.result = REJECT,
 		.prog_type = BPF_PROG_TYPE_XDP,
 		.flags = F_NEEDS_EFFICIENT_UNALIGNED_ACCESS,
+		.disabled = true,
 	},
 	{
 		"XDP pkt read, pkt_data >= pkt_meta', good access",
@@ -8866,6 +9058,7 @@ static struct bpf_test tests[] = {
 		},
 		.result = ACCEPT,
 		.prog_type = BPF_PROG_TYPE_XDP,
+		.disabled = true,
 	},
 	{
 		"XDP pkt read, pkt_data >= pkt_meta', bad access 1",
@@ -8886,6 +9079,7 @@ static struct bpf_test tests[] = {
 		.result = REJECT,
 		.prog_type = BPF_PROG_TYPE_XDP,
 		.flags = F_NEEDS_EFFICIENT_UNALIGNED_ACCESS,
+		.disabled = true,
 	},
 	{
 		"XDP pkt read, pkt_data >= pkt_meta', bad access 2",
@@ -8904,6 +9098,7 @@ static struct bpf_test tests[] = {
 		.errstr = "R1 offset is outside of the packet",
 		.result = REJECT,
 		.prog_type = BPF_PROG_TYPE_XDP,
+		.disabled = true,
 	},
 	{
 		"XDP pkt read, pkt_meta' <= pkt_data, good access",
@@ -8922,6 +9117,7 @@ static struct bpf_test tests[] = {
 		},
 		.result = ACCEPT,
 		.prog_type = BPF_PROG_TYPE_XDP,
+		.disabled = true,
 	},
 	{
 		"XDP pkt read, pkt_meta' <= pkt_data, bad access 1",
@@ -8942,6 +9138,7 @@ static struct bpf_test tests[] = {
 		.result = REJECT,
 		.prog_type = BPF_PROG_TYPE_XDP,
 		.flags = F_NEEDS_EFFICIENT_UNALIGNED_ACCESS,
+		.disabled = true,
 	},
 	{
 		"XDP pkt read, pkt_meta' <= pkt_data, bad access 2",
@@ -8960,6 +9157,7 @@ static struct bpf_test tests[] = {
 		.errstr = "R1 offset is outside of the packet",
 		.result = REJECT,
 		.prog_type = BPF_PROG_TYPE_XDP,
+		.disabled = true,
 	},
 	{
 		"XDP pkt read, pkt_data <= pkt_meta', good access",
@@ -8978,6 +9176,7 @@ static struct bpf_test tests[] = {
 		.result = ACCEPT,
 		.prog_type = BPF_PROG_TYPE_XDP,
 		.flags = F_NEEDS_EFFICIENT_UNALIGNED_ACCESS,
+		.disabled = true,
 	},
 	{
 		"XDP pkt read, pkt_data <= pkt_meta', bad access 1",
@@ -8996,6 +9195,7 @@ static struct bpf_test tests[] = {
 		.errstr = "R1 offset is outside of the packet",
 		.result = REJECT,
 		.prog_type = BPF_PROG_TYPE_XDP,
+		.disabled = true,
 	},
 	{
 		"XDP pkt read, pkt_data <= pkt_meta', bad access 2",
@@ -9015,6 +9215,7 @@ static struct bpf_test tests[] = {
 		.result = REJECT,
 		.prog_type = BPF_PROG_TYPE_XDP,
 		.flags = F_NEEDS_EFFICIENT_UNALIGNED_ACCESS,
+		.disabled = true,
 	},
 	{
 		"check deducing bounds from const, 1",
@@ -9147,6 +9348,7 @@ static struct bpf_test tests[] = {
 		.errstr = "R0 has value (0x0; 0xffffffff)",
 		.result = REJECT,
 		.prog_type = BPF_PROG_TYPE_CGROUP_SOCK,
+		.disabled = true,
 	},
 	{
 		"bpf_exit with invalid return code. test2",
@@ -9157,6 +9359,7 @@ static struct bpf_test tests[] = {
 		},
 		.result = ACCEPT,
 		.prog_type = BPF_PROG_TYPE_CGROUP_SOCK,
+		.disabled = true,
 	},
 	{
 		"bpf_exit with invalid return code. test3",
@@ -9168,6 +9371,7 @@ static struct bpf_test tests[] = {
 		.errstr = "R0 has value (0x0; 0x3)",
 		.result = REJECT,
 		.prog_type = BPF_PROG_TYPE_CGROUP_SOCK,
+		.disabled = true,
 	},
 	{
 		"bpf_exit with invalid return code. test4",
@@ -9177,6 +9381,7 @@ static struct bpf_test tests[] = {
 		},
 		.result = ACCEPT,
 		.prog_type = BPF_PROG_TYPE_CGROUP_SOCK,
+		.disabled = true,
 	},
 	{
 		"bpf_exit with invalid return code. test5",
@@ -9187,6 +9392,7 @@ static struct bpf_test tests[] = {
 		.errstr = "R0 has value (0x2; 0x0)",
 		.result = REJECT,
 		.prog_type = BPF_PROG_TYPE_CGROUP_SOCK,
+		.disabled = true,
 	},
 	{
 		"bpf_exit with invalid return code. test6",
@@ -9197,6 +9403,7 @@ static struct bpf_test tests[] = {
 		.errstr = "R0 is not a known value (ctx)",
 		.result = REJECT,
 		.prog_type = BPF_PROG_TYPE_CGROUP_SOCK,
+		.disabled = true,
 	},
 	{
 		"bpf_exit with invalid return code. test7",
@@ -9209,6 +9416,7 @@ static struct bpf_test tests[] = {
 		.errstr = "R0 has unknown scalar value",
 		.result = REJECT,
 		.prog_type = BPF_PROG_TYPE_CGROUP_SOCK,
+		.disabled = true,
 	},
 	{
 		"calls: basic sanity",
@@ -9260,6 +9468,7 @@ static struct bpf_test tests[] = {
 		.prog_type = BPF_PROG_TYPE_SCHED_CLS,
 		.result = ACCEPT,
 		.retval = 1,
+		.disabled = true,
 	},
 	{
 		"calls: multiple ret types in subprog 1",
@@ -9284,6 +9493,7 @@ static struct bpf_test tests[] = {
 		.prog_type = BPF_PROG_TYPE_SCHED_CLS,
 		.result = REJECT,
 		.errstr = "R0 invalid mem access 'inv'",
+		.disabled = true,
 	},
 	{
 		"calls: multiple ret types in subprog 2",
@@ -9319,6 +9529,7 @@ static struct bpf_test tests[] = {
 		.fixup_map1 = { 16 },
 		.result = REJECT,
 		.errstr = "R0 min value is outside of the array range",
+		.disabled = true,
 	},
 	{
 		"calls: overlapping caller/callee",
@@ -9515,6 +9726,7 @@ static struct bpf_test tests[] = {
 		.prog_type = BPF_PROG_TYPE_SCHED_ACT,
 		.result = ACCEPT,
 		.retval = TEST_DATA_LEN,
+		.disabled = true,
 	},
 	{
 		"calls: callee using args1",
@@ -9559,6 +9771,7 @@ static struct bpf_test tests[] = {
 		.result_unpriv = REJECT,
 		.result = ACCEPT,
 		.retval = TEST_DATA_LEN + TEST_DATA_LEN - ETH_HLEN - ETH_HLEN,
+		.disabled = true,
 	},
 	{
 		"calls: callee changing pkt pointers",
@@ -9587,6 +9800,7 @@ static struct bpf_test tests[] = {
 		.result = REJECT,
 		.errstr = "R6 invalid mem access 'inv'",
 		.prog_type = BPF_PROG_TYPE_XDP,
+		.disabled = true,
 	},
 	{
 		"calls: two calls with args",
@@ -9608,6 +9822,7 @@ static struct bpf_test tests[] = {
 		.prog_type = BPF_PROG_TYPE_SCHED_CLS,
 		.result = ACCEPT,
 		.retval = TEST_DATA_LEN + TEST_DATA_LEN,
+		.disabled = true,
 	},
 	{
 		"calls: calls with stack arith",
@@ -9897,6 +10112,7 @@ static struct bpf_test tests[] = {
 		},
 		.prog_type = BPF_PROG_TYPE_XDP,
 		.result = ACCEPT,
+		.disabled = true,
 	},
 	{
 		"calls: two calls with stack write",
@@ -9931,6 +10147,7 @@ static struct bpf_test tests[] = {
 		},
 		.prog_type = BPF_PROG_TYPE_XDP,
 		.result = ACCEPT,
+		.disabled = true,
 	},
 	{
 		"calls: stack overflow using two frames (pre-call access)",
@@ -9948,6 +10165,7 @@ static struct bpf_test tests[] = {
 		.prog_type = BPF_PROG_TYPE_XDP,
 		.errstr = "combined stack size",
 		.result = REJECT,
+		.disabled = true,
 	},
 	{
 		"calls: stack overflow using two frames (post-call access)",
@@ -9965,6 +10183,7 @@ static struct bpf_test tests[] = {
 		.prog_type = BPF_PROG_TYPE_XDP,
 		.errstr = "combined stack size",
 		.result = REJECT,
+		.disabled = true,
 	},
 	{
 		"calls: stack depth check using three frames. test1",
@@ -9988,6 +10207,7 @@ static struct bpf_test tests[] = {
 		 * and max(main+A, main+A+B) < 512
 		 */
 		.result = ACCEPT,
+		.disabled = true,
 	},
 	{
 		"calls: stack depth check using three frames. test2",
@@ -10011,6 +10231,7 @@ static struct bpf_test tests[] = {
 		 * and max(main+A, main+A+B) < 512
 		 */
 		.result = ACCEPT,
+		.disabled = true,
 	},
 	{
 		"calls: stack depth check using three frames. test3",
@@ -10041,6 +10262,7 @@ static struct bpf_test tests[] = {
 		 */
 		.errstr = "combined stack",
 		.result = REJECT,
+		.disabled = true,
 	},
 	{
 		"calls: stack depth check using three frames. test4",
@@ -10086,6 +10308,7 @@ static struct bpf_test tests[] = {
 		.prog_type = BPF_PROG_TYPE_XDP,
 		.result = REJECT,
 		.errstr = "combined stack",
+		.disabled = true,
 	},
 	{
 		"calls: stack depth check using three frames. test5",
@@ -10121,6 +10344,7 @@ static struct bpf_test tests[] = {
 		.prog_type = BPF_PROG_TYPE_XDP,
 		.errstr = "call stack",
 		.result = REJECT,
+		.disabled = true,
 	},
 	{
 		"calls: spill into caller stack frame",
@@ -10137,6 +10361,7 @@ static struct bpf_test tests[] = {
 		.prog_type = BPF_PROG_TYPE_XDP,
 		.errstr = "cannot spill",
 		.result = REJECT,
+		.disabled = true,
 	},
 	{
 		"calls: write into caller stack frame",
@@ -10154,6 +10379,7 @@ static struct bpf_test tests[] = {
 		.prog_type = BPF_PROG_TYPE_XDP,
 		.result = ACCEPT,
 		.retval = 42,
+		.disabled = true,
 	},
 	{
 		"calls: write into callee stack frame",
@@ -10168,6 +10394,7 @@ static struct bpf_test tests[] = {
 		.prog_type = BPF_PROG_TYPE_XDP,
 		.errstr = "cannot return stack pointer",
 		.result = REJECT,
+		.disabled = true,
 	},
 	{
 		"calls: two calls with stack write and void return",
@@ -10197,6 +10424,7 @@ static struct bpf_test tests[] = {
 		},
 		.prog_type = BPF_PROG_TYPE_XDP,
 		.result = ACCEPT,
+		.disabled = true,
 	},
 	{
 		"calls: ambiguous return value",
@@ -10269,6 +10497,7 @@ static struct bpf_test tests[] = {
 		.prog_type = BPF_PROG_TYPE_XDP,
 		.fixup_map1 = { 23 },
 		.result = ACCEPT,
+		.disabled = true,
 	},
 	{
 		"calls: two calls that return map_value with bool condition",
@@ -10324,6 +10553,7 @@ static struct bpf_test tests[] = {
 		.prog_type = BPF_PROG_TYPE_XDP,
 		.fixup_map1 = { 23 },
 		.result = ACCEPT,
+		.disabled = true,
 	},
 	{
 		"calls: two calls that return map_value with incorrect bool check",
@@ -10380,6 +10610,7 @@ static struct bpf_test tests[] = {
 		.fixup_map1 = { 23 },
 		.result = REJECT,
 		.errstr = "invalid read from stack off -16+0 size 8",
+		.disabled = true,
 	},
 	{
 		"calls: two calls that receive map_value via arg=ptr_stack_of_caller. test1",
@@ -10766,6 +10997,7 @@ static struct bpf_test tests[] = {
 		.result = ACCEPT,
 		.prog_type = BPF_PROG_TYPE_SCHED_CLS,
 		.retval = POINTER_VALUE,
+		.disabled = true,
 	},
 	{
 		"calls: pkt_ptr spill into caller stack 2",
@@ -10797,6 +11029,7 @@ static struct bpf_test tests[] = {
 		.prog_type = BPF_PROG_TYPE_SCHED_CLS,
 		.errstr = "invalid access to packet",
 		.result = REJECT,
+		.disabled = true,
 	},
 	{
 		"calls: pkt_ptr spill into caller stack 3",
@@ -10832,6 +11065,7 @@ static struct bpf_test tests[] = {
 		.prog_type = BPF_PROG_TYPE_SCHED_CLS,
 		.result = ACCEPT,
 		.retval = 1,
+		.disabled = true,
 	},
 	{
 		"calls: pkt_ptr spill into caller stack 4",
@@ -10866,6 +11100,7 @@ static struct bpf_test tests[] = {
 		.prog_type = BPF_PROG_TYPE_SCHED_CLS,
 		.result = ACCEPT,
 		.retval = 1,
+		.disabled = true,
 	},
 	{
 		"calls: pkt_ptr spill into caller stack 5",
@@ -10899,6 +11134,7 @@ static struct bpf_test tests[] = {
 		.prog_type = BPF_PROG_TYPE_SCHED_CLS,
 		.errstr = "same insn cannot be used with different",
 		.result = REJECT,
+		.disabled = true,
 	},
 	{
 		"calls: pkt_ptr spill into caller stack 6",
@@ -10934,6 +11170,7 @@ static struct bpf_test tests[] = {
 		.prog_type = BPF_PROG_TYPE_SCHED_CLS,
 		.errstr = "R4 invalid mem access",
 		.result = REJECT,
+		.disabled = true,
 	},
 	{
 		"calls: pkt_ptr spill into caller stack 7",
@@ -10968,6 +11205,7 @@ static struct bpf_test tests[] = {
 		.prog_type = BPF_PROG_TYPE_SCHED_CLS,
 		.errstr = "R4 invalid mem access",
 		.result = REJECT,
+		.disabled = true,
 	},
 	{
 		"calls: pkt_ptr spill into caller stack 8",
@@ -11008,6 +11246,7 @@ static struct bpf_test tests[] = {
 		},
 		.prog_type = BPF_PROG_TYPE_SCHED_CLS,
 		.result = ACCEPT,
+		.disabled = true,
 	},
 	{
 		"calls: pkt_ptr spill into caller stack 9",
@@ -11049,6 +11288,7 @@ static struct bpf_test tests[] = {
 		.prog_type = BPF_PROG_TYPE_SCHED_CLS,
 		.errstr = "invalid access to packet",
 		.result = REJECT,
+		.disabled = true,
 	},
 	{
 		"calls: caller stack init to zero or map_value_or_null",
@@ -11083,6 +11323,7 @@ static struct bpf_test tests[] = {
 		.fixup_map1 = { 13 },
 		.result = ACCEPT,
 		.prog_type = BPF_PROG_TYPE_XDP,
+		.disabled = true,
 	},
 	{
 		"calls: stack init to zero and pruning",
@@ -11111,6 +11352,7 @@ static struct bpf_test tests[] = {
 		.errstr = "invalid indirect read from stack off -8+0 size 8",
 		.result = REJECT,
 		.prog_type = BPF_PROG_TYPE_XDP,
+		.disabled = true,
 	},
 	{
 		"search pruning: all branches should be verified (nop operation)",
@@ -11220,6 +11462,7 @@ static struct bpf_test tests[] = {
 		.result = REJECT,
 		.errstr = "BPF_XADD stores into R2 packet",
 		.prog_type = BPF_PROG_TYPE_XDP,
+		.disabled = true,
 	},
 };
 
@@ -11338,6 +11581,11 @@ static void do_test_single(struct bpf_test *test, bool unpriv,
 	const char *expected_err;
 	uint32_t retval;
 	int i, err;
+
+	if (test->disabled) {
+		printf("DISABLED\n");
+		return;
+	}
 
 	for (i = 0; i < MAX_NR_MAPS; i++)
 		map_fds[i] = -1;
