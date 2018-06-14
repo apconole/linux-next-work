@@ -1042,10 +1042,20 @@ static int bpf_check_tail_call(const struct bpf_prog *fp)
 	return 0;
 }
 
-/* For classic BPF JITs that don't implement bpf_int_jit_compile(). */
+/* Stub for JITs that only support cBPF. eBPF programs are interpreted.
+ * It is encouraged to implement bpf_int_jit_compile() instead, so that
+ * eBPF and implicitly also cBPF can get JITed!
+ */
 struct bpf_prog * __weak trace_bpf_int_jit_compile(struct bpf_prog *prog)
 {
 	return prog;
+}
+
+/* Stub for JITs that support eBPF. All cBPF code gets transformed into
+ * eBPF by the kernel and is later compiled by bpf_int_jit_compile().
+ */
+void __weak trace_bpf_jit_compile(struct bpf_prog *prog)
+{
 }
 
 void __weak trace_bpf_jit_free(struct bpf_prog *fp)

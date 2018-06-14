@@ -530,7 +530,6 @@ extern int bpf_jit_harden;
 void bpf_jit_compile(struct sk_filter *fp);
 void bpf_jit_free(struct sk_filter *fp);
 
-void trace_bpf_jit_compile(struct bpf_prog *fp);
 void trace_bpf_jit_free(struct bpf_prog *fp);
 
 struct bpf_prog *trace_bpf_int_jit_compile(struct bpf_prog *prog);
