@@ -65,9 +65,23 @@ struct perf_callchain_entry {
 	__u64				ip[PERF_MAX_STACK_DEPTH];
 };
 
-struct perf_raw_record {
-	u32				size;
+typedef unsigned long (*perf_copy_f)(void *dst, const void *src,
+				     unsigned long len);
+
+struct perf_raw_frag {
+	union {
+		struct perf_raw_frag	*next;
+		unsigned long		pad;
+	};
+	perf_copy_f			copy;
 	void				*data;
+	u32				size;
+} __packed;
+
+struct perf_raw_record {
+	u32					size;
+	RH_KABI_DEPRECATE(void *,		data)
+	RH_KABI_EXTEND(struct perf_raw_frag	frag)
 };
 
 /*
@@ -1192,6 +1206,11 @@ extern void perf_restore_debug_store(void);
 #else
 static inline void perf_restore_debug_store(void)			{ }
 #endif
+
+static __always_inline bool perf_raw_frag_last(const struct perf_raw_frag *frag)
+{
+	return frag->pad < sizeof(u64);
+}
 
 #define perf_output_put(handle, x) perf_output_copy((handle), &(x), sizeof(x))
 
