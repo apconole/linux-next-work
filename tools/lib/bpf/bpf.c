@@ -435,8 +435,16 @@ int bpf_obj_get_info_by_fd(int prog_fd, void *info, __u32 *info_len)
 	return err;
 }
 
-int bpf_set_link_xdp_fd(int ifindex, int fd, __u32 flags)
+int bpf_set_link_xdp_fd(int ifindex __maybe_unused,
+			int fd __maybe_unused,
+			__u32 flags __maybe_unused)
 {
+	return -EINVAL;
+
+#if 0
+	RHEL7 - we do not have attr support for xpd,
+	        so we need to disable this code
+
 	struct sockaddr_nl sa;
 	int sock, seq = 0, len, ret = -1;
 	char buf[4096];
@@ -554,4 +562,5 @@ int bpf_set_link_xdp_fd(int ifindex, int fd, __u32 flags)
 cleanup:
 	close(sock);
 	return ret;
+#endif
 }
