@@ -1089,9 +1089,6 @@ void trace_bpf_int_jit_compile(struct bpf_prog *prog)
 	if (!bpf_jit_enable)
 		return;
 
-	if (!prog || !prog->len)
-		return;
-
 	addrs = kmalloc(prog->len * sizeof(*addrs), GFP_KERNEL);
 	if (!addrs)
 		return;
