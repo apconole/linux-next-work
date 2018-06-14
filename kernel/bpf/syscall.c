@@ -59,7 +59,7 @@ static struct bpf_map *find_and_alloc_map(union bpf_attr *attr)
 	return map;
 }
 
-void *bpf_map_area_alloc(size_t size)
+void *bpf_map_area_alloc(size_t size, int numa_node)
 {
 	/* We definitely need __GFP_NORETRY, so OOM killer doesn't
 	 * trigger under memory pressure as we really just want to
@@ -69,13 +69,12 @@ void *bpf_map_area_alloc(size_t size)
 	void *area;
 
 	if (size <= (PAGE_SIZE << PAGE_ALLOC_COSTLY_ORDER)) {
-		area = kmalloc(size, GFP_USER | flags);
+		area = kmalloc_node(size, GFP_USER | flags, numa_node);
 		if (area != NULL)
 			return area;
 	}
 
-	return __vmalloc(size, GFP_KERNEL | __GFP_HIGHMEM | flags,
-			 PAGE_KERNEL);
+	return __vmalloc_node_flags(size, numa_node, GFP_KERNEL | flags);
 }
 
 void bpf_map_area_free(void *area)
@@ -285,15 +284,20 @@ static int bpf_obj_name_cpy(char *dst, const char *src)
 	return 0;
 }
 
-#define BPF_MAP_CREATE_LAST_FIELD inner_map_fd
+#define BPF_MAP_CREATE_LAST_FIELD numa_node
 /* called via syscall */
 static int map_create(union bpf_attr *attr)
 {
+	int numa_node = bpf_map_attr_numa_node(attr);
 	struct bpf_map *map;
 	int err;
 
 	err = CHECK_ATTR(BPF_MAP_CREATE);
 	if (err)
+		return -EINVAL;
+
+	if (numa_node != NUMA_NO_NODE &&
+	    (numa_node >= nr_node_ids || !node_online(numa_node)))
 		return -EINVAL;
 
 	/* find map type and init map: hashtable vs rbtree vs bloom vs ... */
