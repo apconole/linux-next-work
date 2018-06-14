@@ -227,3 +227,6 @@ cond_syscall(sys_pkey_free);
 
 /* membarrier */
 cond_syscall(sys_membarrier);
+
+/* access BPF programs and maps */
+cond_syscall(sys_bpf);
