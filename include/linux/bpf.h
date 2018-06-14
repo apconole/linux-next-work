@@ -11,6 +11,7 @@
 #include <linux/workqueue.h>
 #include <linux/file.h>
 #include <linux/err.h>
+#include <linux/percpu.h>
 
 struct bpf_map;
 
@@ -165,6 +166,8 @@ bool bpf_prog_array_compatible(struct bpf_array *array, const struct bpf_prog *f
 const struct bpf_func_proto *bpf_get_trace_printk_proto(void);
 
 #ifdef CONFIG_BPF_SYSCALL
+DECLARE_PER_CPU(int, bpf_prog_active);
+
 void bpf_register_prog_type(struct bpf_prog_type_list *tl);
 void bpf_register_map_type(struct bpf_map_type_list *tl);
 
