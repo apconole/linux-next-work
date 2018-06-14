@@ -420,6 +420,9 @@ static inline void bpf_prog_unlock_free(struct bpf_prog *fp)
 	__bpf_prog_free(fp);
 }
 
+struct bpf_prog *bpf_patch_insn_single(struct bpf_prog *prog, u32 off,
+				       const struct bpf_insn *patch, u32 len);
+
 typedef void (*bpf_jit_fill_hole_t)(void *area, unsigned int size);
 
 struct bpf_binary_header *
