@@ -185,7 +185,6 @@ struct bpf_prog_aux {
 	u32 max_ctx_offset;
 	u32 stack_depth;
 	const struct bpf_prog_ops *ops;
-	const struct bpf_verifier_ops *vops;
 	struct bpf_map **used_maps;
 	struct bpf_prog *prog;
 	struct user_struct *user;
