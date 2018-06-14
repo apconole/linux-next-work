@@ -1159,6 +1159,7 @@ struct bpf_prog *trace_bpf_int_jit_compile(struct bpf_prog *prog)
 		set_memory_ro((unsigned long)header, header->pages);
 		prog->bpf_func = (void *)image;
 		prog->jited = 1;
+		prog->jited_len = proglen;
 	} else {
 		prog = orig_prog;
 	}
