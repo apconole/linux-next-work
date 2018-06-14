@@ -1403,10 +1403,8 @@ pci_alloc_irq_vectors(struct pci_dev *dev, unsigned int min_vecs,
 
 #ifdef CONFIG_PCIEPORTBUS
 extern bool pcie_ports_disabled;
-extern bool pcie_ports_auto;
 #else
 #define pcie_ports_disabled	true
-#define pcie_ports_auto		false
 #endif
 
 #ifdef CONFIG_PCIEASPM
