@@ -89,7 +89,7 @@ EXAMPLES
 **# bpftool prog show**
 ::
 
-  10: xdp  name some_prog  tag 005a3d2123620c8b
+  10: xdp  name some_prog  tag 005a3d2123620c8b  gpl
 	loaded_at Sep 29/20:11  uid 0
 	xlated 528B  jited 370B  memlock 4096B  map_ids 10
 
@@ -102,6 +102,7 @@ EXAMPLES
                 "id": 10,
                 "type": "xdp",
                 "tag": "005a3d2123620c8b",
+                "gpl_compatible": true,
                 "loaded_at": "Sep 29/20:11",
                 "uid": 0,
                 "bytes_xlated": 528,
