@@ -340,4 +340,8 @@ enum bpf_func_id {
 #define BPF_F_FAST_STACK_CMP		(1ULL << 9)
 #define BPF_F_REUSE_STACKID		(1ULL << 10)
 
+/* BPF_FUNC_perf_event_output flags. */
+#define BPF_F_INDEX_MASK		0xffffffffULL
+#define BPF_F_CURRENT_CPU		BPF_F_INDEX_MASK
+
 #endif /* _UAPI__LINUX_BPF_H__ */
