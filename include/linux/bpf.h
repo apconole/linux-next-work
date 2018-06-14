@@ -239,6 +239,8 @@ struct bpf_prog *bpf_prog_get_type(u32 ufd, enum bpf_prog_type type);
 struct bpf_prog * __must_check bpf_prog_add(struct bpf_prog *prog, int i);
 struct bpf_prog * __must_check bpf_prog_inc(struct bpf_prog *prog);
 void bpf_prog_put(struct bpf_prog *prog);
+int __bpf_prog_charge(struct user_struct *user, u32 pages);
+void __bpf_prog_uncharge(struct user_struct *user, u32 pages);
 
 struct bpf_map *bpf_map_get(u32 ufd);
 struct bpf_map *__bpf_map_get(struct fd f);
@@ -318,6 +320,15 @@ static inline struct bpf_prog * __must_check bpf_prog_inc(struct bpf_prog *prog)
 }
 
 static inline void bpf_prog_sub(struct bpf_prog *prog, int i)
+{
+}
+
+static inline int __bpf_prog_charge(struct user_struct *user, u32 pages)
+{
+	return 0;
+}
+
+static inline void __bpf_prog_uncharge(struct user_struct *user, u32 pages)
 {
 }
 #endif /* CONFIG_BPF_SYSCALL */
