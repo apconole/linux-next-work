@@ -389,7 +389,7 @@ extern void sk_decode_filter(struct sock_filter *filt, struct sock_filter *to);
 
 u64 __bpf_call_base(u64 r1, u64 r2, u64 r3, u64 r4, u64 r5);
 
-int bpf_prog_select_runtime(struct bpf_prog *fp);
+struct bpf_prog *bpf_prog_select_runtime(struct bpf_prog *fp, int *err);
 void bpf_prog_free(struct bpf_prog *fp);
 
 static inline u32 bpf_prog_run_xdp(const struct bpf_prog *prog,
@@ -441,6 +441,8 @@ void bpf_jit_free(struct sk_filter *fp);
 
 void trace_bpf_jit_compile(struct bpf_prog *fp);
 void trace_bpf_jit_free(struct bpf_prog *fp);
+
+struct bpf_prog *trace_bpf_int_jit_compile(struct bpf_prog *prog);
 
 static inline void bpf_jit_dump(unsigned int flen, unsigned int proglen,
 				u32 pass, void *image)
