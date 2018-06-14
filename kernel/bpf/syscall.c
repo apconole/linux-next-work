@@ -927,7 +927,7 @@ static int bpf_obj_get(const union bpf_attr *attr)
 
 #ifdef CONFIG_CGROUP_BPF
 
-#define BPF_PROG_ATTACH_LAST_FIELD attach_type
+#define BPF_PROG_ATTACH_LAST_FIELD attach_flags
 
 static int bpf_prog_attach(const union bpf_attr *attr)
 {
@@ -938,6 +938,9 @@ static int bpf_prog_attach(const union bpf_attr *attr)
 		return -EPERM;
 
 	if (CHECK_ATTR(BPF_PROG_ATTACH))
+		return -EINVAL;
+
+	if (attr->attach_flags)
 		return -EINVAL;
 
 	switch (attr->attach_type) {
