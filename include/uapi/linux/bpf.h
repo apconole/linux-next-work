@@ -347,6 +347,18 @@ struct xdp_md {
  *
  * int bpf_get_numa_node_id()
  *     Return: Id of current NUMA node.
+ *
+ * int bpf_probe_read_str(void *dst, int size, const void *unsafe_ptr)
+ *     Copy a NUL terminated string from unsafe address. In case the string
+ *     length is smaller than size, the target is not padded with further NUL
+ *     bytes. In case the string length is larger than size, just count-1
+ *     bytes are copied and the last byte is set to NUL.
+ *     @dst: destination address
+ *     @size: maximum number of bytes to copy, including the trailing NUL
+ *     @unsafe_ptr: unsafe address
+ *     Return:
+ *       > 0 length of the string including the trailing NUL on success
+ *       < 0 error
  */
 #define __BPF_FUNC_MAPPER(FN)		\
 	FN(unspec),			\
@@ -379,7 +391,8 @@ struct xdp_md {
 	FN(get_stackid),		\
 	FN(get_current_task),		\
 	FN(probe_write_user),		\
-	FN(get_numa_node_id),
+	FN(get_numa_node_id),		\
+	FN(probe_read_str),
 
 /* integer value in 'imm' field of BPF_CALL instruction selects which helper
  * function eBPF program intends to call
