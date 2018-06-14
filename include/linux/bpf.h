@@ -303,6 +303,10 @@ static inline struct bpf_prog *bpf_prog_inc(struct bpf_prog *prog)
 static inline void bpf_prog_sub(struct bpf_prog *prog, int i)
 {
 }
+
+static inline void bpf_prog_put_rcu(struct bpf_prog *prog)
+{
+}
 #endif /* CONFIG_BPF_SYSCALL */
 
 /* verifier prototypes for helper functions called from eBPF programs */

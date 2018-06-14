@@ -8050,7 +8050,7 @@ static void perf_event_free_bpf_prog(struct perf_event *event)
 	prog = get_bpf_prog(event);
 	if (prog) {
 		set_bpf_prog(event, NULL);
-		bpf_prog_put(prog);
+		bpf_prog_put_rcu(prog);
 	}
 }
 
