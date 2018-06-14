@@ -603,6 +603,11 @@ struct perf_event {
 	RH_KABI_EXTEND(struct rb_node			group_node)
 	RH_KABI_EXTEND(u64				group_index)
 	RH_KABI_EXTEND(struct list_head			active_list)
+
+#ifdef CONFIG_BPF_SYSCALL
+	RH_KABI_EXTEND(perf_overflow_handler_t		orig_overflow_handler)
+	RH_KABI_EXTEND(struct bpf_prog			*prog)
+#endif
 #endif /* CONFIG_PERF_EVENTS */
 };
 

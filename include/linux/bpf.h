@@ -303,7 +303,7 @@ static inline void bpf_prog_put(struct bpf_prog *prog)
 
 static inline struct bpf_prog *bpf_prog_inc(struct bpf_prog *prog)
 {
-	return prog;
+	return ERR_PTR(-EOPNOTSUPP);
 }
 
 static inline void bpf_prog_sub(struct bpf_prog *prog, int i)
