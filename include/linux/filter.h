@@ -15,6 +15,7 @@
 #endif
 #include <linux/capability.h>
 #include <linux/cryptohash.h>
+#include <linux/kallsyms.h>
 
 #ifdef CONFIG_COMPAT
 /*
@@ -570,6 +571,14 @@ static inline void bpf_prog_unlock_free(struct bpf_prog *fp)
 {
 	bpf_prog_unlock_ro(fp);
 	__bpf_prog_free(fp);
+}
+
+static inline bool bpf_dump_raw_ok(void)
+{
+	/* Reconstruction of call-sites is dependent on kallsyms,
+	 * thus make dump the same restriction.
+	 */
+	return kallsyms_show_value() == 1;
 }
 
 struct bpf_prog *bpf_patch_insn_single(struct bpf_prog *prog, u32 off,
