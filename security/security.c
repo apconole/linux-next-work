@@ -12,6 +12,7 @@
  *	(at your option) any later version.
  */
 
+#include <linux/bpf.h>
 #include <linux/capability.h>
 #include <linux/dcache.h>
 #include <linux/module.h>
@@ -1543,3 +1544,36 @@ int security_audit_rule_match(u32 secid, u32 field, u32 op, void *lsmrule,
 }
 
 #endif /* CONFIG_AUDIT */
+
+/*
+ * RHEL7 Security hook for eBPF needs to be implemented,
+ *       for now, disabling it.
+ */
+#ifdef CONFIG_BPF_SYSCALL
+int security_bpf(int cmd, union bpf_attr *attr, unsigned int size)
+{
+	return 0;
+}
+int security_bpf_map(struct bpf_map *map, fmode_t fmode)
+{
+	return 0;
+}
+int security_bpf_prog(struct bpf_prog *prog)
+{
+	return 0;
+}
+int security_bpf_map_alloc(struct bpf_map *map)
+{
+	return 0;
+}
+int security_bpf_prog_alloc(struct bpf_prog_aux *aux)
+{
+	return 0;
+}
+void security_bpf_map_free(struct bpf_map *map)
+{
+}
+void security_bpf_prog_free(struct bpf_prog_aux *aux)
+{
+}
+#endif /* CONFIG_BPF_SYSCALL */
