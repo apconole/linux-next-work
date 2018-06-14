@@ -562,6 +562,8 @@ int xdp_do_redirect(struct net_device *dev,
 		    struct bpf_prog *prog);
 void xdp_do_flush_map(void);
 
+bool bpf_opcode_in_insntable(u8 code);
+
 struct bpf_prog *bpf_prog_alloc(unsigned int size, gfp_t gfp_extra_flags);
 struct bpf_prog *bpf_prog_realloc(struct bpf_prog *fp_old, unsigned int size,
 				  gfp_t gfp_extra_flags);
