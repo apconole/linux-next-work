@@ -65,9 +65,6 @@ struct xdp_buff;
 /* BPF program can access up to 512 bytes of stack space. */
 #define MAX_BPF_STACK	512
 
-/* Maximum BPF program size in bytes. */
-#define MAX_BPF_SIZE	(BPF_MAXINSNS * sizeof(struct bpf_insn))
-
 /* Helper macros for filter block array initializers. */
 
 /* ALU ops on registers, bpf_add|sub|...: dst_reg += src_reg */
@@ -407,6 +404,17 @@ struct sk_filter
 };
 
 #define BPF_PROG_RUN(filter, ctx)  (*filter->bpf_func)(ctx, filter->insnsi)
+
+static inline u32 bpf_prog_insn_size(const struct bpf_prog *prog)
+{
+	return prog->len * sizeof(struct bpf_insn);
+}
+
+static inline u32 bpf_prog_digest_scratch_size(const struct bpf_prog *prog)
+{
+	return round_up(bpf_prog_insn_size(prog) +
+			sizeof(__be64) + 1, SHA_MESSAGE_BYTES);
+}
 
 static inline unsigned int bpf_prog_size(unsigned int proglen)
 {
