@@ -1,5 +1,7 @@
 /* internal file - do not include directly */
 
+BPF_PROG_TYPE(BPF_PROG_TYPE_SOCKET_FILTER, sk_filter)
+
 #ifdef CONFIG_BPF_EVENTS
 BPF_PROG_TYPE(BPF_PROG_TYPE_KPROBE, kprobe)
 BPF_PROG_TYPE(BPF_PROG_TYPE_TRACEPOINT, tracepoint)
