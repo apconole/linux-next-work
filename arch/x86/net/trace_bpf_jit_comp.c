@@ -11,9 +11,8 @@
 #include <linux/netdevice.h>
 #include <linux/filter.h>
 #include <linux/if_vlan.h>
-#include <asm/cacheflush.h>
-#include <asm/nospec-branch.h>
 #include <linux/bpf.h>
+#include <asm/nospec-branch.h>
 
 /*
  * assembly code in arch/x86/net/bpf_jit.S
@@ -101,16 +100,6 @@ static int bpf_size_to_x86_bytes(int bpf_size)
 #define X86_JGE 0x7D
 #define X86_JLE 0x7E
 #define X86_JG  0x7F
-
-static void bpf_flush_icache(void *start, void *end)
-{
-	mm_segment_t old_fs = get_fs();
-
-	set_fs(KERNEL_DS);
-	smp_wmb();
-	flush_icache_range((unsigned long)start, (unsigned long)end);
-	set_fs(old_fs);
-}
 
 #define CHOOSE_LOAD_FUNC(K, func) \
 	((int)K < 0 ? ((int)K >= SKF_LL_OFF ? func##_negative_offset : func) : func##_positive_offset)
@@ -1265,7 +1254,6 @@ skip_init_addrs:
 		bpf_jit_dump(prog->len, proglen, pass + 1, image);
 
 	if (image) {
-		bpf_flush_icache(header, image + proglen);
 		if (!prog->is_func || extra_pass) {
 			set_memory_ro((unsigned long)header, header->pages);
 		} else {
