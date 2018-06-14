@@ -11,7 +11,7 @@
 
 #include <linux/compiler.h>
 
-extern bool pcie_ports_auto;
+extern bool pcie_ports_native;
 
 #define PCIE_PORT_DEVICE_MAXSERVICES   5
 /*

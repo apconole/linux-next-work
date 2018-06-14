@@ -190,17 +190,10 @@ static int pcie_init_service_irqs(struct pci_dev *dev, int *irqs, int mask)
 static int get_port_device_capability(struct pci_dev *dev)
 {
 	struct pci_host_bridge *host = pci_find_host_bridge(dev->bus);
-	bool native;
 	int services = 0;
 
-	/*
-	 * If the user specified "pcie_ports=native", use the PCIe services
-	 * regardless of whether the platform has given us permission.  On
-	 * ACPI systems, this means we ignore _OSC.
-	 */
-	native = !pcie_ports_auto;
-
-	if (dev->is_hotplug_bridge && (native || host->native_hotplug)) {
+	if (dev->is_hotplug_bridge &&
+	    (pcie_ports_native || host->native_hotplug)) {
 		services |= PCIE_PORT_SERVICE_HP;
 
 		/*
@@ -212,7 +205,7 @@ static int get_port_device_capability(struct pci_dev *dev)
 	}
 
 	if (pci_find_ext_capability(dev, PCI_EXT_CAP_ID_ERR) &&
-	    pci_aer_available() && (native || host->native_aer)) {
+	    pci_aer_available() && (pcie_ports_native || host->native_aer)) {
 		services |= PCIE_PORT_SERVICE_AER;
 
 		/*
@@ -232,7 +225,7 @@ static int get_port_device_capability(struct pci_dev *dev)
 	 * those yet.
 	 */
 	if (pci_pcie_type(dev) == PCI_EXP_TYPE_ROOT_PORT &&
-	    (native || host->native_pme)) {
+	    (pcie_ports_native || host->native_pme)) {
 		services |= PCIE_PORT_SERVICE_PME;
 
 		/*
