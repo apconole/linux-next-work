@@ -622,7 +622,7 @@ static void vti6_link_config(struct ip6_tnl *t, bool keep_mtu)
 		dev->flags &= ~IFF_POINTOPOINT;
 
 	if (keep_mtu && dev->mtu) {
-		dev->mtu = clamp(dev->mtu, (unsigned)IPV6_MIN_MTU,
+		dev->mtu = clamp(dev->mtu, (unsigned)IPV4_MIN_MTU,
 				 (unsigned)(IP_MAX_MTU -
 					    sizeof(struct ipv6hdr)));
 		return;
@@ -648,7 +648,7 @@ static void vti6_link_config(struct ip6_tnl *t, bool keep_mtu)
 	else
 		mtu = ETH_DATA_LEN - LL_MAX_HEADER - sizeof(struct ipv6hdr);
 
-	dev->mtu = max_t(int, mtu, IPV6_MIN_MTU);
+	dev->mtu = max_t(int, mtu, IPV4_MIN_MTU);
 }
 
 /**
@@ -843,7 +843,7 @@ vti6_ioctl(struct net_device *dev, struct ifreq *ifr, int cmd)
  **/
 static int vti6_change_mtu(struct net_device *dev, int new_mtu)
 {
-	if (new_mtu < IPV6_MIN_MTU)
+	if (new_mtu < IPV4_MIN_MTU)
 		return -EINVAL;
 
 	dev->mtu = new_mtu;
