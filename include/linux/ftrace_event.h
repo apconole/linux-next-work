@@ -42,7 +42,8 @@ const char *ftrace_print_symbols_seq_u64(struct trace_seq *p,
 #endif
 
 const char *ftrace_print_hex_seq(struct trace_seq *p,
-				 const unsigned char *buf, int len);
+				 const unsigned char *buf, int len,
+				 bool spacing);
 
 const char *ftrace_print_array_seq(struct trace_seq *p,
 				   const void *buf, int buf_len,
