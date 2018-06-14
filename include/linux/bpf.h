@@ -174,6 +174,7 @@ struct bpf_prog_aux {
 	u32 used_map_cnt;
 	u32 id;
 	u32 max_ctx_offset;
+	u32 stack_depth;
 	const struct bpf_verifier_ops *ops;
 	struct bpf_map **used_maps;
 	struct bpf_prog *prog;
