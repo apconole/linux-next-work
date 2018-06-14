@@ -22,15 +22,16 @@
 	32 /* space for rbx,r13,r14,r15 */ + \
 	8 /* space for skb_copy_bits */)
 
-trace_sk_load_word:
-	.globl	trace_sk_load_word
+#define FUNC(name) \
+	.globl name; \
+	.type name, @function; \
+	name:
 
+FUNC(trace_sk_load_word)
 	test	%esi,%esi
 	js	bpf_slow_path_word_neg
 
-trace_sk_load_word_positive_offset:
-	.globl	trace_sk_load_word_positive_offset
-
+FUNC(trace_sk_load_word_positive_offset)
 	mov	%r9d,%eax		# hlen
 	sub	%esi,%eax		# hlen - offset
 	cmp	$3,%eax
@@ -39,15 +40,11 @@ trace_sk_load_word_positive_offset:
 	bswap   %eax  			/* ntohl() */
 	ret
 
-trace_sk_load_half:
-	.globl	trace_sk_load_half
-
+FUNC(trace_sk_load_half)
 	test	%esi,%esi
 	js	bpf_slow_path_half_neg
 
-trace_sk_load_half_positive_offset:
-	.globl	trace_sk_load_half_positive_offset
-
+FUNC(trace_sk_load_half_positive_offset)
 	mov	%r9d,%eax
 	sub	%esi,%eax		#	hlen - offset
 	cmp	$1,%eax
@@ -56,15 +53,11 @@ trace_sk_load_half_positive_offset:
 	rol	$8,%ax			# ntohs()
 	ret
 
-trace_sk_load_byte:
-	.globl	trace_sk_load_byte
-
+FUNC(trace_sk_load_byte)
 	test	%esi,%esi
 	js	bpf_slow_path_byte_neg
 
-trace_sk_load_byte_positive_offset:
-	.globl	trace_sk_load_byte_positive_offset
-
+FUNC(trace_sk_load_byte_positive_offset)
 	cmp	%esi,%r9d   /* if (offset >= hlen) goto bpf_slow_path_byte */
 	jle	bpf_slow_path_byte
 	movzbl	(SKBDATA,%rsi),%eax
@@ -120,8 +113,8 @@ bpf_slow_path_byte:
 bpf_slow_path_word_neg:
 	cmp	SKF_MAX_NEG_OFF, %esi	/* test range */
 	jl	bpf_error	/* offset lower -> error  */
-trace_sk_load_word_negative_offset:
-	.globl	trace_sk_load_word_negative_offset
+
+FUNC(trace_sk_load_word_negative_offset)
 	sk_negative_common(4)
 	mov	(%rax), %eax
 	bswap	%eax
@@ -130,8 +123,8 @@ trace_sk_load_word_negative_offset:
 bpf_slow_path_half_neg:
 	cmp	SKF_MAX_NEG_OFF, %esi
 	jl	bpf_error
-trace_sk_load_half_negative_offset:
-	.globl	trace_sk_load_half_negative_offset
+
+FUNC(trace_sk_load_half_negative_offset)
 	sk_negative_common(2)
 	mov	(%rax),%ax
 	rol	$8,%ax
@@ -141,8 +134,8 @@ trace_sk_load_half_negative_offset:
 bpf_slow_path_byte_neg:
 	cmp	SKF_MAX_NEG_OFF, %esi
 	jl	bpf_error
-trace_sk_load_byte_negative_offset:
-	.globl	trace_sk_load_byte_negative_offset
+
+FUNC(trace_sk_load_byte_negative_offset)
 	sk_negative_common(1)
 	movzbl	(%rax), %eax
 	ret
