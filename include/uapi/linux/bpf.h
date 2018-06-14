@@ -447,6 +447,13 @@ struct xdp_md {
  *     @buf: buf to fill
  *     @buf_size: size of the buf
  *     Return: 0 on success or negative error code
+ *
+ * int bpf_perf_prog_read_value(ctx, buf, buf_size)
+ *     read perf prog attached perf event counter and enabled/running time
+ *     @ctx: pointer to ctx
+ *     @buf: buf to fill
+ *     @buf_size: size of the buf
+ *     Return : 0 on success or negative error code
  */
 #define __BPF_FUNC_MAPPER(FN)		\
 	FN(unspec),			\
@@ -481,7 +488,8 @@ struct xdp_md {
 	FN(probe_write_user),		\
 	FN(get_numa_node_id),		\
 	FN(probe_read_str),		\
-	FN(perf_event_read_value),
+	FN(perf_event_read_value),	\
+	FN(perf_prog_read_value),
 
 /* integer value in 'imm' field of BPF_CALL instruction selects which helper
  * function eBPF program intends to call
