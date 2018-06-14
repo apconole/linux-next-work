@@ -11680,7 +11680,7 @@ static bool is_admin(void)
 	return (sysadmin == CAP_SET);
 }
 
-static int set_admin(bool admin)
+__attribute__((unused)) static int set_admin(bool admin)
 {
 	cap_t caps;
 	const cap_value_t cap_val = CAP_SYS_ADMIN;
@@ -11714,6 +11714,7 @@ static int do_test(bool unpriv, unsigned int from, unsigned int to)
 	for (i = from; i < to; i++) {
 		struct bpf_test *test = &tests[i];
 
+#if 0
 		/* Program types that are not supported by non-root we
 		 * skip right away.
 		 */
@@ -11725,6 +11726,7 @@ static int do_test(bool unpriv, unsigned int from, unsigned int to)
 			if (!unpriv)
 				set_admin(true);
 		}
+#endif
 
 		if (!unpriv) {
 			printf("#%d/p %s ", i, test->descr);
