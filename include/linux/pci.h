@@ -447,7 +447,7 @@ struct pci_host_bridge {
 	void *release_data;
 	unsigned int ignore_reset_delay:1;	/* for entire hierarchy */
 	unsigned int native_aer:1;		/* OS may use PCIe AER */
-	unsigned int native_hotplug:1;		/* OS may use PCIe hotplug */
+	unsigned int native_pcie_hotplug:1;	/* OS may use PCIe hotplug */
 	unsigned int native_pme:1;		/* OS may use PCIe PME */
 	/* Resource alignment requirements */
 	resource_size_t (*align_resource)(struct pci_dev *dev,
