@@ -280,4 +280,6 @@ extern const struct bpf_func_proto bpf_get_stackid_proto;
 /* Shared helpers among cBPF and eBPF. */
 void bpf_user_rnd_init_once(void);
 u64 bpf_user_rnd_u32(u64 r1, u64 r2, u64 r3, u64 r4, u64 r5);
+
+bool bpf_helper_changes_skb_data(void *func);
 #endif /* _LINUX_BPF_H */

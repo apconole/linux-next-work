@@ -345,11 +345,6 @@ static void emit_load_skb_data_hlen(u8 **pprog)
 	*pprog = prog;
 }
 
-static bool bpf_helper_changes_skb_data(void *func)
-{
-	return false;
-}
-
 static int do_jit(struct bpf_prog *bpf_prog, int *addrs, u8 *image,
 		  int oldproglen, struct jit_context *ctx)
 {

@@ -344,4 +344,27 @@ enum bpf_func_id {
 #define BPF_F_INDEX_MASK		0xffffffffULL
 #define BPF_F_CURRENT_CPU		BPF_F_INDEX_MASK
 
+/* user accessible mirror of in-kernel sk_buff.
+ * new fields can only be added to the end of this structure
+ */
+struct __sk_buff {
+	__u32 len;
+	__u32 pkt_type;
+	__u32 mark;
+	__u32 queue_mapping;
+	__u32 protocol;
+	__u32 vlan_present;
+	__u32 vlan_tci;
+	__u32 vlan_proto;
+	__u32 priority;
+	__u32 ingress_ifindex;
+	__u32 ifindex;
+	__u32 tc_index;
+	__u32 cb[5];
+	__u32 hash;
+	__u32 tc_classid;
+	__u32 data;
+	__u32 data_end;
+};
+
 #endif /* _UAPI__LINUX_BPF_H__ */
