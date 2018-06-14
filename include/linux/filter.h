@@ -442,6 +442,11 @@ struct sk_filter
 	struct sock_filter     	insns[0];
 };
 
+struct bpf_skb_data_end {
+	struct qdisc_skb_cb qdisc_cb;
+	void *data_end;
+};
+
 #define BPF_PROG_RUN(filter, ctx)  (*filter->bpf_func)(ctx, filter->insnsi)
 
 static inline u32 bpf_prog_insn_size(const struct bpf_prog *prog)
