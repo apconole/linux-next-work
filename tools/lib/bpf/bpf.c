@@ -320,6 +320,12 @@ int bpf_prog_detach2(int prog_fd, int target_fd, enum bpf_attach_type type)
 int bpf_prog_query(int target_fd, enum bpf_attach_type type, __u32 query_flags,
 		   __u32 *attach_flags, __u32 *prog_ids, __u32 *prog_cnt)
 {
+	return -EINVAL;
+
+#if 0
+	RHEL7 - we do not have attr support for query yet,
+	        so we need to disable this code
+
 	union bpf_attr attr;
 	int ret;
 
@@ -335,6 +341,7 @@ int bpf_prog_query(int target_fd, enum bpf_attach_type type, __u32 query_flags,
 		*attach_flags = attr.query.attach_flags;
 	*prog_cnt = attr.query.prog_cnt;
 	return ret;
+#endif
 }
 
 int bpf_prog_test_run(int prog_fd, int repeat, void *data, __u32 size,
