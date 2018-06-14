@@ -463,7 +463,7 @@ static void test_devmap(int task, void *data)
 #include <linux/err.h>
 #define SOCKMAP_PARSE_PROG "./sockmap_parse_prog.o"
 #define SOCKMAP_VERDICT_PROG "./sockmap_verdict_prog.o"
-static void test_sockmap(int tasks, void *data)
+__maybe_unused static void test_sockmap(int tasks, void *data)
 {
 	int one = 1, map_fd_rx = 0, map_fd_tx = 0, map_fd_break, s, sc, rc;
 	struct bpf_map *bpf_map_rx, *bpf_map_tx, *bpf_map_break;
@@ -1114,7 +1114,11 @@ static void run_all_tests(void)
 	test_arraymap_percpu_many_keys();
 
 	test_devmap(0, NULL);
+
+#if 0
+	RHEL7 - SOCKMAP is unsupported
 	test_sockmap(0, NULL);
+#endif
 
 	test_map_large();
 	test_map_parallel();
