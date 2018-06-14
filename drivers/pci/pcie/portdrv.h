@@ -11,8 +11,6 @@
 
 #include <linux/compiler.h>
 
-extern bool pcie_ports_native;
-
 #define PCIE_PORT_DEVICE_MAXSERVICES   5
 /*
  * According to the PCI Express Base Specification 2.0, the indices of
