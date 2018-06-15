@@ -377,6 +377,8 @@ int xgbe_config_netdev(struct xgbe_prv_data *pdata)
 	pdata->netdev_features = netdev->features;
 
 	netdev->priv_flags |= IFF_UNICAST_FLT;
+	netdev->extended->min_mtu = 0;
+	netdev->extended->max_mtu = XGMAC_JUMBO_PACKET_MTU;
 
 	/* Use default watchdog timeout */
 	netdev->watchdog_timeo = 0;
