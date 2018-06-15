@@ -247,6 +247,7 @@ static ssize_t power_ro_lock_store(struct device *dev,
 		count = PTR_ERR(req);
 		goto out_put;
 	}
+	req->cmd_type = REQ_TYPE_DRV_PRIV;
 	req_to_mmc_queue_req(req)->drv_op = MMC_DRV_OP_BOOT_WP;
 	blk_execute_rq(mq->queue, NULL, req, 0);
 	ret = req_to_mmc_queue_req(req)->drv_op_result;
@@ -643,6 +644,7 @@ static int mmc_blk_ioctl_cmd(struct mmc_blk_data *md,
 		err = PTR_ERR(req);
 		goto cmd_done;
 	}
+	req->cmd_type = REQ_TYPE_DRV_PRIV;
 	idatas[0] = idata;
 	req_to_mmc_queue_req(req)->drv_op =
 		rpmb ? MMC_DRV_OP_IOCTL_RPMB : MMC_DRV_OP_IOCTL;
@@ -714,6 +716,7 @@ static int mmc_blk_ioctl_multi_cmd(struct mmc_blk_data *md,
 		err = PTR_ERR(req);
 		goto cmd_err;
 	}
+	req->cmd_type = REQ_TYPE_DRV_PRIV;
 	req_to_mmc_queue_req(req)->drv_op =
 		rpmb ? MMC_DRV_OP_IOCTL_RPMB : MMC_DRV_OP_IOCTL;
 	req_to_mmc_queue_req(req)->drv_op_data = idata;
@@ -2733,6 +2736,7 @@ static int mmc_dbg_card_status_get(void *data, u64 *val)
 	req = blk_get_request(mq->queue, READ, __GFP_WAIT);
 	if (IS_ERR(req))
 		return PTR_ERR(req);
+	req->cmd_type = REQ_TYPE_DRV_PRIV;
 	req_to_mmc_queue_req(req)->drv_op = MMC_DRV_OP_GET_CARD_STATUS;
 	blk_execute_rq(mq->queue, NULL, req, 0);
 	ret = req_to_mmc_queue_req(req)->drv_op_result;
@@ -2771,6 +2775,7 @@ static int mmc_ext_csd_open(struct inode *inode, struct file *filp)
 		err = PTR_ERR(req);
 		goto out_free;
 	}
+	req->cmd_type = REQ_TYPE_DRV_PRIV;
 	req_to_mmc_queue_req(req)->drv_op = MMC_DRV_OP_GET_EXT_CSD;
 	req_to_mmc_queue_req(req)->drv_op_data = &ext_csd;
 	blk_execute_rq(mq->queue, NULL, req, 0);
