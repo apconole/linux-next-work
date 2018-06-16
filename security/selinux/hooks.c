@@ -5578,6 +5578,7 @@ static int selinux_shm_shmctl(struct shmid_kernel *shp, int cmd)
 		return task_has_system(current, SYSTEM__IPC_INFO);
 	case IPC_STAT:
 	case SHM_STAT:
+	case SHM_STAT_ANY:
 		perms = SHM__GETATTR | SHM__ASSOCIATE;
 		break;
 	case IPC_SET:
