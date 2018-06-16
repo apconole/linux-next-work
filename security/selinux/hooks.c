@@ -5436,6 +5436,7 @@ static int selinux_msg_queue_msgctl(struct msg_queue *msq, int cmd)
 		return task_has_system(current, SYSTEM__IPC_INFO);
 	case IPC_STAT:
 	case MSG_STAT:
+	case MSG_STAT_ANY:
 		perms = MSGQ__GETATTR | MSGQ__ASSOCIATE;
 		break;
 	case IPC_SET:
