@@ -4,7 +4,7 @@
 # and debug to form the necessary kernel-<version>-<arch>-<variant>.config
 # files for building RHEL kernels, based on the contents of a control file
 
-KVERREL=$1 # sets the kenrel version-release string used for config file naming
+KVERREL=$1 # sets the kernel version-release string used for config file naming
 SUBARCH=$2 # defines a specific arch for use with rh-configs-arch-prep target
 
 set errexit
