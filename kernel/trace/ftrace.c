@@ -4451,6 +4451,11 @@ void ftrace_module_init(struct module *mod)
 	mod_ext = find_module_ext(mod);
 	mutex_unlock(&module_ext_mutex);
 
+#ifdef CONFIG_MPROFILE_KERNEL
+	if (!mod_ext->mprofile_kernel)
+		return;
+#endif
+
 	ftrace_init_module(mod, mod_ext->ftrace_callsites,
 			   mod_ext->ftrace_callsites +
 			   mod_ext->num_ftrace_callsites);

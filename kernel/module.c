@@ -3598,6 +3598,11 @@ static int load_module(struct load_info *info, const char __user *uargs,
 	}
 #endif
 
+#ifdef CONFIG_MPROFILE_KERNEL
+	if (get_modinfo(info, "mprofile"))
+		mod_ext->mprofile_kernel = true;
+#endif
+
 	/* Now we've got everything in the final locations, we can
 	 * find optional sections. */
 	err = find_module_sections(mod, info);

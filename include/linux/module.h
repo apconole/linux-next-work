@@ -250,6 +250,7 @@ struct module_ext {
 #if defined(CONFIG_PPC64) && defined(CONFIG_DYNAMIC_FTRACE)
 	unsigned long toc;
 	unsigned long tramp;
+	bool mprofile_kernel;
 #endif
 
 };
