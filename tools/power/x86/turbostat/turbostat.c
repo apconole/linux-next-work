@@ -1027,7 +1027,8 @@ int format_counters(struct thread_data *t, struct core_data *c,
 	}
 
 done:
-	outp += sprintf(outp, "\n");
+	if (*(outp - 1) != '\n')
+		outp += sprintf(outp, "\n");
 
 	return 0;
 }
