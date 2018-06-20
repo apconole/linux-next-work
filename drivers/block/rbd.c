@@ -4847,6 +4847,7 @@ static void rbd_dev_free(struct rbd_device *rbd_dev)
 	WARN_ON(rbd_dev->lock_state != RBD_LOCK_STATE_UNLOCKED);
 
 	ceph_oid_destroy(&rbd_dev->header_oid);
+	ceph_oloc_destroy(&rbd_dev->header_oloc);
 	kfree(rbd_dev->config_info);
 
 	rbd_put_client(rbd_dev->rbd_client);
