@@ -394,7 +394,9 @@ static void target_copy(struct ceph_osd_request_target *dest,
 static void target_destroy(struct ceph_osd_request_target *t)
 {
 	ceph_oid_destroy(&t->base_oid);
+	ceph_oloc_destroy(&t->base_oloc);
 	ceph_oid_destroy(&t->target_oid);
+	ceph_oloc_destroy(&t->target_oloc);
 }
 
 /*
@@ -541,7 +543,7 @@ EXPORT_SYMBOL(ceph_osdc_alloc_request);
 
 static int ceph_oloc_encoding_size(const struct ceph_object_locator *oloc)
 {
-	return 8 + 4 + 4 + 4;
+	return 8 + 4 + 4 + 4 + (oloc->pool_ns ? oloc->pool_ns->len : 0);
 }
 
 int ceph_osdc_alloc_messages(struct ceph_osd_request *req, gfp_t gfp)
@@ -551,6 +553,7 @@ int ceph_osdc_alloc_messages(struct ceph_osd_request *req, gfp_t gfp)
 	int msg_size;
 
 	WARN_ON(ceph_oid_empty(&req->r_base_oid));
+	WARN_ON(ceph_oloc_empty(&req->r_base_oloc));
 
 	/* create request message */
 	msg_size = CEPH_ENCODING_START_BLK_LEN +
@@ -964,6 +967,7 @@ struct ceph_osd_request *ceph_osdc_new_request(struct ceph_osd_client *osdc,
 	req->r_abort_on_full = true;
 	req->r_flags = flags;
 	req->r_base_oloc.pool = layout->pool_id;
+	req->r_base_oloc.pool_ns = ceph_try_get_string(layout->pool_ns);
 	ceph_oid_printf(&req->r_base_oid, "%llx.%08llx", vino.ino, objnum);
 
 	req->r_snapid = vino.snap;
@@ -1720,8 +1724,13 @@ static void hoid_fill_from_target(struct ceph_hobject_id *hoid,
 	hoid->snapid = CEPH_NOSNAP;
 	hoid->hash = t->pgid.seed;
 	hoid->is_max = false;
-	hoid->nspace = NULL;
-	hoid->nspace_len = 0;
+	if (t->target_oloc.pool_ns) {
+		hoid->nspace = t->target_oloc.pool_ns->str;
+		hoid->nspace_len = t->target_oloc.pool_ns->len;
+	} else {
+		hoid->nspace = NULL;
+		hoid->nspace_len = 0;
+	}
 	hoid->pool = t->target_oloc.pool;
 	ceph_hoid_build_hash_cache(hoid);
 }
@@ -1841,7 +1850,11 @@ static void encode_oloc(void **p, void *end,
 	ceph_encode_64(p, oloc->pool);
 	ceph_encode_32(p, -1); /* preferred */
 	ceph_encode_32(p, 0);  /* key len */
-	ceph_encode_32(p, 0);
+	if (oloc->pool_ns)
+		ceph_encode_string(p, end, oloc->pool_ns->str,
+				   oloc->pool_ns->len);
+	else
+		ceph_encode_32(p, 0);
 }
 
 static void encode_request_partial(struct ceph_osd_request *req,
@@ -3194,8 +3207,8 @@ static int ceph_oloc_decode(void **p, void *end,
 	if (struct_v >= 5) {
 		len = ceph_decode_32(p);
 		if (len > 0) {
-			pr_warn("ceph_object_locator::nspace is set\n");
-			goto e_inval;
+			ceph_decode_need(p, end, len, e_inval);
+			*p += len;
 		}
 	}
 
@@ -3409,7 +3422,11 @@ static void handle_reply(struct ceph_osd *osd, struct ceph_msg *msg)
 		unlink_request(osd, req);
 		mutex_unlock(&osd->lock);
 
-		ceph_oloc_copy(&req->r_t.target_oloc, &m.redirect.oloc);
+		/*
+		 * Not ceph_oloc_copy() - changing pool_ns is not
+		 * supported.
+		 */
+		req->r_t.target_oloc.pool = m.redirect.oloc.pool;
 		req->r_flags |= CEPH_OSD_FLAG_REDIRECTED;
 		req->r_tid = 0;
 		__submit_request(req, false);

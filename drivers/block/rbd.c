@@ -1008,6 +1008,7 @@ static void rbd_init_layout(struct rbd_device *rbd_dev)
 	rbd_dev->layout.object_size = rbd_obj_bytes(&rbd_dev->header);
 	rbd_dev->layout.pool_id = rbd_dev->header.data_pool_id == CEPH_NOPOOL ?
 			  rbd_dev->spec->pool_id : rbd_dev->header.data_pool_id;
+	RCU_INIT_POINTER(rbd_dev->layout.pool_ns, NULL);
 }
 
 /*
