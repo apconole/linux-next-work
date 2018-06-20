@@ -1873,12 +1873,13 @@ bad:
 void ceph_oloc_copy(struct ceph_object_locator *dest,
 		    const struct ceph_object_locator *src)
 {
-	WARN_ON(!ceph_oloc_empty(dest));
-	WARN_ON(dest->pool_ns); /* empty() only covers ->pool */
+	ceph_oloc_destroy(dest);
 
 	dest->pool = src->pool;
 	if (src->pool_ns)
 		dest->pool_ns = ceph_get_string(src->pool_ns);
+	else
+		dest->pool_ns = NULL;
 }
 EXPORT_SYMBOL(ceph_oloc_copy);
 
