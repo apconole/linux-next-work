@@ -275,7 +275,7 @@ struct swap_info_struct {
 					 * first.
 					 */
 	RH_KABI_EXTEND(struct plist_node list)		/* entry in swap_active_head */
-	RH_KABI_EXTEND(struct plist_node avail_list)	/* entry in swap_avail_head */
+	RH_KABI_EXTEND(struct plist_node avail_lists[MAX_NUMNODES]) /* entry in swap_avail_head */
 	RH_KABI_EXTEND(struct swap_cluster_info *cluster_info) /* cluster info. Only for SSD */
 	RH_KABI_EXTEND(struct swap_cluster_list free_clusters) /* free clusters list */
 	RH_KABI_EXTEND(struct work_struct discard_work) /* discard worker */
