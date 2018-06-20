@@ -37,8 +37,12 @@ struct mod_arch_specific {
 	unsigned int stubs_section;	/* Index of stubs section in module */
 	unsigned int toc_section;	/* What section is the TOC? */
 #ifdef CONFIG_DYNAMIC_FTRACE
-	unsigned long toc;
-	unsigned long tramp;
+	/*
+	 * These fields have been moved to module_ext to preserve kABI:
+	 *
+	 * unsigned long toc;
+	 * unsigned long tramp;
+	 */
 #endif
 
 #else /* powerpc64 */

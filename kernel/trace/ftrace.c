@@ -4440,7 +4440,11 @@ static void ftrace_init_module(struct module *mod,
 
 void ftrace_module_init(struct module *mod)
 {
-#ifdef CONFIG_S390
+#ifdef CONFIG_X86_64
+	ftrace_init_module(mod, mod->ftrace_callsites,
+			   mod->ftrace_callsites +
+			   mod->num_ftrace_callsites);
+#else
 	struct module_ext *mod_ext;
 
 	mutex_lock(&module_ext_mutex);
@@ -4450,10 +4454,6 @@ void ftrace_module_init(struct module *mod)
 	ftrace_init_module(mod, mod_ext->ftrace_callsites,
 			   mod_ext->ftrace_callsites +
 			   mod_ext->num_ftrace_callsites);
-#else
-	ftrace_init_module(mod, mod->ftrace_callsites,
-			   mod->ftrace_callsites +
-			   mod->num_ftrace_callsites);
 #endif
 }
 #endif /* CONFIG_MODULES */

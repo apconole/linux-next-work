@@ -1729,7 +1729,7 @@ struct task_struct {
 	unsigned long timer_slack_ns;
 	unsigned long default_timer_slack_ns;
 
-#if defined(CONFIG_FUNCTION_GRAPH_TRACER) && !defined(CONFIG_S390)
+#if defined(CONFIG_FUNCTION_GRAPH_TRACER) && defined(CONFIG_X86_64)
 	/* Index of current stored address in ret_stack */
 	int curr_ret_stack;
 	/* Stack of return addresses for return function tracing */
@@ -1812,7 +1812,7 @@ struct task_struct {
 #ifdef CONFIG_ARCH_WANT_BATCHED_UNMAP_TLB_FLUSH
 	struct tlbflush_unmap_batch tlb_ubc;
 #endif
-#if defined(CONFIG_FUNCTION_GRAPH_TRACER) && defined(CONFIG_S390)
+#if defined(CONFIG_FUNCTION_GRAPH_TRACER) && !defined(CONFIG_X86_64)
 	/* Index of current stored address in ret_stack */
 	int curr_ret_stack;
 	/* Stack of return addresses for return function tracing */
