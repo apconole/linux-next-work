@@ -51,6 +51,7 @@ int *fd_percpu;
 struct timeval interval_tv = {5, 0};
 struct timespec interval_ts = {5, 0};
 struct timespec one_msec = {0, 1000000};
+unsigned int num_iterations;
 unsigned int debug;
 unsigned int quiet = 1;
 unsigned int shown;
@@ -496,6 +497,7 @@ void help(void)
 	"--interval sec.subsec	Override default 5-second measurement interval\n"
 	"--help		print this help message\n"
 	"--list		list column headers only\n"
+	"--num_iterations num   number of the measurement iterations\n"
 	"--out file	create or truncate \"file\" for all output\n"
 	"--version	print version information\n"
 	"\n"
@@ -2761,6 +2763,7 @@ void turbostat_loop()
 {
 	int retval;
 	int restarted = 0;
+	int done_iters = 0;
 
 	setup_signal_handler();
 
@@ -2779,6 +2782,7 @@ restart:
 		goto restart;
 	}
 	restarted = 0;
+	done_iters = 0;
 	gettimeofday(&tv_even, (struct timezone *)NULL);
 
 	while (1) {
@@ -2807,6 +2811,8 @@ restart:
 		flush_output_stdout();
 		if (exit_requested)
 			break;
+		if (num_iterations && ++done_iters >= num_iterations)
+			break;
 		do_sleep();
 		if (snapshot_proc_sysfs_files())
 			goto restart;
@@ -2827,6 +2833,8 @@ restart:
 		format_all_counters(ODD_COUNTERS);
 		flush_output_stdout();
 		if (exit_requested)
+			break;
+		if (num_iterations && ++done_iters >= num_iterations)
 			break;
 	}
 }
@@ -5212,6 +5220,7 @@ void cmdline(int argc, char **argv)
 		{"enable",	required_argument,	0, 'e'},
 		{"verbose",	no_argument,		0, 'v'},
 		{"interval",	required_argument,	0, 'i'},
+		{"num_iterations",	required_argument,	0, 'n'},
 		{"help",	no_argument,		0, 'h'},
 		{"hide",	required_argument,	0, 'H'},	// meh, -h taken by --help
 		{"Joules",	no_argument,		0, 'J'},
@@ -5227,7 +5236,7 @@ void cmdline(int argc, char **argv)
 
 	progname = argv[0];
 
-	while ((opt = getopt_long_only(argc, argv, "+C:c:Ddve:hi:Jo:qST:V",
+	while ((opt = getopt_long_only(argc, argv, "+C:c:Ddve:hi:Jn:o:qST:V",
 				long_options, &option_index)) != -1) {
 		switch (opt) {
 		case 'a':
@@ -5288,6 +5297,15 @@ void cmdline(int argc, char **argv)
 			break;
 		case 'q':
 			quiet = 1;
+			break;
+		case 'n':
+			num_iterations = strtod(optarg, NULL);
+
+			if (num_iterations <= 0) {
+				fprintf(outf, "iterations %d should be positive number\n",
+					num_iterations);
+				exit(2);
+			}
 			break;
 		case 's':
 			/*
