@@ -15,6 +15,9 @@
 #include <linux/bitops.h>
 #include <linux/types.h>
 
+#include <linux/bitops.h>
+#include <linux/types.h>
+
 /*
  * deal with unrepresentable constant logarithms
  */
