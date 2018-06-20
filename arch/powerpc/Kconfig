@@ -193,6 +193,7 @@ config PPC
 	select HAVE_ARCH_SECCOMP_FILTER
 	select HAVE_PERF_EVENTS_NMI if PPC64
 	select GENERIC_CPU_VULNERABILITIES	if PPC_BOOK3S_64
+	select HAVE_LIVEPATCH if HAVE_DYNAMIC_FTRACE_WITH_REGS
 
 config GENERIC_CSUM
 	def_bool n
@@ -1148,3 +1149,5 @@ config PPC_LIB_RHEAP
 	bool
 
 source "arch/powerpc/kvm/Kconfig"
+
+source "kernel/livepatch/Kconfig"
