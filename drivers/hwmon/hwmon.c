@@ -12,17 +12,15 @@
 
 #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
 
-#include <linux/module.h>
 #include <linux/bitops.h>
 #include <linux/device.h>
 #include <linux/err.h>
-#include <linux/slab.h>
-#include <linux/kdev_t.h>
-#include <linux/idr.h>
-#include <linux/hwmon.h>
 #include <linux/gfp.h>
-#include <linux/spinlock.h>
+#include <linux/hwmon.h>
+#include <linux/idr.h>
+#include <linux/module.h>
 #include <linux/pci.h>
+#include <linux/slab.h>
 #include <linux/string.h>
 #include <linux/thermal.h>
 
