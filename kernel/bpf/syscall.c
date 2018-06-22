@@ -1097,6 +1097,12 @@ static int bpf_prog_load(union bpf_attr *attr)
 	char license[128];
 	bool is_gpl;
 
+	/* RHEL7 - allow only following types */
+	if (type != BPF_PROG_TYPE_KPROBE &&
+	    type != BPF_PROG_TYPE_TRACEPOINT &&
+	    type != BPF_PROG_TYPE_PERF_EVENT)
+		return -EINVAL;
+
 	if (CHECK_ATTR(BPF_PROG_LOAD))
 		return -EINVAL;
 
