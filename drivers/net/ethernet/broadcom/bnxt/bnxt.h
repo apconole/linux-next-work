@@ -1076,6 +1076,7 @@ struct bnxt {
 #define CHIP_NUM_5745X		0xd730
 
 #define CHIP_NUM_58802		0xd802
+#define CHIP_NUM_58804		0xd804
 #define CHIP_NUM_58808		0xd808
 
 #define BNXT_CHIP_NUM_5730X(chip_num)		\
@@ -1111,6 +1112,7 @@ struct bnxt {
 
 #define BNXT_CHIP_NUM_588XX(chip_num)		\
 	((chip_num) == CHIP_NUM_58802 ||	\
+	 (chip_num) == CHIP_NUM_58804 ||        \
 	 (chip_num) == CHIP_NUM_58808)
 
 	struct net_device	*dev;
