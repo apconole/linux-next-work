@@ -1086,6 +1086,33 @@ struct bpf_prog *bpf_prog_get_type(u32 ufd, enum bpf_prog_type type)
 }
 EXPORT_SYMBOL_GPL(bpf_prog_get_type);
 
+/*
+ * RHEL7 - If we boot with 'bpftest' command line option,
+ * we allow to use additional program types:
+ *
+ *    BPF_PROG_TYPE_SOCKET_FILTER
+ *    BPF_PROG_TYPE_SCHED_CLS
+ *    BPF_PROG_TYPE_SCHED_ACT
+ *
+ * It's for the sake of the bpf selftest suite.
+ */
+static bool bpftest;
+
+static __init int setup_bpftest(char *arg)
+{
+	bpftest = true;
+	return 1;
+}
+__setup("bpftest", setup_bpftest);
+
+static bool is_test_type(enum bpf_prog_type type)
+{
+	return bpftest &&
+	       (type == BPF_PROG_TYPE_SOCKET_FILTER ||
+	        type == BPF_PROG_TYPE_SCHED_CLS ||
+	        type == BPF_PROG_TYPE_SCHED_ACT);
+}
+
 /* last field in 'union bpf_attr' used by this command */
 #define	BPF_PROG_LOAD_LAST_FIELD prog_name
 
@@ -1100,7 +1127,8 @@ static int bpf_prog_load(union bpf_attr *attr)
 	/* RHEL7 - allow only following types */
 	if (type != BPF_PROG_TYPE_KPROBE &&
 	    type != BPF_PROG_TYPE_TRACEPOINT &&
-	    type != BPF_PROG_TYPE_PERF_EVENT)
+	    type != BPF_PROG_TYPE_PERF_EVENT &&
+	    !is_test_type(type))
 		return -EINVAL;
 
 	if (CHECK_ATTR(BPF_PROG_LOAD))
