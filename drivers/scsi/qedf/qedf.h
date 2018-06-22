@@ -386,11 +386,16 @@ struct qedf_ctx {
 	u32 flogi_failed;
 
 	/* Used for fc statistics */
+	struct mutex stats_mutex;
 	u64 input_requests;
 	u64 output_requests;
 	u64 control_requests;
 	u64 packet_aborts;
 	u64 alloc_failures;
+	u8 lun_resets;
+	u8 target_resets;
+	u8 task_set_fulls;
+	u8 busy;
 };
 
 struct io_bdt {
@@ -501,6 +506,7 @@ extern void qedf_process_seq_cleanup_compl(struct qedf_ctx *qedf,
 extern int qedf_send_flogi(struct qedf_ctx *qedf);
 extern void qedf_fp_io_handler(struct work_struct *work);
 extern void qedf_wq_grcdump(struct work_struct *work);
+extern void qedf_get_protocol_tlv_data(void *dev, void *data);
 
 #define FCOE_WORD_TO_BYTE  4
 #define QEDF_MAX_TASK_NUM	0xFFFF
