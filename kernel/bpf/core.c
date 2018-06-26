@@ -337,7 +337,8 @@ void bpf_jit_binary_free(struct bpf_binary_header *hdr)
 	module_free(NULL, hdr);
 }
 
-int bpf_jit_harden __read_mostly;
+/* RHEL-only: set it to 1 by default */
+int bpf_jit_harden __read_mostly = 1;
 
 static int bpf_jit_blind_insn(const struct bpf_insn *from,
 			      const struct bpf_insn *aux,
