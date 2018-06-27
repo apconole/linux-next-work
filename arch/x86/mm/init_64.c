@@ -1228,11 +1228,25 @@ const char *arch_vma_name(struct vm_area_struct *vma)
 }
 
 #ifdef CONFIG_X86_UV
+/* Adjustable memory block size */
+static unsigned long set_memory_block_size = 2UL * 1024 * 1024 * 1024;
+int __init set_memory_block_size_order(unsigned int order)
+{
+	unsigned long size = 1UL << order;
+
+	if ((64UL << 30) < size || size < MIN_MEMORY_BLOCK_SIZE)
+		return -EINVAL;
+
+	set_memory_block_size = size;
+	return 0;
+}
+
 unsigned long memory_block_size_bytes(void)
 {
 	if (is_uv_system()) {
-		printk(KERN_INFO "UV: memory block size 2GB\n");
-		return 2UL * 1024 * 1024 * 1024;
+		printk_once(KERN_INFO "UV: memory block size %luMB\n",
+			set_memory_block_size / (1024 * 1024));
+		return set_memory_block_size;
 	}
 	return MIN_MEMORY_BLOCK_SIZE;
 }
