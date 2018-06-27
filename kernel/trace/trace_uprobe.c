@@ -764,7 +764,7 @@ static void uprobe_buffer_put(struct uprobe_cpu_buffer *ucb)
 	mutex_unlock(&ucb->mutex);
 }
 
-static void uprobe_trace_print(struct trace_uprobe *tu,
+static void __uprobe_trace_func(struct trace_uprobe *tu,
 				unsigned long func, struct pt_regs *regs)
 {
 	struct uprobe_trace_entry_head *entry;
@@ -813,14 +813,14 @@ out:
 static int uprobe_trace_func(struct trace_uprobe *tu, struct pt_regs *regs)
 {
 	if (!is_ret_probe(tu))
-		uprobe_trace_print(tu, 0, regs);
+		__uprobe_trace_func(tu, 0, regs);
 	return 0;
 }
 
 static void uretprobe_trace_func(struct trace_uprobe *tu, unsigned long func,
 				struct pt_regs *regs)
 {
-	uprobe_trace_print(tu, func, regs);
+	__uprobe_trace_func(tu, func, regs);
 }
 
 /* Event entry printers */
@@ -1025,7 +1025,7 @@ static bool uprobe_perf_filter(struct uprobe_consumer *uc,
 	return ret;
 }
 
-static void uprobe_perf_print(struct trace_uprobe *tu,
+static void __uprobe_perf_func(struct trace_uprobe *tu,
 				unsigned long func, struct pt_regs *regs)
 {
 	struct ftrace_event_call *call = &tu->tp.call;
@@ -1093,14 +1093,14 @@ static int uprobe_perf_func(struct trace_uprobe *tu, struct pt_regs *regs)
 		return UPROBE_HANDLER_REMOVE;
 
 	if (!is_ret_probe(tu))
-		uprobe_perf_print(tu, 0, regs);
+		__uprobe_perf_func(tu, 0, regs);
 	return 0;
 }
 
 static void uretprobe_perf_func(struct trace_uprobe *tu, unsigned long func,
 				struct pt_regs *regs)
 {
-	uprobe_perf_print(tu, func, regs);
+	__uprobe_perf_func(tu, func, regs);
 }
 #endif	/* CONFIG_PERF_EVENTS */
 
