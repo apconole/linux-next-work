@@ -35,10 +35,15 @@ struct trace_probe {
 	const char		*symbol;	/* symbol name */
 	struct ftrace_event_class	class;
 	struct ftrace_event_call	call;
-	struct ftrace_event_file * __rcu *files;
+	struct list_head	files;
 	ssize_t			size;		/* trace entry size */
 	unsigned int		nr_args;
 	struct probe_arg	args[];
+};
+
+struct event_file_link {
+	struct ftrace_event_file	*file;
+	struct list_head		list;
 };
 
 #define SIZEOF_TRACE_PROBE(n)			\
@@ -317,6 +322,7 @@ static struct trace_probe *alloc_trace_probe(const char *group,
 		goto error;
 
 	INIT_LIST_HEAD(&tp->list);
+	INIT_LIST_HEAD(&tp->files);
 	return tp;
 error:
 	kfree(tp->call.name);
@@ -351,22 +357,6 @@ static struct trace_probe *find_trace_probe(const char *event,
 }
 
 /*
- * This and enable_trace_probe/disable_trace_probe rely on event_mutex
- * held by the caller, __ftrace_set_clr_event().
- */
-static int trace_probe_nr_files(struct trace_probe *tp)
-{
-	struct ftrace_event_file **file = rcu_dereference_raw(tp->files);
-	int ret = 0;
-
-	if (file)
-		while (*(file++))
-			ret++;
-
-	return ret;
-}
-
-/*
  * Enable trace_probe
  * if the file is NULL, enable "perf" handler, or enable "trace" handler.
  */
@@ -376,29 +366,18 @@ enable_trace_probe(struct trace_probe *tp, struct ftrace_event_file *file)
 	int ret = 0;
 
 	if (file) {
-		struct ftrace_event_file **new, **old;
-		int n = trace_probe_nr_files(tp);
+		struct event_file_link *link;
 
-		old = rcu_dereference_raw(tp->files);
-		/* 1 is for new one and 1 is for stopper */
-		new = kzalloc((n + 2) * sizeof(struct ftrace_event_file *),
-			      GFP_KERNEL);
-		if (!new) {
+		link = kmalloc(sizeof(*link), GFP_KERNEL);
+		if (!link) {
 			ret = -ENOMEM;
 			goto out;
 		}
-		memcpy(new, old, n * sizeof(struct ftrace_event_file *));
-		new[n] = file;
-		/* The last one keeps a NULL */
 
-		rcu_assign_pointer(tp->files, new);
+		link->file = file;
+		list_add_tail_rcu(&link->list, &tp->files);
+
 		tp->flags |= TP_FLAG_TRACE;
-
-		if (old) {
-			/* Make sure the probe is done with old files */
-			synchronize_sched();
-			kfree(old);
-		}
 	} else
 		tp->flags |= TP_FLAG_PROFILE;
 
@@ -413,24 +392,16 @@ enable_trace_probe(struct trace_probe *tp, struct ftrace_event_file *file)
 	return ret;
 }
 
-static int
-trace_probe_file_index(struct trace_probe *tp, struct ftrace_event_file *file)
+static struct event_file_link *
+find_event_file_link(struct trace_probe *tp, struct ftrace_event_file *file)
 {
-	struct ftrace_event_file **files;
-	int i;
+	struct event_file_link *link;
 
-	/*
-	 * Since all tp->files updater is protected by probe_enable_lock,
-	 * we don't need to lock an rcu_read_lock.
-	 */
-	files = rcu_dereference_raw(tp->files);
-	if (files) {
-		for (i = 0; files[i]; i++)
-			if (files[i] == file)
-				return i;
-	}
+	list_for_each_entry(link, &tp->files, list)
+		if (link->file == file)
+			return link;
 
-	return -1;
+	return NULL;
 }
 
 /*
@@ -440,40 +411,23 @@ trace_probe_file_index(struct trace_probe *tp, struct ftrace_event_file *file)
 static int
 disable_trace_probe(struct trace_probe *tp, struct ftrace_event_file *file)
 {
-	struct ftrace_event_file **old = NULL;
+	struct event_file_link *link = NULL;
 	int wait = 0;
 	int ret = 0;
 
 	if (file) {
-		struct ftrace_event_file **new, **old;
-		int n = trace_probe_nr_files(tp);
-		int i, j;
-
-		old = rcu_dereference_raw(tp->files);
-		if (n == 0 || trace_probe_file_index(tp, file) < 0) {
+		link = find_event_file_link(tp, file);
+		if (!link) {
 			ret = -EINVAL;
 			goto out;
 		}
 
-		if (n == 1) {	/* Remove the last file */
-			tp->flags &= ~TP_FLAG_TRACE;
-			new = NULL;
-		} else {
-			new = kzalloc(n * sizeof(struct ftrace_event_file *),
-				      GFP_KERNEL);
-			if (!new) {
-				ret = -ENOMEM;
-				goto out;
-			}
-
-			/* This copy & check loop copies the NULL stopper too */
-			for (i = 0, j = 0; j < n && i < n + 1; i++)
-				if (old[i] != file)
-					new[j++] = old[i];
-		}
-
-		rcu_assign_pointer(tp->files, new);
+		list_del_rcu(&link->list);
 		wait = 1;
+		if (!list_empty(&tp->files))
+			goto out;
+
+		tp->flags &= ~TP_FLAG_TRACE;
 	} else
 		tp->flags &= ~TP_FLAG_PROFILE;
 
@@ -495,7 +449,7 @@ disable_trace_probe(struct trace_probe *tp, struct ftrace_event_file *file)
 		 * the kprobe_trace_func/kretprobe_trace_func.
 		 */
 		synchronize_sched();
-		kfree(old);	/* Ignored if link == NULL */
+		kfree(link);	/* Ignored if link == NULL */
 	}
 
 	return ret;
@@ -1045,20 +999,10 @@ __kprobe_trace_func(struct trace_probe *tp, struct pt_regs *regs,
 static __kprobes void
 kprobe_trace_func(struct trace_probe *tp, struct pt_regs *regs)
 {
-	/*
-	 * Note: preempt is already disabled around the kprobe handler.
-	 * However, we still need an smp_read_barrier_depends() corresponding
-	 * to smp_wmb() in rcu_assign_pointer() to access the pointer.
-	 */
-	struct ftrace_event_file **file = rcu_dereference_raw(tp->files);
+	struct event_file_link *link;
 
-	if (unlikely(!file))
-		return;
-
-	while (*file) {
-		__kprobe_trace_func(tp, regs, *file);
-		file++;
-	}
+	list_for_each_entry_rcu(link, &tp->files, list)
+		__kprobe_trace_func(tp, regs, link->file);
 }
 
 /* Kretprobe handler */
@@ -1105,20 +1049,10 @@ static __kprobes void
 kretprobe_trace_func(struct trace_probe *tp, struct kretprobe_instance *ri,
 		     struct pt_regs *regs)
 {
-	/*
-	 * Note: preempt is already disabled around the kprobe handler.
-	 * However, we still need an smp_read_barrier_depends() corresponding
-	 * to smp_wmb() in rcu_assign_pointer() to access the pointer.
-	 */
-	struct ftrace_event_file **file = rcu_dereference_raw(tp->files);
+	struct event_file_link *link;
 
-	if (unlikely(!file))
-		return;
-
-	while (*file) {
-		__kretprobe_trace_func(tp, ri, regs, *file);
-		file++;
-	}
+	list_for_each_entry_rcu(link, &tp->files, list)
+		__kretprobe_trace_func(tp, ri, regs, link->file);
 }
 
 /* Event entry printers */
