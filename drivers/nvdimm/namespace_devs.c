@@ -1874,7 +1874,7 @@ static int select_pmem_id(struct nd_region *nd_region, u8 *pmem_id)
  * @nspm: target namespace to create
  * @nd_label: target pmem namespace label to evaluate
  */
-struct device *create_namespace_pmem(struct nd_region *nd_region,
+static struct device *create_namespace_pmem(struct nd_region *nd_region,
 		struct nd_namespace_index *nsindex,
 		struct nd_namespace_label *nd_label)
 {
@@ -2185,7 +2185,7 @@ static int add_namespace_resource(struct nd_region *nd_region,
 	return i;
 }
 
-struct device *create_namespace_blk(struct nd_region *nd_region,
+static struct device *create_namespace_blk(struct nd_region *nd_region,
 		struct nd_namespace_label *nd_label, int count)
 {
 
