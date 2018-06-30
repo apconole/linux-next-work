@@ -147,7 +147,7 @@ static int hugetlbfs_file_mmap(struct file *file, struct vm_area_struct *vma)
 	 * and ia64).
 	 */
 	vma->vm_flags |= VM_HUGETLB | VM_DONTEXPAND;
-	vma->vm_flags2 |= VM_SPLIT;
+	vma->vm_flags2 |= VM_SPLIT | VM_PAGESIZE;
 	vma->vm_ops = &hugetlb_vm_ops;
 
 	/*
