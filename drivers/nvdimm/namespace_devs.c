@@ -14,10 +14,10 @@
 #include <linux/device.h>
 #include <linux/sort.h>
 #include <linux/slab.h>
-#include <linux/pmem.h>
 #include <linux/list.h>
 #include <linux/nd.h>
 #include "nd-core.h"
+#include "pmem.h"
 #include "nd.h"
 
 static void namespace_io_release(struct device *dev)
@@ -154,11 +154,7 @@ bool pmem_should_map_pages(struct device *dev)
 				== REGION_MIXED)
 		return false;
 
-#ifdef ARCH_MEMREMAP_PMEM
 	return ARCH_MEMREMAP_PMEM == MEMREMAP_WB;
-#else
-	return false;
-#endif
 }
 EXPORT_SYMBOL(pmem_should_map_pages);
 

@@ -27,7 +27,6 @@
 #include <linux/vmalloc.h>
 #include <linux/pfn_t.h>
 #include <linux/slab.h>
-#include <linux/pmem.h>
 #include <linux/uio.h>
 #include <linux/dax.h>
 #include <linux/nd.h>
