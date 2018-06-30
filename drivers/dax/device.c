@@ -19,6 +19,7 @@
 #include <linux/dax.h>
 #include <linux/fs.h>
 #include <linux/mm.h>
+#include <linux/mman.h>
 #include "dax-private.h"
 #include "dax.h"
 
@@ -550,13 +551,16 @@ static int dax_release(struct inode *inode, struct file *filp)
 	return 0;
 }
 
-static const struct file_operations dax_fops = {
-	.llseek = noop_llseek,
-	.owner = THIS_MODULE,
-	.open = dax_open,
-	.release = dax_release,
-	.get_unmapped_area = dax_get_unmapped_area,
-	.mmap = dax_mmap,
+static const struct file_operations_extend dax_fops = {
+	.kabi_fops = {
+		.llseek = noop_llseek,
+		.owner = THIS_MODULE,
+		.open = dax_open,
+		.release = dax_release,
+		.get_unmapped_area = dax_get_unmapped_area,
+		.mmap = dax_mmap,
+	},
+	.mmap_supported_flags = MAP_SYNC,
 };
 
 static void dev_dax_release(struct device *dev)
@@ -655,7 +659,7 @@ struct dev_dax *devm_create_dev_dax(struct dax_region *dax_region,
 
 	inode = dax_inode(dax_dev);
 	cdev = inode->i_cdev;
-	cdev_init(cdev, &dax_fops);
+	cdev_init(cdev, &dax_fops.kabi_fops);
 	cdev->owner = parent->driver->owner;
 
 	dev_dax->num_resources = count;
@@ -695,6 +699,8 @@ EXPORT_SYMBOL_GPL(devm_create_dev_dax);
 
 static int __init dax_init(void)
 {
+	if (register_fo_extend(&dax_fops) != 0)
+		return -ENOMEM;
 	dax_class = class_create(THIS_MODULE, "dax");
 	return PTR_ERR_OR_ZERO(dax_class);
 }
