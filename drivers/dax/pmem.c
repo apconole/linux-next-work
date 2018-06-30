@@ -33,7 +33,7 @@ static void dax_pmem_percpu_release(struct percpu_ref *ref)
 {
 	struct dax_pmem *dax_pmem = to_dax_pmem(ref);
 
-	dev_dbg(dax_pmem->dev, "%s\n", __func__);
+	dev_dbg(dax_pmem->dev, "trace\n");
 	complete(&dax_pmem->cmp);
 }
 
@@ -42,7 +42,7 @@ static void dax_pmem_percpu_exit(void *data)
 	struct percpu_ref *ref = data;
 	struct dax_pmem *dax_pmem = to_dax_pmem(ref);
 
-	dev_dbg(dax_pmem->dev, "%s\n", __func__);
+	dev_dbg(dax_pmem->dev, "trace\n");
 	percpu_ref_exit(ref);
 }
 
@@ -51,7 +51,7 @@ static void dax_pmem_percpu_kill(void *data)
 	struct percpu_ref *ref = data;
 	struct dax_pmem *dax_pmem = to_dax_pmem(ref);
 
-	dev_dbg(dax_pmem->dev, "%s\n", __func__);
+	dev_dbg(dax_pmem->dev, "trace\n");
 	percpu_ref_kill(ref);
 	wait_for_completion(&dax_pmem->cmp);
 }
