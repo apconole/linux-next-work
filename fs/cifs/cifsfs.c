@@ -891,7 +891,6 @@ struct file_system_type cifs_fs_type = {
 	.name = "cifs",
 	.mount = cifs_do_mount,
 	.kill_sb = cifs_kill_sb,
-	.fs_flags = FS_HAS_FO_EXTEND,
 };
 MODULE_ALIAS_FS("cifs");
 const struct inode_operations_wrapper cifs_dir_inode_ops = {

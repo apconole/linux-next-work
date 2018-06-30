@@ -202,7 +202,6 @@ static int __init aio_setup(void)
 		.name		= "aio",
 		.mount		= aio_mount,
 		.kill_sb	= kill_anon_super,
-		.fs_flags	= FS_HAS_FO_EXTEND,
 	};
 
 	if (register_fo_extend(&aio_ring_fops) != 0)

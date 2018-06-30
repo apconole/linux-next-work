@@ -2149,7 +2149,6 @@ struct file_system_type {
 #define FS_HAS_DOPS_WRAPPER	4096	/* kabi: fs is using dentry_operations_wrapper. sb->s_d_op points to
 dentry_operations_wrapper */
 #define FS_RENAME_DOES_D_MOVE	32768	/* FS will handle d_move() during rename() internally. */
-#define FS_HAS_FO_EXTEND	65536 	/* fs is using the file_operations_extend struture */
 #define FS_HAS_WBLIST		131072	/* KABI: fs has writeback list super ops */
 	struct dentry *(*mount) (struct file_system_type *, int,
 		       const char *, void *);
