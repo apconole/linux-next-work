@@ -204,6 +204,10 @@ static int __init aio_setup(void)
 		.kill_sb	= kill_anon_super,
 		.fs_flags	= FS_HAS_FO_EXTEND,
 	};
+
+	if (register_fo_extend(&aio_ring_fops) != 0)
+		WARN(1, "Failed to register extended file operations.");
+
 	aio_mnt = kern_mount(&aio_fs);
 	if (IS_ERR(aio_mnt))
 		panic("Failed to create aio fs mount.");

@@ -5773,6 +5773,9 @@ static int __init ext4_init_fs(void)
 	err = init_inodecache();
 	if (err)
 		goto out1;
+	err = register_fo_extend(&ext4_file_operations);
+	if (err)
+		goto out_inodecache;
 	register_as_ext3();
 	register_as_ext2();
 	err = register_filesystem(&ext4_fs_type);
@@ -5783,6 +5786,8 @@ static int __init ext4_init_fs(void)
 out:
 	unregister_as_ext2();
 	unregister_as_ext3();
+	unregister_fo_extend(&ext4_file_operations);
+out_inodecache:
 	destroy_inodecache();
 out1:
 	ext4_exit_xattr();
@@ -5810,6 +5815,7 @@ static void __exit ext4_exit_fs(void)
 	unregister_as_ext2();
 	unregister_as_ext3();
 	unregister_filesystem(&ext4_fs_type);
+	unregister_fo_extend(&ext4_file_operations);
 	destroy_inodecache();
 	ext4_exit_xattr();
 	ext4_exit_mballoc();

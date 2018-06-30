@@ -2025,8 +2025,15 @@ init_xfs_fs(void)
 	error = register_filesystem(&xfs_fs_type);
 	if (error)
 		goto out_qm_exit;
+
+	error = register_fo_extend(&xfs_file_operations);
+	if (error)
+		goto out_unregister_filesystem;
+
 	return 0;
 
+ out_unregister_filesystem:
+	unregister_filesystem(&xfs_fs_type);
  out_qm_exit:
 	xfs_qm_exit();
  out_remove_dbg_kobj:
@@ -2059,6 +2066,7 @@ STATIC void __exit
 exit_xfs_fs(void)
 {
 	xfs_qm_exit();
+	unregister_fo_extend(&xfs_file_operations);
 	unregister_filesystem(&xfs_fs_type);
 #ifdef DEBUG
 	xfs_sysfs_del(&xfs_dbg_kobj);

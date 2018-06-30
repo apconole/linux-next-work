@@ -1368,6 +1368,50 @@ cifs_destroy_mids(void)
 	kmem_cache_destroy(cifs_mid_cachep);
 }
 
+static void __exit
+cifs_unregister_fo_extends(void)
+{
+	unregister_fo_extend(&cifs_dir_ops);
+	unregister_fo_extend(&cifs_file_direct_nobrl_ops);
+	unregister_fo_extend(&cifs_file_strict_nobrl_ops);
+	unregister_fo_extend(&cifs_file_nobrl_ops);
+	unregister_fo_extend(&cifs_file_direct_ops);
+	unregister_fo_extend(&cifs_file_strict_ops);
+	unregister_fo_extend(&cifs_file_ops);
+}
+
+static int __init
+cifs_register_fo_extends(void)
+{
+	int rc;
+
+	rc = register_fo_extend(&cifs_file_ops);
+	if (rc)
+		goto out;
+	rc = register_fo_extend(&cifs_file_strict_ops);
+	if (rc)
+		goto out;
+	rc = register_fo_extend(&cifs_file_direct_ops);
+	if (rc)
+		goto out;
+	rc = register_fo_extend(&cifs_file_nobrl_ops);
+	if (rc)
+		goto out;
+	rc = register_fo_extend(&cifs_file_strict_nobrl_ops);
+	if (rc)
+		goto out;
+	rc = register_fo_extend(&cifs_file_direct_nobrl_ops);
+	if (rc)
+		goto out;
+	rc = register_fo_extend(&cifs_dir_ops);
+	if (rc)
+		goto out;
+	return 0;
+out:
+	cifs_unregister_fo_extends();
+	return -1;
+}
+
 static int __init
 init_cifs(void)
 {
@@ -1453,12 +1497,18 @@ init_cifs(void)
 		goto out_register_key_type;
 #endif /* CONFIG_CIFS_ACL */
 
-	rc = register_filesystem(&cifs_fs_type);
+	rc = cifs_register_fo_extends();
 	if (rc)
 		goto out_init_cifs_idmap;
 
+	rc = register_filesystem(&cifs_fs_type);
+	if (rc)
+		goto out_init_cifs_fo_extends;
+
 	return 0;
 
+out_init_cifs_fo_extends:
+	cifs_unregister_fo_extends();
 out_init_cifs_idmap:
 #ifdef CONFIG_CIFS_ACL
 	exit_cifs_idmap();
@@ -1489,6 +1539,7 @@ exit_cifs(void)
 {
 	cifs_dbg(NOISY, "exit_cifs\n");
 	unregister_filesystem(&cifs_fs_type);
+	cifs_unregister_fo_extends();
 	cifs_dfs_release_automount_timer();
 #ifdef CONFIG_CIFS_ACL
 	exit_cifs_idmap();
