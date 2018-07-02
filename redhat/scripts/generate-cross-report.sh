@@ -10,6 +10,8 @@ echo "==========================================================================
 echo "                        CROSS COMPILE REPORT"
 echo "==============================================================================="
 echo "For patch submissions, this text must be cut-and-pasted into patch 0/1."
+# satisfy patch verification scripts with a Build info line
+echo "Build info: Cross compiled"
 echo -n "Date: "
 date
 
