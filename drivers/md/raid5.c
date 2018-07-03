@@ -1315,8 +1315,7 @@ static void ops_complete_biofill(void *stripe_head_ref)
 			while (rbi && rbi->bi_sector <
 				dev->sector + STRIPE_SECTORS) {
 				rbi2 = r5_next_bio(rbi, dev->sector);
-				if (!raid5_dec_bi_active_stripes(rbi))
-					bio_endio(rbi, 0);
+				bio_endio(rbi, 0);
 				rbi = rbi2;
 			}
 		}
@@ -3204,14 +3203,6 @@ static int add_stripe_bio(struct stripe_head *sh, struct bio *bi, int dd_idx,
 		(unsigned long long)bi->bi_sector,
 		(unsigned long long)sh->sector);
 
-	/*
-	 * If several bio share a stripe. The bio bi_phys_segments acts as a
-	 * reference count to avoid race. The reference count should already be
-	 * increased before this function is called (for example, in
-	 * raid5_make_request()), so other bio sharing this stripe will not free the
-	 * stripe. If a stripe is owned by one stripe, the stripe lock will
-	 * protect it.
-	 */
 	spin_lock_irq(&sh->stripe_lock);
 	/* Don't allow new IO added to stripes in batch list */
 	if (sh->batch_head)
@@ -3267,7 +3258,7 @@ static int add_stripe_bio(struct stripe_head *sh, struct bio *bi, int dd_idx,
 	if (*bip)
 		bi->bi_next = *bip;
 	*bip = bi;
-	raid5_inc_bi_active_stripes(bi);
+	bio_inc_remaining(bi);
 	md_write_inc(conf->mddev, bi);
 
 	if (forwrite) {
@@ -3391,8 +3382,7 @@ handle_failed_stripe(struct r5conf *conf, struct stripe_head *sh,
 			struct bio *nextbi = r5_next_bio(bi, sh->dev[i].sector);
 			clear_bit(BIO_UPTODATE, &bi->bi_flags);
 			md_write_end(conf->mddev);
-			if (!raid5_dec_bi_active_stripes(bi))
-				bio_endio(bi, 0);
+			bio_endio(bi, 0);
 			bi = nextbi;
 		}
 		if (bitmap_end)
@@ -3413,8 +3403,7 @@ handle_failed_stripe(struct r5conf *conf, struct stripe_head *sh,
 			struct bio *bi2 = r5_next_bio(bi, sh->dev[i].sector);
 			clear_bit(BIO_UPTODATE, &bi->bi_flags);
 			md_write_end(conf->mddev);
-			if (!raid5_dec_bi_active_stripes(bi))
-				bio_endio(bi, 0);
+			bio_endio(bi, 0);
 			bi = bi2;
 		}
 
@@ -3438,8 +3427,7 @@ handle_failed_stripe(struct r5conf *conf, struct stripe_head *sh,
 				struct bio *nextbi =
 					r5_next_bio(bi, sh->dev[i].sector);
 				clear_bit(BIO_UPTODATE, &bi->bi_flags);
-				if (!raid5_dec_bi_active_stripes(bi))
-					bio_endio(bi, 0);
+				bio_endio(bi, 0);
 				bi = nextbi;
 			}
 		}
@@ -3771,8 +3759,7 @@ returnbi:
 					dev->sector + STRIPE_SECTORS) {
 					wbi2 = r5_next_bio(wbi, dev->sector);
 					md_write_end(conf->mddev);
-					if (!raid5_dec_bi_active_stripes(wbi))
-						bio_endio(wbi, 0);
+					bio_endio(wbi, 0);
 					wbi = wbi2;
 				}
 				bitmap_endwrite(conf->mddev->bitmap, sh->sector,
@@ -5147,7 +5134,7 @@ static struct bio *remove_bio_from_retry(struct r5conf *conf)
 		 * this sets the active strip count to 1 and the processed
 		 * strip count to zero (upper 8 bits)
 		 */
-		raid5_set_bi_stripes(bi, 1); /* biased count of active stripes */
+		raid5_set_bi_processed_stripes(bi, 0);
 	}
 
 	return bi;
@@ -5479,7 +5466,6 @@ static void make_discard_request(struct mddev *mddev, struct bio *bi)
 	struct r5conf *conf = mddev->private;
 	sector_t logical_sector, last_sector;
 	struct stripe_head *sh;
-	int remaining;
 	int stripe_sectors;
 
 	if (mddev->reshape_position != MaxSector)
@@ -5490,7 +5476,6 @@ static void make_discard_request(struct mddev *mddev, struct bio *bi)
 	last_sector = bi->bi_sector + (bi->bi_size>>9);
 
 	bi->bi_next = NULL;
-	bi->bi_phys_segments = 1; /* over-loaded to count active stripes */
 
 	stripe_sectors = conf->chunk_sectors *
 		(conf->raid_disks - conf->max_degraded);
@@ -5536,7 +5521,7 @@ static void make_discard_request(struct mddev *mddev, struct bio *bi)
 				continue;
 			sh->dev[d].towrite = bi;
 			set_bit(R5_OVERWRITE, &sh->dev[d].flags);
-			raid5_inc_bi_active_stripes(bi);
+			bio_inc_remaining(bi);
 			md_write_inc(mddev, bi);
 			sh->overwrite_disks++;
 		}
@@ -5560,10 +5545,7 @@ static void make_discard_request(struct mddev *mddev, struct bio *bi)
 		release_stripe_plug(mddev, sh);
 	}
 
-	remaining = raid5_dec_bi_active_stripes(bi);
-	if (remaining == 0) {
-		bio_endio(bi, 0);
-	}
+	bio_endio(bi, 0);
 }
 
 static bool raid5_make_request(struct mddev *mddev, struct bio * bi)
@@ -5574,7 +5556,6 @@ static bool raid5_make_request(struct mddev *mddev, struct bio * bi)
 	sector_t logical_sector, last_sector;
 	struct stripe_head *sh;
 	const int rw = bio_data_dir(bi);
-	int remaining;
 	DEFINE_WAIT(w);
 	bool do_prepare;
 	bool do_flush = false;
@@ -5617,7 +5598,6 @@ static bool raid5_make_request(struct mddev *mddev, struct bio * bi)
 	logical_sector = bi->bi_sector & ~((sector_t)STRIPE_SECTORS-1);
 	last_sector = bio_end_sector(bi);
 	bi->bi_next = NULL;
-	bi->bi_phys_segments = 1;	/* over-loaded to count active stripes */
 
 	prepare_to_wait(&conf->wait_for_overlap, &w, TASK_UNINTERRUPTIBLE);
 	for (;logical_sector < last_sector; logical_sector += STRIPE_SECTORS) {
@@ -5735,14 +5715,7 @@ static bool raid5_make_request(struct mddev *mddev, struct bio * bi)
 
 	if (rw == WRITE)
 		md_write_end(mddev);
-	remaining = raid5_dec_bi_active_stripes(bi);
-	if (remaining == 0) {
-
-
-		trace_block_bio_complete(bdev_get_queue(bi->bi_bdev),
-					 bi, 0);
-		bio_endio(bi, 0);
-	}
+	bio_endio(bi, 0);
 	return true;
 }
 
@@ -6108,7 +6081,6 @@ static int  retry_aligned_read(struct r5conf *conf, struct bio *raid_bio)
 	int dd_idx;
 	sector_t sector, logical_sector, last_sector;
 	int scnt = 0;
-	int remaining;
 	int handled = 0;
 
 	logical_sector = raid_bio->bi_sector & ~((sector_t)STRIPE_SECTORS-1);
@@ -6146,12 +6118,8 @@ static int  retry_aligned_read(struct r5conf *conf, struct bio *raid_bio)
 		raid5_release_stripe(sh);
 		handled++;
 	}
-	remaining = raid5_dec_bi_active_stripes(raid_bio);
-	if (remaining == 0) {
-		trace_block_bio_complete(bdev_get_queue(raid_bio->bi_bdev),
-					 raid_bio, 0);
-		bio_endio(raid_bio, 0);
-	}
+
+	bio_endio(raid_bio, 0);
 	if (atomic_dec_and_test(&conf->active_aligned_reads))
 		wake_up(&conf->wait_for_quiescent);
 	return handled;
