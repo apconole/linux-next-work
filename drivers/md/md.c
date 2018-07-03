@@ -5777,8 +5777,14 @@ void md_stop(struct mddev *mddev)
 	 */
 	__md_stop(mddev);
 	bitmap_destroy(mddev);
-	if (mddev->bio_set)
+	if (mddev->bio_set) {
 		bioset_free(mddev->bio_set);
+		mddev->bio_set = NULL;
+	}
+	if (mddev->sync_set) {
+		bioset_free(mddev->sync_set);
+		mddev->sync_set = NULL;
+	}
 }
 
 EXPORT_SYMBOL_GPL(md_stop);
