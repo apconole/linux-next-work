@@ -340,6 +340,8 @@ void r5c_handle_cached_data_endio(struct r5conf *conf,
 	}
 }
 
+void r5l_wake_reclaim(struct r5l_log *log, sector_t space);
+
 /* Check whether we should flush some stripes to free up stripe cache */
 void r5c_check_stripe_cache_usage(struct r5conf *conf)
 {
@@ -2843,9 +2845,7 @@ void r5c_finish_stripe_write_out(struct r5conf *conf,
 	r5l_append_flush_payload(log, sh->sector);
 }
 
-int
-r5c_cache_data(struct r5l_log *log, struct stripe_head *sh,
-	       struct stripe_head_state *s)
+int r5c_cache_data(struct r5l_log *log, struct stripe_head *sh)
 {
 	struct r5conf *conf = sh->raid_conf;
 	int pages = 0;

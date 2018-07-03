@@ -1002,18 +1002,8 @@ static void ops_run_io(struct stripe_head *sh, struct stripe_head_state *s)
 
 	might_sleep();
 
-	if (!test_bit(STRIPE_R5C_CACHING, &sh->state)) {
-		/* writing out phase */
-		if (s->waiting_extra_page)
-			return;
-		if (log_stripe(sh, s) == 0)
-			return;
-	} else {  /* caching phase */
-		if (test_bit(STRIPE_LOG_TRAPPED, &sh->state)) {
-			r5c_cache_data(conf->log, sh, s);
-			return;
-		}
-	}
+	if (log_stripe(sh, s) == 0)
+		return;
 
 	should_defer = conf->batch_bio_dispatch && conf->group_cnt;
 
@@ -4811,7 +4801,7 @@ static void handle_stripe(struct stripe_head *sh)
 
 	if (s.just_cached)
 		r5c_handle_cached_data_endio(conf, sh, disks, &s.return_bi);
-	r5l_stripe_write_finished(sh);
+	log_stripe_write_finished(sh);
 
 	/* Now we might consider reading some blocks, either to check/generate
 	 * parity, or to satisfy requests
