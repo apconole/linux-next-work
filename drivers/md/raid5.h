@@ -802,5 +802,6 @@ extern void r5c_check_stripe_cache_usage(struct r5conf *conf);
 extern void r5c_check_cached_full_stripe(struct r5conf *conf);
 extern struct md_sysfs_entry r5c_journal_mode;
 extern void r5c_update_on_rdev_error(struct mddev *mddev);
+extern bool r5c_big_stripe_cached(struct r5conf *conf, sector_t sect);
 extern int r5c_journal_mode_set(struct mddev *mddev, int journal_mode);
 #endif
