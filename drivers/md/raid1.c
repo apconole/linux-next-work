@@ -860,9 +860,13 @@ static void flush_pending_writes(struct r1conf *conf)
 
 		while (bio) { /* submit pending writes */
 			struct bio *next = bio->bi_next;
+			struct md_rdev *rdev = (void*)bio->bi_bdev;
 			bio->bi_next = NULL;
-			if (unlikely((bio->bi_rw & REQ_DISCARD) &&
-			    !blk_queue_discard(bdev_get_queue(bio->bi_bdev))))
+			bio->bi_bdev = rdev->bdev;
+			if (test_bit(Faulty, &rdev->flags)) {
+				bio_endio(bio, 1);
+			} else if (unlikely((bio_op(bio) == REQ_OP_DISCARD) &&
+					    !blk_queue_discard(bdev_get_queue(bio->bi_bdev))))
 				/* Just ignore it */
 				bio_endio(bio, 0);
 			else
@@ -1179,9 +1183,13 @@ static void raid1_unplug(struct blk_plug_cb *cb, bool from_schedule)
 
 	while (bio) { /* submit pending writes */
 		struct bio *next = bio->bi_next;
+		struct md_rdev *rdev = (void*)bio->bi_bdev;
 		bio->bi_next = NULL;
-		if (unlikely((bio->bi_rw & REQ_DISCARD) &&
-		    !blk_queue_discard(bdev_get_queue(bio->bi_bdev))))
+		bio->bi_bdev = rdev->bdev;
+		if (test_bit(Faulty, &rdev->flags)) {
+			bio_endio(bio, 1);
+		} else if (unlikely((bio_op(bio) == REQ_OP_DISCARD) &&
+				    !blk_queue_discard(bdev_get_queue(bio->bi_bdev))))
 			/* Just ignore it */
 			bio_endio(bio, 0);
 		else
@@ -1477,7 +1485,7 @@ static bool raid1_write_request(struct mddev *mddev, struct bio *bio,
 
 		mbio->bi_sector	= (r1_bio->sector +
 				   conf->mirrors[i].rdev->data_offset);
-		mbio->bi_bdev = conf->mirrors[i].rdev->bdev;
+		mbio->bi_bdev = (void*)conf->mirrors[i].rdev;
 		mbio->bi_end_io	= raid1_end_write_request;
 		mbio->bi_rw =
 			WRITE | do_fua | do_sync | do_discard | do_same;
