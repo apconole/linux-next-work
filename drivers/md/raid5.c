@@ -5370,6 +5370,7 @@ static bool raid5_make_request(struct mddev *mddev, struct bio * bi)
 	int remaining;
 	DEFINE_WAIT(w);
 	bool do_prepare;
+	bool do_flush = false;
 
 	if (unlikely(bi->bi_rw & REQ_FLUSH)) {
 		int ret = r5l_handle_flush_request(conf->log, bi);
@@ -5381,6 +5382,11 @@ static bool raid5_make_request(struct mddev *mddev, struct bio * bi)
 			return true;
 		}
 		/* ret == -EAGAIN, fallback */
+		/*
+		 * if r5l_handle_flush_request() didn't clear REQ_PREFLUSH,
+		 * we need to flush journal device
+		 */
+		do_flush = bi->bi_rw & REQ_FLUSH;
 	}
 
 	if (!md_write_start(mddev, bi))
@@ -5500,6 +5506,12 @@ static bool raid5_make_request(struct mddev *mddev, struct bio * bi)
 				do_prepare = true;
 				goto retry;
 			}
+			if (do_flush) {
+				set_bit(STRIPE_R5C_PREFLUSH, &sh->state);
+				/* we only need flush for one stripe */
+				do_flush = false;
+			}
+
 			set_bit(STRIPE_HANDLE, &sh->state);
 			clear_bit(STRIPE_DELAYED, &sh->state);
 			if ((!sh->batch_head || sh == sh->batch_head) &&
