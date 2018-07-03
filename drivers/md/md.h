@@ -490,6 +490,9 @@ struct mddev {
 	struct work_struct flush_work;
 	struct work_struct event_work;	/* used by dm to report failure event */
 	void (*sync_super)(struct mddev *mddev, struct md_rdev *rdev);
+	unsigned int			good_device_nr;	/* good device num within cluster raid */
+
+	bool	has_superblocks:1;
 };
 
 static inline int __must_check mddev_lock(struct mddev *mddev)
