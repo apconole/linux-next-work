@@ -486,6 +486,9 @@ static void raid10_end_write_request(struct bio *bio, int error)
 	int slot, repl;
 	struct md_rdev *rdev = NULL;
 	struct bio *to_put = NULL;
+	bool discard_error;
+
+	discard_error = !uptodate && bio_op(bio) == REQ_OP_DISCARD;
 
 	dev = find_bio_disk(conf, r10_bio, bio, &slot, &repl);
 
@@ -499,7 +502,7 @@ static void raid10_end_write_request(struct bio *bio, int error)
 	/*
 	 * this branch is our 'one mirror IO has finished' event handler:
 	 */
-	if (!uptodate) {
+	if (!uptodate && !discard_error) {
 		if (repl)
 			/* Never record new bad blocks to replacement,
 			 * just fail it.
@@ -558,7 +561,7 @@ static void raid10_end_write_request(struct bio *bio, int error)
 		if (is_badblock(rdev,
 				r10_bio->devs[slot].addr,
 				r10_bio->sectors,
-				&first_bad, &bad_sectors)) {
+				&first_bad, &bad_sectors) && !discard_error) {
 			bio_put(bio);
 			if (repl)
 				r10_bio->devs[slot].repl_bio = IO_MADE_GOOD;
