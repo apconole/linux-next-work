@@ -1712,8 +1712,7 @@ out:
 
 static struct stripe_head *
 r5c_recovery_alloc_stripe(struct r5conf *conf,
-			  sector_t stripe_sect,
-			  sector_t log_start)
+			  sector_t stripe_sect)
 {
 	struct stripe_head *sh;
 
@@ -1722,7 +1721,6 @@ r5c_recovery_alloc_stripe(struct r5conf *conf,
 		return NULL;  /* no more stripe available */
 
 	r5l_recovery_reset_stripe(sh);
-	sh->log_start = log_start;
 
 	return sh;
 }
@@ -1892,7 +1890,7 @@ r5c_recovery_analyze_meta_block(struct r5l_log *log,
 						stripe_sect);
 
 		if (!sh) {
-			sh = r5c_recovery_alloc_stripe(conf, stripe_sect, ctx->pos);
+			sh = r5c_recovery_alloc_stripe(conf, stripe_sect);
 			/*
 			 * cannot get stripe from raid5_get_active_stripe
 			 * try replay some stripes
@@ -1901,7 +1899,7 @@ r5c_recovery_analyze_meta_block(struct r5l_log *log,
 				r5c_recovery_replay_stripes(
 					cached_stripe_list, ctx);
 				sh = r5c_recovery_alloc_stripe(
-					conf, stripe_sect, ctx->pos);
+					conf, stripe_sect);
 			}
 			if (!sh) {
 				pr_debug("md/raid:%s: Increasing stripe cache size to %d to recovery data on journal.\n",
@@ -1909,8 +1907,8 @@ r5c_recovery_analyze_meta_block(struct r5l_log *log,
 					conf->min_nr_stripes * 2);
 				raid5_set_cache_size(mddev,
 						     conf->min_nr_stripes * 2);
-				sh = r5c_recovery_alloc_stripe(
-					conf, stripe_sect, ctx->pos);
+				sh = r5c_recovery_alloc_stripe(conf,
+							       stripe_sect);
 			}
 			if (!sh) {
 				pr_err("md/raid:%s: Cannot get enough stripes due to memory pressure. Recovery failed.\n",
@@ -1924,7 +1922,6 @@ r5c_recovery_analyze_meta_block(struct r5l_log *log,
 			if (!test_bit(STRIPE_R5C_CACHING, &sh->state) &&
 			    test_bit(R5_Wantwrite, &sh->dev[sh->pd_idx].flags)) {
 				r5l_recovery_replay_one_stripe(conf, sh, ctx);
-				sh->log_start = ctx->pos;
 				list_move_tail(&sh->lru, cached_stripe_list);
 			}
 			r5l_recovery_load_data(log, sh, ctx, payload,
@@ -1963,8 +1960,6 @@ static void r5c_recovery_load_one_stripe(struct r5l_log *log,
 			set_bit(R5_UPTODATE, &dev->flags);
 		}
 	}
-	list_add_tail(&sh->r5c, &log->stripe_in_journal_list);
-	atomic_inc(&log->stripe_in_journal_count);
 }
 
 /*
@@ -2100,6 +2095,7 @@ r5c_recovery_rewrite_data_only_stripes(struct r5l_log *log,
 	struct stripe_head *sh, *next;
 	struct mddev *mddev = log->rdev->mddev;
 	struct page *page;
+	sector_t next_checkpoint = MaxSector;
 
 	page = alloc_page(GFP_KERNEL);
 	if (!page) {
@@ -2107,6 +2103,8 @@ r5c_recovery_rewrite_data_only_stripes(struct r5l_log *log,
 		       mdname(mddev));
 		return -ENOMEM;
 	}
+
+	WARN_ON(list_empty(&ctx->cached_list));
 
 	list_for_each_entry_safe(sh, next, &ctx->cached_list, lru) {
 		struct r5l_meta_block *mb;
@@ -2153,12 +2151,15 @@ r5c_recovery_rewrite_data_only_stripes(struct r5l_log *log,
 		sync_page_io(log->rdev, ctx->pos, PAGE_SIZE, page,
 			     WRITE_FUA, false);
 		sh->log_start = ctx->pos;
+		list_add_tail(&sh->r5c, &log->stripe_in_journal_list);
+		atomic_inc(&log->stripe_in_journal_count);
 		ctx->pos = write_pos;
 		ctx->seq += 1;
-
+		next_checkpoint = sh->log_start;
 		list_del_init(&sh->lru);
 		raid5_release_stripe(sh);
 	}
+	log->next_checkpoint = next_checkpoint;
 	__free_page(page);
 	return 0;
 }
@@ -2169,7 +2170,6 @@ static int r5l_recovery_log(struct r5l_log *log)
 	struct r5l_recovery_ctx ctx;
 	int ret;
 	sector_t pos;
-	struct stripe_head *sh;
 
 	ctx.pos = log->last_checkpoint;
 	ctx.seq = log->last_cp_seq;
@@ -2194,9 +2194,6 @@ static int r5l_recovery_log(struct r5l_log *log)
 		log->next_checkpoint = ctx.pos;
 		r5l_log_write_empty_meta_block(log, ctx.pos, ctx.seq++);
 		ctx.pos = r5l_ring_add(log, ctx.pos, BLOCK_SECTORS);
-	} else {
-		sh = list_last_entry(&ctx.cached_list, struct stripe_head, lru);
-		log->next_checkpoint = sh->log_start;
 	}
 
 	if ((ctx.data_only_stripes == 0) && (ctx.data_parity_stripes == 0))
