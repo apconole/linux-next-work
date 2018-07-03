@@ -159,8 +159,6 @@ struct tcmu_dev {
 	struct list_head timedout_entry;
 
 	struct tcmu_nl_cmd curr_nl_cmd;
-	/* wake up threads waiting on curr_nl_cmd */
-	wait_queue_head_t nl_cmd_wq;
 
 	char dev_config[TCMU_CONFIG_LEN];
 
@@ -1262,8 +1260,6 @@ static struct se_device *tcmu_alloc_device(struct se_hba *hba, const char *name)
 	setup_timer(&udev->cmd_timer, tcmu_cmd_timedout,
 		    (unsigned long)udev);
 
-	init_waitqueue_head(&udev->nl_cmd_wq);
-
 	INIT_RADIX_TREE(&udev->data_blocks, GFP_KERNEL);
 
 	return &udev->se_dev;
@@ -1537,24 +1533,23 @@ static int tcmu_release(struct uio_info *info, struct inode *inode)
 	return 0;
 }
 
-static void tcmu_init_genl_cmd_reply(struct tcmu_dev *udev, int cmd)
+static int tcmu_init_genl_cmd_reply(struct tcmu_dev *udev, int cmd)
 {
 	struct tcmu_nl_cmd *nl_cmd = &udev->curr_nl_cmd;
 
 	if (!tcmu_kern_cmd_reply_supported)
-		return;
+		return 0;
 
 	if (udev->nl_reply_supported <= 0)
-		return;
+		return 0;
 
-relock:
 	mutex_lock(&tcmu_nl_cmd_mutex);
 
 	if (nl_cmd->cmd != TCMU_CMD_UNSPEC) {
 		mutex_unlock(&tcmu_nl_cmd_mutex);
-		pr_debug("sleeping for open nl cmd\n");
-		wait_event(udev->nl_cmd_wq, (nl_cmd->cmd == TCMU_CMD_UNSPEC));
-		goto relock;
+		pr_warn("netlink cmd %d already executing on %s\n",
+			 nl_cmd->cmd, udev->name);
+		return -EBUSY;
 	}
 
 	memset(nl_cmd, 0, sizeof(*nl_cmd));
@@ -1566,6 +1561,7 @@ relock:
 	list_add_tail(&nl_cmd->nl_list, &tcmu_nl_cmd_list);
 
 	mutex_unlock(&tcmu_nl_cmd_mutex);
+	return 0;
 }
 
 static int tcmu_wait_genl_cmd_reply(struct tcmu_dev *udev)
@@ -1587,8 +1583,6 @@ static int tcmu_wait_genl_cmd_reply(struct tcmu_dev *udev)
 	ret = nl_cmd->status;
 	nl_cmd->status = 0;
 	mutex_unlock(&tcmu_nl_cmd_mutex);
-
-	wake_up_all(&udev->nl_cmd_wq);
 
 	return ret;
 }
@@ -1644,7 +1638,11 @@ static int tcmu_netlink_event(struct tcmu_dev *udev, enum tcmu_genl_cmd cmd,
 
 	genlmsg_end(skb, msg_header);
 
-	tcmu_init_genl_cmd_reply(udev, cmd);
+	ret = tcmu_init_genl_cmd_reply(udev, cmd);
+	if (ret) {
+		nlmsg_free(skb);
+		return ret;
+	}
 
 	ret = genlmsg_multicast_allns(&tcmu_genl_family, skb, 0,
 				TCMU_MCGRP_CONFIG, GFP_KERNEL);
