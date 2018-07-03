@@ -22,7 +22,7 @@
 #include <linux/module.h>
 #include <linux/slab.h>
 #include "md.h"
-#include "linear.h"
+#include "md-linear.h"
 
 /*
  * find which device holds a particular offset

@@ -28,7 +28,7 @@
 #include <linux/buffer_head.h>
 #include <linux/seq_file.h>
 #include "md.h"
-#include "bitmap.h"
+#include "md-bitmap.h"
 
 static inline char *bmname(struct bitmap *bitmap)
 {

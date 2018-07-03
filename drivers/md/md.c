@@ -67,7 +67,7 @@
 #include <linux/percpu-refcount.h>
 
 #include "md.h"
-#include "bitmap.h"
+#include "md-bitmap.h"
 
 #ifndef MODULE
 static void autostart_arrays(int part);
