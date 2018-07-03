@@ -649,6 +649,7 @@ static int bitmap_read_sb(struct bitmap *bitmap)
 out:
 	kunmap_atomic(sb);
 out_no_sb:
+	/* Assigning chunksize is required for "re_read" */
 	if (test_bit(BITMAP_STALE, &bitmap->flags))
 		bitmap->events_cleared = bitmap->mddev->events;
 	bitmap->mddev->bitmap_info.chunksize = chunksize;
