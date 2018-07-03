@@ -545,7 +545,7 @@ static void r5l_log_run_stripes(struct r5l_log *log)
 {
 	struct r5l_io_unit *io, *next;
 
-	assert_spin_locked(&log->io_list_lock);
+	lockdep_assert_held(&log->io_list_lock);
 
 	list_for_each_entry_safe(io, next, &log->running_ios, log_sibling) {
 		/* don't change list order */
@@ -561,7 +561,7 @@ static void r5l_move_to_end_ios(struct r5l_log *log)
 {
 	struct r5l_io_unit *io, *next;
 
-	assert_spin_locked(&log->io_list_lock);
+	lockdep_assert_held(&log->io_list_lock);
 
 	list_for_each_entry_safe(io, next, &log->running_ios, log_sibling) {
 		/* don't change list order */
@@ -1206,7 +1206,7 @@ static void r5l_run_no_mem_stripe(struct r5l_log *log)
 {
 	struct stripe_head *sh;
 
-	assert_spin_locked(&log->io_list_lock);
+	lockdep_assert_held(&log->io_list_lock);
 
 	if (!list_empty(&log->no_mem_stripes)) {
 		sh = list_first_entry(&log->no_mem_stripes,
@@ -1222,7 +1222,7 @@ static bool r5l_complete_finished_ios(struct r5l_log *log)
 	struct r5l_io_unit *io, *next;
 	bool found = false;
 
-	assert_spin_locked(&log->io_list_lock);
+	lockdep_assert_held(&log->io_list_lock);
 
 	list_for_each_entry_safe(io, next, &log->finished_ios, log_sibling) {
 		/* don't change list order */
@@ -1393,7 +1393,7 @@ static void r5c_flush_stripe(struct r5conf *conf, struct stripe_head *sh)
 	 * raid5_release_stripe() while holding conf->device_lock
 	 */
 	BUG_ON(test_bit(STRIPE_ON_RELEASE_LIST, &sh->state));
-	assert_spin_locked(&conf->device_lock);
+	lockdep_assert_held(&conf->device_lock);
 
 	list_del_init(&sh->lru);
 	atomic_inc(&sh->count);
@@ -1420,7 +1420,7 @@ void r5c_flush_cache(struct r5conf *conf, int num)
 	int count;
 	struct stripe_head *sh, *next;
 
-	assert_spin_locked(&conf->device_lock);
+	lockdep_assert_held(&conf->device_lock);
 	if (!conf->log)
 		return;
 
