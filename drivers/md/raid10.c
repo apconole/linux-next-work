@@ -1424,6 +1424,8 @@ retry_write:
 	if (mddev->queue)
 		max_sectors = min((int)blk_queue_get_max_sectors(mddev->queue,
 				bio->bi_rw), r10_bio->sectors);
+	else
+		max_sectors = r10_bio->sectors;
 
 	for (i = 0;  i < conf->copies; i++) {
 		int d = r10_bio->devs[i].devnum;
