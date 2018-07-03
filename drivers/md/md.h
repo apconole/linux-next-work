@@ -374,6 +374,7 @@ struct mddev {
 #define MD_RECOVERY_RESHAPE	8
 #define	MD_RECOVERY_FROZEN	9
 #define	MD_RECOVERY_ERROR	10
+#define MD_RECOVERY_WAIT	11
 
 	unsigned long			recovery;
 	/* If a RAID personality determines that recovery (of a particular
@@ -522,7 +523,13 @@ struct md_personality
 	struct list_head list;
 	struct module *owner;
 	bool (*make_request)(struct mddev *mddev, struct bio *bio);
+	/*
+	 * start up works that do NOT require md_thread. tasks that
+	 * requires md_thread should go into start()
+	 */
 	int (*run)(struct mddev *mddev);
+	/* start up works that require md threads */
+	int (*start)(struct mddev *mddev);
 	void (*free)(struct mddev *mddev, void *priv);
 	void (*status)(struct seq_file *seq, struct mddev *mddev);
 	/* error_handler must set ->faulty and clear ->in_sync
@@ -684,6 +691,7 @@ extern int strict_strtoul_scaled(const char *cp, unsigned long *res, int scale);
 
 extern void mddev_init(struct mddev *mddev);
 extern int md_run(struct mddev *mddev);
+extern int md_start(struct mddev *mddev);
 extern void md_stop(struct mddev *mddev);
 extern void md_stop_writes(struct mddev *mddev);
 extern int md_rdev_init(struct md_rdev *rdev);
