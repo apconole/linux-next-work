@@ -24,6 +24,7 @@
 #include "md.h"
 #include "raid5.h"
 #include "bitmap.h"
+#include "raid5-log.h"
 
 /*
  * metadata/data stored in disk with 4k size unit (a block) regardless
@@ -2997,7 +2998,7 @@ ioerr:
 	return ret;
 }
 
-void r5c_update_on_rdev_error(struct mddev *mddev)
+void r5c_update_on_rdev_error(struct mddev *mddev, struct md_rdev *rdev)
 {
 	struct r5conf *conf = mddev->private;
 	struct r5l_log *log = conf->log;
@@ -3005,7 +3006,8 @@ void r5c_update_on_rdev_error(struct mddev *mddev)
 	if (!log)
 		return;
 
-	if (raid5_calc_degraded(conf) > 0 &&
+	if ((raid5_calc_degraded(conf) > 0 ||
+	     test_bit(Journal, &rdev->flags)) &&
 	    conf->log->r5c_journal_mode == R5C_JOURNAL_MODE_WRITE_BACK)
 		schedule_work(&log->disable_writeback_work);
 }
