@@ -162,7 +162,6 @@ static void * r1buf_pool_alloc(gfp_t gfp_flags, void *data)
 			resync_get_all_pages(rp);
 		}
 
-		rp->idx = 0;
 		rp->raid_bio = r1_bio;
 		bio->bi_private = rp;
 	}
@@ -2652,6 +2651,7 @@ static sector_t raid1_sync_request(struct mddev *mddev, sector_t sector_nr,
 	int good_sectors = RESYNC_SECTORS;
 	int min_bad = 0; /* number of sectors that are bad in all devices */
 	int idx = sector_to_idx(sector_nr);
+	int page_idx = 0;
 
 	if (!conf->r1buf_pool)
 		if (init_resync(conf))
@@ -2869,7 +2869,7 @@ static sector_t raid1_sync_request(struct mddev *mddev, sector_t sector_nr,
 			bio = r1_bio->bios[i];
 			rp = get_resync_pages(bio);
 			if (bio->bi_end_io) {
-				page = resync_fetch_page(rp, rp->idx++);
+				page = resync_fetch_page(rp, page_idx);
 				if (bio_add_page(bio, page, len, 0) == 0) {
 					/* stop here */
 					while (i > 0) {
@@ -2889,7 +2889,7 @@ static sector_t raid1_sync_request(struct mddev *mddev, sector_t sector_nr,
 		nr_sectors += len>>9;
 		sector_nr += len>>9;
 		sync_blocks -= (len>>9);
-	} while (get_resync_pages(r1_bio->bios[disk]->bi_private)->idx < RESYNC_PAGES);
+	} while (++page_idx < RESYNC_PAGES);
  bio_full:
 	r1_bio->sectors = nr_sectors;
 
