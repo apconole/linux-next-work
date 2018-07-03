@@ -723,4 +723,11 @@ static inline void mddev_clear_unsupported_flags(struct mddev *mddev,
 {
 	mddev->flags &= ~unsupported_flags;
 }
+
+static inline void mddev_check_writesame(struct mddev *mddev, struct bio *bio)
+{
+	if ((bio->bi_rw & REQ_WRITE_SAME) &&
+	    !bdev_get_queue(bio->bi_bdev)->limits.max_write_same_sectors)
+		mddev->queue->limits.max_write_same_sectors = 0;
+}
 #endif /* _MD_MD_H */

@@ -355,6 +355,7 @@ static bool linear_make_request(struct mddev *mddev, struct bio *bio)
 		return true;
 	}
 
+	mddev_check_writesame(mddev, bio);
 	generic_make_request(bio);
 	return true;
 }
