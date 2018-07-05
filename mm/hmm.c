@@ -827,7 +827,7 @@ static void hmm_devmem_release(struct device *dev, void *data)
 	page = pfn_to_page(start_pfn);
 	zone = page_zone(page);
 
-	__remove_pages(zone, start_pfn, npages);
+	__remove_pages(zone, start_pfn, npages, NULL);
 
 	hmm_devmem_radix_release(resource);
 }
