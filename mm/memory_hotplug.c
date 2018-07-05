@@ -462,7 +462,7 @@ static int __meminit __add_zone(struct zone *zone, unsigned long phys_start_pfn)
 			phys_start_pfn + nr_pages);
 	pgdat_resize_unlock(zone->zone_pgdat, &flags);
 	memmap_init_zone(nr_pages, nid, zone_type,
-			 phys_start_pfn, MEMMAP_HOTPLUG);
+			 phys_start_pfn, MEMMAP_HOTPLUG, NULL);
 
 	/* online_page_range is called later and expects pages reserved */
 	for (pfn = phys_start_pfn; pfn < phys_start_pfn + nr_pages; pfn++) {
