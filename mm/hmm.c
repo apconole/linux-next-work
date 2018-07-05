@@ -870,7 +870,7 @@ static int hmm_devmem_pages_create(struct hmm_devmem *devmem)
 		return -ENXIO;
 
 	devmem->pagemap.type = MEMORY_HMM;
-	devmem->pagemap.res = devmem->resource;
+	devmem->pagemap.res = *devmem->resource;
 	devmem->pagemap.page_fault = hmm_devmem_fault;
 	devmem->pagemap.page_free = hmm_devmem_free;
 	devmem->pagemap.dev = devmem->device;

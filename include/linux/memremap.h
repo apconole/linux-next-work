@@ -96,10 +96,11 @@ typedef void (*dev_page_free_t)(struct page *page, void *data);
  * @type: memory type: see MEMORY_* above
  */
 struct dev_pagemap {
-	struct vmem_altmap *altmap;
 	dev_page_fault_t page_fault;
 	dev_page_free_t page_free;
-	const struct resource *res;
+	struct vmem_altmap altmap;
+	bool altmap_valid;
+	struct resource res;
 	struct percpu_ref *ref;
 	struct device *dev;
 	void *data;
