@@ -376,15 +376,16 @@ void wake_up_bit(void *word, int bit)
 }
 EXPORT_SYMBOL(wake_up_bit);
 
+#define WAIT_TABLE_BITS 8
+#define WAIT_TABLE_SIZE (1 << WAIT_TABLE_BITS)
+static wait_queue_head_t bit_wait_table[WAIT_TABLE_SIZE] __cacheline_aligned;
+
 wait_queue_head_t *bit_waitqueue(void *word, int bit)
 {
 	const int shift = BITS_PER_LONG == 32 ? 5 : 6;
-	struct page *page = is_vmalloc_addr(word) ?
-		vmalloc_to_page(word) : virt_to_page(word);
-	const struct zone *zone = page_zone(page);
 	unsigned long val = (unsigned long)word << shift | bit;
 
-	return &zone->wait_table[hash_long(val, zone->wait_table_bits)];
+	return bit_wait_table + hash_long(val, WAIT_TABLE_BITS);
 }
 EXPORT_SYMBOL(bit_waitqueue);
 
@@ -517,3 +518,11 @@ __sched int bit_wait_io_timeout(struct wait_bit_key *word, int mode)
 	return 0;
 }
 EXPORT_SYMBOL_GPL(bit_wait_io_timeout);
+
+void __init wait_bit_init(void)
+{
+	int i;
+
+	for (i = 0; i < WAIT_TABLE_SIZE; i++)
+		init_waitqueue_head(bit_wait_table + i);
+}
