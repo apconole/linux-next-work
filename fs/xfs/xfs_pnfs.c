@@ -45,7 +45,8 @@ xfs_break_layouts(
 		if (with_imutex && (*iolock & XFS_IOLOCK_EXCL))
 			mutex_unlock(&inode->i_mutex);
 		error = break_layout(inode, true);
-		*iolock = XFS_IOLOCK_EXCL;
+		*iolock &= ~XFS_IOLOCK_SHARED;
+		*iolock |= XFS_IOLOCK_EXCL;
 		if (with_imutex)
 			mutex_lock(&inode->i_mutex);
 		xfs_ilock(ip, *iolock);

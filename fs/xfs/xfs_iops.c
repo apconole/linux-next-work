@@ -1022,16 +1022,14 @@ xfs_vn_setattr(
 
 	if (iattr->ia_valid & ATTR_SIZE) {
 		struct xfs_inode	*ip = XFS_I(d_inode(dentry));
-		uint			iolock = XFS_IOLOCK_EXCL;
+		uint			iolock;
+
+		iolock = XFS_IOLOCK_EXCL | XFS_MMAPLOCK_EXCL;
 
 		xfs_ilock(ip, iolock);
 		error = xfs_break_layouts(dentry->d_inode, &iolock, true);
-		if (!error) {
-			xfs_ilock(ip, XFS_MMAPLOCK_EXCL);
-			iolock |= XFS_MMAPLOCK_EXCL;
-
+		if (!error)
 			error = xfs_vn_setattr_size(dentry, iattr);
-		}
 		xfs_iunlock(ip, iolock);
 	} else {
 		error = xfs_vn_setattr_nonsize(dentry, iattr);
