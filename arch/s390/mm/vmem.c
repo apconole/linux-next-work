@@ -282,7 +282,8 @@ out:
 	return ret;
 }
 
-void vmemmap_free(unsigned long start, unsigned long end)
+void vmemmap_free(unsigned long start, unsigned long end,
+		struct vmem_altmap *altmap)
 {
 }
 
