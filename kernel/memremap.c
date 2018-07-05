@@ -22,7 +22,7 @@ void get_zone_device_page(struct page *page)
 }
 EXPORT_SYMBOL(get_zone_device_page);
 
-void put_zone_device_page(struct page *page)
+void __put_devmap_managed_page(struct page *page)
 {
 	/*
 	 * ZONE_DEVICE page refcount should never reach 0 and never be freed
@@ -39,7 +39,7 @@ void put_zone_device_page(struct page *page)
 
 	put_dev_pagemap(page->pgmap);
 }
-EXPORT_SYMBOL(put_zone_device_page);
+EXPORT_SYMBOL(__put_devmap_managed_page);
 
 #if IS_ENABLED(CONFIG_HMM)
 int hmm_entry_fault(struct vm_area_struct *vma,
@@ -308,3 +308,4 @@ struct dev_pagemap *get_dev_pagemap(unsigned long pfn,
 
 	return pgmap;
 }
+EXPORT_SYMBOL_GPL(get_dev_pagemap);

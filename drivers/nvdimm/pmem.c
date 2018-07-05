@@ -254,6 +254,19 @@ static void pmem_release_disk(void *__pmem)
 	put_disk(pmem->disk);
 }
 
+static void fsdax_pagefree(struct page *page, void *data)
+{
+	wake_up_var(&page->_count);
+}
+
+static int setup_pagemap_fsdax(struct device *dev, struct dev_pagemap *pgmap)
+{
+	pgmap->type = MEMORY_DEVICE_FS_DAX;
+	pgmap->page_free = fsdax_pagefree;
+
+	return 0;
+}
+
 static int pmem_attach_disk(struct device *dev,
 		struct nd_namespace_common *ndns)
 {
@@ -315,6 +328,8 @@ static int pmem_attach_disk(struct device *dev,
 	pmem->pfn_flags = PFN_DEV;
 	pmem->pgmap.ref = &q->q_usage_counter;
 	if (is_nd_pfn(dev)) {
+		if (setup_pagemap_fsdax(dev, &pmem->pgmap))
+			return -ENOMEM;
 		addr = devm_memremap_pages(dev, &pmem->pgmap);
 		pfn_sb = nd_pfn->pfn_sb;
 		pmem->data_offset = le64_to_cpu(pfn_sb->dataoff);
@@ -326,6 +341,8 @@ static int pmem_attach_disk(struct device *dev,
 	} else if (pmem_should_map_pages(dev)) {
 		memcpy(&pmem->pgmap.res, &nsio->res, sizeof(pmem->pgmap.res));
 		pmem->pgmap.altmap_valid = false;
+		if (setup_pagemap_fsdax(dev, &pmem->pgmap))
+			return -ENOMEM;
 		addr = devm_memremap_pages(dev, &pmem->pgmap);
 		pmem->pfn_flags |= PFN_MAP;
 		memcpy(&bb_res, &pmem->pgmap.res, sizeof(bb_res));

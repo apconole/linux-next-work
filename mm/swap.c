@@ -265,15 +265,13 @@ static void put_compound_page(struct page *page)
 void put_page(struct page *page)
 {
 	/*
-	 * ZONE_DEVICE pages should never have their refcount reach 0 (this
-	 * would be a bug), so call page_ref_dec() in put_zone_device_page()
-	 * to decrement page refcount and skip __put_page() here, as this
-	 * would worsen things if a ZONE_DEVICE had a refcount bug.
+	 * For devmap managed pages we need to catch refcount transition from
+	 * 2 to 1, when refcount reach one it means the page is free and we
+	 * need to inform the device driver through callback. See
+	 * include/linux/memremap.h and HMM for details.
 	 */
-	if (unlikely(is_zone_device_page(page))) {
-		put_zone_device_page(page);
+	if (put_devmap_managed_page(page))
 		return;
-	}
 
 	if (unlikely(PageCompound(page)))
 		put_compound_page(page);

@@ -23,6 +23,7 @@
 #include <linux/err.h>
 #include <linux/page_ref.h>
 #include <linux/page_ext.h>
+#include <linux/memremap.h>
 
 struct mempolicy;
 struct anon_vma;
@@ -851,6 +852,28 @@ static inline bool is_zone_device_page(const struct page *page)
 {
 	return page_zonenum(page) == ZONE_DEVICE;
 }
+void __put_devmap_managed_page(struct page *page);
+static inline bool put_devmap_managed_page(struct page *page)
+{
+	if (likely(!is_zone_device_page(page)))
+		return false;
+	switch (page->pgmap->type) {
+	case MEMORY_HMM:
+	case MEMORY_DEVICE_FS_DAX:
+		__put_devmap_managed_page(page);
+		return true;
+	default:
+		break;
+	}
+	return false;
+}
+
+static inline bool is_hmm_page(const struct page *page)
+{
+	return is_zone_device_page(page) &&
+		page->pgmap->type == MEMORY_HMM;
+}
+
 #else
 static inline void get_zone_device_page(struct page *page)
 {
@@ -859,6 +882,16 @@ static inline void put_zone_device_page(struct page *page)
 {
 }
 static inline bool is_zone_device_page(const struct page *page)
+{
+	return false;
+}
+
+static inline bool put_devmap_managed_page(struct page *page)
+{
+	return false;
+}
+
+static inline bool is_hmm_page(const struct page *page)
 {
 	return false;
 }
