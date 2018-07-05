@@ -4,6 +4,7 @@
 #include <linux/types.h>
 #include <linux/pfn_t.h>
 #include <linux/fs.h>
+#include <linux/memremap.h>
 
 #ifdef CONFIG_ARCH_HAS_PMEM_API
 #define ARCH_MEMREMAP_PMEM MEMREMAP_WB
@@ -35,6 +36,7 @@ struct pmem_device {
 	struct badblocks	bb;
 	struct dax_device	*dax_dev;
 	struct gendisk		*disk;
+	struct dev_pagemap	pgmap;
 };
 
 long __pmem_direct_access(struct pmem_device *pmem, pgoff_t pgoff,
