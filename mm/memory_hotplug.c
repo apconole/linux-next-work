@@ -475,14 +475,15 @@ static int __meminit __add_zone(struct zone *zone, unsigned long phys_start_pfn)
 }
 
 static int __meminit __add_section(int nid, struct zone *zone,
-					unsigned long phys_start_pfn)
+					unsigned long phys_start_pfn,
+					struct vmem_altmap *altmap)
 {
 	int ret;
 
 	if (pfn_valid(phys_start_pfn))
 		return -EEXIST;
 
-	ret = sparse_add_one_section(zone, phys_start_pfn);
+	ret = sparse_add_one_section(zone, phys_start_pfn, altmap);
 
 	if (ret < 0)
 		return ret;
@@ -525,7 +526,7 @@ int __ref __add_pages(int nid, struct zone *zone, unsigned long phys_start_pfn,
 	}
 
 	for (i = start_sec; i <= end_sec; i++) {
-		err = __add_section(nid, zone, i << PFN_SECTION_SHIFT);
+		err = __add_section(nid, zone, i << PFN_SECTION_SHIFT, altmap);
 
 		/*
 		 * EEXIST is finally dealt with by ioresource collision

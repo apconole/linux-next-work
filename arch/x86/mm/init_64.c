@@ -1301,9 +1301,9 @@ static int __meminit vmemmap_populate_hugepages(unsigned long start,
 	return 0;
 }
 
-int __meminit vmemmap_populate(unsigned long start, unsigned long end, int node)
+int __meminit vmemmap_populate(unsigned long start, unsigned long end, int node,
+		struct vmem_altmap *altmap)
 {
-	struct vmem_altmap *altmap = to_vmem_altmap(start);
 	int err;
 
 	if (cpu_has_pse)

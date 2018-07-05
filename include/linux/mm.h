@@ -2441,7 +2441,8 @@ void sparse_mem_maps_populate_node(struct page **map_map,
 				   unsigned long map_count,
 				   int nodeid);
 
-struct page *sparse_mem_map_populate(unsigned long pnum, int nid);
+struct page *sparse_mem_map_populate(unsigned long pnum, int nid,
+		struct vmem_altmap *altmap);
 pgd_t *vmemmap_pgd_populate(unsigned long addr, int node);
 pud_t *vmemmap_pud_populate(pgd_t *pgd, unsigned long addr, int node);
 pmd_t *vmemmap_pmd_populate(pud_t *pud, unsigned long addr, int node);
@@ -2458,7 +2459,8 @@ static inline void *vmemmap_alloc_block_buf(unsigned long size, int node)
 void vmemmap_verify(pte_t *, int, unsigned long, unsigned long);
 int vmemmap_populate_basepages(unsigned long start, unsigned long end,
 			       int node);
-int vmemmap_populate(unsigned long start, unsigned long end, int node);
+int vmemmap_populate(unsigned long start, unsigned long end, int node,
+		struct vmem_altmap *altmap);
 void vmemmap_populate_print_last(void);
 #ifdef CONFIG_MEMORY_HOTPLUG
 void vmemmap_free(unsigned long start, unsigned long end);
