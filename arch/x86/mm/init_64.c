@@ -665,8 +665,8 @@ static void  update_end_of_memory_vars(u64 start, u64 size)
  * Memory is added always to NORMAL zone. This means you will never get
  * additional DMA/DMA32 memory.
  */
-int add_pages(int nid, unsigned long start,
-	      unsigned long size, bool for_device)
+int add_pages(int nid, unsigned long start, unsigned long size,
+	      struct vmem_altmap *altmap, bool for_device)
 {
 	struct pglist_data *pgdat = NODE_DATA(nid);
 	int zoneid = zone_for_memory(nid, start, size, ZONE_NORMAL, for_device);
@@ -678,7 +678,8 @@ int add_pages(int nid, unsigned long start,
 		zone = pgdat->zone_device;
 #endif
 
-	ret = __add_pages(nid, zone, start >> PAGE_SHIFT, size >> PAGE_SHIFT);
+	ret = __add_pages(nid, zone, start >> PAGE_SHIFT,
+			  size >> PAGE_SHIFT, altmap);
 	WARN_ON_ONCE(ret);
 
 	/* update max_pfn, max_low_pfn and high_memory */
@@ -687,11 +688,12 @@ int add_pages(int nid, unsigned long start,
 	return ret;
 }
 
-int arch_add_memory(int nid, u64 start, u64 size, bool for_device)
+int arch_add_memory(int nid, u64 start, u64 size, struct vmem_altmap *altmap,
+		bool for_device)
 {
 	init_memory_mapping(start, start + size);
 
-	return add_pages(nid, start, size, for_device);
+	return add_pages(nid, start, size, altmap, for_device);
 }
 EXPORT_SYMBOL_GPL(arch_add_memory);
 

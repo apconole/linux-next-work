@@ -11,6 +11,7 @@ struct zone;
 struct pglist_data;
 struct mem_section;
 struct memory_block;
+struct vmem_altmap;
 
 #ifdef CONFIG_MEMORY_HOTPLUG
 
@@ -105,7 +106,7 @@ extern int __remove_pages(struct zone *zone, unsigned long start_pfn,
 
 /* reasonably generic interface to expand the physical pages in a zone  */
 extern int __add_pages(int nid, struct zone *zone, unsigned long start_pfn,
-	unsigned long nr_pages);
+		unsigned long nr_pages, struct vmem_altmap *altmap);
 
 #ifdef CONFIG_NUMA
 extern int memory_add_physaddr_to_nid(u64 start);
@@ -266,7 +267,8 @@ extern int walk_memory_range(unsigned long start_pfn, unsigned long end_pfn,
 extern int add_memory(int nid, u64 start, u64 size);
 extern int zone_for_memory(int nid, u64 start, u64 size, int zone_default,
 		bool for_device);
-extern int arch_add_memory(int nid, u64 start, u64 size, bool for_device);
+extern int arch_add_memory(int nid, u64 start, u64 size,
+		struct vmem_altmap *altmap, bool for_device);
 extern int offline_pages(unsigned long start_pfn, unsigned long nr_pages);
 extern bool is_memblock_offlined(struct memory_block *mem);
 extern void remove_memory(int nid, u64 start, u64 size);
@@ -276,6 +278,6 @@ extern void sparse_remove_one_section(struct zone *zone, struct mem_section *ms,
 extern struct page *sparse_decode_mem_map(unsigned long coded_mem_map,
 					  unsigned long pnum);
 int add_pages(int nid, unsigned long start,
-	      unsigned long size, bool for_device);
+	      unsigned long size, struct vmem_altmap *altmap, bool for_device);
 
 #endif /* __LINUX_MEMORY_HOTPLUG_H */

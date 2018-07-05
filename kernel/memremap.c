@@ -404,6 +404,7 @@ void *devm_memremap_pages(struct device *dev, struct resource *res,
 	if (altmap) {
 		memcpy(&page_map->altmap, altmap, sizeof(*altmap));
 		pgmap->altmap = &page_map->altmap;
+		altmap = pgmap->altmap;
 	}
 	pgmap->ref = ref;
 	pgmap->res = &page_map->res;
@@ -449,7 +450,7 @@ void *devm_memremap_pages(struct device *dev, struct resource *res,
 		goto err_pfn_remap;
 
 	mem_hotplug_begin();
-	error = arch_add_memory(nid, align_start, align_size, true);
+	error = arch_add_memory(nid, align_start, align_size, altmap, true);
 	mem_hotplug_done();
 	if (error)
 		goto err_add_memory;

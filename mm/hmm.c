@@ -907,7 +907,7 @@ static int hmm_devmem_pages_create(struct hmm_devmem *devmem)
 	if (nid < 0)
 		nid = numa_mem_id();
 
-	ret = add_pages(nid, align_start, align_size, true);
+	ret = add_pages(nid, align_start, align_size, NULL, true);
 	if (ret)
 		goto error_radix;
 

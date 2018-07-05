@@ -4174,8 +4174,8 @@ void ptlock_free(struct page *page)
 #endif
 
 #ifndef CONFIG_ARCH_HAS_ADD_PAGES
-int add_pages(int nid, unsigned long start,
-	      unsigned long size, bool for_device)
+int add_pages(int nid, unsigned long start, unsigned long size,
+	      struct vmem_altmap *altmap, bool for_device)
 {
 	struct pglist_data *pgdat = NODE_DATA(nid);
 	int zoneid = zone_for_memory(nid, start, size, ZONE_NORMAL, for_device);
@@ -4186,6 +4186,7 @@ int add_pages(int nid, unsigned long start,
 		zone = pgdat->zone_device;
 #endif
 
-	return __add_pages(nid, zone, start >> PAGE_SHIFT, size >> PAGE_SHIFT);
+	return __add_pages(nid, zone, start >> PAGE_SHIFT, size >> PAGE_SHIFT,
+			   altmap);
 }
 #endif /* ARCH_HAS_ADD_PAGES */
