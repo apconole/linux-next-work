@@ -23,9 +23,6 @@ struct vmem_altmap {
 	unsigned long alloc;
 };
 
-unsigned long vmem_altmap_offset(struct vmem_altmap *altmap);
-void vmem_altmap_free(struct vmem_altmap *altmap, unsigned long nr_pfns);
-
 #if defined(CONFIG_SPARSEMEM_VMEMMAP) && defined(CONFIG_ZONE_DEVICE)
 struct vmem_altmap *to_vmem_altmap(unsigned long memmap_start);
 #else
@@ -123,6 +120,9 @@ void *devm_memremap_pages(struct device *dev, struct resource *res,
 		struct percpu_ref *ref, struct vmem_altmap *altmap);
 struct dev_pagemap *find_dev_pagemap(resource_size_t phys);
 
+unsigned long vmem_altmap_offset(struct vmem_altmap *altmap);
+void vmem_altmap_free(struct vmem_altmap *altmap, unsigned long nr_pfns);
+
 static inline bool is_hmm_page(const struct page *page)
 {
 	/* See MEMORY_DEVICE_PRIVATE in include/linux/memory_hotplug.h */
@@ -152,7 +152,17 @@ static inline bool is_hmm_page(const struct page *page)
 {
 	return false;
 }
-#endif
+
+static inline unsigned long vmem_altmap_offset(struct vmem_altmap *altmap)
+{
+	return 0;
+}
+
+static inline void vmem_altmap_free(struct vmem_altmap *altmap,
+		unsigned long nr_pfns)
+{
+}
+#endif /* CONFIG_ZONE_DEVICE */
 
 /**
  * get_dev_pagemap() - take a new live reference on the dev_pagemap for @pfn
