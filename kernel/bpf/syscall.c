@@ -286,11 +286,13 @@ static int bpf_map_show_fdinfo(struct seq_file *m, struct file *filp)
 	const struct bpf_map *map = filp->private_data;
 	const struct bpf_array *array;
 	u32 owner_prog_type = 0;
+	u32 owner_jited = 0;
 	int ret;
 
 	if (map->map_type == BPF_MAP_TYPE_PROG_ARRAY) {
 		array = container_of(map, struct bpf_array, map);
 		owner_prog_type = array->owner_prog_type;
+		owner_jited = array->owner_jited;
 	}
 
 	ret = seq_printf(m,
@@ -307,9 +309,12 @@ static int bpf_map_show_fdinfo(struct seq_file *m, struct file *filp)
 		   map->map_flags,
 		   map->pages * 1ULL << PAGE_SHIFT);
 
-	if (owner_prog_type)
-		seq_printf(m, "owner_prog_type:\t%u\n",
-			   owner_prog_type);
+	if (owner_prog_type) {
+		ret += seq_printf(m, "owner_prog_type:\t%u\n",
+				  owner_prog_type);
+		ret += seq_printf(m, "owner_jited:\t%u\n",
+				  owner_jited);
+	}
 	return ret;
 }
 #endif
