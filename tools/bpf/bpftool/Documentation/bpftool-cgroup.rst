@@ -113,6 +113,10 @@ EXAMPLES
 
     ID       AttachType      AttachFlags     Name
 
+NOTES
+=====
+Attaching of programs to cgroups is not supported in RHEL 7.
+
 SEE ALSO
 ========
 	**bpftool**\ (8), **bpftool-prog**\ (8), **bpftool-map**\ (8)
