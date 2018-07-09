@@ -742,7 +742,6 @@ perf_trace_##call(void *__data, proto)					\
 	struct ftrace_event_call *event_call = __data;			\
 	struct ftrace_data_offsets_##call __maybe_unused __data_offsets;\
 	struct ftrace_raw_##call *entry;				\
-	struct bpf_prog *prog = event_call->rh_data->prog;		\
 	struct pt_regs *__regs;						\
 	u64 __count = 1;						\
 	struct task_struct *__task = NULL;				\
@@ -754,8 +753,9 @@ perf_trace_##call(void *__data, proto)					\
 	__data_size = ftrace_get_offsets_##call(&__data_offsets, args); \
 									\
 	head = this_cpu_ptr(event_call->perf_events);			\
-	if (!prog && __builtin_constant_p(!__task) && !__task &&	\
-				hlist_empty(head))			\
+	if (!bpf_prog_array_valid(event_call) &&			\
+	    __builtin_constant_p(!__task) && !__task &&			\
+	    hlist_empty(head))						\
 		return;							\
 									\
 	__entry_size = ALIGN(__data_size + sizeof(*entry) + sizeof(u32),\

@@ -1025,7 +1025,6 @@ static void __uprobe_perf_func(struct trace_uprobe *tu,
 {
 	struct ftrace_event_call *call = &tu->tp.call;
 	struct uprobe_trace_entry_head *entry;
-	struct bpf_prog *prog = call->rh_data->prog;
 	struct hlist_head *head;
 	void *data;
 	int size, esize;
@@ -1033,7 +1032,7 @@ static void __uprobe_perf_func(struct trace_uprobe *tu,
 
 	esize = SIZEOF_TRACE_ENTRY(is_ret_probe(tu));
 
-	if (prog && !trace_call_bpf(prog, regs))
+	if (bpf_prog_array_valid(call) && !trace_call_bpf(call, regs))
 		return;
 
 	size = esize + tu->tp.size + dsize;

@@ -7919,11 +7919,9 @@ void perf_trace_run_bpf_submit(void *raw_data, int size, int rctx, u64 addr,
 			       struct pt_regs *regs, void *head,
 			       struct task_struct *task)
 {
-	struct bpf_prog *prog = call->rh_data->prog;
-
-	if (prog) {
+	if (bpf_prog_array_valid(call)) {
 		*(struct pt_regs **)raw_data = regs;
-		if (!trace_call_bpf(prog, raw_data) || hlist_empty(head)) {
+		if (!trace_call_bpf(call, raw_data) || hlist_empty(head)) {
 			perf_swevent_put_recursion_context(rctx);
 			return;
 		}
@@ -8031,18 +8029,6 @@ static void perf_event_free_filter(struct perf_event *event)
 	ftrace_profile_free_filter(event);
 }
 
-static struct bpf_prog* get_bpf_prog(struct perf_event *event)
-{
-	return event->tp_event->rh_data->prog;
-}
-
-static void set_bpf_prog(struct perf_event *event, struct bpf_prog *prog)
-{
-	struct ftrace_event_data *rh_data = event->tp_event->rh_data;
-
-	rh_data->prog = prog;
-}
-
 #ifdef CONFIG_BPF_SYSCALL
 static void bpf_overflow_handler(struct perf_event *event,
 				 struct perf_sample_data *data,
@@ -8116,6 +8102,7 @@ static int perf_event_set_bpf_prog(struct perf_event *event, u32 prog_fd)
 {
 	bool is_kprobe, is_tracepoint, is_syscall_tp;
 	struct bpf_prog *prog;
+	int ret;
 
 	if (event->attr.type == PERF_TYPE_HARDWARE ||
 	    event->attr.type == PERF_TYPE_SOFTWARE)
@@ -8123,9 +8110,6 @@ static int perf_event_set_bpf_prog(struct perf_event *event, u32 prog_fd)
 
 	if (event->attr.type != PERF_TYPE_TRACEPOINT)
 		return -EINVAL;
-
-	if (get_bpf_prog(event))
-		return -EEXIST;
 
 	is_kprobe = event->tp_event->flags & TRACE_EVENT_FL_UKPROBE;
 	is_tracepoint = event->tp_event->flags & TRACE_EVENT_FL_TRACEPOINT;
@@ -8154,25 +8138,20 @@ static int perf_event_set_bpf_prog(struct perf_event *event, u32 prog_fd)
 			return -EACCES;
 		}
 	}
-	set_bpf_prog(event, prog);
 
-	return 0;
+	ret = perf_event_attach_bpf_prog(event, prog);
+	if (ret)
+		bpf_prog_put(prog);
+	return ret;
 }
 
 static void perf_event_free_bpf_prog(struct perf_event *event)
 {
-	struct bpf_prog *prog;
-
 	if (event->attr.type != PERF_TYPE_TRACEPOINT) {
 		perf_event_free_bpf_handler(event);
 		return;
 	}
-
-	prog = get_bpf_prog(event);
-	if (prog) {
-		set_bpf_prog(event, NULL);
-		bpf_prog_put(prog);
-	}
+	perf_event_detach_bpf_prog(event);
 }
 
 #else
