@@ -29,7 +29,7 @@ bpf_base_func_proto(enum bpf_func_id func_id)
 }
 
 static const struct bpf_func_proto *
-tc_cls_act_func_proto(enum bpf_func_id func_id)
+tc_cls_act_func_proto(enum bpf_func_id func_id, const struct bpf_prog *prog)
 {
 	switch (func_id) {
 	default:
@@ -39,6 +39,7 @@ tc_cls_act_func_proto(enum bpf_func_id func_id)
 
 static bool tc_cls_act_is_valid_access(int off, int size,
 				       enum bpf_access_type type,
+				       const struct bpf_prog *prog,
 				       struct bpf_insn_access_aux *info)
 {
 	return false;

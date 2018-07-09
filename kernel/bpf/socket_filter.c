@@ -29,7 +29,7 @@ bpf_base_func_proto(enum bpf_func_id func_id)
 }
 
 static const struct bpf_func_proto *
-sk_filter_func_proto(enum bpf_func_id func_id)
+sk_filter_func_proto(enum bpf_func_id func_id, const struct bpf_prog *prog)
 {
 	switch (func_id) {
 	default:
@@ -38,6 +38,7 @@ sk_filter_func_proto(enum bpf_func_id func_id)
 }
 
 static bool sk_filter_is_valid_access(int off, int size, enum bpf_access_type type,
+				      const struct bpf_prog *prog,
 				      struct bpf_insn_access_aux *info)
 {
 	return false;
