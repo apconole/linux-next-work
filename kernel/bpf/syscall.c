@@ -1124,7 +1124,7 @@ static bool is_test_type(enum bpf_prog_type type)
 }
 
 /* last field in 'union bpf_attr' used by this command */
-#define	BPF_PROG_LOAD_LAST_FIELD prog_name
+#define	BPF_PROG_LOAD_LAST_FIELD prog_target_ifindex
 
 static int bpf_prog_load(union bpf_attr *attr)
 {
