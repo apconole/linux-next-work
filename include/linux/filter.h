@@ -455,7 +455,7 @@ struct bpf_skb_data_end {
 	void *data_end;
 };
 
-#define BPF_PROG_RUN(filter, ctx)  (*filter->bpf_func)(ctx, filter->insnsi)
+#define BPF_PROG_RUN(filter, ctx)  (*(filter)->bpf_func)(ctx, (filter)->insnsi)
 
 static inline u32 bpf_prog_insn_size(const struct bpf_prog *prog)
 {
