@@ -777,15 +777,9 @@ perf_trace_##call(void *__data, proto)					\
 									\
 	{ assign; }							\
 									\
-	if (prog) {							\
-		*(struct pt_regs **)entry = __regs;			\
-		if (!trace_call_bpf(prog, entry) || hlist_empty(head)) { \
-			perf_swevent_put_recursion_context(rctx);	\
-			return;						\
-		}							\
-	}								\
-	perf_trace_buf_submit(entry, __entry_size, rctx, 0,		\
-		__count, __regs, head, __task);				\
+	perf_trace_run_bpf_submit(entry, __entry_size, rctx, 0,		\
+				  event_call, __count, __regs,		\
+				  head, __task);			\
 }
 
 /*
