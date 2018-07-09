@@ -358,7 +358,7 @@ extern int filter_current_check_discard(struct ring_buffer *buffer,
 					void *rec,
 					struct ring_buffer_event *event);
 
-#ifdef CONFIG_BPF_SYSCALL
+#ifdef CONFIG_BPF_EVENTS
 unsigned int trace_call_bpf(struct bpf_prog *prog, void *ctx);
 #else
 static inline unsigned int trace_call_bpf(struct bpf_prog *prog, void *ctx)
