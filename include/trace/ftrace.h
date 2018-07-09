@@ -754,7 +754,7 @@ perf_trace_##call(void *__data, proto)					\
 	__data_size = ftrace_get_offsets_##call(&__data_offsets, args); \
 									\
 	head = this_cpu_ptr(event_call->perf_events);			\
-	if (__builtin_constant_p(!__task) && !__task &&			\
+	if (!prog && __builtin_constant_p(!__task) && !__task &&	\
 				hlist_empty(head))			\
 		return;							\
 									\
