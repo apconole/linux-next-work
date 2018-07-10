@@ -222,6 +222,9 @@ static int nfsd4_scsi_identify_device(struct block_device *bdev,
 	u8 *buf, *d, type, assoc;
 	int retries = 1, error;
 
+	if (WARN_ON_ONCE(!blk_queue_scsi_passthrough(q)))
+		return -EINVAL;
+
 again:
 	buf = kzalloc(bufflen, GFP_KERNEL);
 	if (!buf)
