@@ -2425,7 +2425,7 @@ again:
 
 			trace__handle_event(trace, event, &sample);
 next_event:
-			perf_mmap__consume(md, false);
+			perf_mmap__consume(md);
 
 			if (interrupted)
 				goto out_disable;
