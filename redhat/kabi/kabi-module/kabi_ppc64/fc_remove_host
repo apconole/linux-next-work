@@ -1,0 +1,2 @@
+#6-
+0x10c242fc	fc_remove_host	drivers/scsi/scsi_transport_fc	EXPORT_SYMBOL
