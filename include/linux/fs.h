@@ -1832,9 +1832,6 @@ struct file_operations_extend {
 	unsigned long mmap_supported_flags;
 };
 
-#define to_fop_extend(fop)	\
-	container_of((fop), struct file_operations_extend, kabi_fops)
-
 struct inode_operations {
 	struct dentry * (*lookup) (struct inode *,struct dentry *, unsigned int);
 	void * (*follow_link) (struct dentry *, struct nameidata *);
@@ -2174,8 +2171,6 @@ dentry_operations_wrapper */
 #define sb_has_rm_xquota(sb)	((sb)->s_type->fs_flags & FS_HAS_RM_XQUOTA)
 #define sb_has_nextdqblk(sb)	((sb)->s_type->fs_flags & FS_HAS_NEXTDQBLK)
 #define sb_has_dops_wrapper(sb)	((sb)->s_type->fs_flags & FS_HAS_DOPS_WRAPPER)
-#define fb_has_fo_extend(fb)	\
-	(file_inode(fp)->i_sb->s_type->fs_flags & FS_HAS_FO_EXTEND)
 #define sb_has_wblist(sb)	((sb)->s_type->fs_flags & FS_HAS_WBLIST)
 
 /*
@@ -2199,15 +2194,6 @@ static inline dop_real_t get_real_dop(struct dentry *dentry)
 		return NULL;
 
 	return (offsetof(struct dentry_operations_wrapper, d_real) < wrapper->size) ? wrapper->d_real : NULL;
-}
-
-static inline struct file_operations_extend *
-get_fo_extend(struct file *fp)
-{
-	if (!fb_has_fo_extend(fp))
-		return NULL;
-
-	return to_fop_extend(fp->f_op);
 }
 
 /**
@@ -2321,6 +2307,11 @@ extern int register_fo_extend(const struct file_operations_extend *fop);
 extern void unregister_fo_extend(const struct file_operations_extend *fop);
 extern const struct file_operations_extend *lookup_fo_extend(
 	const struct file_operations *fops);
+static inline struct file_operations_extend *
+get_fo_extend(struct file *fp)
+{
+	return (struct file_operations_extend *)lookup_fo_extend(fp->f_op);
+}
 /* End: Red Hat Internal Use Only */
 extern struct vfsmount *kern_mount_data(struct file_system_type *, void *data);
 #define kern_mount(type) kern_mount_data(type, NULL)
