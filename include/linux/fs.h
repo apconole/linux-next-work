@@ -2316,6 +2316,12 @@ extern struct dentry *mount_pseudo(struct file_system_type *, char *,
 
 extern int register_filesystem(struct file_system_type *);
 extern int unregister_filesystem(struct file_system_type *);
+/* Begin: Red Hat Internal Use Only */
+extern int register_fo_extend(const struct file_operations_extend *fop);
+extern void unregister_fo_extend(const struct file_operations_extend *fop);
+extern const struct file_operations_extend *lookup_fo_extend(
+	const struct file_operations *fops);
+/* End: Red Hat Internal Use Only */
 extern struct vfsmount *kern_mount_data(struct file_system_type *, void *data);
 #define kern_mount(type) kern_mount_data(type, NULL)
 extern void kern_unmount(struct vfsmount *mnt);
