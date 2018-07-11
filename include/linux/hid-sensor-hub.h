@@ -140,14 +140,13 @@ int sensor_hub_input_attr_get_raw_value(struct hid_sensor_hub_device *hsdev,
 * sensor_hub_set_feature() - Feature set request
 * @report_id:	Report id to look for
 * @field_index:	Field index inside a report
-* @buffer_size: size of the buffer
-* @buffer:	buffer to use in the feature set
+* @value:	Value to set
 *
 * Used to set a field in feature report. For example this can set polling
 * interval, sensitivity, activate/deactivate state.
 */
 int sensor_hub_set_feature(struct hid_sensor_hub_device *hsdev, u32 report_id,
-			   u32 field_index, int buffer_size, void *buffer);
+			u32 field_index, s32 value);
 
 /**
 * sensor_hub_get_feature() - Feature get request
