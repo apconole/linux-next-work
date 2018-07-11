@@ -86,7 +86,8 @@ static int sensor_hub_get_physical_device_count(struct hid_device *hdev)
 
 	for (i = 0; i < hdev->maxcollection; ++i) {
 		struct hid_collection *collection = &hdev->collection[i];
-		if (collection->type == HID_COLLECTION_PHYSICAL)
+		if (collection->type == HID_COLLECTION_PHYSICAL ||
+		    collection->type == HID_COLLECTION_APPLICATION)
 			++count;
 	}
 
@@ -119,7 +120,8 @@ static struct hid_sensor_hub_callbacks *sensor_hub_get_callback(
 
 	spin_lock_irqsave(&pdata->dyn_callback_lock, flags);
 	list_for_each_entry(callback, &pdata->dyn_callback_list, list)
-		if (callback->usage_id == usage_id &&
+		if ((callback->usage_id == usage_id ||
+		     callback->usage_id == HID_USAGE_SENSOR_COLLECTION) &&
 			(collection_index >=
 				callback->hsdev->start_collection_index) &&
 			(collection_index <
@@ -159,7 +161,18 @@ int sensor_hub_register_callback(struct hid_sensor_hub_device *hsdev,
 	callback->usage_callback = usage_callback;
 	callback->usage_id = usage_id;
 	callback->priv = NULL;
-	list_add_tail(&callback->list, &pdata->dyn_callback_list);
+	/*
+	 * If there is a handler registered for the collection type, then
+	 * it will handle all reports for sensors in this collection. If
+	 * there is also an individual sensor handler registration, then
+	 * we want to make sure that the reports are directed to collection
+	 * handler, as this may be a fusion sensor. So add collection handlers
+	 * to the beginning of the list, so that they are matched first.
+	 */
+	if (usage_id == HID_USAGE_SENSOR_COLLECTION)
+		list_add(&callback->list, &pdata->dyn_callback_list);
+	else
+		list_add_tail(&callback->list, &pdata->dyn_callback_list);
 	spin_unlock_irqrestore(&pdata->dyn_callback_lock, flags);
 
 	return 0;
@@ -556,6 +569,7 @@ static int sensor_hub_probe(struct hid_device *hdev,
 	int dev_cnt;
 	struct hid_sensor_hub_device *hsdev;
 	struct hid_sensor_hub_device *last_hsdev = NULL;
+	struct hid_sensor_hub_device *collection_hsdev = NULL;
 
 	sd = devm_kzalloc(&hdev->dev, sizeof(*sd), GFP_KERNEL);
 	if (!sd) {
@@ -602,7 +616,8 @@ static int sensor_hub_probe(struct hid_device *hdev,
 	for (i = 0; i < hdev->maxcollection; ++i) {
 		struct hid_collection *collection = &hdev->collection[i];
 
-		if (collection->type == HID_COLLECTION_PHYSICAL) {
+		if (collection->type == HID_COLLECTION_PHYSICAL ||
+		    collection->type == HID_COLLECTION_APPLICATION) {
 
 			hsdev = devm_kzalloc(&hdev->dev, sizeof(*hsdev),
 					     GFP_KERNEL);
@@ -642,10 +657,17 @@ static int sensor_hub_probe(struct hid_device *hdev,
 			hid_dbg(hdev, "Adding %s:%d\n", name,
 					hsdev->start_collection_index);
 			sd->hid_sensor_client_cnt++;
+			if (collection_hsdev)
+				collection_hsdev->end_collection_index = i;
+			if (collection->type == HID_COLLECTION_APPLICATION &&
+			    collection->usage == HID_USAGE_SENSOR_COLLECTION)
+				collection_hsdev = hsdev;
 		}
 	}
 	if (last_hsdev)
 		last_hsdev->end_collection_index = i;
+	if (collection_hsdev)
+		collection_hsdev->end_collection_index = i;
 
 	ret = mfd_add_devices(&hdev->dev, 0, sd->hid_sensor_hub_client_devs,
 		sd->hid_sensor_client_cnt, NULL, 0, NULL);
