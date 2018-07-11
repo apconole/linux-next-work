@@ -792,3 +792,14 @@ Contact:	linux-iio@vger.kernel.org
 Description:
 		This attribute is used to read the amount of quadrature error
 		present in the device at a given time.
+
+What:		/sys/.../iio:deviceX/in_intensity_red_integration_time
+What:		/sys/.../iio:deviceX/in_intensity_green_integration_time
+What:		/sys/.../iio:deviceX/in_intensity_blue_integration_time
+What:		/sys/.../iio:deviceX/in_intensity_clear_integration_time
+What:		/sys/.../iio:deviceX/in_illuminance_integration_time
+KernelVersion:	3.12
+Contact:	linux-iio@vger.kernel.org
+Description:
+		This attribute is used to get/set the integration time in
+		seconds.
