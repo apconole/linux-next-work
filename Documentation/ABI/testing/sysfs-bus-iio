@@ -71,6 +71,8 @@ Description:
 
 What:		/sys/bus/iio/devices/iio:deviceX/in_voltageY_raw
 What:		/sys/bus/iio/devices/iio:deviceX/in_voltageY_supply_raw
+What:		/sys/bus/iio/devices/iio:deviceX/in_voltageY_i_raw
+What:		/sys/bus/iio/devices/iio:deviceX/in_voltageY_q_raw
 KernelVersion:	2.6.35
 Contact:	linux-iio@vger.kernel.org
 Description:
@@ -80,6 +82,11 @@ Description:
 		versions may be used. The number must always be specified and
 		unique to allow association with event codes. Units after
 		application of scale and offset are microvolts.
+
+		Channels with 'i' and 'q' modifiers always exist in pairs and both
+		channels refer to the same signal. The 'i' channel contains the in-phase
+		component of the signal while the 'q' channel contains the quadrature
+		component.
 
 What:		/sys/bus/iio/devices/iio:deviceX/in_voltageY-voltageZ_raw
 KernelVersion:	2.6.35
@@ -239,6 +246,8 @@ Description:
 		to the _raw output.
 
 What:		/sys/bus/iio/devices/iio:deviceX/in_voltageY_scale
+What:		/sys/bus/iio/devices/iio:deviceX/in_voltageY_i_scale
+What:		/sys/bus/iio/devices/iio:deviceX/in_voltageY_q_scale
 What:		/sys/bus/iio/devices/iio:deviceX/in_voltageY_supply_scale
 What:		/sys/bus/iio/devices/iio:deviceX/in_voltage_scale
 What:		/sys/bus/iio/devices/iio:deviceX/out_voltageY_scale
@@ -285,6 +294,10 @@ Description:
 
 What		/sys/bus/iio/devices/iio:deviceX/in_voltageY_calibscale
 What		/sys/bus/iio/devices/iio:deviceX/in_voltageY_supply_calibscale
+What		/sys/bus/iio/devices/iio:deviceX/in_voltageY_i_calibscale
+What		/sys/bus/iio/devices/iio:deviceX/in_voltageY_q_calibscale
+What		/sys/bus/iio/devices/iio:deviceX/in_voltage_i_calibscale
+What		/sys/bus/iio/devices/iio:deviceX/in_voltage_q_calibscale
 What		/sys/bus/iio/devices/iio:deviceX/in_voltage_calibscale
 What		/sys/bus/iio/devices/iio:deviceX/in_accel_x_calibscale
 What		/sys/bus/iio/devices/iio:deviceX/in_accel_y_calibscale
