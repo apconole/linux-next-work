@@ -238,6 +238,10 @@ MEM
   devm_kfree()
   devm_kmemdup()
 
+IIO
+  devm_iio_device_alloc()
+  devm_iio_device_free()
+
 IO region
   devm_release_mem_region()
   devm_release_region()
