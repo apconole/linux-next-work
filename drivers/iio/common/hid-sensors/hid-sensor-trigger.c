@@ -122,8 +122,7 @@ int hid_sensor_setup_trigger(struct iio_dev *indio_dev, const char *name,
 		dev_err(&indio_dev->dev, "Trigger Register Failed\n");
 		goto error_free_trig;
 	}
-	attrb->trigger = trig;
-	indio_dev->trig = iio_trigger_get(trig);
+	indio_dev->trig = attrb->trigger = trig;
 
 	return ret;
 
