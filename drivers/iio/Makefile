@@ -23,3 +23,4 @@ obj-y += light/
 obj-y += magnetometer/
 obj-y += orientation/
 obj-y += trigger/
+obj-y += pressure/
