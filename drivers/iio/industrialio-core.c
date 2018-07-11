@@ -1129,7 +1129,7 @@ static void devm_iio_device_release(struct device *dev, void *res)
 	iio_device_free(*(struct iio_dev **)res);
 }
 
-static int devm_iio_device_match(struct device *dev, void *res, void *data)
+int devm_iio_device_match(struct device *dev, void *res, void *data)
 {
 	struct iio_dev **r = res;
 	if (!r || !*r) {
@@ -1138,6 +1138,7 @@ static int devm_iio_device_match(struct device *dev, void *res, void *data)
 	}
 	return *r == data;
 }
+EXPORT_SYMBOL_GPL(devm_iio_device_match);
 
 /**
  * devm_iio_device_alloc - Resource-managed iio_device_alloc()
