@@ -1559,7 +1559,8 @@ static inline bool blk_mq_merge_bio(struct request_queue *q, struct bio *bio)
 	struct blk_mq_ctx *ctx = blk_mq_get_ctx(q);
 	struct blk_mq_hw_ctx *hctx = blk_mq_map_queue(q, ctx->cpu);
 
-	if (hctx_allow_merges(hctx) && bio_mergeable(bio)) {
+	if (hctx_allow_merges(hctx) && bio_mergeable(bio) &&
+			!list_empty_careful(&ctx->rq_list)) {
 		spin_lock(&ctx->lock);
 		ret = blk_mq_attempt_merge(q, ctx, bio);
 		spin_unlock(&ctx->lock);
