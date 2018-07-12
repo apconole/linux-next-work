@@ -87,6 +87,7 @@ struct blk_mq_hw_ctx {
 	RH_KABI_EXTEND(struct dentry		*debugfs_dir)
 	RH_KABI_EXTEND(struct dentry		*sched_debugfs_dir)
 #endif
+	RH_KABI_EXTEND(int			dispatch_busy)
 };
 
 #ifdef __GENKSYMS__
