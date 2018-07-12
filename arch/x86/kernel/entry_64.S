@@ -1446,6 +1446,7 @@ ENTRY(paranoid_exit)
 	jnz   paranoid_userspace
 paranoid_swapgs_restore:
 	/* return to kernel with swapgs */
+	TRACE_IRQS_IRETQ 0
 	IBRS_EXIT_RESTORE_CLOBBER save_reg=%r13d
 	RESTORE_CR3 scratch_reg=%rax save_reg=%r14
 	RESTORE_ALL 8
@@ -1453,6 +1454,7 @@ paranoid_swapgs_restore:
 	jmp irq_return
 paranoid_noswapgs_restore:
 	/* return to kernel */
+	TRACE_IRQS_IRETQ_DEBUG 0
 	IBRS_EXIT_RESTORE_CLOBBER save_reg=%r13d
 	RESTORE_CR3 scratch_reg=%rax save_reg=%r14
 	RESTORE_ALL 8
