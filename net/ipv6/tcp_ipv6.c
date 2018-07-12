@@ -1186,6 +1186,12 @@ static struct sock *tcp_v6_syn_recv_sock(struct sock *sk, struct sk_buff *skb,
 	newnp->mcast_hops = ipv6_hdr(skb)->hop_limit;
 	newnp->rcv_flowinfo = ip6_flowinfo(ipv6_hdr(skb));
 
+	/* RHEL-only: syn packets can land into the backlog, and
+	 * we can process them it the process context, without
+	 * any RCU lock this far
+	 */
+	rcu_read_lock();
+
 	/* Clone native IPv6 options from listening socket (if any)
 
 	   Yes, keeping reference count would be much more clever,
@@ -1201,6 +1207,7 @@ static struct sock *tcp_v6_syn_recv_sock(struct sock *sk, struct sk_buff *skb,
 	if (opt)
 		inet_csk(newsk)->icsk_ext_hdr_len = opt->opt_nflen +
 						    opt->opt_flen;
+	rcu_read_unlock();
 
 	tcp_ca_openreq_child(newsk, dst);
 
