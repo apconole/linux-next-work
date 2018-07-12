@@ -1783,13 +1783,8 @@ void cpufreq_resume(void)
 			pr_err("%s: Failed to start governor for policy: %p\n",
 				__func__, policy);
 
-		/*
-		 * schedule call cpufreq_update_policy() for boot CPU, i.e. last
-		 * policy in list. It will verify that the current freq is in
-		 * sync with what we believe it to be.
-		 */
-		if (list_is_last(&policy->policy_list, &cpufreq_policy_list))
-			schedule_work(&policy->update);
+		/* RHEL7: This must be called for all cpus */
+		schedule_work(&policy->update);
 	}
 }
 
