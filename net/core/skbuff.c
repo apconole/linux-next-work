@@ -848,6 +848,7 @@ EXPORT_SYMBOL(napi_consume_skb);
 
 static void __copy_skb_header(struct sk_buff *new, const struct sk_buff *old)
 {
+	int previous_pfmemalloc = new->pfmemalloc;
 	int previous_head_frag = new->head_frag;
 	int previous_xmit_more = new->xmit_more;
 
@@ -914,6 +915,7 @@ static void __copy_skb_header(struct sk_buff *new, const struct sk_buff *old)
 	 * headers_end on RHEL skb layout, but must not be copied; reset them
 	 * to their previous value to allow us using a single memcpy().
 	 */
+	new->pfmemalloc = previous_pfmemalloc;
 	new->head_frag = previous_head_frag;
 	new->xmit_more = previous_xmit_more;
 }
@@ -936,6 +938,8 @@ static struct sk_buff *__skb_clone(struct sk_buff *n, struct sk_buff *skb)
 	n->hdr_len = skb->nohdr ? skb_headroom(skb) : skb->hdr_len;
 	n->cloned = 1;
 	n->nohdr = 0;
+	if (skb->pfmemalloc)
+		n->pfmemalloc = 1;
 	n->destructor = NULL;
 	C(tail);
 	C(end);
