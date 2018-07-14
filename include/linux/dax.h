@@ -102,6 +102,7 @@ long dax_direct_access(struct dax_device *dax_dev, pgoff_t pgoff, long nr_pages,
 		void **kaddr, pfn_t *pfn);
 void dax_flush(struct dax_device *dax_dev, void *addr, size_t size);
 void dax_write_cache(struct dax_device *dax_dev, bool wc);
+bool dax_write_cache_enabled(struct dax_device *dax_dev);
 
 ssize_t dax_iomap_rw(int rw, struct kiocb *iocb, const struct iovec *iov,
 		unsigned long nr_segs, loff_t pos,
