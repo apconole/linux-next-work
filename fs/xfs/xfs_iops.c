@@ -1021,13 +1021,14 @@ xfs_vn_setattr(
 	int			error;
 
 	if (iattr->ia_valid & ATTR_SIZE) {
-		struct xfs_inode	*ip = XFS_I(d_inode(dentry));
+		struct inode		*inode = d_inode(dentry);
+		struct xfs_inode	*ip = XFS_I(inode);
 		uint			iolock;
 
 		iolock = XFS_IOLOCK_EXCL | XFS_MMAPLOCK_EXCL;
 
 		xfs_ilock(ip, iolock);
-		error = xfs_break_layouts(dentry->d_inode, &iolock, true);
+		error = xfs_break_layouts(inode, &iolock, BREAK_UNMAP, true);
 		if (!error)
 			error = xfs_vn_setattr_size(dentry, iattr);
 		xfs_iunlock(ip, iolock);
