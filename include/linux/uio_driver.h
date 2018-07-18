@@ -73,7 +73,7 @@ struct uio_device {
 	wait_queue_head_t       wait;
 	int                     vma_count;
 	struct uio_info         *info;
-	spinlock_t		info_lock;
+	struct mutex		info_lock;
 	struct kobject          *map_dir;
 	struct kobject          *portio_dir;
 };
