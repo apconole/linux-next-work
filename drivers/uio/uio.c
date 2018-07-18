@@ -215,14 +215,39 @@ static ssize_t show_name(struct device *dev,
 			 struct device_attribute *attr, char *buf)
 {
 	struct uio_device *idev = dev_get_drvdata(dev);
-	return sprintf(buf, "%s\n", idev->info->name);
+	int ret;
+
+	mutex_lock(&idev->info_lock);
+	if (!idev->info) {
+		ret = -EINVAL;
+		dev_err(dev, "the device has been unregistered\n");
+		goto out;
+	}
+
+	ret = sprintf(buf, "%s\n", idev->info->name);
+out:
+	mutex_unlock(&idev->info_lock);
+	return ret;
 }
 
 static ssize_t show_version(struct device *dev,
 			    struct device_attribute *attr, char *buf)
 {
 	struct uio_device *idev = dev_get_drvdata(dev);
-	return sprintf(buf, "%s\n", idev->info->version);
+	int ret;
+
+	mutex_lock(&idev->info_lock);
+	if (!idev->info) {
+		ret = -EINVAL;
+		dev_err(dev, "the device has been unregistered\n");
+		goto out;
+	}
+
+	ret = sprintf(buf, "%s\n", idev->info->version);
+
+out:
+	mutex_unlock(&idev->info_lock);
+	return ret;
 }
 
 static ssize_t show_event(struct device *dev,
@@ -411,11 +436,15 @@ EXPORT_SYMBOL_GPL(uio_event_notify);
 static irqreturn_t uio_interrupt(int irq, void *dev_id)
 {
 	struct uio_device *idev = (struct uio_device *)dev_id;
-	irqreturn_t ret = idev->info->handler(irq, idev->info);
+	irqreturn_t ret;
 
+	mutex_lock(&idev->info_lock);
+
+	ret = idev->info->handler(irq, idev->info);
 	if (ret == IRQ_HANDLED)
 		uio_event_notify(idev->info);
 
+	mutex_unlock(&idev->info_lock);
 	return ret;
 }
 
@@ -456,6 +485,11 @@ static int uio_open(struct inode *inode, struct file *filep)
 	filep->private_data = listener;
 
 	mutex_lock(&idev->info_lock);
+	if (!idev->info) {
+		mutex_unlock(&idev->info_lock);
+		ret = -EINVAL;
+		goto err_alloc_listener;
+	}
 	if (idev->info && idev->info->open)
 		ret = idev->info->open(idev->info, inode);
 	mutex_unlock(&idev->info_lock);
@@ -586,6 +620,11 @@ static ssize_t uio_write(struct file *filep, const char __user *buf,
 	s32 irq_on;
 
 	mutex_lock(&idev->info_lock);
+	if (!idev->info) {
+		retval = -EINVAL;
+		goto out;
+	}
+
 	if (!idev->info || !idev->info->irq) {
 		retval = -EIO;
 		goto out;
@@ -643,10 +682,20 @@ static int uio_vma_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
 	struct page *page;
 	unsigned long offset;
 	void *addr;
+	int ret = 0;
+	int mi;
 
-	int mi = uio_find_mem_index(vma);
-	if (mi < 0)
-		return VM_FAULT_SIGBUS;
+	mutex_lock(&idev->info_lock);
+	if (!idev->info) {
+		ret = VM_FAULT_SIGBUS;
+		goto out;
+	}
+
+	mi = uio_find_mem_index(vma);
+	if (mi < 0) {
+		ret = VM_FAULT_SIGBUS;
+		goto out;
+	}
 
 	/*
 	 * We need to subtract mi because userspace uses offset = N*PAGE_SIZE
@@ -661,7 +710,11 @@ static int uio_vma_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
 		page = vmalloc_to_page(addr);
 	get_page(page);
 	vmf->page = page;
-	return 0;
+
+out:
+	mutex_unlock(&idev->info_lock);
+
+	return ret;
 }
 
 static const struct vm_operations_struct uio_logical_vm_ops = {
@@ -689,6 +742,7 @@ static int uio_mmap_physical(struct vm_area_struct *vma)
 	struct uio_device *idev = vma->vm_private_data;
 	int mi = uio_find_mem_index(vma);
 	struct uio_mem *mem;
+
 	if (mi < 0)
 		return -EINVAL;
 	mem = idev->info->mem + mi;
@@ -725,35 +779,53 @@ static int uio_mmap(struct file *filep, struct vm_area_struct *vma)
 	unsigned long requested_pages, actual_pages;
 	int ret = 0;
 
-	if (vma->vm_end < vma->vm_start)
-		return -EINVAL;
+	mutex_lock(&idev->info_lock);
+	if (!idev->info) {
+		ret = -EINVAL;
+		goto out;
+	}
+
+	if (vma->vm_end < vma->vm_start) {
+		ret = -EINVAL;
+		goto out;
+	}
 
 	vma->vm_private_data = idev;
 
 	mi = uio_find_mem_index(vma);
-	if (mi < 0)
-		return -EINVAL;
+	if (mi < 0) {
+		ret = -EINVAL;
+		goto out;
+	}
 
 	requested_pages = (vma->vm_end - vma->vm_start) >> PAGE_SHIFT;
 	actual_pages = ((idev->info->mem[mi].addr & ~PAGE_MASK)
 			+ idev->info->mem[mi].size + PAGE_SIZE -1) >> PAGE_SHIFT;
-	if (requested_pages > actual_pages)
-		return -EINVAL;
+	if (requested_pages > actual_pages) {
+		ret = -EINVAL;
+		goto out;
+	}
 
 	if (idev->info->mmap) {
 		ret = idev->info->mmap(idev->info, vma);
-		return ret;
+		goto out;
 	}
 
 	switch (idev->info->mem[mi].memtype) {
 		case UIO_MEM_PHYS:
-			return uio_mmap_physical(vma);
+			ret = uio_mmap_physical(vma);
+			break;
 		case UIO_MEM_LOGICAL:
 		case UIO_MEM_VIRTUAL:
-			return uio_mmap_logical(vma);
+			ret = uio_mmap_logical(vma);
+			break;
 		default:
-			return -EINVAL;
+			ret = -EINVAL;
 	}
+
+out:
+	mutex_unlock(&idev->info_lock);
+	return ret;
 }
 
 static const struct file_operations uio_fops = {
@@ -942,12 +1014,12 @@ void uio_unregister_device(struct uio_info *info)
 
 	uio_free_minor(idev);
 
+	mutex_lock(&idev->info_lock);
 	uio_dev_del_attributes(idev);
 
 	if (info->irq && info->irq != UIO_IRQ_CUSTOM)
 		free_irq(info->irq, idev);
 
-	mutex_lock(&idev->info_lock);
 	idev->info = NULL;
 	mutex_unlock(&idev->info_lock);
 
