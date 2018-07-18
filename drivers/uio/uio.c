@@ -275,7 +275,7 @@ static int uio_dev_add_attributes(struct uio_device *idev)
 		map = kzalloc(sizeof(*map), GFP_KERNEL);
 		if (!map) {
 			ret = -ENOMEM;
-			goto err_map_kobj;
+			goto err_map;
 		}
 		kobject_init(&map->kobj, &map_attr_type);
 		map->mem = mem;
@@ -285,7 +285,7 @@ static int uio_dev_add_attributes(struct uio_device *idev)
 			goto err_map_kobj;
 		ret = kobject_uevent(&map->kobj, KOBJ_ADD);
 		if (ret)
-			goto err_map;
+			goto err_map_kobj;
 	}
 
 	for (pi = 0; pi < MAX_UIO_PORT_REGIONS; pi++) {
@@ -304,7 +304,7 @@ static int uio_dev_add_attributes(struct uio_device *idev)
 		portio = kzalloc(sizeof(*portio), GFP_KERNEL);
 		if (!portio) {
 			ret = -ENOMEM;
-			goto err_portio_kobj;
+			goto err_portio;
 		}
 		kobject_init(&portio->kobj, &portio_attr_type);
 		portio->port = port;
@@ -315,7 +315,7 @@ static int uio_dev_add_attributes(struct uio_device *idev)
 			goto err_portio_kobj;
 		ret = kobject_uevent(&portio->kobj, KOBJ_ADD);
 		if (ret)
-			goto err_portio;
+			goto err_portio_kobj;
 	}
 
 	return 0;
