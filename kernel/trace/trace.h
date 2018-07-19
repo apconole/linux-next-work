@@ -1084,4 +1084,8 @@ static inline void trace_event_enum_update(struct trace_enum_map **map, int len)
 
 extern struct trace_iterator *tracepoint_print_iter;
 
+/* RHEL7 specific functions */
+void destroy_rh_data(struct ftrace_event_call *call);
+int alloc_rh_data(struct ftrace_event_call *call);
+
 #endif /* _LINUX_KERNEL_TRACE_H */

@@ -1655,7 +1655,7 @@ static void event_remove(struct ftrace_event_call *call)
 	list_del(&call->list);
 }
 
-static void destroy_rh_data(struct ftrace_event_call *call)
+void destroy_rh_data(struct ftrace_event_call *call)
 {
 	struct ftrace_event_data *rh_data = call->rh_data;
 	void *ptr = rh_data->data;
@@ -1664,7 +1664,7 @@ static void destroy_rh_data(struct ftrace_event_call *call)
 	call->rh_data = ptr;
 }
 
-static int alloc_rh_data(struct ftrace_event_call *call)
+int alloc_rh_data(struct ftrace_event_call *call)
 {
 	struct ftrace_event_data *rh_data;
 
