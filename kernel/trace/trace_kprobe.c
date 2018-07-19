@@ -1372,6 +1372,7 @@ create_local_trace_kprobe(char *func, void *addr, unsigned long offs,
 	ret = __register_trace_kprobe(tk);
 	if (ret < 0) {
 		destroy_rh_data(&tk->tp.call);
+		kfree(tk->tp.call.print_fmt);
 		goto error;
 	}
 
@@ -1394,6 +1395,8 @@ void destroy_local_trace_kprobe(struct ftrace_event_call *event_call)
 
 	__unregister_trace_kprobe(tk);
 	destroy_rh_data(event_call);
+
+	kfree(tk->tp.call.print_fmt);
 	free_trace_kprobe(tk);
 }
 #endif /* CONFIG_PERF_EVENTS */
