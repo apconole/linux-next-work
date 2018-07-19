@@ -1207,33 +1207,43 @@ static struct trace_event_functions uprobe_funcs = {
 	.trace		= print_uprobe_event
 };
 
-static int register_uprobe_event(struct trace_uprobe *tu)
+static inline void init_trace_event_call(struct trace_uprobe *tu,
+					 struct ftrace_event_call *call)
 {
-	struct ftrace_event_call *call = &tu->tp.call;
-	int ret;
-
-	/* Initialize ftrace_event_call */
 	INIT_LIST_HEAD(&call->class->fields);
 	call->event.funcs = &uprobe_funcs;
 	call->class->define_fields = uprobe_event_define_fields;
 
-	if (set_print_fmt(&tu->tp, is_ret_probe(tu)) < 0)
+	call->flags = TRACE_EVENT_FL_UPROBE;
+	call->class->reg = trace_uprobe_register;
+	call->rh_data = (void *) tu;
+}
+
+static int register_uprobe_event(struct trace_uprobe *tu)
+{
+	struct ftrace_event_call *call = &tu->tp.call;
+	int ret = 0;
+
+	init_trace_event_call(tu, call);
+
+	if (set_print_fmt(&tu->tp, is_ret_probe(tu)) < 0) {
+		destroy_rh_data(call);
 		return -ENOMEM;
+	}
 
 	ret = register_ftrace_event(&call->event);
 	if (!ret) {
 		kfree(call->print_fmt);
+		destroy_rh_data(call);
 		return -ENODEV;
 	}
 
-	call->flags = TRACE_EVENT_FL_UPROBE;
-	call->class->reg = trace_uprobe_register;
-	call->rh_data = (void *) tu;
 	ret = trace_add_event_call(call);
 
 	if (ret) {
 		pr_info("Failed to register uprobe event: %s\n", call->name);
 		kfree(call->print_fmt);
+		destroy_rh_data(call);
 		unregister_ftrace_event(&call->event);
 	}
 
@@ -1252,6 +1262,77 @@ static int unregister_uprobe_event(struct trace_uprobe *tu)
 	tu->tp.call.print_fmt = NULL;
 	return 0;
 }
+
+#ifdef CONFIG_PERF_EVENTS
+struct ftrace_event_call *
+create_local_trace_uprobe(char *name, unsigned long offs, bool is_return)
+{
+	struct trace_uprobe *tu;
+	struct inode *inode;
+	struct path path;
+	int ret;
+
+	ret = kern_path(name, LOOKUP_FOLLOW, &path);
+	if (ret)
+		return ERR_PTR(ret);
+
+	inode = igrab(d_inode(path.dentry));
+	path_put(&path);
+
+	if (!inode || !S_ISREG(inode->i_mode)) {
+		iput(inode);
+		return ERR_PTR(-EINVAL);
+	}
+
+	/*
+	 * local trace_kprobes are not added to probe_list, so they are never
+	 * searched in find_trace_kprobe(). Therefore, there is no concern of
+	 * duplicated name "DUMMY_EVENT" here.
+	 */
+	tu = alloc_trace_uprobe(UPROBE_EVENT_SYSTEM, "DUMMY_EVENT", 0,
+				is_return);
+
+	if (IS_ERR(tu)) {
+		pr_info("Failed to allocate trace_uprobe.(%d)\n",
+			(int)PTR_ERR(tu));
+		return ERR_CAST(tu);
+	}
+
+	tu->offset = offs;
+	tu->inode = inode;
+	tu->filename = kstrdup(name, GFP_KERNEL);
+	init_trace_event_call(tu, &tu->tp.call);
+
+	if (alloc_rh_data(&tu->tp.call)) {
+		ret = -ENOMEM;
+		goto error;
+	}
+
+	if (set_print_fmt(&tu->tp, is_ret_probe(tu)) < 0) {
+		destroy_rh_data(&tu->tp.call);
+		ret = -ENOMEM;
+		goto error;
+	}
+
+	return &tu->tp.call;
+error:
+	free_trace_uprobe(tu);
+	return ERR_PTR(ret);
+}
+
+void destroy_local_trace_uprobe(struct ftrace_event_call *event_call)
+{
+	struct trace_uprobe *tu;
+
+	tu = container_of(event_call, struct trace_uprobe, tp.call);
+
+	kfree(tu->tp.call.print_fmt);
+	destroy_rh_data(&tu->tp.call);
+	tu->tp.call.print_fmt = NULL;
+
+	free_trace_uprobe(tu);
+}
+#endif /* CONFIG_PERF_EVENTS */
 
 /* Make a trace interface for controling probe points */
 static __init int init_uprobe_trace(void)

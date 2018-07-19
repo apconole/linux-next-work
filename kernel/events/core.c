@@ -8022,7 +8022,7 @@ static struct pmu perf_tracepoint = {
 	.read		= perf_swevent_read,
 };
 
-#ifdef CONFIG_KPROBE_EVENT
+#if defined(CONFIG_KPROBE_EVENT) || defined(CONFIG_UPROBE_EVENT)
 /*
  * Flags in config, used by dynamic PMU kprobe and uprobe
  * The flags should match following PMU_FORMAT_ATTR().
@@ -8050,7 +8050,9 @@ static const struct attribute_group *probe_attr_groups[] = {
 	&probe_format_group,
 	NULL,
 };
+#endif
 
+#ifdef CONFIG_KPROBE_EVENT
 static int perf_kprobe_event_init(struct perf_event *event);
 static struct pmu perf_kprobe = {
 	.task_ctx_nr	= perf_sw_context,
@@ -8087,11 +8089,51 @@ static int perf_kprobe_event_init(struct perf_event *event)
 }
 #endif /* CONFIG_KPROBE_EVENT */
 
+#ifdef CONFIG_UPROBE_EVENT
+static int perf_uprobe_event_init(struct perf_event *event);
+static struct pmu perf_uprobe = {
+	.task_ctx_nr	= perf_sw_context,
+	.event_init	= perf_uprobe_event_init,
+	.add		= perf_trace_add,
+	.del		= perf_trace_del,
+	.start		= perf_swevent_start,
+	.stop		= perf_swevent_stop,
+	.read		= perf_swevent_read,
+	.attr_groups	= probe_attr_groups,
+};
+
+static int perf_uprobe_event_init(struct perf_event *event)
+{
+	int err;
+	bool is_retprobe;
+
+	if (event->attr.type != perf_uprobe.type)
+		return -ENOENT;
+	/*
+	 * no branch sampling for probe events
+	 */
+	if (has_branch_stack(event))
+		return -EOPNOTSUPP;
+
+	is_retprobe = event->attr.config & PERF_PROBE_CONFIG_IS_RETPROBE;
+	err = perf_uprobe_init(event, is_retprobe);
+	if (err)
+		return err;
+
+	event->destroy = perf_uprobe_destroy;
+
+	return 0;
+}
+#endif /* CONFIG_UPROBE_EVENT */
+
 static inline void perf_tp_register(void)
 {
 	perf_pmu_register(&perf_tracepoint, "tracepoint", PERF_TYPE_TRACEPOINT);
 #ifdef CONFIG_KPROBE_EVENT
 	perf_pmu_register(&perf_kprobe, "kprobe", -1);
+#endif
+#ifdef CONFIG_UPROBE_EVENT
+	perf_pmu_register(&perf_uprobe, "uprobe", -1);
 #endif
 }
 
@@ -8179,6 +8221,10 @@ static inline bool perf_event_is_tracing(struct perf_event *event)
 		return true;
 #ifdef CONFIG_KPROBE_EVENT
 	if (event->pmu == &perf_kprobe)
+		return true;
+#endif
+#ifdef CONFIG_UPROBE_EVENT
+	if (event->pmu == &perf_uprobe)
 		return true;
 #endif
 	return false;
