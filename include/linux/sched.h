@@ -1017,14 +1017,6 @@ struct sched_domain {
 	};
 
 	unsigned int span_weight;
-	/*
-	 * Span of all CPUs in this domain.
-	 *
-	 * NOTE: this field is variable length. (Allocated dynamically
-	 * by attaching extra space to the end of the structure,
-	 * depending on how many CPUs the kernel has booted up with)
-	 */
-	unsigned long span[0];
 
 #ifndef __GENKSYMS__
 	/* CONFIG_SCHEDSTATS */
@@ -1058,6 +1050,15 @@ struct sched_domain {
 	unsigned int ttwu_move_affine;
 	unsigned int ttwu_move_balance;
 #endif /* __GENKSYMS__ */
+
+	/*
+	 * Span of all CPUs in this domain.
+	 *
+	 * NOTE: this field is variable length. (Allocated dynamically
+	 * by attaching extra space to the end of the structure,
+	 * depending on how many CPUs the kernel has booted up with)
+	 */
+	unsigned long span[0];
 };
 
 static inline struct cpumask *sched_domain_span(struct sched_domain *sd)
