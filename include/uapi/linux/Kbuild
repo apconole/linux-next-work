@@ -444,6 +444,7 @@ header-y += wanrouter.h
 header-y += watchdog.h
 header-y += wimax.h
 header-y += wireless.h
+header-y += wmi.h
 header-y += x25.h
 header-y += xattr.h
 header-y += xfrm.h
