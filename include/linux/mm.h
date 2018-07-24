@@ -1454,6 +1454,20 @@ long __get_user_pages_unlocked(struct task_struct *tsk, struct mm_struct *mm,
 long get_user_pages_unlocked(struct task_struct *tsk, struct mm_struct *mm,
 		    unsigned long start, unsigned long nr_pages,
 		    int write, int force, struct page **pages);
+#ifdef CONFIG_FS_DAX
+long get_user_pages_longterm(unsigned long start, unsigned long nr_pages,
+			     int write, int force, struct page **pages,
+			     struct vm_area_struct **vmas);
+#else
+static inline long get_user_pages_longterm(unsigned long start,
+		unsigned long nr_pages, int write, int force,
+		struct page **pages, struct vm_area_struct **vmas)
+{
+	return __get_user_pages(current, current->mm, start, nr_pages,
+				gup_flags, pages, vmas, 0);
+}
+#endif /* CONFIG_FS_DAX */
+
 int get_user_pages_fast(unsigned long start, int nr_pages, int write,
 			struct page **pages);
 struct kvec;
