@@ -341,9 +341,6 @@ static struct dma_page *__ttm_dma_alloc_page(struct dma_pool *pool)
 	if (!d_page)
 		return NULL;
 
-	if (pool->type & IS_HUGE)
-		dma_set_attr(DMA_ATTR_NO_WARN, &attrs);
-
 	vaddr = dma_alloc_attrs(pool->dev, pool->size, &d_page->dma,
 				pool->gfp_flags, &attrs);
 	if (vaddr) {
