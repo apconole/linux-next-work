@@ -309,6 +309,8 @@ out_done:
 	return lport;
 }
 
+bool tech_preview_warning_issued = false;
+
 /**
  * nvme_fc_register_localport - transport entry point called by an
  *                              LLDD to register the existence of a NVME
@@ -335,6 +337,11 @@ nvme_fc_register_localport(struct nvme_fc_port_info *pinfo,
 	struct nvme_fc_lport *newrec;
 	unsigned long flags;
 	int ret, idx;
+
+	if (!tech_preview_warning_issued) {
+		mark_tech_preview("NVMe over FC", THIS_MODULE);
+		tech_preview_warning_issued = true;
+	}
 
 	if (!template->localport_delete || !template->remoteport_delete ||
 	    !template->ls_req || !template->fcp_io ||
@@ -3240,8 +3247,6 @@ static struct nvmf_transport_ops nvme_fc_transport = {
 static int __init nvme_fc_init_module(void)
 {
 	int ret;
-
-	mark_tech_preview("NVMe over FC", THIS_MODULE);
 
 	/*
 	 * NOTE:
