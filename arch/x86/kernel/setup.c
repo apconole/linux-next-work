@@ -887,7 +887,13 @@ static bool valid_intel_processor(__u8 model, __u8 stepping)
 
 	switch(model) {
 	case INTEL_FAM6_KABYLAKE_DESKTOP:
+		valid = (stepping <= 10);
+		break;
+
 	case INTEL_FAM6_KABYLAKE_MOBILE:
+		valid = (stepping <= 11);
+		break;
+
 	case INTEL_FAM6_XEON_PHI_KNM:
 	case INTEL_FAM6_ATOM_GEMINI_LAKE:
 	case INTEL_FAM6_ATOM_DENVERTON:
@@ -905,11 +911,11 @@ static bool valid_intel_processor(__u8 model, __u8 stepping)
 	case INTEL_FAM6_SKYLAKE_DESKTOP:
 	case INTEL_FAM6_SKYLAKE_X:
 		/* stepping > 4 is Cascade Lake and is not supported */
-		valid = (boot_cpu_data.x86_mask <= 4);
+		valid = (stepping <= 4);
 		break;
 
 	default:
-		valid = (boot_cpu_data.x86_model <= INTEL_FAM6_HASWELL_X);
+		valid = (model <= INTEL_FAM6_HASWELL_X);
 		break;
 	}
 
