@@ -956,6 +956,7 @@ nvmet_fc_find_target_assoc(struct nvmet_fc_tgtport *tgtport,
 	return ret;
 }
 
+bool tech_preview_warning_issued = false;
 
 /**
  * nvme_fc_register_targetport - transport entry point called by an
@@ -983,6 +984,11 @@ nvmet_fc_register_targetport(struct nvmet_fc_port_info *pinfo,
 	struct nvmet_fc_tgtport *newrec;
 	unsigned long flags;
 	int ret, idx;
+
+	if (!tech_preview_warning_issued) {
+		mark_tech_preview("NVMe over FC Target", THIS_MODULE);
+		tech_preview_warning_issued = true;
+	}
 
 	if (!template->xmt_ls_rsp || !template->fcp_op ||
 	    !template->fcp_abort ||
@@ -2562,8 +2568,6 @@ static const struct nvmet_fabrics_ops nvmet_fc_tgt_fcp_ops = {
 
 static int __init nvmet_fc_init_module(void)
 {
-	mark_tech_preview("NVMe over FC", THIS_MODULE);
-
 	return nvmet_register_transport(&nvmet_fc_tgt_fcp_ops);
 }
 
