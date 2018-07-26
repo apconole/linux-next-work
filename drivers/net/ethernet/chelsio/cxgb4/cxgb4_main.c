@@ -3077,6 +3077,7 @@ static void cxgb_del_udp_tunnel(struct net_device *netdev,
 
 		adapter->geneve_port = 0;
 		t4_write_reg(adapter, MPS_RX_GENEVE_TYPE_A, 0);
+		break;
 	default:
 		return;
 	}
@@ -3162,6 +3163,7 @@ static void cxgb_add_udp_tunnel(struct net_device *netdev,
 
 		t4_write_reg(adapter, MPS_RX_GENEVE_TYPE_A,
 			     GENEVE_V(be16_to_cpu(ti->port)) | GENEVE_EN_F);
+		break;
 	default:
 		return;
 	}
