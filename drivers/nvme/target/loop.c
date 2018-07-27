@@ -160,7 +160,7 @@ static int nvme_loop_queue_rq(struct blk_mq_hw_ctx *hctx,
 	int ret;
 
 	if (!nvmf_check_ready(&queue->ctrl->ctrl, req, queue_ready))
-		return nvmf_fail_nonready_command(req);
+		return nvmf_fail_nonready_command(&queue->ctrl->ctrl, req);
 
 	ret = nvme_setup_cmd(ns, req, &iod->cmd);
 	if (ret != BLK_MQ_RQ_QUEUE_OK)
