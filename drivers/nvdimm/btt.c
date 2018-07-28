@@ -1051,11 +1051,6 @@ static int btt_meta_init(struct btt *btt)
 	return ret;
 }
 
-static u32 btt_meta_size(struct btt *btt)
-{
-	return btt->lbasize - btt->sector_size;
-}
-
 /*
  * This function calculates the arena in which the given LBA lies
  * by doing a linear walk. This is acceptable since we expect only
@@ -1135,7 +1130,12 @@ static void zero_fill_data(struct page *page, unsigned int off, u32 len)
 	kunmap_atomic(mem);
 }
 
-#ifdef CONFIG_BLK_DEV_INTEGRITY
+#ifdef CONFIG_BLK_DEV_INTEGRITY__BROKEN__
+static u32 btt_meta_size(struct btt *btt)
+{
+	return btt->lbasize - btt->sector_size;
+}
+
 static int btt_rw_integrity(struct btt *btt, struct bio_integrity_payload *bip,
 			struct arena_info *arena, u32 postmap, int rw)
 {
@@ -1544,21 +1544,24 @@ static int btt_blk_init(struct btt *btt)
 	queue_flag_set_unlocked(QUEUE_FLAG_NONROT, btt->btt_queue);
 	btt->btt_queue->queuedata = btt;
 
-	set_capacity(btt->btt_disk, 0);
-	add_disk(btt->btt_disk);
-	if (btt_meta_size(btt)) {
-		int rc = nd_integrity_init(btt->btt_disk, btt_meta_size(btt));
-
-		if (rc) {
-			del_gendisk(btt->btt_disk);
-			put_disk(btt->btt_disk);
-			blk_cleanup_queue(btt->btt_queue);
-			return rc;
-		}
-	}
 	set_capacity(btt->btt_disk, btt->nlba * btt->sector_size >> 9);
 	btt->nd_btt->size = btt->nlba * (u64)btt->sector_size;
-	revalidate_disk(btt->btt_disk);
+	add_disk(btt->btt_disk);
+	/*
+	 * The btt driver from RHEL 7.5 onward does not support DIF/DIX.
+	 * If there is an existing btt devices with a non-standard sector
+	 * size, allow the admin to read the data from it.  Writes would
+	 * also be possible, but we wouldn't write protection information,
+	 * which would result in check errors when reading under an older
+	 * (or upstream) kernel.  Note that the admin can still override
+	 * the read-only setting at his or her own peril.
+	 */
+	if (!btt_is_lbasize_supported(nd_btt->lbasize)) {
+		set_disk_ro(btt->btt_disk, 1);
+		dev_warn(&nd_btt->dev, "Unsupported sector size: %lu. Integrity "
+			 "checking is disabled.  Marking device read-only.\n",
+			 nd_btt->lbasize);
+	}
 
 	return 0;
 }
