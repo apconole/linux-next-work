@@ -1556,7 +1556,7 @@ static int btt_blk_init(struct btt *btt)
 	 * (or upstream) kernel.  Note that the admin can still override
 	 * the read-only setting at his or her own peril.
 	 */
-	if (!btt_is_lbasize_supported(nd_btt->lbasize)) {
+	if (!btt_lbasize_is_supported(nd_btt->lbasize)) {
 		set_disk_ro(btt->btt_disk, 1);
 		dev_warn(&nd_btt->dev, "Unsupported sector size: %lu. Integrity "
 			 "checking is disabled.  Marking device read-only.\n",

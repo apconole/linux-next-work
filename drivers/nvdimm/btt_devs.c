@@ -55,7 +55,7 @@ EXPORT_SYMBOL(to_nd_btt);
 
 static const unsigned long btt_lbasize_supported[] = { 512, 4096, 0 };
 
-bool btt_is_lbasize_supported(unsigned long lbasize)
+bool btt_lbasize_is_supported(unsigned long lbasize)
 {
 	int i;
 
@@ -65,6 +65,7 @@ bool btt_is_lbasize_supported(unsigned long lbasize)
 
 	return false;
 }
+EXPORT_SYMBOL_GPL(btt_lbasize_is_supported);
 
 static ssize_t sector_size_show(struct device *dev,
 		struct device_attribute *attr, char *buf)
