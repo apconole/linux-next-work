@@ -2255,6 +2255,13 @@ sock_skb_set_dropcount(const struct sock *sk, struct sk_buff *skb)
 	skb->dropcount = atomic_read(&sk->sk_drops);
 }
 
+static inline void sk_drops_add(struct sock *sk, const struct sk_buff *skb)
+{
+	int segs = max_t(u16, 1, skb_shinfo(skb)->gso_segs);
+
+	atomic_add(segs, &sk->sk_drops);
+}
+
 extern void __sock_recv_timestamp(struct msghdr *msg, struct sock *sk,
 	struct sk_buff *skb);
 extern void __sock_recv_wifi_status(struct msghdr *msg, struct sock *sk,
