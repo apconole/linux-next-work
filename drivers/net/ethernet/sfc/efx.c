@@ -480,9 +480,6 @@ efx_alloc_channel(struct efx_nic *efx, int i, struct efx_channel *old_channel)
 	rx_queue = &channel->rx_queue;
 	rx_queue->efx = efx;
 	timer_setup(&rx_queue->slow_fill, efx_rx_slow_fill, 0);
-#ifdef CONFIG_RFS_ACCEL
-	INIT_WORK(&channel->filter_work, efx_filter_rfs_expire);
-#endif
 
 	return channel;
 }
@@ -522,6 +519,9 @@ efx_copy_channel(const struct efx_channel *old_channel)
 	rx_queue->buffer = NULL;
 	memset(&rx_queue->rxd, 0, sizeof(rx_queue->rxd));
 	timer_setup(&rx_queue->slow_fill, efx_rx_slow_fill, 0);
+#ifdef CONFIG_RFS_ACCEL
+	INIT_WORK(&channel->filter_work, efx_filter_rfs_expire);
+#endif
 
 	return channel;
 }
