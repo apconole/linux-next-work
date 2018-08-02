@@ -150,7 +150,7 @@ F:	include/uapi/linux/audit.h
 F:	kernel/audit*
 
 BE2NET ETHERNET DRIVER (be2net)
-M:	Ivan Vecera <ivecera@redhat.com>
+M:	Petr Oros <poros@redhat.com>
 S:	Maintained
 F:	drivers/net/ethernet/emulex/benet/
 
