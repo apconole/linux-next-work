@@ -514,6 +514,7 @@ static void early_init_amd(struct cpuinfo_x86 *c)
 {
 	u32 dummy;
 
+	eager_fpu_not_needed();
 	early_init_amd_mc(c);
 
 	rdmsr_safe(MSR_AMD64_PATCH_LEVEL, &c->microcode, &dummy);
