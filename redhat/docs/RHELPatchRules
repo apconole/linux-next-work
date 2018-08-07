@@ -42,7 +42,7 @@ column lists the sections below which describe in detail what is needed:
       \ Date: Thu, 16 Feb 2012 16:10:05 -0500
 [II]--  Subject: [RHELX.Y] subsystem: nice summary of what was fixed
 
-      / Bugzilla: <bugzilla reference>
+      / Bugzilla: <bugzilla reference or INTERNAL>
    __|  Upstream Status: <upstream status>
 [III]|  Build Info: <brew build reference or cross-compiler output>
      |  Tested: <testing data>
@@ -256,20 +256,25 @@ four parts:
 a) Bugzilla:
 [Required] Each patch has at least one bugzilla number in the body or subject.
 
-    Patches lacking a bugzilla number will not be committed and will be
-immediately flagged by the maintainers.  Every patch needs to be coordinated
-with management and QE, and this is done through bugzilla flags.  If the
-qa_ack, pm_ack, and devel_ack flags are set on a bugzilla, then and only then,
-will the patch be considered for inclusion into the trees by the maintainers.
+    Patches that modify or add to publicly released code and are lacking a
+bugzilla number will not be committed and will be immediately flagged by the
+maintainers.  Every patch needs to be coordinated with management and QE, and
+this is done through bugzilla flags.  If the qa_ack, pm_ack, and devel_ack
+flags are set on a bugzilla, then and only then, will the patch be considered
+for inclusion into the trees by the maintainers.   Additionally, the bugzilla
+number can potentially give the reviewer more details about the reported
+problem the patch is addressing.
 
-    Additionally, the bugzilla number can potentially give the reviewer more
-details about the reported problem the patch is addressing.
+    A bugzilla is not required for patches that change redhat code or
+documents that will not be released to the public.  In those cases use INTERNAL
+as the BZ number.
 
     Patches can list multiple bugzilla numbers in the body if the patch fixes
 or is part of the fix for multiple bugs.  All bugzillas must must have
 appropriate flags before the patch can be committed.  In patchsets, it is
 preferred that bugs are listed only in the patches relevant to the bug, for
-both changelog clarity and for the benefit of SEG (Support Engineering Group).
+both changelog clarity and for the benefit of Engineering teams work on
+z-stream kernels.
 
 Good examples for bugzilla numbers in the body:
 
@@ -281,6 +286,7 @@ Good examples for bugzilla numbers in the body:
 	Resolves: bz783023
 	Fixes bug #783023 and bug #911911
 	https://bugzilla.redhat.com/show_bug.cgi?id=783023
+	Bugzilla: INTERNAL
 
 b) Upstream Status:
 [Required] A mention of where the patch(es) came from.
