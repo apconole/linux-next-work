@@ -46,6 +46,7 @@ column lists the sections below which describe in detail what is needed:
    __|  Upstream Status: <upstream status>
 [III]|  Build Info: <brew build reference or cross-compiler output>
      |  Tested: <testing data>
+     |  Depends: <bugzilla reference if required>
       \ Conflicts: <optional, if required>
 
       / commit 7fff4beb311dfab4f18ff2cd64f78scd9296a39a
@@ -354,6 +355,18 @@ acceptable, provided the test environment is known to adequately test a patch.
 
 For patchsets, the build and testing status can be mentioned a single time in
 the cover letter.
+
+e) Depends:
+[Required] List bugzillas for uncommitted patchset dependencies.
+
+    If the submitted patch depends on a uncommitted patchsets include a
+reference to the uncommitted patchsets bugzillas.
+
+    Please use one 'Depends' line per dependent patch series.
+
+    Follow the above 'Bugzilla' guidelines for suggested bugzilla lines.
+
+    This can be added in the cover letter.
 
 e) Conflicts:
 [Suggested] A short explanation of how the patch differs from upstream.
