@@ -3247,6 +3247,7 @@ static const struct net_device_ops cxgb4_netdev_ops = {
 
 #ifdef CONFIG_PCI_IOV
 static const struct net_device_ops cxgb4_mgmt_netdev_ops = {
+	.ndo_size             = sizeof(struct net_device_ops),
 	.ndo_open             = cxgb4_mgmt_open,
 	.ndo_set_vf_mac       = cxgb4_mgmt_set_vf_mac,
 	.ndo_get_vf_config    = cxgb4_mgmt_get_vf_config,
