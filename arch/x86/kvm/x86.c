@@ -5891,6 +5891,10 @@ static void *__read_mostly empty_zero_pages;
 
 void kvm_l1d_flush(void)
 {
+	if (static_cpu_has(X86_FEATURE_FLUSH_L1D)) {
+		wrmsrl(MSR_IA32_FLUSH_L1D, MSR_IA32_FLUSH_L1D_VALUE);
+		return;
+	}
 	asm volatile(
 		"movq %0, %%rax\n\t"
 		"leaq 65536(%0), %%rdx\n\t"
