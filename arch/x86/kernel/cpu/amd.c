@@ -736,12 +736,9 @@ static void init_amd(struct cpuinfo_x86 *c)
 
 	cpu_detect_cache_sizes(c);
 
-	/* Multi core CPU? */
-	if (c->extended_cpuid_level >= 0x80000008) {
-		amd_detect_cmp(c);
-		amd_get_topology(c);
-		srat_detect_node(c);
-	}
+	amd_detect_cmp(c);
+	amd_get_topology(c);
+	srat_detect_node(c);
 
 #ifdef CONFIG_X86_32
 	detect_ht(c);
