@@ -513,48 +513,67 @@ static void __init l1tf_select_mitigation(void)
 #undef pr_fmt
 
 #ifdef CONFIG_SYSFS
-ssize_t cpu_show_meltdown(struct device *dev,
-			  struct device_attribute *attr, char *buf)
+
+ssize_t cpu_show_common(struct device *dev, struct device_attribute *attr,
+			char *buf, unsigned int bug)
 {
-	if (!boot_cpu_has_bug(X86_BUG_CPU_MELTDOWN))
+	if (!boot_cpu_has_bug(bug))
 		return sprintf(buf, "Not affected\n");
-	if (kaiser_enabled)
-		return sprintf(buf, "Mitigation: PTI\n");
+
+	switch (bug) {
+	case X86_BUG_CPU_MELTDOWN:
+		if (kaiser_enabled)
+			return sprintf(buf, "Mitigation: PTI\n");
+
+		break;
+
+	case X86_BUG_SPECTRE_V1:
+		return sprintf(buf, "Mitigation: Load fences, __user pointer sanitization\n");
+
+	case X86_BUG_SPECTRE_V2:
+		return sprintf(buf, "%s\n",
+			       spectre_v2_strings[spec_ctrl_get_mitigation()]);
+
+	case X86_BUG_SPEC_STORE_BYPASS:
+		return sprintf(buf, "%s\n", ssb_strings[ssb_mode]);
+
+	case X86_BUG_L1TF:
+		if (boot_cpu_has(X86_FEATURE_L1TF_PTEINV))
+			return sprintf(buf, "Mitigation: Page Table Inversion\n");
+		break;
+
+	default:
+		break;
+	}
+
 	return sprintf(buf, "Vulnerable\n");
 }
 
-ssize_t cpu_show_spectre_v1(struct device *dev,
-			    struct device_attribute *attr, char *buf)
+ssize_t cpu_show_meltdown(struct device *dev,
+			  struct device_attribute *attr, char *buf)
 {
-	if (!boot_cpu_has_bug(X86_BUG_SPECTRE_V1))
-		return sprintf(buf, "Not affected\n");
-	return sprintf(buf, "Mitigation: Load fences\n");
+	return cpu_show_common(dev, attr, buf, X86_BUG_CPU_MELTDOWN);
+}
+
+ssize_t cpu_show_spectre_v1(struct device *dev, struct device_attribute *attr, char *buf)
+{
+	return cpu_show_common(dev, attr, buf, X86_BUG_SPECTRE_V1);
 }
 
 ssize_t cpu_show_spectre_v2(struct device *dev,
 			    struct device_attribute *attr, char *buf)
 {
-	if (!boot_cpu_has_bug(X86_BUG_SPECTRE_V2))
-		return sprintf(buf, "Not affected\n");
-	return sprintf(buf, "%s\n", spectre_v2_strings[spec_ctrl_get_mitigation()]);
+	return cpu_show_common(dev, attr, buf, X86_BUG_SPECTRE_V2);
 }
 
 ssize_t cpu_show_spec_store_bypass(struct device *dev,
 				   struct device_attribute *attr, char *buf)
 {
-	if (!boot_cpu_has_bug(X86_BUG_SPEC_STORE_BYPASS))
-		return sprintf(buf, "Not affected\n");
-	return sprintf(buf, "%s\n", ssb_strings[ssb_mode]);
+	return cpu_show_common(dev, attr, buf, X86_BUG_SPEC_STORE_BYPASS);
 }
 
 ssize_t cpu_show_l1tf(struct device *dev, struct device_attribute *attr, char *buf)
 {
-	if (!boot_cpu_has_bug(X86_BUG_L1TF))
-		return sprintf(buf, "Not affected\n");
-
-	if (boot_cpu_has(X86_FEATURE_L1TF_PTEINV))
-		return sprintf(buf, "Mitigation: Page Table Inversion\n");
-
-	return sprintf(buf, "Vulnerable\n");
+	return cpu_show_common(dev, attr, buf, X86_BUG_L1TF);
 }
 #endif
