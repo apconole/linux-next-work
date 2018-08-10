@@ -179,6 +179,7 @@ struct kvm_stats_debugfs_item debugfs_entries[] = {
 	{ "irq_injections", VCPU_STAT(irq_injections) },
 	{ "nmi_injections", VCPU_STAT(nmi_injections) },
 	{ "req_event", VCPU_STAT(req_event) },
+	{ "l1d_flush", VCPU_STAT(l1d_flush) },
 	{ "mmu_shadow_zapped", VM_STAT(mmu_shadow_zapped) },
 	{ "mmu_pte_write", VM_STAT(mmu_pte_write) },
 	{ "mmu_pte_updated", VM_STAT(mmu_pte_updated) },
@@ -5884,10 +5885,40 @@ static struct notifier_block pvclock_gtod_notifier = {
 };
 #endif
 
+
+#define L1D_CACHE_ORDER 3
+static void *__read_mostly empty_zero_pages;
+
+void kvm_l1d_flush(void)
+{
+	asm volatile(
+		"movq %0, %%rax\n\t"
+		"leaq 65536(%0), %%rdx\n\t"
+		"11: \n\t"
+		"movzbl (%%rax), %%ecx\n\t"
+		"addq $4096, %%rax\n\t"
+		"cmpq %%rax, %%rdx\n\t"
+		"jne 11b\n\t"
+		"xorl %%eax, %%eax\n\t"
+		"cpuid\n\t"
+		"xorl %%eax, %%eax\n\t"
+		"12:\n\t"
+		"movzwl %%ax, %%edx\n\t"
+		"addl $64, %%eax\n\t"
+		"movzbl (%%rdx, %0), %%ecx\n\t"
+		"cmpl $65536, %%eax\n\t"
+		"jne 12b\n\t"
+		"lfence\n\t"
+		:
+		: "r" (empty_zero_pages)
+		: "rax", "rbx", "rcx", "rdx");
+}
+
 int kvm_arch_init(void *opaque)
 {
 	int r;
 	struct kvm_x86_ops *ops = opaque;
+	struct page *page;
 
 	if (kvm_x86_ops) {
 		printk(KERN_ERR "kvm: already loaded the other module\n");
@@ -5907,10 +5938,15 @@ int kvm_arch_init(void *opaque)
 	}
 
 	r = -ENOMEM;
+	page = alloc_pages(GFP_ATOMIC, L1D_CACHE_ORDER);
+	if (!page)
+		goto out;
+	empty_zero_pages = page_address(page);
+
 	shared_msrs = alloc_percpu(struct kvm_shared_msrs);
 	if (!shared_msrs) {
 		printk(KERN_ERR "kvm: failed to allocate percpu kvm_shared_msrs\n");
-		goto out;
+		goto out_free_zero_pages;
 	}
 
 	r = kvm_mmu_module_init();
@@ -5938,6 +5974,8 @@ int kvm_arch_init(void *opaque)
 
 	return 0;
 
+out_free_zero_pages:
+	free_pages((unsigned long)empty_zero_pages, L1D_CACHE_ORDER);
 out_free_percpu:
 	free_percpu(shared_msrs);
 out:
@@ -5958,6 +5996,7 @@ void kvm_arch_exit(void)
 #endif
 	kvm_x86_ops = NULL;
 	kvm_mmu_module_exit();
+	free_pages((unsigned long)empty_zero_pages, L1D_CACHE_ORDER);
 	free_percpu(shared_msrs);
 }
 
@@ -6537,7 +6576,7 @@ static void kvm_vcpu_flush_tlb(struct kvm_vcpu *vcpu)
  * exiting to the userspace.  Otherwise, the value will be returned to the
  * userspace.
  */
-static int vcpu_enter_guest(struct kvm_vcpu *vcpu)
+static int vcpu_enter_guest(struct kvm_vcpu *vcpu, bool need_l1d_flush)
 {
 	int r;
 	bool req_int_win =
@@ -6671,9 +6710,14 @@ static int vcpu_enter_guest(struct kvm_vcpu *vcpu)
 
 	preempt_disable();
 
-	kvm_x86_ops->prepare_guest_switch(vcpu);
+	kvm_x86_ops->prepare_guest_switch(vcpu, &need_l1d_flush);
 	if (vcpu->fpu_active)
 		kvm_load_guest_fpu(vcpu);
+
+	if (need_l1d_flush) {
+		vcpu->stat.l1d_flush++;
+		kvm_l1d_flush();
+	}
 
 	/*
 	 * Disable IRQs before setting IN_GUEST_MODE.  Posted interrupt
@@ -6864,12 +6908,13 @@ static int vcpu_run(struct kvm_vcpu *vcpu)
 {
 	int r;
 	struct kvm *kvm = vcpu->kvm;
+	bool first = true;
 
 	vcpu->srcu_idx = srcu_read_lock(&kvm->srcu);
 
 	for (;;) {
 		if (kvm_vcpu_running(vcpu))
-			r = vcpu_enter_guest(vcpu);
+			r = vcpu_enter_guest(vcpu, first);
 		else
 			r = vcpu_block(kvm, vcpu);
 
@@ -6901,6 +6946,7 @@ static int vcpu_run(struct kvm_vcpu *vcpu)
 			cond_resched();
 			vcpu->srcu_idx = srcu_read_lock(&kvm->srcu);
 		}
+		first = false;
 	}
 
 	srcu_read_unlock(&kvm->srcu, vcpu->srcu_idx);
