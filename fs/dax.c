@@ -544,6 +544,7 @@ restart:
  */
 struct page *dax_layout_busy_page(struct address_space *mapping)
 {
+	pgoff_t indices[PAGEVEC_SIZE];
 	struct page *page = NULL;
 	struct pagevec pvec;
 	pgoff_t	index, end;
@@ -576,13 +577,14 @@ struct page *dax_layout_busy_page(struct address_space *mapping)
 	 */
 	unmap_mapping_range(mapping, 0, 0, 1);
 
-	while (index < end && pagevec_lookup(&pvec, mapping, index,
-				min(end - index, (pgoff_t)PAGEVEC_SIZE))) {
+	while (index < end && __pagevec_lookup(&pvec, mapping, index,
+				min(end - index, (pgoff_t)PAGEVEC_SIZE),
+				indices)) {
 		for (i = 0; i < pagevec_count(&pvec); i++) {
 			struct page *pvec_ent = pvec.pages[i];
 			void *entry;
 
-			index = page->index;
+			index = indices[i];
 			if (index >= end)
 				break;
 
