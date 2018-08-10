@@ -310,7 +310,7 @@ static int vmentry_l1d_flush_set(const char *s, const struct kernel_param *kp)
 
 static int vmentry_l1d_flush_get(char *s, const struct kernel_param *kp)
 {
-	return sprintf(s, "%s\n", vmentry_l1d_param[l1tf_vmx_mitigation].option);
+	return sprintf(s, "%s", vmentry_l1d_param[l1tf_vmx_mitigation].option);
 }
 
 static const struct kernel_param_ops vmentry_l1d_flush_ops = {
