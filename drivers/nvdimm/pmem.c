@@ -239,7 +239,7 @@ static int pmem_memcpy_fromiovecend(struct dax_device *dax_dev, pgoff_t pgoff,
 static int pmem_memcpy_toiovecend(struct dax_device *dax_dev, pgoff_t pgoff,
 			const struct iovec *iov, void *addr, int offset, int len)
 {
-	return memcpy_toiovecend_partial(iov, addr, offset, len);
+	return memcpy_toiovecend_partial_mcsafe(iov, addr, offset, len);
 }
 
 static const struct dax_operations pmem_dax_ops = {
