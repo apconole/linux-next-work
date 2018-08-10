@@ -10,9 +10,11 @@
 #include <linux/init.h>
 #include <linux/blkdev.h>
 #include <linux/bio.h>
+#include <linux/dax.h>
 #include <linux/slab.h>
 #include <linux/kthread.h>
 #include <linux/freezer.h>
+#include <linux/socket.h>
 
 #define DM_MSG_PREFIX "log-writes"
 
@@ -608,6 +610,49 @@ static int log_mark(struct log_writes_c *lc, char *data)
 	return 0;
 }
 
+static int log_dax(struct log_writes_c *lc, sector_t sector,
+		   const struct iovec *iov, int offset, int len)
+{
+	struct pending_block *block;
+
+	if (!len)
+		return 0;
+
+	block = kzalloc(sizeof(struct pending_block), GFP_KERNEL);
+	if (!block) {
+		DMERR("Error allocating dax pending block");
+		return -ENOMEM;
+	}
+
+	block->data = kzalloc(len, GFP_KERNEL);
+	if (!block->data) {
+		DMERR("Error allocating dax data space");
+		kfree(block);
+		return -ENOMEM;
+	}
+
+	/* write data provided via the iterator */
+	if (!memcpy_fromiovecend_partial_flushcache(block->data,
+						    iov, offset, len)) {
+		DMERR("Error copying dax data");
+		kfree(block->data);
+		kfree(block);
+		return -EIO;
+	}
+
+	block->datalen = len;
+	block->sector = bio_to_dev_sectors(lc, sector);
+	block->nr_sectors = ALIGN(len, lc->sectorsize) >> lc->sectorshift;
+
+	atomic_inc(&lc->pending_blocks);
+	spin_lock_irq(&lc->blocks_lock);
+	list_add_tail(&block->list, &lc->unflushed_blocks);
+	spin_unlock_irq(&lc->blocks_lock);
+	wake_up_process(lc->log_kthread);
+
+	return 0;
+}
+
 static void log_writes_dtr(struct dm_target *ti)
 {
 	struct log_writes_c *lc = ti->private;
@@ -886,9 +931,47 @@ static void log_writes_io_hints(struct dm_target *ti, struct queue_limits *limit
 	limits->io_min = limits->physical_block_size;
 }
 
+static long log_writes_dax_direct_access(struct dm_target *ti, pgoff_t pgoff,
+					 long nr_pages, void **kaddr, pfn_t *pfn)
+{
+	struct log_writes_c *lc = ti->private;
+	sector_t sector = pgoff * PAGE_SECTORS;
+	int ret;
+
+	ret = bdev_dax_pgoff(lc->dev->bdev, sector, nr_pages * PAGE_SIZE, &pgoff);
+	if (ret)
+		return ret;
+	return dax_direct_access(lc->dev->dax_dev, pgoff, nr_pages, kaddr, pfn);
+}
+
+static int log_writes_dax_memcpy_fromiovecend(struct dm_target *ti,
+			pgoff_t pgoff, void *addr, const struct iovec *iov,
+			int offset, int len)
+{
+	struct log_writes_c *lc = ti->private;
+	sector_t sector = pgoff * PAGE_SECTORS;
+	int err;
+
+	if (bdev_dax_pgoff(lc->dev->bdev, sector, ALIGN(len, PAGE_SIZE), &pgoff))
+		return 0;
+
+	/* Don't bother doing anything if logging has been disabled */
+	if (!lc->logging_enabled)
+		goto dax_copy;
+
+	err = log_dax(lc, sector, iov, offset, len);
+	if (err) {
+		DMWARN("Error %d logging DAX write", err);
+		return 0;
+	}
+dax_copy:
+	return dax_memcpy_fromiovecend(lc->dev->dax_dev, pgoff,
+				       addr, iov, offset, len);
+}
+
 static struct target_type log_writes_target = {
 	.name   = "log-writes",
-	.version = {1, 0, 0},
+	.version = {1, 1, 0},
 	.module = THIS_MODULE,
 	.ctr    = log_writes_ctr,
 	.dtr    = log_writes_dtr,
@@ -900,6 +983,8 @@ static struct target_type log_writes_target = {
 	.message = log_writes_message,
 	.iterate_devices = log_writes_iterate_devices,
 	.io_hints = log_writes_io_hints,
+	.direct_access = log_writes_dax_direct_access,
+	.dax_memcpy_fromiovecend = log_writes_dax_memcpy_fromiovecend,
 };
 
 static int __init dm_log_writes_init(void)
