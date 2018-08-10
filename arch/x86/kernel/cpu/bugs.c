@@ -28,6 +28,7 @@
 static void __init spectre_v2_select_mitigation(void);
 static void __init ssb_parse_cmdline(void);
 void ssb_select_mitigation(void);
+static void __init l1tf_select_mitigation(void);
 extern void spec_ctrl_save_msr(void);
 
 void __init check_bugs(void)
@@ -54,6 +55,8 @@ void __init check_bugs(void)
 	spectre_v2_select_mitigation();
 
 	spec_ctrl_cpu_init();
+
+	l1tf_select_mitigation();
 
 #ifdef CONFIG_X86_32
 	/*
@@ -99,6 +102,32 @@ void x86_amd_ssbd_enable(void)
 		wrmsrl(MSR_AMD64_VIRT_SPEC_CTRL, SPEC_CTRL_SSBD);
 	else if (boot_cpu_has(X86_FEATURE_LS_CFG_SSBD))
 		wrmsrl(MSR_AMD64_LS_CFG, msrval);
+}
+
+static void __init l1tf_select_mitigation(void)
+{
+	u64 half_pa;
+
+	if (!boot_cpu_has_bug(X86_BUG_L1TF))
+		return;
+
+#if PAGETABLE_LEVELS == 2
+	pr_warn("Kernel not compiled for PAE. No mitigation for L1TF\n");
+	return;
+#endif
+
+	/*
+	 * This is extremely unlikely to happen because almost all
+	 * systems have far more MAX_PA/2 than RAM can be fit into
+	 * DIMM slots.
+	 */
+	half_pa = (u64)l1tf_pfn_limit() << PAGE_SHIFT;
+	if (e820_any_mapped(half_pa, ULLONG_MAX - half_pa, E820_RAM)) {
+		pr_warn("System has more than MAX_PA/2 memory. L1TF mitigation not effective.\n");
+		return;
+	}
+
+	setup_force_cpu_cap(X86_FEATURE_L1TF_PTEINV);
 }
 
 /* The kernel command line selection */
@@ -520,8 +549,8 @@ ssize_t cpu_show_l1tf(struct device *dev, struct device_attribute *attr, char *b
 	if (!boot_cpu_has_bug(X86_BUG_L1TF))
 		return sprintf(buf, "Not affected\n");
 
-	if (boot_cpu_has(X86_FEATURE_L1TF_FIX))
-		return sprintf(buf, "Mitigated\n");
+	if (boot_cpu_has(X86_FEATURE_L1TF_PTEINV))
+		return sprintf(buf, "Mitigation: Page Table Inverrsion\n");
 
 	return sprintf(buf, "Vulnerable\n");
 }

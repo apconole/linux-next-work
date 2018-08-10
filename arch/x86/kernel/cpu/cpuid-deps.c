@@ -122,5 +122,4 @@ void clear_cpu_cap(struct cpuinfo_x86 *c, unsigned int feature)
 void setup_clear_cpu_cap(unsigned int feature)
 {
 	do_clear_cpu_cap(NULL, feature);
-	clear_bit(feature, (unsigned long *)cpu_caps_set);
 }
