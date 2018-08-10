@@ -973,9 +973,24 @@ dax_copy:
 	return dax_memcpy_fromiovecend(lc->dev->dax_dev, pgoff,
 				       addr, iov, offset, len);
 }
+
+static int log_writes_dax_memcpy_toiovecend(struct dm_target *ti,
+		pgoff_t pgoff, const struct iovec *iov, void *addr,
+		int offset, int len)
+{
+	struct log_writes_c *lc = ti->private;
+	sector_t sector = pgoff * PAGE_SECTORS;
+
+	if (bdev_dax_pgoff(lc->dev->bdev, sector, ALIGN(len, PAGE_SIZE), &pgoff))
+		return 0;
+	return dax_memcpy_toiovecend(lc->dev->dax_dev,
+				     pgoff, iov, addr, offset, len);
+}
+
 #else
 #define log_writes_dax_direct_access NULL
 #define log_writes_dax_memcpy_fromiovecend NULL
+#define log_writes_dax_memcpy_toiovecend NULL
 #endif
 
 static struct target_type log_writes_target = {
@@ -994,6 +1009,7 @@ static struct target_type log_writes_target = {
 	.io_hints = log_writes_io_hints,
 	.direct_access = log_writes_dax_direct_access,
 	.dax_memcpy_fromiovecend = log_writes_dax_memcpy_fromiovecend,
+	.dax_memcpy_toiovecend = log_writes_dax_memcpy_toiovecend,
 };
 
 static int __init dm_log_writes_init(void)

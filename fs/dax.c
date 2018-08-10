@@ -1178,8 +1178,9 @@ dax_iomap_actor(int rw, struct inode *inode, loff_t pos, loff_t length, void *da
 			map_len = dax_memcpy_fromiovecend(dax_dev, pgoff, kaddr,
 					iter->iov, iter->iov_offset, map_len);
 		else
-			map_len = memcpy_toiovecend_partial(iter->iov,
-					kaddr, iter->iov_offset, map_len);
+			map_len = dax_memcpy_toiovecend(dax_dev, pgoff,
+					iter->iov, kaddr, iter->iov_offset,
+					map_len);
 
 		if (map_len <= 0) {
 			ret = map_len ? map_len : -EFAULT;

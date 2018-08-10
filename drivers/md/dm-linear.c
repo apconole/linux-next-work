@@ -187,9 +187,24 @@ static int linear_dax_memcpy_fromiovecend(struct dm_target *ti, pgoff_t pgoff,
 	return dax_memcpy_fromiovecend(dax_dev, pgoff, addr, iov, offset, len);
 }
 
+static int linear_dax_memcpy_toiovecend(struct dm_target *ti, pgoff_t pgoff,
+		const struct iovec *iov, void *addr, int offset, int len)
+{
+	struct linear_c *lc = ti->private;
+	struct block_device *bdev = lc->dev->bdev;
+	struct dax_device *dax_dev = lc->dev->dax_dev;
+	sector_t dev_sector, sector = pgoff * PAGE_SECTORS;
+
+	dev_sector = linear_map_sector(ti, sector);
+	if (bdev_dax_pgoff(bdev, dev_sector, ALIGN(len, PAGE_SIZE), &pgoff))
+		return 0;
+	return dax_memcpy_toiovecend(dax_dev, pgoff, iov, addr, offset, len);
+}
+
 #else
 #define linear_dax_direct_access NULL
 #define linear_dax_memcpy_fromiovecend NULL
+#define linear_dax_memcpy_toiovecend NULL
 #endif
 
 static struct target_type linear_target = {
@@ -205,6 +220,7 @@ static struct target_type linear_target = {
 	.iterate_devices = linear_iterate_devices,
 	.direct_access = linear_dax_direct_access,
 	.dax_memcpy_fromiovecend = linear_dax_memcpy_fromiovecend,
+	.dax_memcpy_toiovecend = linear_dax_memcpy_toiovecend,
 };
 
 int __init dm_linear_init(void)

@@ -19,6 +19,8 @@ struct dax_operations {
 	/* memcpy_fromiovecend: required operation for fs-dax direct-i/o */
 	int (*memcpy_fromiovecend)(struct dax_device *, pgoff_t, void *,
 				   const struct iovec *, int, int);
+	int (*memcpy_toiovecend)(struct dax_device *, pgoff_t,
+				 const struct iovec *, void *, int, int);
 };
 
 extern struct attribute_group dax_attribute_group;
@@ -125,6 +127,8 @@ long dax_direct_access(struct dax_device *dax_dev, pgoff_t pgoff, long nr_pages,
 		void **kaddr, pfn_t *pfn);
 int dax_memcpy_fromiovecend(struct dax_device *dax_dev, pgoff_t pgoff,
 		void *addr, const struct iovec *iov, int offset, int len);
+int dax_memcpy_toiovecend(struct dax_device *dax_dev, pgoff_t pgoff,
+		const struct iovec *iov, void *addr, int offset, int len);
 void dax_flush(struct dax_device *dax_dev, void *addr, size_t size);
 
 ssize_t dax_iomap_rw(int rw, struct kiocb *iocb, const struct iovec *iov,

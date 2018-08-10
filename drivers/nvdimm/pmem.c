@@ -236,9 +236,16 @@ static int pmem_memcpy_fromiovecend(struct dax_device *dax_dev, pgoff_t pgoff,
 	return memcpy_fromiovecend_partial_flushcache(addr, iov, offset, len);
 }
 
+static int pmem_memcpy_toiovecend(struct dax_device *dax_dev, pgoff_t pgoff,
+			const struct iovec *iov, void *addr, int offset, int len)
+{
+	return memcpy_toiovecend_partial(iov, addr, offset, len);
+}
+
 static const struct dax_operations pmem_dax_ops = {
 	.direct_access = pmem_dax_direct_access,
 	.memcpy_fromiovecend = pmem_memcpy_fromiovecend,
+	.memcpy_toiovecend = pmem_memcpy_toiovecend,
 };
 
 static const struct attribute_group *pmem_attribute_groups[] = {

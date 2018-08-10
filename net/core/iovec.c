@@ -120,6 +120,7 @@ int memcpy_toiovecend_partial(const struct iovec *iov, unsigned char *kdata,
 
 	return orig_len - len;
 }
+EXPORT_SYMBOL(memcpy_toiovecend_partial);
 
 /*
  *	Copy iovec from kernel. Returns -EFAULT on error.

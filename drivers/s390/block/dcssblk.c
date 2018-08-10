@@ -50,9 +50,17 @@ static int dcssblk_dax_memcpy_fromiovecend(struct dax_device *dax_dev,
 	return memcpy_fromiovecend_partial_flushcache(addr, iov, offset, len);
 }
 
+static int dcssblk_dax_memcpy_toiovecend(struct dax_device *dax_dev,
+		pgoff_t pgoff, const struct iovec *iov, void *addr,
+		int offset, int len)
+{
+	return memcpy_toiovecend_partial(iov, addr, offset, len);
+}
+
 static const struct dax_operations dcssblk_dax_ops = {
 	.direct_access = dcssblk_dax_direct_access,
 	.memcpy_fromiovecend = dcssblk_dax_memcpy_fromiovecend,
+	.memcpy_toiovecend = dcssblk_dax_memcpy_toiovecend,
 };
 
 struct dcssblk_dev_info {

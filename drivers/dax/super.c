@@ -302,6 +302,17 @@ int dax_memcpy_fromiovecend(struct dax_device *dax_dev, pgoff_t pgoff,
 }
 EXPORT_SYMBOL_GPL(dax_memcpy_fromiovecend);
 
+int dax_memcpy_toiovecend(struct dax_device *dax_dev, pgoff_t pgoff,
+		const struct iovec *iov, void *addr, int offset, int len)
+{
+	if (!dax_alive(dax_dev))
+		return 0;
+
+	return dax_dev->ops->memcpy_toiovecend(dax_dev, pgoff,
+					       iov, addr, offset, len);
+}
+EXPORT_SYMBOL_GPL(dax_memcpy_toiovecend);
+
 #ifdef CONFIG_ARCH_HAS_PMEM_API
 void arch_wb_cache_pmem(void *addr, size_t size);
 void dax_flush(struct dax_device *dax_dev, void *addr, size_t size)

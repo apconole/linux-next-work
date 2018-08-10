@@ -981,6 +981,31 @@ static int dm_dax_memcpy_fromiovecend(struct dax_device *dax_dev, pgoff_t pgoff,
 	return ret;
 }
 
+static int dm_dax_memcpy_toiovecend(struct dax_device *dax_dev, pgoff_t pgoff,
+		const struct iovec *iov, void *addr, int offset, int len)
+{
+	struct mapped_device *md = dax_get_private(dax_dev);
+	sector_t sector = pgoff * PAGE_SECTORS;
+	struct dm_target *ti;
+	long ret = 0;
+	int srcu_idx;
+
+	ti = dm_dax_get_live_target(md, sector, &srcu_idx);
+
+	if (!ti)
+		goto out;
+	if (!ti->type->dax_memcpy_toiovecend) {
+		ret = memcpy_toiovecend_partial(iov, addr, offset, len);
+		goto out;
+	}
+	ret = ti->type->dax_memcpy_toiovecend(ti, pgoff,
+					      iov, addr, offset, len);
+ out:
+	dm_put_live_table(md, srcu_idx);
+
+	return ret;
+}
+
 /*
  * Flush current->bio_list when the target map method blocks.
  * This fixes deadlocks in snapshot and possibly in other targets.
@@ -3107,6 +3132,7 @@ static const struct block_device_operations dm_blk_dops = {
 static const struct dax_operations dm_dax_ops = {
 	.direct_access = dm_dax_direct_access,
 	.memcpy_fromiovecend = dm_dax_memcpy_fromiovecend,
+	.memcpy_toiovecend = dm_dax_memcpy_toiovecend,
 };
 
 /*
