@@ -66,7 +66,7 @@ int strcmp(const char *cs, const char *ct);
 
 #define __HAVE_ARCH_MEMCPY_MCSAFE 1
 extern struct static_key mcsafe_key;
-__must_check int memcpy_mcsafe_unrolled(void *dst, const void *src, size_t cnt);
+__must_check int __memcpy_mcsafe(void *dst, const void *src, size_t cnt);
 /**
  * memcpy_mcsafe - copy memory with indication if a machine check happened
  *
@@ -86,7 +86,7 @@ memcpy_mcsafe(void *dst, const void *src, size_t cnt)
 {
 #ifdef CONFIG_X86_MCE
 	if (static_key_false(&mcsafe_key))
-		return memcpy_mcsafe_unrolled(dst, src, cnt);
+		return __memcpy_mcsafe(dst, src, cnt);
 	else
 #endif
 		memcpy(dst, src, cnt);
