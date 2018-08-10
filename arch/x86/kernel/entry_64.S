@@ -483,12 +483,13 @@ GLOBAL(system_call_after_swapgs)
 	jnz tracesys
 system_call_fastpath:
 #if __SYSCALL_MASK == ~0
-	cmpq $__NR_syscall_max,%rax
+	cmpq $__NR_syscall_max+1,%rax
 #else
 	andl $__SYSCALL_MASK,%eax
-	cmpl $__NR_syscall_max,%eax
+	cmpl $__NR_syscall_max+1,%eax
 #endif
-	ja badsys
+	jae badsys
+	ARRAY_INDEX_NOSPEC_SYSCALL clobber_reg=%rcx
 	movq %r10,%rcx
 
 #ifdef CONFIG_RETPOLINE
@@ -611,12 +612,13 @@ tracesys:
 	 */
 	LOAD_ARGS ARGOFFSET, 1
 #if __SYSCALL_MASK == ~0
-	cmpq $__NR_syscall_max,%rax
+	cmpq $__NR_syscall_max+1,%rax
 #else
 	andl $__SYSCALL_MASK,%eax
-	cmpl $__NR_syscall_max,%eax
+	cmpl $__NR_syscall_max+1,%eax
 #endif
-	ja   1f		/* RAX(%rsp) set to -ENOSYS above */
+	jae   1f	/* RAX(%rsp) set to -ENOSYS above */
+	ARRAY_INDEX_NOSPEC_SYSCALL clobber_reg=%rcx
 	movq %r10,%rcx	/* fixup for C */
 
 #ifdef CONFIG_RETPOLINE
