@@ -514,4 +514,15 @@ ssize_t cpu_show_spec_store_bypass(struct device *dev,
 		return sprintf(buf, "Not affected\n");
 	return sprintf(buf, "%s\n", ssb_strings[ssb_mode]);
 }
+
+ssize_t cpu_show_l1tf(struct device *dev, struct device_attribute *attr, char *buf)
+{
+	if (!boot_cpu_has_bug(X86_BUG_L1TF))
+		return sprintf(buf, "Not affected\n");
+
+	if (boot_cpu_has(X86_FEATURE_L1TF_FIX))
+		return sprintf(buf, "Mitigated\n");
+
+	return sprintf(buf, "Vulnerable\n");
+}
 #endif

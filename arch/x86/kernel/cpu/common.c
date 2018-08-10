@@ -876,6 +876,15 @@ static void identify_cpu_without_cpuid(struct cpuinfo_x86 *c)
 #endif
 }
 
+static void __init l1tf_init_workaround(void)
+{
+#if PAGETABLE_LEVELS == 2
+	pr_warn("Kernel not compiled for PAE. No workaround for L1TF\n");
+#else
+	setup_force_cpu_cap(X86_FEATURE_L1TF_FIX);
+#endif
+}
+
 static const __initconst struct x86_cpu_id cpu_no_speculation[] = {
 	{ X86_VENDOR_INTEL,	6, INTEL_FAM6_ATOM_CEDARVIEW,	X86_FEATURE_ANY },
 	{ X86_VENDOR_INTEL,	6, INTEL_FAM6_ATOM_CLOVERVIEW,	X86_FEATURE_ANY },
@@ -910,6 +919,21 @@ static const __initconst struct x86_cpu_id cpu_no_spec_store_bypass[] = {
 	{}
 };
 
+static const __initconst struct x86_cpu_id cpu_no_l1tf[] = {
+	/* in addition to cpu_no_speculation */
+	{ X86_VENDOR_INTEL, 	6,	INTEL_FAM6_ATOM_SILVERMONT1 	},
+	{ X86_VENDOR_INTEL, 	6,	INTEL_FAM6_ATOM_SILVERMONT2 	},
+	{ X86_VENDOR_INTEL, 	6,	INTEL_FAM6_ATOM_AIRMONT 	},
+	{ X86_VENDOR_INTEL, 	6,	INTEL_FAM6_ATOM_MERRIFIELD 	},
+	{ X86_VENDOR_INTEL, 	6,	INTEL_FAM6_ATOM_MOOREFIELD 	},
+	{ X86_VENDOR_INTEL, 	6,	INTEL_FAM6_ATOM_GOLDMONT 	},
+	{ X86_VENDOR_INTEL, 	6,	INTEL_FAM6_ATOM_DENVERTON 	},
+	{ X86_VENDOR_INTEL, 	6,	INTEL_FAM6_ATOM_GEMINI_LAKE 	},
+	{ X86_VENDOR_INTEL, 	6,	INTEL_FAM6_XEON_PHI_KNL 	},
+	{ X86_VENDOR_INTEL, 	6,	INTEL_FAM6_XEON_PHI_KNM 	},
+	{}
+};
+
 static void __init cpu_set_bug_bits(struct cpuinfo_x86 *c)
 {
 	u64 ia32_cap = 0;
@@ -936,6 +960,12 @@ static void __init cpu_set_bug_bits(struct cpuinfo_x86 *c)
 		return;
 
 	setup_force_cpu_bug(X86_BUG_CPU_MELTDOWN);
+
+	if (x86_match_cpu(cpu_no_l1tf))
+		return;
+
+	setup_force_cpu_bug(X86_BUG_L1TF);
+	l1tf_init_workaround();
 }
 
 /*
