@@ -31,6 +31,7 @@ static inline void gmb(void)
 		: : : "memory");
 }
 #define gmb gmb
+#define barrier_nospec gmb
 
 #define rmb()				mb()
 #define wmb()				mb()
