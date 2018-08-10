@@ -976,6 +976,25 @@ static void rh_check_supported(void)
 		pr_crit("ACPI has been disabled or is not available on this hardware.  This may result in a single cpu boot, incorrect PCI IRQ routing, or boot failure.\n");
 }
 
+static __init void l1tf_check_maxpa_memory(void)
+{
+	u64 half_pa;
+
+	if (!boot_cpu_has_bug(X86_BUG_L1TF))
+		return;
+
+	half_pa = (u64)l1tf_pfn_limit() << PAGE_SHIFT;
+
+	/*
+	 * This is extremely unlikely to happen because almost all systems have far
+	 * more MAX_PA/2 than can be fit into DIMM slots.
+	 */
+	if (e820_any_mapped(half_pa, ULLONG_MAX - half_pa, E820_RAM)) {
+		pr_warn("System has more than MAX_PA/2 memory. L1TF workaround not effective.\n");
+		setup_clear_cpu_cap(X86_FEATURE_L1TF_FIX);
+	}
+}
+
 /*
  * Dump out kernel offset information on panic.
  */
@@ -1188,6 +1207,8 @@ void __init setup_arch(char **cmdline_p)
 	insert_resource(&iomem_resource, &code_resource);
 	insert_resource(&iomem_resource, &data_resource);
 	insert_resource(&iomem_resource, &bss_resource);
+
+	l1tf_check_maxpa_memory();
 
 	e820_add_kernel_range();
 	trim_bios_range();
