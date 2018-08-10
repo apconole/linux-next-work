@@ -300,6 +300,7 @@ enum cpuhp_smt_control {
 	CPU_SMT_ENABLED,
 	CPU_SMT_DISABLED,
 	CPU_SMT_FORCE_DISABLED,
+	CPU_SMT_NOT_SUPPORTED,
 };
 
 #if defined(CONFIG_SMP) && defined(CONFIG_HOTPLUG_SMT)

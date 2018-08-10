@@ -741,6 +741,7 @@ static const char *smt_states[] = {
 	[CPU_SMT_ENABLED]		= "on",
 	[CPU_SMT_DISABLED]		= "off",
 	[CPU_SMT_FORCE_DISABLED]	= "forceoff",
+	[CPU_SMT_NOT_SUPPORTED]		= "notsupported",
 };
 
 static ssize_t
@@ -749,14 +750,21 @@ show_smt_control(struct device *dev, struct device_attribute *attr, char *buf)
 	return snprintf(buf, PAGE_SIZE - 2, "%s\n", smt_states[cpu_smt_control]);
 }
 
+static void cpuhp_offline_cpu_device(unsigned int cpu)
+{
+	struct device *dev = get_cpu_device(cpu);
+
+	dev->offline = true;
+	/* Tell user space about the state change */
+	kobject_uevent(&dev->kobj, KOBJ_OFFLINE);
+}
+
 static int cpuhp_smt_disable(enum cpuhp_smt_control ctrlval)
 {
 	int cpu, ret = 0;
 
 	cpu_maps_update_begin();
 	for_each_online_cpu(cpu) {
-		struct device *dev;
-
 		if (topology_is_primary_thread(cpu))
 			continue;
 		ret = cpu_down_maps_locked(cpu);
@@ -764,17 +772,18 @@ static int cpuhp_smt_disable(enum cpuhp_smt_control ctrlval)
 			break;
 		/*
 		 * As this needs to hold the cpu maps lock it's impossible
-		 * to call device_offline(), so nothing would update
-		 * device:offline state. That would leave the sysfs entry
-		 * stale and prevent onlining after smt control has been
-		 * changed to 'off' again. This is called under the sysfs
-		 * hotplug lock, so it is properly serialized.
+		 * to call device_offline() because that ends up calling
+		 * cpu_down() which takes cpu maps lock. cpu maps lock
+		 * needs to be held as this might race against in kernel
+		 * abusers of the hotplug machinery (thermal management).
 		 *
-		 * Temporary workaround until Greg has a smarter idea to do
-		 * that.
+		 * So nothing would update device:offline state. That would
+		 * leave the sysfs entry stale and prevent onlining after
+		 * smt control has been changed to 'off' again. This is
+		 * called under the sysfs hotplug lock, so it is properly
+		 * serialized against the regular offline usage.
 		 */
-		dev = get_cpu_device(cpu);
-		dev->offline = true;
+		cpuhp_offline_cpu_device(cpu);
 	}
 	if (!ret)
 		cpu_smt_control = ctrlval;
@@ -806,6 +815,9 @@ store_smt_control(struct device *dev, struct device_attribute *attr,
 
 	if (cpu_smt_control == CPU_SMT_FORCE_DISABLED)
 		return -EPERM;
+
+	if (cpu_smt_control == CPU_SMT_NOT_SUPPORTED)
+		return -ENODEV;
 
 	ret = lock_device_hotplug_sysfs();
 	if (ret)
@@ -851,6 +863,9 @@ static const struct attribute_group cpuhp_smt_attr_group = {
 
 static int __init cpu_smt_state_init(void)
 {
+	if (!topology_smt_supported())
+		cpu_smt_control = CPU_SMT_NOT_SUPPORTED;
+
 	return sysfs_create_group(&cpu_subsys.dev_root->kobj,
 				  &cpuhp_smt_attr_group);
 }
