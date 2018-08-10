@@ -297,9 +297,6 @@ int dax_memcpy_fromiovecend(struct dax_device *dax_dev, pgoff_t pgoff,
 	if (!dax_alive(dax_dev))
 		return 0;
 
-	if (!dax_dev->ops->memcpy_fromiovecend)
-		return memcpy_fromiovecend_partial_flushcache(addr, iov,
-							      offset, len);
 	return dax_dev->ops->memcpy_fromiovecend(dax_dev, pgoff, addr,
 						 iov, offset, len);
 }

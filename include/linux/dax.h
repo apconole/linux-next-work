@@ -16,6 +16,7 @@ struct dax_operations {
 	 */
 	long (*direct_access)(struct dax_device *, pgoff_t, long,
 			void **, pfn_t *);
+	/* memcpy_fromiovecend: required operation for fs-dax direct-i/o */
 	int (*memcpy_fromiovecend)(struct dax_device *, pgoff_t, void *,
 				   const struct iovec *, int, int);
 };
