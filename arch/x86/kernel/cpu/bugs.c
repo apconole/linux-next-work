@@ -514,7 +514,7 @@ static void __init l1tf_select_mitigation(void)
 
 #ifdef CONFIG_SYSFS
 
-ssize_t cpu_show_common(struct device *dev, struct device_attribute *attr,
+static ssize_t cpu_show_common(struct device *dev, struct device_attribute *attr,
 			char *buf, unsigned int bug)
 {
 	if (!boot_cpu_has_bug(bug))
