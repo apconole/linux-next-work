@@ -573,8 +573,13 @@ static int __init nosmt_init(void)
 	 * primary sibling.
 	 */
 	for_each_present_cpu(cpu) {
-		if (!cpu_smt_allowed(cpu))
-			cpu_down(cpu);
+		if (!cpu_smt_allowed(cpu)) {
+			/*
+			 * Use the device interface so the cpu 'online' sysfs
+			 * file also gets updated.
+			 */
+			device_offline(get_cpu_device(cpu));
+		}
 	}
 
 	return 0;
