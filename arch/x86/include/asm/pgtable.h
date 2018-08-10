@@ -648,6 +648,8 @@ static inline int pte_present(pte_t a)
 			       _PAGE_NUMA);
 }
 
+#ifdef CONFIG_NUMA_BALANCING
+
 #define pte_mknonnuma pte_mknonnuma
 static inline pte_t pte_mknonnuma(pte_t pte)
 {
@@ -695,6 +697,8 @@ static inline pmd_t pmd_mknuma(pmd_t pmd)
 
 	return __pmd(val);
 }
+
+#endif /* CONFIG_NUMA_BALANCING */
 
 #ifdef __HAVE_ARCH_PTE_DEVMAP
 static inline int pte_devmap(pte_t a)
