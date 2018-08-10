@@ -88,12 +88,12 @@ static void write_pmem(void *pmem_addr, struct page *page,
 static int read_pmem(struct page *page, unsigned int off,
 		void *pmem_addr, unsigned int len)
 {
-	int rc;
+	unsigned long rem;
 	void *mem = kmap_atomic(page);
 
-	rc = memcpy_mcsafe(mem + off, pmem_addr, len);
+	rem = memcpy_mcsafe(mem + off, pmem_addr, len);
 	kunmap_atomic(mem);
-	if (rc)
+	if (rem)
 		return -EIO;
 	return 0;
 }
