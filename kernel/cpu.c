@@ -245,12 +245,15 @@ bool cpu_smt_allowed(unsigned int cpu)
 {
 	if (cpu_smt_control == CPU_SMT_ENABLED)
 		return true;
+
 	if (topology_is_primary_thread(cpu))
 		return true;
+
 	/*
-	 * X86 requires that the sibling threads are at least booted up
-	 * once to set the CR4.MCE bit so Machine Check Exceptions can be
-	 * handled and do not end up raising the CPU Internal Error line.
+	 * On x86 it's required to boot all logical CPUs at least once so
+	 * that the init code can get a chance to set CR4.MCE on each
+	 * CPU. Otherwise, a broadacasted MCE observing CR4.MCE=0b on any
+	 * core will shutdown the machine.
 	 */
 	return !per_cpu(booted_once, cpu);
 }
