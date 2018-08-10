@@ -3,6 +3,7 @@
 #include <linux/linkage.h>
 #include <asm/errno.h>
 #include <asm/cpufeatures.h>
+#include <asm/mcsafe_test.h>
 #include <asm/dwarf2.h>
 #include <asm/alternative-asm.h>
 
@@ -206,6 +207,9 @@ ENDPROC(__memcpy)
 	.previous
 
 #ifndef CONFIG_UML
+
+MCSAFE_TEST_CTL
+
 /*
  * __memcpy_mcsafe - memory copy with machine check exception handling
  * Note that we only catch machine checks when reading the source addresses.
@@ -229,6 +233,8 @@ ENTRY(__memcpy_mcsafe)
 	subl %ecx, %edx
 .L_read_leading_bytes:
 	movb (%rsi), %al
+	MCSAFE_TEST_SRC %rsi 1 .E_leading_bytes
+	MCSAFE_TEST_DST %rdi 1 .E_leading_bytes
 .L_write_leading_bytes:
 	movb %al, (%rdi)
 	incq %rsi
@@ -244,6 +250,8 @@ ENTRY(__memcpy_mcsafe)
 
 .L_read_words:
 	movq (%rsi), %r8
+	MCSAFE_TEST_SRC %rsi 8 .E_read_words
+	MCSAFE_TEST_DST %rdi 8 .E_write_words
 .L_write_words:
 	movq %r8, (%rdi)
 	addq $8, %rsi
@@ -260,6 +268,8 @@ ENTRY(__memcpy_mcsafe)
 	movl %edx, %ecx
 .L_read_trailing_bytes:
 	movb (%rsi), %al
+	MCSAFE_TEST_SRC %rsi 1 .E_trailing_bytes
+	MCSAFE_TEST_DST %rdi 1 .E_trailing_bytes
 .L_write_trailing_bytes:
 	movb %al, (%rdi)
 	incq %rsi
