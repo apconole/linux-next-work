@@ -553,7 +553,7 @@ ssize_t cpu_show_l1tf(struct device *dev, struct device_attribute *attr, char *b
 		return sprintf(buf, "Not affected\n");
 
 	if (boot_cpu_has(X86_FEATURE_L1TF_PTEINV))
-		return sprintf(buf, "Mitigation: Page Table Inverrsion\n");
+		return sprintf(buf, "Mitigation: Page Table Inversion\n");
 
 	return sprintf(buf, "Vulnerable\n");
 }
