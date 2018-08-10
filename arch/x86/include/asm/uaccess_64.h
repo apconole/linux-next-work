@@ -45,6 +45,17 @@ copy_user_generic(void *to, const void *from, unsigned len)
 	return ret;
 }
 
+static __always_inline __must_check unsigned long
+copy_to_user_mcsafe(void *to, const void *from, unsigned len)
+{
+	unsigned long ret;
+
+	__uaccess_begin();
+	ret = memcpy_mcsafe(to, from, len);
+	__uaccess_end();
+	return ret;
+}
+
 __must_check unsigned long
 _copy_to_user(void __user *to, const void *from, unsigned len);
 __must_check unsigned long
