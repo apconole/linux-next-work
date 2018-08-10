@@ -2985,10 +2985,22 @@ ftrace_notrace_open(struct inode *inode, struct file *file)
 				 inode, file);
 }
 
+/*
+ * If symbols in an architecture don't correspond exactly to the user-visible
+ * name of what they represent, it is possible to define this function to
+ * perform the necessary adjustments.
+*/
+char * __weak arch_ftrace_match_adjust(char *str, const char *search)
+{
+	return str;
+}
+
 static int ftrace_match(char *str, char *regex, int len, int type)
 {
 	int matched = 0;
 	int slen;
+
+	str = arch_ftrace_match_adjust(str, regex);
 
 	switch (type) {
 	case MATCH_FULL:
