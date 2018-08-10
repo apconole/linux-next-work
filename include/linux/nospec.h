@@ -7,6 +7,7 @@
 #define _LINUX_NOSPEC_H
 
 #include <linux/bug.h>
+#include <asm/barrier.h>
 
 struct task_struct;
 
