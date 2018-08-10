@@ -18,6 +18,7 @@
 #include <linux/dax.h>
 #include <linux/slab.h>
 #include <linux/idr.h>
+#include <linux/socket.h>
 #include <linux/hdreg.h>
 #include <linux/delay.h>
 #include <linux/wait.h>
@@ -947,6 +948,33 @@ static long dm_dax_direct_access(struct dax_device *dax_dev, pgoff_t pgoff,
 	nr_pages = min(len, nr_pages);
 	ret = ti->type->direct_access(ti, pgoff, nr_pages, kaddr, pfn);
 
+ out:
+	dm_put_live_table(md, srcu_idx);
+
+	return ret;
+}
+
+static int dm_dax_memcpy_fromiovecend(struct dax_device *dax_dev, pgoff_t pgoff,
+				      void *addr, const struct iovec *iov,
+				      int offset, int len)
+{
+	struct mapped_device *md = dax_get_private(dax_dev);
+	sector_t sector = pgoff * PAGE_SECTORS;
+	struct dm_target *ti;
+	long ret = 0;
+	int srcu_idx;
+
+	ti = dm_dax_get_live_target(md, sector, &srcu_idx);
+
+	if (!ti)
+		goto out;
+	if (!ti->type->dax_memcpy_fromiovecend) {
+		ret = memcpy_fromiovecend_partial_flushcache(addr, iov,
+							     offset, len);
+		goto out;
+	}
+	ret = ti->type->dax_memcpy_fromiovecend(ti, pgoff, addr,
+						iov, offset, len);
  out:
 	dm_put_live_table(md, srcu_idx);
 
@@ -3076,6 +3104,7 @@ static const struct block_device_operations dm_blk_dops = {
 
 static const struct dax_operations dm_dax_ops = {
 	.direct_access = dm_dax_direct_access,
+	.memcpy_fromiovecend = dm_dax_memcpy_fromiovecend,
 };
 
 /*

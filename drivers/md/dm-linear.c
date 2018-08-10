@@ -171,6 +171,21 @@ static long linear_dax_direct_access(struct dm_target *ti, pgoff_t pgoff,
 	return dax_direct_access(dax_dev, pgoff, nr_pages, kaddr, pfn);
 }
 
+static int linear_dax_memcpy_fromiovecend(struct dm_target *ti, pgoff_t pgoff,
+					  void *addr, const struct iovec *iov,
+					  int offset, int len)
+{
+	struct linear_c *lc = ti->private;
+	struct block_device *bdev = lc->dev->bdev;
+	struct dax_device *dax_dev = lc->dev->dax_dev;
+	sector_t dev_sector, sector = pgoff * PAGE_SECTORS;
+
+	dev_sector = linear_map_sector(ti, sector);
+	if (bdev_dax_pgoff(bdev, dev_sector, ALIGN(len, PAGE_SIZE), &pgoff))
+		return 0;
+	return dax_memcpy_fromiovecend(dax_dev, pgoff, addr, iov, offset, len);
+}
+
 static struct target_type linear_target = {
 	.name   = "linear",
 	.version = {1, 3, 0},
@@ -183,6 +198,7 @@ static struct target_type linear_target = {
 	.merge  = linear_merge,
 	.iterate_devices = linear_iterate_devices,
 	.direct_access = linear_dax_direct_access,
+	.dax_memcpy_fromiovecend = linear_dax_memcpy_fromiovecend,
 };
 
 int __init dm_linear_init(void)

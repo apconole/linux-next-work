@@ -27,7 +27,7 @@
 #include <linux/vmalloc.h>
 #include <linux/pfn_t.h>
 #include <linux/slab.h>
-#include <linux/uio.h>
+#include <linux/socket.h>
 #include <linux/dax.h>
 #include <linux/nd.h>
 #include "pmem.h"
@@ -230,8 +230,15 @@ static long pmem_dax_direct_access(struct dax_device *dax_dev,
 	return __pmem_direct_access(pmem, pgoff, nr_pages, kaddr, pfn);
 }
 
+static int pmem_memcpy_fromiovecend(struct dax_device *dax_dev, pgoff_t pgoff,
+			void *addr, const struct iovec *iov, int offset, int len)
+{
+	return memcpy_fromiovecend_partial_flushcache(addr, iov, offset, len);
+}
+
 static const struct dax_operations pmem_dax_ops = {
 	.direct_access = pmem_dax_direct_access,
+	.memcpy_fromiovecend = pmem_memcpy_fromiovecend,
 };
 
 static const struct attribute_group *pmem_attribute_groups[] = {

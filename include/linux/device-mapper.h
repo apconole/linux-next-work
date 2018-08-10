@@ -136,6 +136,8 @@ typedef int (*dm_busy_fn) (struct dm_target *ti);
  */
 typedef long (*dm_dax_direct_access_fn) (struct dm_target *ti, pgoff_t pgoff,
 		long nr_pages, void **kaddr, pfn_t *pfn);
+typedef int (*dm_dax_memcpy_fromiovecend_fn)(struct dm_target *ti, pgoff_t pgoff,
+		void *addr, const struct iovec *iov, int offset, int len);
 #define PAGE_SECTORS (PAGE_SIZE / 512)
 
 void dm_error(const char *message);
@@ -187,6 +189,7 @@ struct target_type {
 	dm_iterate_devices_fn iterate_devices;
 	dm_io_hints_fn io_hints;
 	dm_dax_direct_access_fn direct_access;
+	dm_dax_memcpy_fromiovecend_fn dax_memcpy_fromiovecend;
 
 	/* For internal device-mapper use. */
 	struct list_head list;

@@ -16,6 +16,8 @@ struct dax_operations {
 	 */
 	long (*direct_access)(struct dax_device *, pgoff_t, long,
 			void **, pfn_t *);
+	int (*memcpy_fromiovecend)(struct dax_device *, pgoff_t, void *,
+				   const struct iovec *, int, int);
 };
 
 extern struct attribute_group dax_attribute_group;
@@ -100,6 +102,8 @@ void kill_dax(struct dax_device *dax_dev);
 void *dax_get_private(struct dax_device *dax_dev);
 long dax_direct_access(struct dax_device *dax_dev, pgoff_t pgoff, long nr_pages,
 		void **kaddr, pfn_t *pfn);
+int dax_memcpy_fromiovecend(struct dax_device *dax_dev, pgoff_t pgoff,
+		void *addr, const struct iovec *iov, int offset, int len);
 void dax_flush(struct dax_device *dax_dev, void *addr, size_t size);
 void dax_write_cache(struct dax_device *dax_dev, bool wc);
 bool dax_write_cache_enabled(struct dax_device *dax_dev);

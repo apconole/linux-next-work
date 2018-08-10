@@ -327,6 +327,25 @@ static long stripe_dax_direct_access(struct dm_target *ti, pgoff_t pgoff,
 	return dax_direct_access(dax_dev, pgoff, nr_pages, kaddr, pfn);
 }
 
+static int stripe_dax_memcpy_fromiovecend(struct dm_target *ti, pgoff_t pgoff,
+		void *addr, const struct iovec *iov, int offset, int len)
+{
+	sector_t dev_sector, sector = pgoff * PAGE_SECTORS;
+	struct stripe_c *sc = ti->private;
+	struct dax_device *dax_dev;
+	struct block_device *bdev;
+	uint32_t stripe;
+
+	stripe_map_sector(sc, sector, &stripe, &dev_sector);
+	dev_sector += sc->stripe[stripe].physical_start;
+	dax_dev = sc->stripe[stripe].dev->dax_dev;
+	bdev = sc->stripe[stripe].dev->bdev;
+
+	if (bdev_dax_pgoff(bdev, dev_sector, ALIGN(len, PAGE_SIZE), &pgoff))
+		return 0;
+	return dax_memcpy_fromiovecend(dax_dev, pgoff, addr, iov, offset, len);
+}
+
 /*
  * Stripe status:
  *
@@ -466,6 +485,7 @@ static struct target_type stripe_target = {
 	.io_hints = stripe_io_hints,
 	.merge  = stripe_merge,
 	.direct_access = stripe_dax_direct_access,
+	.dax_memcpy_fromiovecend = stripe_dax_memcpy_fromiovecend,
 };
 
 int __init dm_stripe_init(void)

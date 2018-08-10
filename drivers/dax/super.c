@@ -19,6 +19,7 @@
 #include <linux/cdev.h>
 #include <linux/hash.h>
 #include <linux/slab.h>
+#include <linux/socket.h> /* memcpy_to/fromiovecend... */
 #include <linux/dax.h>
 #include <linux/fs.h>
 #include <linux/idr.h>
@@ -289,6 +290,20 @@ long dax_direct_access(struct dax_device *dax_dev, pgoff_t pgoff, long nr_pages,
 	return min(avail, nr_pages);
 }
 EXPORT_SYMBOL_GPL(dax_direct_access);
+
+int dax_memcpy_fromiovecend(struct dax_device *dax_dev, pgoff_t pgoff,
+		void *addr, const struct iovec *iov, int offset, int len)
+{
+	if (!dax_alive(dax_dev))
+		return 0;
+
+	if (!dax_dev->ops->memcpy_fromiovecend)
+		return memcpy_fromiovecend_partial_flushcache(addr, iov,
+							      offset, len);
+	return dax_dev->ops->memcpy_fromiovecend(dax_dev, pgoff, addr,
+						 iov, offset, len);
+}
+EXPORT_SYMBOL_GPL(dax_memcpy_fromiovecend);
 
 #ifdef CONFIG_ARCH_HAS_PMEM_API
 void arch_wb_cache_pmem(void *addr, size_t size);
