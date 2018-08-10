@@ -183,6 +183,7 @@ extern const ulong vmx_return;
 
 static struct static_key vmx_l1d_should_flush = STATIC_KEY_INIT_FALSE;
 static struct static_key vmx_l1d_flush_always = STATIC_KEY_INIT_FALSE;
+static DEFINE_MUTEX(vmx_l1d_flush_mutex);
 
 /* Storage for pre module init parameter parsing */
 static enum vmx_l1d_flush_state __read_mostly vmentry_l1d_flush_param = VMENTER_L1D_FLUSH_AUTO;
@@ -252,7 +253,7 @@ static int vmentry_l1d_flush_parse(const char *s)
 
 static int vmentry_l1d_flush_set(const char *s, const struct kernel_param *kp)
 {
-	int l1tf;
+	int l1tf, ret;
 
 	if (!boot_cpu_has(X86_BUG_L1TF))
 		return 0;
@@ -272,7 +273,10 @@ static int vmentry_l1d_flush_set(const char *s, const struct kernel_param *kp)
 		return 0;
 	}
 
-	return vmx_setup_l1d_flush(l1tf);
+	mutex_lock(&vmx_l1d_flush_mutex);
+	ret = vmx_setup_l1d_flush(l1tf);
+	mutex_unlock(&vmx_l1d_flush_mutex);
+	return ret;
 }
 
 static int vmentry_l1d_flush_get(char *s, const struct kernel_param *kp)
