@@ -552,8 +552,21 @@ void __init smp_init(void)
 	for_each_present_cpu(cpu) {
 		if (num_online_cpus() >= setup_max_cpus)
 			break;
-		if (!cpu_online(cpu))
-			cpu_up(cpu);
+		if (!cpu_online(cpu)) {
+			if (cpu_up(cpu))
+				continue;
+
+			/*
+			 * SMT soft disabling on X86 requires to bring the CPU
+			 * out of the BIOS 'wait for SIPI' state in order to
+			 * set the CR4.MCE bit.  The CPU marked itself as
+			 * booted_once in cpu_notify_starting() so the
+			 * cpu_smt_allowed() check will now return false if
+			 * this is not the primary sibling.
+			 */
+			if (!cpu_smt_allowed(cpu))
+				cpu_down(cpu);
+		}
 	}
 
 	/* Any cleanup work */

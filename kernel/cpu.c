@@ -28,6 +28,8 @@
 /* Serializes the updates to cpu_online_mask, cpu_present_mask */
 static DEFINE_MUTEX(cpu_add_remove_lock);
 
+static DEFINE_PER_CPU(bool, booted_once);
+
 /*
  * The following two APIs (cpu_maps_update_begin/done) must be used when
  * attempting to serialize the updates to cpu_online_mask & cpu_present_mask.
@@ -224,6 +226,35 @@ void cpu_hotplug_enable(void)
 static void cpu_hotplug_begin(void) {}
 static void cpu_hotplug_done(void) {}
 #endif	/* #else #if CONFIG_HOTPLUG_CPU */
+
+#ifdef CONFIG_HOTPLUG_SMT
+enum cpuhp_smt_control cpu_smt_control __read_mostly = CPU_SMT_ENABLED;
+
+static int __init smt_cmdline_disable(char *str)
+{
+	cpu_smt_control = CPU_SMT_DISABLED;
+	if (str && !strcmp(str, "force")) {
+		pr_info("SMT: Force disabled\n");
+		cpu_smt_control = CPU_SMT_FORCE_DISABLED;
+	}
+	return 0;
+}
+early_param("nosmt", smt_cmdline_disable);
+
+bool cpu_smt_allowed(unsigned int cpu)
+{
+	if (cpu_smt_control == CPU_SMT_ENABLED)
+		return true;
+	if (topology_is_primary_thread(cpu))
+		return true;
+	/*
+	 * X86 requires that the sibling threads are at least booted up
+	 * once to set the CR4.MCE bit so Machine Check Exceptions can be
+	 * handled and do not end up raising the CPU Internal Error line.
+	 */
+	return !per_cpu(booted_once, cpu);
+}
+#endif
 
 /* Need to know about CPUs going up/down? */
 int __ref register_cpu_notifier(struct notifier_block *nb)
@@ -463,29 +494,6 @@ int __ref cpu_down(unsigned int cpu)
 EXPORT_SYMBOL(cpu_down);
 #endif /*CONFIG_HOTPLUG_CPU*/
 
-#ifdef CONFIG_HOTPLUG_SMT
-enum cpuhp_smt_control cpu_smt_control __read_mostly = CPU_SMT_ENABLED;
-
-static int __init smt_cmdline_disable(char *str)
-{
-	cpu_smt_control = CPU_SMT_DISABLED;
-	if (str && !strcmp(str, "force")) {
-		pr_info("SMT: Force disabled\n");
-		cpu_smt_control = CPU_SMT_FORCE_DISABLED;
-	}
-	return 0;
-}
-early_param("nosmt", smt_cmdline_disable);
-
-static inline bool cpu_smt_allowed(unsigned int cpu)
-{
-	return cpu_smt_control == CPU_SMT_ENABLED ||
-		topology_is_primary_thread(cpu);
-}
-#else
-static inline bool cpu_smt_allowed(unsigned int cpu) { return true; }
-#endif
-
 /* Requires cpu_add_remove_lock to be held */
 static int _cpu_up(unsigned int cpu, int tasks_frozen)
 {
@@ -724,6 +732,7 @@ void notify_cpu_starting(unsigned int cpu)
 {
 	unsigned long val = CPU_STARTING;
 
+	per_cpu(booted_once, cpu) = true;
 #ifdef CONFIG_PM_SLEEP_SMP
 	if (frozen_cpus != NULL && cpumask_test_cpu(cpu, frozen_cpus))
 		val = CPU_STARTING_FROZEN;
@@ -980,4 +989,9 @@ void init_cpu_possible(const struct cpumask *src)
 void init_cpu_online(const struct cpumask *src)
 {
 	cpumask_copy(to_cpumask(cpu_online_bits), src);
+}
+
+void __init boot_cpu_state_init(void)
+{
+	this_cpu_write(booted_once, true);
 }

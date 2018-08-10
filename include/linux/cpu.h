@@ -26,6 +26,8 @@ struct cpu {
 	struct device dev;
 };
 
+extern void boot_cpu_state_init(void);
+
 extern int register_cpu(struct cpu *cpu, int num);
 extern struct device *get_cpu_device(unsigned cpu);
 extern bool cpu_is_hotpluggable(unsigned cpu);
@@ -255,6 +257,7 @@ int cpu_down(unsigned int cpu);
 #define __register_hotcpu_notifier(nb)	({ (void)(nb); 0; })
 #define unregister_hotcpu_notifier(nb)	({ (void)(nb); })
 #define __unregister_hotcpu_notifier(nb)	({ (void)(nb); })
+static inline int cpu_down(unsigned int cpu) { return -ENOSYS; }
 #endif		/* CONFIG_HOTPLUG_CPU */
 
 #ifdef CONFIG_PM_SLEEP_SMP
@@ -307,6 +310,12 @@ enum cpuhp_smt_control {
 extern enum cpuhp_smt_control cpu_smt_control;
 #else
 # define cpu_smt_control		(CPU_SMT_ENABLED)
+#endif
+
+#ifdef CONFIG_HOTPLUG_SMT
+bool cpu_smt_allowed(unsigned int cpu);
+#else
+static inline bool cpu_smt_allowed(unsigned int cpu) { return true; }
 #endif
 
 #endif /* _LINUX_CPU_H_ */
