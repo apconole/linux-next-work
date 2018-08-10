@@ -67,6 +67,9 @@ static const struct x86_cpu_id vmx_cpu_id[] = {
 };
 MODULE_DEVICE_TABLE(x86cpu, vmx_cpu_id);
 
+static bool __read_mostly nosmt;
+module_param(nosmt, bool, S_IRUGO);
+
 static int __read_mostly vmentry_l1d_flush = 1;
 module_param_named(vmentry_l1d_flush, vmentry_l1d_flush, int, 0644);
 
@@ -9310,6 +9313,20 @@ free_vcpu:
 	return ERR_PTR(err);
 }
 
+#define L1TF_MSG "SMT enabled with L1TF CPU bug present. Refer to CVE-2018-3620 for details.\n"
+
+static int vmx_vm_init(struct kvm *kvm)
+{
+	if (boot_cpu_has(X86_BUG_L1TF) && cpu_smt_control == CPU_SMT_ENABLED) {
+		if (nosmt) {
+			pr_err(L1TF_MSG);
+			return -EOPNOTSUPP;
+		}
+		pr_warn(L1TF_MSG);
+	}
+	return 0;
+}
+
 static void __init vmx_check_processor_compat(void *rtn)
 {
 	struct vmcs_config vmcs_conf;
@@ -11605,6 +11622,8 @@ static struct kvm_x86_ops vmx_x86_ops = {
 	.hardware_disable = hardware_disable,
 	.cpu_has_accelerated_tpr = report_flexpriority,
 	.has_emulated_msr = vmx_has_emulated_msr,
+
+	.vm_init = vmx_vm_init,
 
 	.vcpu_create = vmx_create_vcpu,
 	.vcpu_free = vmx_free_vcpu,
