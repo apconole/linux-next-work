@@ -67,8 +67,8 @@ static const struct x86_cpu_id vmx_cpu_id[] = {
 };
 MODULE_DEVICE_TABLE(x86cpu, vmx_cpu_id);
 
-static int __read_mostly vmexit_l1d_flush = 2;
-module_param_named(vmexit_l1d_flush, vmexit_l1d_flush, int, 0644);
+static int __read_mostly vmentry_l1d_flush = 1;
+module_param_named(vmentry_l1d_flush, vmentry_l1d_flush, int, 0644);
 
 static bool __read_mostly enable_vpid = 1;
 module_param_named(vpid, enable_vpid, bool, 0444);
@@ -550,7 +550,6 @@ struct vcpu_vmx {
 	unsigned long         host_rsp;
 	u8                    fail;
 	u8		      msr_bitmap_mode;
-	bool		      need_l1d_flush;
 	u32                   exit_intr_info;
 	u32                   idt_vectoring_info;
 	ulong                 rflags;
@@ -948,8 +947,6 @@ static DEFINE_PER_CPU(struct desc_ptr, host_gdt);
  */
 static DEFINE_PER_CPU(struct list_head, blocked_vcpu_on_cpu);
 static DEFINE_PER_CPU(spinlock_t, blocked_vcpu_on_cpu_lock);
-
-static DEFINE_PER_CPU(int, last_vector);
 
 static unsigned long *vmx_io_bitmap_a;
 static unsigned long *vmx_io_bitmap_b;
@@ -2125,59 +2122,41 @@ static void vmx_save_host_state(struct kvm_vcpu *vcpu)
 				   vmx->guest_msrs[i].mask);
 }
 
-static inline bool vmx_handling_confined(int reason)
-{
-	switch (reason) {
-	case EXIT_REASON_EXCEPTION_NMI:
-	case EXIT_REASON_HLT:
-	case EXIT_REASON_PAUSE_INSTRUCTION:
-	case EXIT_REASON_APIC_WRITE:
-	case EXIT_REASON_MSR_WRITE:
-	case EXIT_REASON_VMCALL:
-	case EXIT_REASON_CR_ACCESS:
-	case EXIT_REASON_DR_ACCESS:
-	case EXIT_REASON_CPUID:
-	case EXIT_REASON_PREEMPTION_TIMER:
-	case EXIT_REASON_MSR_READ:
-	case EXIT_REASON_EOI_INDUCED:
-	case EXIT_REASON_WBINVD:
-	case EXIT_REASON_XSETBV:
-	case EXIT_REASON_PML_FULL:
-		/* these next ones set need_l1d_flush */
-	case EXIT_REASON_EPT_MISCONFIG:
-	case EXIT_REASON_IO_INSTRUCTION:
-		return true;
-	case EXIT_REASON_EXTERNAL_INTERRUPT: {
-		int cpu = raw_smp_processor_id();
-		int vector = per_cpu(last_vector, cpu);
-		return vector == LOCAL_TIMER_VECTOR || vector == RESCHEDULE_VECTOR;
-	}
-	default:
-		return false;
-	}
-}
-
-static bool vmx_core_confined(struct kvm_vcpu *vcpu)
-{
-	struct vcpu_vmx *vmx = to_vmx(vcpu);
-
-	if (vmx->need_l1d_flush) {
-		vmx->need_l1d_flush = false;
-		return true;
-	}
-
-	return vmx_handling_confined(vmx->exit_reason);
-}
-
-static void vmx_prepare_guest_switch(struct kvm_vcpu *vcpu, bool *need_l1_flush)
+static void vmx_prepare_guest_switch(struct kvm_vcpu *vcpu, bool *need_l1d_flush)
 {
 	vmx_save_host_state(vcpu);
-	if (vmexit_l1d_flush == 2)
-		*need_l1_flush = true;
-	else if (vmexit_l1d_flush == 1)
-		*need_l1_flush |= !vmx_core_confined(vcpu);
-	else
-		*need_l1_flush = false;
+	if (!enable_ept || static_cpu_has(X86_FEATURE_HYPERVISOR)) {
+		*need_l1d_flush = false;
+		return;
+	}
+
+	switch (vmentry_l1d_flush) {
+	case 0:
+		*need_l1d_flush = false;
+		break;
+	case 1:
+		/*
+		 * If vmentry_l1d_flush is 1, each vmexit handler is responsible for
+		 * setting vcpu->arch.vcpu_unconfined.  Currently this happens in the
+		 * following cases:
+		 * - vmlaunch/vmresume: we do not want the cache to be cleared by a
+		 *   nested hypervisor *and* by KVM on bare metal, so we just do it
+		 *   on every nested entry.  Nested hypervisors do not bother clearing
+		 *   the cache.
+		 * - anything that runs the emulator (the slow paths for EPT misconfig
+		 *   or I/O instruction)
+		 * - anything that can cause get_user_pages (EPT violation, and again
+		 *   the slow paths for EPT misconfig or I/O instruction)
+		 * - anything that can run code outside KVM (external interrupt,
+		 *   which can run interrupt handlers or irqs; or the sched_in
+		 *   preempt notifier)
+		 */
+		break;
+	case 2:
+	default:
+		*need_l1d_flush = true;
+		break;
+	}
 }
 
 static void __vmx_load_host_state(struct vcpu_vmx *vmx)
@@ -5851,11 +5830,8 @@ static int handle_io(struct kvm_vcpu *vcpu)
 
 	++vcpu->stat.io_exits;
 
-	if (string || in) {
-		struct vcpu_vmx *vmx = to_vmx(vcpu);
-		vmx->need_l1d_flush = true;
+	if (string || in)
 		return emulate_instruction(vcpu, 0) == EMULATE_DONE;
-	}
 
 	port = exit_qualification >> 16;
 	size = (exit_qualification & 7) + 1;
@@ -6408,12 +6384,9 @@ static int handle_ept_misconfig(struct kvm_vcpu *vcpu)
 	}
 
 	ret = handle_mmio_page_fault(vcpu, gpa, true);
-	if (likely(ret == RET_MMIO_PF_EMULATE)) {
-		struct vcpu_vmx *vmx = to_vmx(vcpu);
-		vmx->need_l1d_flush = true;
+	if (likely(ret == RET_MMIO_PF_EMULATE))
 		return x86_emulate_instruction(vcpu, gpa, 0, NULL, 0) ==
 					      EMULATE_DONE;
-	}
 
 	if (unlikely(ret == RET_MMIO_PF_INVALID))
 		return kvm_mmu_page_fault(vcpu, gpa, 0, NULL, 0);
@@ -8727,13 +8700,11 @@ static void vmx_handle_external_intr(struct kvm_vcpu *vcpu)
 		unsigned long entry;
 		gate_desc *desc;
 		struct vcpu_vmx *vmx = to_vmx(vcpu);
-		int cpu = raw_smp_processor_id();
 #ifdef CONFIG_X86_64
 		unsigned long tmp;
 #endif
 
 		vector =  exit_intr_info & INTR_INFO_VECTOR_MASK;
-		per_cpu(last_vector, cpu) = vector;
 		desc = (gate_desc *)vmx->host_idt_base + vector;
 		entry = gate_offset(*desc);
 		asm volatile(
@@ -8757,6 +8728,7 @@ static void vmx_handle_external_intr(struct kvm_vcpu *vcpu)
 			[ss]"i"(__KERNEL_DS),
 			[cs]"i"(__KERNEL_CS)
 			);
+		vcpu->arch.vcpu_unconfined = true;
 	} else
 		local_irq_enable();
 }
@@ -11245,6 +11217,9 @@ static int vmx_set_hv_timer(struct kvm_vcpu *vcpu, u64 guest_deadline_tsc)
 				&delta_tsc))
 		return -ERANGE;
 
+	/* Hide L1D cache contents from the nested guest.  */
+	vmx->vcpu.arch.vcpu_unconfined = true;
+
 	/*
 	 * If the delta tsc can't fit in the 32 bit after the multi shift,
 	 * we can't use the preemption timer.
@@ -11272,11 +11247,8 @@ static void vmx_cancel_hv_timer(struct kvm_vcpu *vcpu)
 
 static void vmx_sched_in(struct kvm_vcpu *vcpu, int cpu)
 {
-	struct vcpu_vmx *vmx = to_vmx(vcpu);
-
 	if (ple_gap)
 		shrink_ple_window(vcpu);
-	vmx->need_l1d_flush = true;
 }
 
 static void vmx_slot_enable_log_dirty(struct kvm *kvm,

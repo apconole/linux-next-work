@@ -616,6 +616,9 @@ struct kvm_vcpu_arch {
 
 	int pending_ioapic_eoi;
 	int pending_external_vector;
+
+	/* for L1 terminal fault vulnerability */
+	bool vcpu_unconfined;
 };
 
 struct kvm_lpage_info {

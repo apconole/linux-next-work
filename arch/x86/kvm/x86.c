@@ -5477,6 +5477,8 @@ int x86_emulate_instruction(struct kvm_vcpu *vcpu,
 	bool writeback = true;
 	bool write_fault_to_spt = vcpu->arch.write_fault_to_shadow_pgtable;
 
+	vcpu->arch.vcpu_unconfined = true;
+
 	/*
 	 * Clear write_fault_to_shadow_pgtable here to ensure it is
 	 * never reused.
@@ -5886,36 +5888,44 @@ static struct notifier_block pvclock_gtod_notifier = {
 #endif
 
 
-#define L1D_CACHE_ORDER 3
+/*
+ * The L1D cache is 32 KiB on Skylake, but to flush it we have to read in
+ * 64 KiB because the replacement algorithm is not exactly LRU.
+ */
+#define L1D_CACHE_ORDER 4
 static void *__read_mostly empty_zero_pages;
 
 void kvm_l1d_flush(void)
 {
+	int size;
+
 	if (static_cpu_has(X86_FEATURE_FLUSH_L1D)) {
 		wrmsrl(MSR_IA32_FLUSH_L1D, MSR_IA32_FLUSH_L1D_VALUE);
 		return;
 	}
+
+	/* FIXME: could this be boot_cpu_data.x86_cache_size * 2?  */
+	size = PAGE_SIZE << L1D_CACHE_ORDER;
 	asm volatile(
-		"movq %0, %%rax\n\t"
-		"leaq 65536(%0), %%rdx\n\t"
+		/* First ensure the pages are in the TLB */
+		"xorl %%eax, %%eax\n\t"
 		"11: \n\t"
-		"movzbl (%%rax), %%ecx\n\t"
-		"addq $4096, %%rax\n\t"
-		"cmpq %%rax, %%rdx\n\t"
+		"movzbl (%0, %%" _ASM_AX "), %%ecx\n\t"
+		"addl $4096, %%eax\n\t"
+		"cmpl %%eax, %1\n\t"
 		"jne 11b\n\t"
 		"xorl %%eax, %%eax\n\t"
 		"cpuid\n\t"
+		/* Now fill the cache */
 		"xorl %%eax, %%eax\n\t"
 		"12:\n\t"
-		"movzwl %%ax, %%edx\n\t"
+		"movzbl (%0, %%" _ASM_AX "), %%ecx\n\t"
 		"addl $64, %%eax\n\t"
-		"movzbl (%%rdx, %0), %%ecx\n\t"
-		"cmpl $65536, %%eax\n\t"
+		"cmpl %%eax, %1\n\t"
 		"jne 12b\n\t"
 		"lfence\n\t"
-		:
-		: "r" (empty_zero_pages)
-		: "rax", "rbx", "rcx", "rdx");
+		: : "r" (empty_zero_pages), "r" (size)
+		: "eax", "ebx", "ecx", "edx");
 }
 
 int kvm_arch_init(void *opaque)
@@ -6580,7 +6590,7 @@ static void kvm_vcpu_flush_tlb(struct kvm_vcpu *vcpu)
  * exiting to the userspace.  Otherwise, the value will be returned to the
  * userspace.
  */
-static int vcpu_enter_guest(struct kvm_vcpu *vcpu, bool need_l1d_flush)
+static int vcpu_enter_guest(struct kvm_vcpu *vcpu)
 {
 	int r;
 	bool req_int_win =
@@ -6588,6 +6598,7 @@ static int vcpu_enter_guest(struct kvm_vcpu *vcpu, bool need_l1d_flush)
 		kvm_cpu_accept_dm_intr(vcpu);
 
 	bool req_immediate_exit = false;
+	bool need_l1d_flush;
 
 	if (vcpu->requests) {
 		if (kvm_check_request(KVM_REQ_MMU_RELOAD, vcpu))
@@ -6714,6 +6725,8 @@ static int vcpu_enter_guest(struct kvm_vcpu *vcpu, bool need_l1d_flush)
 
 	preempt_disable();
 
+	need_l1d_flush = vcpu->arch.vcpu_unconfined;
+	vcpu->arch.vcpu_unconfined = false;
 	kvm_x86_ops->prepare_guest_switch(vcpu, &need_l1d_flush);
 	if (vcpu->fpu_active)
 		kvm_load_guest_fpu(vcpu);
@@ -6912,13 +6925,13 @@ static int vcpu_run(struct kvm_vcpu *vcpu)
 {
 	int r;
 	struct kvm *kvm = vcpu->kvm;
-	bool first = true;
 
 	vcpu->srcu_idx = srcu_read_lock(&kvm->srcu);
+	vcpu->arch.vcpu_unconfined = true;
 
 	for (;;) {
 		if (kvm_vcpu_running(vcpu))
-			r = vcpu_enter_guest(vcpu, first);
+			r = vcpu_enter_guest(vcpu);
 		else
 			r = vcpu_block(kvm, vcpu);
 
@@ -6950,7 +6963,6 @@ static int vcpu_run(struct kvm_vcpu *vcpu)
 			cond_resched();
 			vcpu->srcu_idx = srcu_read_lock(&kvm->srcu);
 		}
-		first = false;
 	}
 
 	srcu_read_unlock(&kvm->srcu, vcpu->srcu_idx);
@@ -7912,6 +7924,7 @@ void kvm_arch_vcpu_uninit(struct kvm_vcpu *vcpu)
 
 void kvm_arch_sched_in(struct kvm_vcpu *vcpu, int cpu)
 {
+	vcpu->arch.vcpu_unconfined = true;
 	kvm_x86_ops->sched_in(vcpu, cpu);
 }
 
