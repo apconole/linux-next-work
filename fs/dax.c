@@ -1106,6 +1106,7 @@ dax_iomap_actor(int rw, struct inode *inode, loff_t pos, loff_t length, void *da
 	struct iov_iter *iter = data;
 	loff_t end = pos + length, done = 0;
 	ssize_t ret = 0;
+	size_t xfer;
 	int id;
 
 	if (!(rw & WRITE)) {
@@ -1175,22 +1176,22 @@ dax_iomap_actor(int rw, struct inode *inode, loff_t pos, loff_t length, void *da
 		 * vfs_write(), depending on which operation we are doing.
 		 */
 		if (rw & WRITE)
-			map_len = dax_memcpy_fromiovecend(dax_dev, pgoff, kaddr,
+			xfer = dax_memcpy_fromiovecend(dax_dev, pgoff, kaddr,
 					iter->iov, iter->iov_offset, map_len);
 		else
-			map_len = dax_memcpy_toiovecend(dax_dev, pgoff,
+			xfer = dax_memcpy_toiovecend(dax_dev, pgoff,
 					iter->iov, kaddr, iter->iov_offset,
 					map_len);
 
-		if (map_len <= 0) {
-			ret = map_len ? map_len : -EFAULT;
-			break;
-		}
+		iov_iter_advance(iter, xfer);
+		pos += xfer;
+		length -= xfer;
+		done += xfer;
 
-		iov_iter_advance(iter, map_len);
-		pos += map_len;
-		length -= map_len;
-		done += map_len;
+		if (xfer == 0)
+			ret = -EFAULT;
+		if (xfer < map_len)
+			break;
 	}
 	dax_read_unlock(id);
 
