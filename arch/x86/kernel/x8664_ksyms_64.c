@@ -40,6 +40,12 @@ EXPORT_SYMBOL(_copy_to_user);
 
 EXPORT_SYMBOL_GPL(__memcpy_mcsafe);
 
+#ifdef CONFIG_MCSAFE_TEST
+extern unsigned long mcsafe_test_src, mcsafe_test_dst;
+EXPORT_SYMBOL_GPL(mcsafe_test_src);
+EXPORT_SYMBOL_GPL(mcsafe_test_dst);
+#endif
+
 EXPORT_SYMBOL(copy_page);
 EXPORT_SYMBOL(clear_page);
 
