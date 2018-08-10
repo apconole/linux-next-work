@@ -4361,6 +4361,9 @@ int kvm_write_guest_virt_system(struct x86_emulate_ctxt *ctxt,
 	void *data = val;
 	int r = X86EMUL_CONTINUE;
 
+	/* kvm_write_guest_virt_system can pull in tons of pages. */
+	vcpu->arch.l1tf_flush_l1d = true;
+
 	while (bytes) {
 		gpa_t gpa =  vcpu->arch.walk_mmu->gva_to_gpa(vcpu, addr,
 							     PFERR_WRITE_MASK,
@@ -5477,7 +5480,7 @@ int x86_emulate_instruction(struct kvm_vcpu *vcpu,
 	bool writeback = true;
 	bool write_fault_to_spt = vcpu->arch.write_fault_to_shadow_pgtable;
 
-	vcpu->arch.vcpu_unconfined = true;
+	vcpu->arch.l1tf_flush_l1d = true;
 
 	/*
 	 * Clear write_fault_to_shadow_pgtable here to ensure it is
@@ -5887,52 +5890,10 @@ static struct notifier_block pvclock_gtod_notifier = {
 };
 #endif
 
-
-/*
- * The L1D cache is 32 KiB on Skylake, but to flush it we have to read in
- * 64 KiB because the replacement algorithm is not exactly LRU.
- */
-#define L1D_CACHE_ORDER 4
-static void *__read_mostly empty_zero_pages;
-
-void kvm_l1d_flush(void)
-{
-	int size;
-
-	if (static_cpu_has(X86_FEATURE_FLUSH_L1D)) {
-		wrmsrl(MSR_IA32_FLUSH_L1D, MSR_IA32_FLUSH_L1D_VALUE);
-		return;
-	}
-
-	/* FIXME: could this be boot_cpu_data.x86_cache_size * 2?  */
-	size = PAGE_SIZE << L1D_CACHE_ORDER;
-	asm volatile(
-		/* First ensure the pages are in the TLB */
-		"xorl %%eax, %%eax\n\t"
-		"11: \n\t"
-		"movzbl (%0, %%" _ASM_AX "), %%ecx\n\t"
-		"addl $4096, %%eax\n\t"
-		"cmpl %%eax, %1\n\t"
-		"jne 11b\n\t"
-		"xorl %%eax, %%eax\n\t"
-		"cpuid\n\t"
-		/* Now fill the cache */
-		"xorl %%eax, %%eax\n\t"
-		"12:\n\t"
-		"movzbl (%0, %%" _ASM_AX "), %%ecx\n\t"
-		"addl $64, %%eax\n\t"
-		"cmpl %%eax, %1\n\t"
-		"jne 12b\n\t"
-		"lfence\n\t"
-		: : "r" (empty_zero_pages), "r" (size)
-		: "eax", "ebx", "ecx", "edx");
-}
-
 int kvm_arch_init(void *opaque)
 {
 	int r;
 	struct kvm_x86_ops *ops = opaque;
-	struct page *page;
 
 	if (kvm_x86_ops) {
 		printk(KERN_ERR "kvm: already loaded the other module\n");
@@ -5952,15 +5913,10 @@ int kvm_arch_init(void *opaque)
 	}
 
 	r = -ENOMEM;
-	page = alloc_pages(GFP_ATOMIC, L1D_CACHE_ORDER);
-	if (!page)
-		goto out;
-	empty_zero_pages = page_address(page);
-
 	shared_msrs = alloc_percpu(struct kvm_shared_msrs);
 	if (!shared_msrs) {
 		printk(KERN_ERR "kvm: failed to allocate percpu kvm_shared_msrs\n");
-		goto out_free_zero_pages;
+		goto out;
 	}
 
 	r = kvm_mmu_module_init();
@@ -5988,8 +5944,6 @@ int kvm_arch_init(void *opaque)
 
 	return 0;
 
-out_free_zero_pages:
-	free_pages((unsigned long)empty_zero_pages, L1D_CACHE_ORDER);
 out_free_percpu:
 	free_percpu(shared_msrs);
 out:
@@ -6010,7 +5964,6 @@ void kvm_arch_exit(void)
 #endif
 	kvm_x86_ops = NULL;
 	kvm_mmu_module_exit();
-	free_pages((unsigned long)empty_zero_pages, L1D_CACHE_ORDER);
 	free_percpu(shared_msrs);
 }
 
@@ -6598,7 +6551,6 @@ static int vcpu_enter_guest(struct kvm_vcpu *vcpu)
 		kvm_cpu_accept_dm_intr(vcpu);
 
 	bool req_immediate_exit = false;
-	bool need_l1d_flush;
 
 	if (vcpu->requests) {
 		if (kvm_check_request(KVM_REQ_MMU_RELOAD, vcpu))
@@ -6725,16 +6677,9 @@ static int vcpu_enter_guest(struct kvm_vcpu *vcpu)
 
 	preempt_disable();
 
-	need_l1d_flush = vcpu->arch.vcpu_unconfined;
-	vcpu->arch.vcpu_unconfined = false;
-	kvm_x86_ops->prepare_guest_switch(vcpu, &need_l1d_flush);
+	kvm_x86_ops->prepare_guest_switch(vcpu);
 	if (vcpu->fpu_active)
 		kvm_load_guest_fpu(vcpu);
-
-	if (need_l1d_flush) {
-		vcpu->stat.l1d_flush++;
-		kvm_l1d_flush();
-	}
 
 	/*
 	 * Disable IRQs before setting IN_GUEST_MODE.  Posted interrupt
@@ -6927,7 +6872,7 @@ static int vcpu_run(struct kvm_vcpu *vcpu)
 	struct kvm *kvm = vcpu->kvm;
 
 	vcpu->srcu_idx = srcu_read_lock(&kvm->srcu);
-	vcpu->arch.vcpu_unconfined = true;
+	vcpu->arch.l1tf_flush_l1d = true;
 
 	for (;;) {
 		if (kvm_vcpu_running(vcpu))
@@ -7924,7 +7869,7 @@ void kvm_arch_vcpu_uninit(struct kvm_vcpu *vcpu)
 
 void kvm_arch_sched_in(struct kvm_vcpu *vcpu, int cpu)
 {
-	vcpu->arch.vcpu_unconfined = true;
+	vcpu->arch.l1tf_flush_l1d = true;
 	kvm_x86_ops->sched_in(vcpu, cpu);
 }
 

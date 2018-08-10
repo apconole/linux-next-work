@@ -70,9 +70,6 @@ MODULE_DEVICE_TABLE(x86cpu, vmx_cpu_id);
 static bool __read_mostly nosmt;
 module_param(nosmt, bool, S_IRUGO);
 
-static int __read_mostly vmentry_l1d_flush = 1;
-module_param_named(vmentry_l1d_flush, vmentry_l1d_flush, int, 0644);
-
 static bool __read_mostly enable_vpid = 1;
 module_param_named(vpid, enable_vpid, bool, 0444);
 
@@ -183,6 +180,55 @@ module_param(ple_window_max, uint, 0444);
 extern const ulong vmx_return;
 
 #define NR_AUTOLOAD_MSRS 8
+
+static struct static_key vmx_l1d_should_flush = STATIC_KEY_INIT_FALSE;
+
+/* These MUST be in sync with vmentry_l1d_param order. */
+enum vmx_l1d_flush_state {
+	VMENTER_L1D_FLUSH_NEVER,
+	VMENTER_L1D_FLUSH_COND,
+	VMENTER_L1D_FLUSH_ALWAYS,
+};
+
+static enum vmx_l1d_flush_state __read_mostly vmentry_l1d_flush = VMENTER_L1D_FLUSH_COND;
+
+static const struct {
+	const char *option;
+	enum vmx_l1d_flush_state cmd;
+} vmentry_l1d_param[] = {
+	{"never",	VMENTER_L1D_FLUSH_NEVER},
+	{"cond",	VMENTER_L1D_FLUSH_COND},
+	{"always",	VMENTER_L1D_FLUSH_ALWAYS},
+};
+
+static int vmentry_l1d_flush_set(const char *s, const struct kernel_param *kp)
+{
+	unsigned int i;
+
+	if (!s)
+		return -EINVAL;
+
+	for (i = 0; i < ARRAY_SIZE(vmentry_l1d_param); i++) {
+		if (!strcmp(s, vmentry_l1d_param[i].option)) {
+			vmentry_l1d_flush = vmentry_l1d_param[i].cmd;
+			return 0;
+		}
+	}
+
+	return -EINVAL;
+}
+
+static int vmentry_l1d_flush_get(char *s, const struct kernel_param *kp)
+{
+	return sprintf(s, "%s\n", vmentry_l1d_param[vmentry_l1d_flush].option);
+}
+
+static const struct kernel_param_ops vmentry_l1d_flush_ops = {
+	.set = vmentry_l1d_flush_set,
+	.get = vmentry_l1d_flush_get,
+};
+
+module_param_cb(vmentry_l1d_flush, &vmentry_l1d_flush_ops, &vmentry_l1d_flush, S_IRUGO);
 
 struct vmcs {
 	u32 revision_id;
@@ -2123,43 +2169,6 @@ static void vmx_save_host_state(struct kvm_vcpu *vcpu)
 		kvm_set_shared_msr(vmx->guest_msrs[i].index,
 				   vmx->guest_msrs[i].data,
 				   vmx->guest_msrs[i].mask);
-}
-
-static void vmx_prepare_guest_switch(struct kvm_vcpu *vcpu, bool *need_l1d_flush)
-{
-	vmx_save_host_state(vcpu);
-	if (!enable_ept || static_cpu_has(X86_FEATURE_HYPERVISOR)) {
-		*need_l1d_flush = false;
-		return;
-	}
-
-	switch (vmentry_l1d_flush) {
-	case 0:
-		*need_l1d_flush = false;
-		break;
-	case 1:
-		/*
-		 * If vmentry_l1d_flush is 1, each vmexit handler is responsible for
-		 * setting vcpu->arch.vcpu_unconfined.  Currently this happens in the
-		 * following cases:
-		 * - vmlaunch/vmresume: we do not want the cache to be cleared by a
-		 *   nested hypervisor *and* by KVM on bare metal, so we just do it
-		 *   on every nested entry.  Nested hypervisors do not bother clearing
-		 *   the cache.
-		 * - anything that runs the emulator (the slow paths for EPT misconfig
-		 *   or I/O instruction)
-		 * - anything that can cause get_user_pages (EPT violation, and again
-		 *   the slow paths for EPT misconfig or I/O instruction)
-		 * - anything that can run code outside KVM (external interrupt,
-		 *   which can run interrupt handlers or irqs; or the sched_in
-		 *   preempt notifier)
-		 */
-		break;
-	case 2:
-	default:
-		*need_l1d_flush = true;
-		break;
-	}
 }
 
 static void __vmx_load_host_state(struct vcpu_vmx *vmx)
@@ -8487,6 +8496,62 @@ static int vmx_handle_exit(struct kvm_vcpu *vcpu)
 	}
 }
 
+/*
+ * Software based L1D cache flush which is used when microcode providing
+ * the cache control MSR is not loaded.
+ *
+ * The L1D cache is 32 KiB on Nehalem and later microarchitectures, but to
+ * flush it is required to read in 64 KiB because the replacement algorithm
+ * is not exactly LRU. This could be sized at runtime via topology
+ * information but as all relevant affected CPUs have 32KiB L1D cache size
+ * there is no point in doing so.
+ */
+#define L1D_CACHE_ORDER 4
+static void *vmx_l1d_flush_pages;
+
+static void vmx_l1d_flush(struct kvm_vcpu *vcpu)
+{
+	int size = PAGE_SIZE << L1D_CACHE_ORDER;
+	bool always;
+
+	/*
+	 * If the mitigation mode is 'flush always', keep the flush bit
+	 * set, otherwise clear it. It gets set again either from
+	 * vcpu_run() or from one of the unsafe VMEXIT handlers.
+	 */
+	always = vmentry_l1d_flush == VMENTER_L1D_FLUSH_ALWAYS;
+	vcpu->arch.l1tf_flush_l1d = always;
+
+	vcpu->stat.l1d_flush++;
+
+	if (static_cpu_has(X86_FEATURE_FLUSH_L1D)) {
+		wrmsrl(MSR_IA32_FLUSH_CMD, L1D_FLUSH);
+		return;
+	}
+
+	asm volatile(
+		/* First ensure the pages are in the TLB */
+		"xorl	%%eax, %%eax\n"
+		".Lpopulate_tlb:\n\t"
+		"movzbl	(%[empty_zp], %%" _ASM_AX "), %%ecx\n\t"
+		"addl	$4096, %%eax\n\t"
+		"cmpl	%%eax, %[size]\n\t"
+		"jne	.Lpopulate_tlb\n\t"
+		"xorl	%%eax, %%eax\n\t"
+		"cpuid\n\t"
+		/* Now fill the cache */
+		"xorl	%%eax, %%eax\n"
+		".Lfill_cache:\n"
+		"movzbl	(%[empty_zp], %%" _ASM_AX "), %%ecx\n\t"
+		"addl	$64, %%eax\n\t"
+		"cmpl	%%eax, %[size]\n\t"
+		"jne	.Lfill_cache\n\t"
+		"lfence\n"
+		:: [empty_zp] "r" (vmx_l1d_flush_pages),
+		    [size] "r" (size)
+		: "eax", "ebx", "ecx", "edx");
+}
+
 static void update_cr8_intercept(struct kvm_vcpu *vcpu, int tpr, int irr)
 {
 	struct vmcs12 *vmcs12 = get_vmcs12(vcpu);
@@ -8731,7 +8796,7 @@ static void vmx_handle_external_intr(struct kvm_vcpu *vcpu)
 			[ss]"i"(__KERNEL_DS),
 			[cs]"i"(__KERNEL_CS)
 			);
-		vcpu->arch.vcpu_unconfined = true;
+		vcpu->arch.l1tf_flush_l1d = true;
 	} else
 		local_irq_enable();
 }
@@ -8963,6 +9028,11 @@ static void __noclone vmx_vcpu_run(struct kvm_vcpu *vcpu)
 	vmx_arm_hv_timer(vcpu);
 
 	x86_spec_ctrl_set_guest(vmx->spec_ctrl, 0);
+
+	if (static_key_false(&vmx_l1d_should_flush)) {
+		if (vcpu->arch.l1tf_flush_l1d)
+			vmx_l1d_flush(vcpu);
+	}
 
 	vmx->__launched = vmx->loaded_vmcs->launched;
 	asm(
@@ -10587,6 +10657,9 @@ static int nested_vmx_run(struct kvm_vcpu *vcpu, bool launch)
 
 	vmx->nested.nested_run_pending = 1;
 
+	/* Hide L1D cache contents from the nested guest.  */
+	vmx->vcpu.arch.l1tf_flush_l1d = true;
+
 	return 1;
 
 out:
@@ -11234,9 +11307,6 @@ static int vmx_set_hv_timer(struct kvm_vcpu *vcpu, u64 guest_deadline_tsc)
 				&delta_tsc))
 		return -ERANGE;
 
-	/* Hide L1D cache contents from the nested guest.  */
-	vmx->vcpu.arch.vcpu_unconfined = true;
-
 	/*
 	 * If the delta tsc can't fit in the 32 bit after the multi shift,
 	 * we can't use the preemption timer.
@@ -11629,7 +11699,7 @@ static struct kvm_x86_ops vmx_x86_ops = {
 	.vcpu_free = vmx_free_vcpu,
 	.vcpu_reset = vmx_vcpu_reset,
 
-	.prepare_guest_switch = vmx_prepare_guest_switch,
+	.prepare_guest_switch = vmx_save_host_state,
 	.vcpu_load = vmx_vcpu_load,
 	.vcpu_put = vmx_vcpu_put,
 
@@ -11748,12 +11818,47 @@ static struct kvm_x86_ops vmx_x86_ops = {
 	.enable_smi_window = enable_smi_window,
 };
 
+static int __init vmx_setup_l1d_flush(void)
+{
+	struct page *page;
+
+	if (vmentry_l1d_flush == VMENTER_L1D_FLUSH_NEVER ||
+	    !boot_cpu_has_bug(X86_BUG_L1TF))
+		return 0;
+
+	if (!boot_cpu_has(X86_FEATURE_FLUSH_L1D)) {
+		page = alloc_pages(GFP_KERNEL, L1D_CACHE_ORDER);
+		if (!page)
+			return -ENOMEM;
+		vmx_l1d_flush_pages = page_address(page);
+	}
+
+	static_key_slow_inc(&vmx_l1d_should_flush);
+	return 0;
+}
+
+static void vmx_free_l1d_flush_pages(void)
+{
+	if (vmx_l1d_flush_pages) {
+		free_pages((unsigned long)vmx_l1d_flush_pages, L1D_CACHE_ORDER);
+		vmx_l1d_flush_pages = NULL;
+	}
+}
+
 static int __init vmx_init(void)
 {
-	int r = kvm_init(&vmx_x86_ops, sizeof(struct vcpu_vmx),
-                     __alignof__(struct vcpu_vmx), THIS_MODULE);
+	int r;
+
+	r = vmx_setup_l1d_flush();
 	if (r)
 		return r;
+
+	r = kvm_init(&vmx_x86_ops, sizeof(struct vcpu_vmx),
+		     __alignof__(struct vcpu_vmx), THIS_MODULE);
+	if (r) {
+		vmx_free_l1d_flush_pages();
+		return r;
+	}
 
 #ifdef CONFIG_KEXEC_CORE
 	rcu_assign_pointer(crash_vmclear_loaded_vmcss,
@@ -11771,6 +11876,7 @@ static void __exit vmx_exit(void)
 #endif
 
 	kvm_exit();
+	vmx_free_l1d_flush_pages();
 }
 
 module_init(vmx_init)
