@@ -648,6 +648,54 @@ static inline int pte_present(pte_t a)
 			       _PAGE_NUMA);
 }
 
+#define pte_mknonnuma pte_mknonnuma
+static inline pte_t pte_mknonnuma(pte_t pte)
+{
+	pteval_t val = pte_val(pte), oldval = val;
+
+	val &= ~_PAGE_NUMA;
+	val |= (_PAGE_PRESENT|_PAGE_ACCESSED);
+	val = flip_protnone_guard(oldval, val, PTE_PFN_MASK);
+
+	return __pte(val);
+}
+
+#define pte_mknuma pte_mknuma
+static inline pte_t pte_mknuma(pte_t pte)
+{
+	pteval_t val = pte_val(pte), oldval = val;
+
+	val &= ~_PAGE_PRESENT;
+	val |= _PAGE_NUMA;
+	val = flip_protnone_guard(oldval, val, PTE_PFN_MASK);
+
+	return __pte(val);
+}
+
+#define pmd_mknonnuma pmd_mknonnuma
+static inline pmd_t pmd_mknonnuma(pmd_t pmd)
+{
+	pmdval_t val = pmd_val(pmd), oldval = val;
+
+	val &= ~_PAGE_NUMA;
+	val |= (_PAGE_PRESENT|_PAGE_ACCESSED);
+	val = flip_protnone_guard(oldval, val, PHYSICAL_PMD_PAGE_MASK);
+
+	return __pmd(val);
+}
+
+#define pmd_mknuma pmd_mknuma
+static inline pmd_t pmd_mknuma(pmd_t pmd)
+{
+	pmdval_t val = pmd_val(pmd), oldval = val;
+
+	val &= ~_PAGE_PRESENT;
+	val |= _PAGE_NUMA;
+	val = flip_protnone_guard(oldval, val, PHYSICAL_PMD_PAGE_MASK);
+
+	return __pmd(val);
+}
+
 #ifdef __HAVE_ARCH_PTE_DEVMAP
 static inline int pte_devmap(pte_t a)
 {
