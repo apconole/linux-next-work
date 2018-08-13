@@ -2255,7 +2255,7 @@ valid_user_frame(const void __user *fp, unsigned long size)
 static unsigned long get_segment_base(unsigned int segment)
 {
 	struct desc_struct *desc;
-	int idx = segment >> 3;
+	unsigned int idx = segment >> 3;
 
 	if ((segment & SEGMENT_TI_MASK) == SEGMENT_LDT) {
 		struct ldt_struct *ldt;
