@@ -68,7 +68,7 @@ static struct ldt_struct *alloc_ldt_struct(int size)
 	if (alloc_size > PAGE_SIZE)
 		new_ldt->entries = vzalloc(alloc_size);
 	else
-		new_ldt->entries = kzalloc(PAGE_SIZE, GFP_KERNEL);
+		new_ldt->entries = (void *)get_zeroed_page(GFP_KERNEL);
 
 	ret = kaiser_add_mapping((unsigned long)new_ldt->entries,
 				alloc_size,
@@ -116,7 +116,7 @@ static void free_ldt_struct(struct ldt_struct *ldt)
 	if (ldt->size * LDT_ENTRY_SIZE > PAGE_SIZE)
 		vfree(ldt->entries);
 	else
-		kfree(ldt->entries);
+		free_page((unsigned long)ldt->entries);
 	kfree(ldt);
 }
 
