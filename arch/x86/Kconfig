@@ -269,6 +269,16 @@ config HAVE_INTEL_TXT
 	def_bool y
 	depends on INTEL_IOMMU && ACPI
 
+config X86_INTEL_UMIP
+	def_bool n
+	depends on CPU_SUP_INTEL
+	prompt "Intel User Mode Instruction Prevention" if EXPERT
+	---help---
+	  The User Mode Instruction Prevention (UMIP) is a security
+	  feature in newer Intel processors. If enabled, a general
+	  protection fault is issued if the instructions SGDT, SLDT,
+	  SIDT, SMSW and STR are executed in user mode.
+
 config X86_INTEL_MPX
 	def_bool y
 	# Note: only available in 64-bit mode due to VMA flags shortage
