@@ -7162,7 +7162,7 @@ static void rollback_registered_many(struct list_head *head)
 		if (!dev->rtnl_link_ops ||
 		    dev->rtnl_link_state == RTNL_LINK_INITIALIZED)
 			skb = rtmsg_ifinfo_build_skb(RTM_DELLINK, dev, ~0U, 0,
-						     GFP_KERNEL, NULL);
+						     GFP_KERNEL, NULL, 0);
 
 		/*
 		 *	Flush the unicast and multicast chains
@@ -8295,7 +8295,8 @@ EXPORT_SYMBOL(unregister_netdev);
 
 int dev_change_net_namespace(struct net_device *dev, struct net *net, const char *pat)
 {
-	int err, new_nsid;
+	int err, new_nsid, new_ifindex;
+	bool iflink = false;
 
 	ASSERT_RTNL();
 
@@ -8351,8 +8352,17 @@ int dev_change_net_namespace(struct net_device *dev, struct net *net, const char
 	call_netdevice_notifiers(NETDEV_UNREGISTER, dev);
 	rcu_barrier();
 	call_netdevice_notifiers(NETDEV_UNREGISTER_FINAL, dev);
+
 	new_nsid = peernet2id_alloc(dev_net(dev), net);
-	rtmsg_ifinfo_newnet(RTM_DELLINK, dev, ~0U, GFP_KERNEL, &new_nsid);
+	/* If there is an ifindex conflict assign a new one */
+	if (__dev_get_by_index(net, dev->ifindex)) {
+		iflink = (dev_get_iflink(dev) == dev->ifindex);
+		new_ifindex = dev_new_index(net);
+	} else
+		new_ifindex = dev->ifindex;
+
+	rtmsg_ifinfo_newnet(RTM_DELLINK, dev, ~0U, GFP_KERNEL, &new_nsid,
+			    new_ifindex);
 
 	/*
 	 *	Flush the unicast and multicast chains
@@ -8366,14 +8376,9 @@ int dev_change_net_namespace(struct net_device *dev, struct net *net, const char
 
 	/* Actually switch the network namespace */
 	dev_net_set(dev, net);
-
-	/* If there is an ifindex conflict assign a new one */
-	if (__dev_get_by_index(net, dev->ifindex)) {
-		int iflink = (dev_get_iflink(dev) == dev->ifindex);
-		dev->ifindex = dev_new_index(net);
-		if (iflink)
-			dev->iflink = dev->ifindex;
-	}
+	dev->ifindex = new_ifindex;
+	if (iflink)
+		dev->iflink = new_ifindex;
 
 	/* Send a netdev-add uevent to the new namespace */
 	kobject_uevent(&dev->dev.kobj, KOBJ_ADD);
