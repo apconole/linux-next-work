@@ -183,7 +183,7 @@ void *devm_memremap_pages(struct device *dev, struct dev_pagemap *pgmap)
 			&pgmap->altmap : NULL;
 	unsigned long pfn, pgoff, order;
 	pgprot_t pgprot = PAGE_KERNEL;
-	int error, nid, is_ram;
+	int error, nid, is_ram, i = 0;
 	struct resource *res = &pgmap->res;
 
 	align_start = res->start & ~(SECTION_SIZE - 1);
@@ -253,6 +253,8 @@ void *devm_memremap_pages(struct device *dev, struct dev_pagemap *pgmap)
 		 */
 		list_del(&page->lru);
 		page->pgmap = pgmap;
+		if (!(++i % 1024))
+			cond_resched();
 	}
 
 	devm_add_action(dev, devm_memremap_pages_release, pgmap);
