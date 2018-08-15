@@ -1650,10 +1650,12 @@ static int virtnet_probe(struct virtio_device *vdev)
 		mtu = virtio_cread16(vdev,
 				     offsetof(struct virtio_net_config,
 					      mtu));
-		if (mtu < dev->extended->min_mtu || mtu > dev->extended->max_mtu)
+		if (mtu < dev->extended->min_mtu || mtu > vi->max_mtu)
 			__virtio_clear_bit(vdev, VIRTIO_NET_F_MTU);
-		else
+		else {
+			dev->mtu = mtu;
 			vi->max_mtu = mtu;
+		}
 	}
 
 	if (vi->any_header_sg)
