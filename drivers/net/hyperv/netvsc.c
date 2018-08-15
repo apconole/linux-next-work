@@ -1209,13 +1209,6 @@ static struct hv_device *netvsc_channel_to_device(struct vmbus_channel *channel)
 	return primary ? primary->device_obj : channel->device_obj;
 }
 
-/* RHEL-only: remove when 364b605573 is backported */
-static bool netvsc_napi_complete_done(struct napi_struct *n, int work_done)
-{
-	napi_complete_done(n, work_done);
-	return true;
-}
-
 /* Network processing softirq
  * Process data in incoming ring buffer from host
  * Stops when ring is empty or budget is met or exceeded.
@@ -1248,7 +1241,7 @@ int netvsc_poll(struct napi_struct *napi, int budget)
 	 */
 	if (send_recv_completions(ndev, net_device, nvchan) == 0 &&
 	    work_done < budget &&
-	    netvsc_napi_complete_done(napi, work_done) &&
+	    napi_complete_done(napi, work_done) &&
 	    hv_end_read(&channel->inbound) &&
 	    napi_schedule_prep(napi)) {
 		hv_begin_read(&channel->inbound);
