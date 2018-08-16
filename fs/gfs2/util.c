@@ -46,9 +46,11 @@ int gfs2_lm_withdraw(struct gfs2_sbd *sdp, char *fmt, ...)
 	    test_and_set_bit(SDF_SHUTDOWN, &sdp->sd_flags))
 		return 0;
 
-	va_start(args, fmt);
-	vprintk(fmt, args);
-	va_end(args);
+	if (fmt) {
+		va_start(args, fmt);
+		vprintk(fmt, args);
+		va_end(args);
+	}
 
 	if (sdp->sd_args.ar_errors == GFS2_ERRORS_WITHDRAW) {
 		fs_err(sdp, "about to withdraw this file system\n");
@@ -251,21 +253,20 @@ int gfs2_io_error_i(struct gfs2_sbd *sdp, const char *function, char *file,
 }
 
 /**
- * gfs2_io_error_bh_i - Flag a buffer I/O error and withdraw
- * Returns: -1 if this call withdrew the machine,
- *          0 if it was already withdrawn
+ * gfs2_io_error_bh_i - Flag a buffer I/O error
+ * @withdraw: withdraw the filesystem
  */
 
-int gfs2_io_error_bh_i(struct gfs2_sbd *sdp, struct buffer_head *bh,
-		       const char *function, char *file, unsigned int line)
+void gfs2_io_error_bh_i(struct gfs2_sbd *sdp, struct buffer_head *bh,
+			const char *function, char *file, unsigned int line,
+			bool withdraw)
 {
-	int rv;
-	rv = gfs2_lm_withdraw(sdp,
-		"GFS2: fsid=%s: fatal: I/O error\n"
-		"GFS2: fsid=%s:   block = %llu\n"
-		"GFS2: fsid=%s:   function = %s, file = %s, line = %u\n",
-		sdp->sd_fsname,
-		sdp->sd_fsname, (unsigned long long)bh->b_blocknr,
-		sdp->sd_fsname, function, file, line);
-	return rv;
+	fs_err(sdp,
+	       "fatal: I/O error\n"
+	       "  block = %llu\n"
+	       "  function = %s, file = %s, line = %u\n",
+	       (unsigned long long)bh->b_blocknr, function, file, line);
+	if (withdraw)
+		gfs2_lm_withdraw(sdp, NULL);
 }
+
