@@ -4850,6 +4850,7 @@ static struct bpf_test tests[] = {
 		},
 		.result = ACCEPT,
 		.prog_type = BPF_PROG_TYPE_LWT_XMIT,
+		.disabled = true,
 	},
 	{
 		"invalid access of tc_classid for LWT_IN",
@@ -11971,6 +11972,7 @@ static struct bpf_test tests[] = {
 		.prog_type = BPF_PROG_TYPE_SCHED_CLS,
 		.result = ACCEPT,
 		.retval = 0xbef,
+		.disabled = true,
 	},
 	{
 		"ld_abs: vlan + abs, test 2",
@@ -11999,6 +12001,7 @@ static struct bpf_test tests[] = {
 		.prog_type = BPF_PROG_TYPE_SCHED_CLS,
 		.result = ACCEPT,
 		.retval = 42,
+		.disabled = true,
 	},
 	{
 		"ld_abs: jump around ld_abs",
