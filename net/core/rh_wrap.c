@@ -186,13 +186,20 @@ int __rh_call_ndo_setup_tc(struct net_device *dev, u32 handle,
 	if (get_ndo_ext(ops, ndo_setup_tc_rh)) {
 		/*
 		 * The drivers implementing .ndo_setup_tc_rh() should handle
-		 * only types >= TC_SETUP_BLOCK.
-		 * The types TC_SETUP_{QDISC_MQPRIO,CLSU32,CLSFLOWER,
-		 * CLSMATCHALL,CLSBPF} are handled by TC setup callbacks.
+		 * only types >= TC_SETUP_BLOCK & TC_SETUP_QDISC_MQPRIO.
+		 * The types TC_SETUP_{CLSU32,CLSFLOWER, CLSMATCHALL,CLSBPF}
+		 * are handled by TC setup callbacks.
 		 */
-		if (type < TC_SETUP_BLOCK)
+		switch (type) {
+		case TC_SETUP_CLSU32:
+		case TC_SETUP_CLSFLOWER:
+		case TC_SETUP_CLSMATCHALL:
+		case TC_SETUP_CLSBPF:
 			return 0;
-		ret = get_ndo_ext(ops, ndo_setup_tc_rh)(dev, type, type_data);
+		default:
+			ret = get_ndo_ext(ops, ndo_setup_tc_rh)(dev, type,
+								type_data);
+		}
 	} else if (ops->ndo_setup_tc_rh74) {
 		/*
 		 * Callback .ndo_setup_tc() for RHEL-7.4 drivers should be
