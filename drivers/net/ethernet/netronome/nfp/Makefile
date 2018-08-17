@@ -19,6 +19,7 @@ nfp-objs := \
 	    nfp_app.o \
 	    nfp_app_nic.o \
 	    nfp_devlink.o \
+	    nfp_hwmon.o \
 	    nfp_main.o \
 	    nfp_net_common.o \
 	    nfp_net_ctrl.o \

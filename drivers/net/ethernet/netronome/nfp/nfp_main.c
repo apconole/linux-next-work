@@ -374,7 +374,6 @@ nfp_nsp_init_ports(struct pci_dev *pdev, struct nfp_pf *pf,
 
 static int nfp_nsp_init(struct pci_dev *pdev, struct nfp_pf *pf)
 {
-	struct nfp_nsp_identify *nspi;
 	struct nfp_nsp *nsp;
 	int err;
 
@@ -395,11 +394,9 @@ static int nfp_nsp_init(struct pci_dev *pdev, struct nfp_pf *pf)
 
 	nfp_nsp_init_ports(pdev, pf, nsp);
 
-	nspi = __nfp_nsp_identify(nsp);
-	if (nspi) {
-		dev_info(&pdev->dev, "BSP: %s\n", nspi->version);
-		kfree(nspi);
-	}
+	pf->nspi = __nfp_nsp_identify(nsp);
+	if (pf->nspi)
+		dev_info(&pdev->dev, "BSP: %s\n", pf->nspi->version);
 
 	err = nfp_fw_load(pdev, pf, nsp);
 	if (err < 0) {
@@ -527,8 +524,16 @@ static int nfp_pci_probe(struct pci_dev *pdev,
 	if (err)
 		goto err_sriov_unlimit;
 
+	err = nfp_hwmon_register(pf);
+	if (err) {
+		dev_err(&pdev->dev, "Failed to register hwmon info\n");
+		goto err_net_remove;
+	}
+
 	return 0;
 
+err_net_remove:
+	nfp_net_pci_remove(pf);
 err_sriov_unlimit:
 	pci_sriov_set_totalvfs(pf->pdev, 0);
 err_fw_unload:
@@ -537,6 +542,7 @@ err_fw_unload:
 	if (pf->fw_loaded)
 		nfp_fw_unload(pf);
 	kfree(pf->eth_tbl);
+	kfree(pf->nspi);
 	vfree(pf->dumpspec);
 err_hwinfo_free:
 	kfree(pf->hwinfo);
@@ -559,6 +565,8 @@ static void nfp_pci_remove(struct pci_dev *pdev)
 {
 	struct nfp_pf *pf = pci_get_drvdata(pdev);
 
+	nfp_hwmon_unregister(pf);
+
 	nfp_pcie_sriov_disable(pdev);
 	pci_sriov_set_totalvfs(pf->pdev, 0);
 
@@ -576,6 +584,7 @@ static void nfp_pci_remove(struct pci_dev *pdev)
 	nfp_cpp_free(pf->cpp);
 
 	kfree(pf->eth_tbl);
+	kfree(pf->nspi);
 	mutex_destroy(&pf->lock);
 	devlink_free(priv_to_devlink(pf));
 	pci_release_regions(pdev);

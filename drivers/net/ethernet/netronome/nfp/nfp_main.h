@@ -48,6 +48,7 @@
 #include <linux/workqueue.h>
 
 struct dentry;
+struct device;
 struct devlink_ops;
 struct pci_dev;
 
@@ -57,6 +58,7 @@ struct nfp_eth_table;
 struct nfp_hwinfo;
 struct nfp_mip;
 struct nfp_net;
+struct nfp_nsp_identify;
 struct nfp_port;
 struct nfp_rtsym_table;
 
@@ -70,6 +72,7 @@ struct nfp_dumpspec {
 	u32 size;
 	u8 data[0];
 };
+
 
 /**
  * struct nfp_pf - NFP PF-specific device structure
@@ -97,6 +100,8 @@ struct nfp_dumpspec {
  * @dump_flag:		Store dump flag between set_dump and get_dump_flag
  * @dump_len:		Store dump length between set_dump and get_dump_flag
  * @eth_tbl:		NSP ETH table
+ * @nspi:		NSP identification info
+ * @hwmon_dev:		pointer to hwmon device
  * @ddir:		Per-device debugfs directory
  * @max_data_vnics:	Number of data vNICs app firmware supports
  * @num_vnics:		Number of vNICs spawned
@@ -139,6 +144,9 @@ struct nfp_pf {
 	u32 dump_flag;
 	u32 dump_len;
 	struct nfp_eth_table *eth_tbl;
+	struct nfp_nsp_identify *nspi;
+
+	struct device *hwmon_dev;
 
 	struct dentry *ddir;
 
@@ -160,6 +168,9 @@ extern const struct devlink_ops nfp_devlink_ops;
 
 int nfp_net_pci_probe(struct nfp_pf *pf);
 void nfp_net_pci_remove(struct nfp_pf *pf);
+
+int nfp_hwmon_register(struct nfp_pf *pf);
+void nfp_hwmon_unregister(struct nfp_pf *pf);
 
 void nfp_net_get_mac_addr(struct nfp_pf *pf, struct nfp_port *port);
 
