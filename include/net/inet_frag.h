@@ -28,7 +28,8 @@ struct inet_frag_queue {
 	struct list_head	lru_list;   /* lru list member */
 	struct hlist_node	list;
 	atomic_t		refcnt;
-	struct sk_buff		*fragments; /* list of received fragments */
+	struct sk_buff		*fragments;  /* Used in IPv6. */
+	struct rb_root		rb_fragments; /* Used in IPv4. */
 	struct sk_buff		*fragments_tail;
 	ktime_t			stamp;
 	int			len;        /* total length of orig datagram */
