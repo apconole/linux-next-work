@@ -31,6 +31,7 @@ struct inet_frag_queue {
 	struct sk_buff		*fragments;  /* Used in IPv6. */
 	struct rb_root		rb_fragments; /* Used in IPv4. */
 	struct sk_buff		*fragments_tail;
+	struct sk_buff		*last_run_head; /* the head of the last "run". see ip_fragment.c */
 	ktime_t			stamp;
 	int			len;        /* total length of orig datagram */
 	int			meat;
@@ -105,6 +106,9 @@ static inline void inet_frag_put(struct inet_frag_queue *q, struct inet_frags *f
 	if (atomic_dec_and_test(&q->refcnt))
 		inet_frag_destroy(q, f, NULL);
 }
+
+/* Free all skbs in the queue; return the sum of their truesizes. */
+unsigned int inet_frag_rbtree_purge(struct rb_root *root);
 
 /* Memory Tracking Functions. */
 
