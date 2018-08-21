@@ -28,6 +28,7 @@
 #include <linux/io.h>
 #include <linux/reboot.h>
 #include <linux/slab.h>
+#include <linux/mem_encrypt.h>
 
 #include <asm/pgalloc.h>
 #include <asm/setup.h>
@@ -312,6 +313,9 @@ static void __init __map_region(efi_memory_desc_t *md, u64 va)
 
 	if (!(md->attribute & EFI_MEMORY_WB))
 		flags |= _PAGE_PCD;
+
+	if (sev_active())
+		flags |= _PAGE_ENC;
 
 	pfn = md->phys_addr >> PAGE_SHIFT;
 	if (kernel_map_pages_in_pgd(pgd, pfn, va, md->num_pages, flags))
