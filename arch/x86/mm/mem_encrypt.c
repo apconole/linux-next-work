@@ -38,6 +38,8 @@ static char sme_cmdline_off[] __initdata = "off";
  */
 u64 sme_me_mask __section(.data) = 0;
 EXPORT_SYMBOL(sme_me_mask);
+struct static_key sev_enable_key = STATIC_KEY_INIT_FALSE;
+EXPORT_SYMBOL_GPL(sev_enable_key);
 
 static bool sev_enabled __section(.data);
 
@@ -308,6 +310,13 @@ void __init mem_encrypt_init(void)
 	 */
 	if (sev_active())
 		dma_ops = &sev_dma_ops;
+
+	/*
+	 * With SEV, we need to unroll the rep string I/O instructions.
+	 */
+	if (sev_active())
+		static_key_slow_inc(&sev_enable_key);
+
 
 	pr_info("AMD %s active\n",
 		sev_active() ? "Secure Encrypted Virtualization (SEV)"
