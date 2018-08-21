@@ -391,6 +391,26 @@ static int find_next_iomem_res(struct resource *res, char *name,
 	return 0;
 }
 
+static int __walk_iomem_res(struct resource *res, char *name,
+			     bool first_level_children_only,
+			     void *arg, int (*func)(u64, u64, void *))
+{
+	u64 orig_end = res->end;
+	int ret = -1;
+
+	while ((res->start < res->end) &&
+	       !find_next_iomem_res(res, name, first_level_children_only)) {
+		ret = (*func)(res->start, res->end, arg);
+		if (ret)
+			break;
+
+		res->start = res->end + 1;
+		res->end = orig_end;
+	}
+
+	return ret;
+}
+
 /*
  * Walks through iomem resources and calls func() with matching resource
  * ranges. This walks through whole tree and not just first level children.
@@ -406,22 +426,12 @@ int walk_iomem_res(char *name, unsigned long flags, u64 start, u64 end,
 		void *arg, int (*func)(u64, u64, void *))
 {
 	struct resource res;
-	u64 orig_end;
-	int ret = -1;
 
 	res.start = start;
 	res.end = end;
 	res.flags = flags;
-	orig_end = res.end;
-	while ((res.start < res.end) &&
-		(!find_next_iomem_res(&res, name, false))) {
-		ret = (*func)(res.start, res.end, arg);
-		if (ret)
-			break;
-		res.start = res.end + 1;
-		res.end = orig_end;
-	}
-	return ret;
+
+	return __walk_iomem_res(&res, name, false, arg, func);
 }
 
 /*
@@ -432,25 +442,15 @@ int walk_iomem_res(char *name, unsigned long flags, u64 start, u64 end,
  * ranges.
  */
 int walk_system_ram_res(u64 start, u64 end, void *arg,
-				int (*func)(u64, u64, void *))
+			int (*func)(u64, u64, void *))
 {
 	struct resource res;
-	u64 orig_end;
-	int ret = -1;
 
 	res.start = start;
 	res.end = end;
 	res.flags = IORESOURCE_SYSTEM_RAM | IORESOURCE_BUSY;
-	orig_end = res.end;
-	while ((res.start < res.end) &&
-		(!find_next_iomem_res(&res, NULL, true))) {
-		ret = (*func)(res.start, res.end, arg);
-		if (ret)
-			break;
-		res.start = res.end + 1;
-		res.end = orig_end;
-	}
-	return ret;
+
+	return __walk_iomem_res(&res, NULL, true, arg, func);
 }
 
 #if !defined(CONFIG_ARCH_HAS_WALK_MEMORY)
@@ -492,6 +492,7 @@ static int __is_ram(unsigned long pfn, unsigned long nr_pages, void *arg)
 {
 	return 1;
 }
+
 /*
  * This generic page_is_ram() returns true if specified address is
  * registered as System RAM in iomem_resource list.
