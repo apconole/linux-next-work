@@ -393,14 +393,14 @@ static int find_next_iomem_res(struct resource *res, char *name,
 
 static int __walk_iomem_res(struct resource *res, char *name,
 			     bool first_level_children_only,
-			     void *arg, int (*func)(u64, u64, void *))
+			     void *arg, int (*func)(struct resource *, void *))
 {
 	u64 orig_end = res->end;
 	int ret = -1;
 
 	while ((res->start < res->end) &&
 	       !find_next_iomem_res(res, name, first_level_children_only)) {
-		ret = (*func)(res->start, res->end, arg);
+		ret = (*func)(res, arg);
 		if (ret)
 			break;
 
@@ -422,8 +422,8 @@ static int __walk_iomem_res(struct resource *res, char *name,
  * @start: start addr
  * @end: end addr
  */
-int walk_iomem_res(char *name, unsigned long flags, u64 start, u64 end,
-		void *arg, int (*func)(u64, u64, void *))
+int walk_iomem_res(char *name, unsigned long flags, u64 start,
+		   u64 end, void *arg, int (*func)(struct resource *, void *))
 {
 	struct resource res;
 
@@ -442,7 +442,7 @@ int walk_iomem_res(char *name, unsigned long flags, u64 start, u64 end,
  * ranges.
  */
 int walk_system_ram_res(u64 start, u64 end, void *arg,
-			int (*func)(u64, u64, void *))
+			int (*func)(struct resource *, void *))
 {
 	struct resource res;
 
