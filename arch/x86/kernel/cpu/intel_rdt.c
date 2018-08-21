@@ -689,15 +689,21 @@ rdt_cpu_notify(struct notifier_block *self, unsigned long action, void *hcpu)
 static void __init rdt_cpu_setup(void *dummy)
 {
 	struct rdt_resource *r;
-	int i;
+	int i, idx;
+	u32 val;
 
 	clear_closid_rmid(smp_processor_id());
 
 	for_each_alloc_capable_rdt_resource(r) {
 		for (i = 0; i < r->num_closid; i++) {
-			int idx = cbm_idx(r, i);
-
-			wrmsrl(r->msr_base + idx, r->default_ctrl);
+			if (r == &rdt_resources_all[RDT_RESOURCE_MBA]) {
+				idx = i;
+				val = delay_bw_map(r->default_ctrl, r);
+			} else {
+				idx = cbm_idx(r, i);
+				val = r->default_ctrl;
+			}
+			wrmsrl(r->msr_base + idx, val);
 		}
 	}
 }
