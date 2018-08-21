@@ -829,7 +829,13 @@ static ssize_t show(struct kobject *kobj, struct attribute *attr, char *buf)
 	if (!down_read_trylock(&cpufreq_rwsem))
 		return -EINVAL;
 
-	down_read(&policy->rwsem);
+	/*
+	 * Use trylok to avoid lockdep circular dependency warning.
+	 */
+	if (!down_read_trylock(&policy->rwsem)) {
+		ret = -EBUSY;
+		goto err_out;
+	}
 
 	if (fattr->show)
 		ret = fattr->show(policy, buf);
@@ -837,6 +843,7 @@ static ssize_t show(struct kobject *kobj, struct attribute *attr, char *buf)
 		ret = -EIO;
 
 	up_read(&policy->rwsem);
+err_out:
 	up_read(&cpufreq_rwsem);
 
 	return ret;
