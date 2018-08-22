@@ -27,11 +27,11 @@ struct fib_rule {
 	struct rcu_head		rcu;
 	struct net *		fr_net;
 	RH_KABI_EXTEND(__be64	tun_id)
-	RH_KABI_EXTEND(u8	table_prefixlen_min)
+	RH_KABI_EXTEND(int	suppress_prefixlen)
 	/* kABI: use these reserved fields to add new items; the structure
 	 * can't be further extended after we whitelist fib_rules_register.
 	 */
-	RH_KABI_EXTEND(u8	rh_reserved[15])
+	RH_KABI_EXTEND(u8	rh_reserved[12])
 };
 
 struct fib_lookup_arg {
@@ -97,7 +97,7 @@ struct fib_rule_notifier_info {
 	[FRA_FWMARK]	= { .type = NLA_U32 }, \
 	[FRA_FWMASK]	= { .type = NLA_U32 }, \
 	[FRA_TABLE]     = { .type = NLA_U32 }, \
-	[FRA_TABLE_PREFIXLEN_MIN] = { .type = NLA_U8 }, \
+	[FRA_SUPPRESS_PREFIXLEN] = { .type = NLA_U32 }, \
 	[FRA_GOTO]	= { .type = NLA_U32 }
 
 static inline void fib_rule_get(struct fib_rule *rule)
