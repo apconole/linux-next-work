@@ -1121,10 +1121,6 @@ struct tb_switch *tb_switch_alloc(struct tb *tb, struct device *parent,
 	}
 
 	sw->generation = tb_switch_get_generation(sw);
-	if (sw->generation >= 3) {
-		mark_tech_preview("Thunderbolt 3", THIS_MODULE);
-	}
-	tb_sw_info(sw, "Thunderbolt HW version detected: %d\n", sw->generation);
 
 	cap = tb_switch_find_vse_cap(sw, TB_VSE_CAP_PLUG_EVENTS);
 	if (cap < 0) {
