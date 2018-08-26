@@ -95,7 +95,7 @@ static int load_and_attach(const char *event, struct bpf_insn *prog, int size)
 	} else if (is_sockops) {
 		prog_type = BPF_PROG_TYPE_SOCK_OPS;
 	} else if (is_sk_skb) {
-		prog_type = BPF_PROG_TYPE_SK_SKB;
+		prog_type = BPF_PROG_TYPE_UNSPEC;
 	} else {
 		printf("Unknown event '%s'\n", event);
 		return -1;

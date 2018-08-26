@@ -33,6 +33,7 @@
 #include <linux/if_link.h>
 #include <sys/socket.h>
 #include <errno.h>
+#include <linux/compiler.h>
 
 #ifndef SOL_NETLINK
 #define SOL_NETLINK 270
