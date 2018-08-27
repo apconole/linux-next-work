@@ -214,4 +214,7 @@ static inline void blk_mq_put_driver_tag(struct request *rq)
 	__blk_mq_put_driver_tag(hctx, rq);
 }
 
+void blk_mq_in_flight(struct request_queue *q, struct hd_struct *part,
+			unsigned int inflight[2]);
+
 #endif
