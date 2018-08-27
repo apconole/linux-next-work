@@ -83,6 +83,18 @@ void part_in_flight(struct request_queue *q, struct hd_struct *part,
 	}
 }
 
+void part_in_flight_rw(struct request_queue *q, struct hd_struct *part,
+		       unsigned int inflight[2])
+{
+	if (q->mq_ops) {
+		blk_mq_in_flight_rw(q, part, inflight);
+		return;
+	}
+
+	inflight[0] = atomic_read(&part->in_flight[0]);
+	inflight[1] = atomic_read(&part->in_flight[1]);
+}
+
 /**
  * disk_get_part - get partition
  * @disk: disk to look partition from
