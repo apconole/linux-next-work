@@ -676,6 +676,8 @@ void qla_nvme_delete(struct scsi_qla_host *vha)
 	}
 }
 
+bool tech_preview_warning_issued = false;
+
 void qla_nvme_register_hba(struct scsi_qla_host *vha)
 {
 	struct nvme_fc_port_template *tmpl;
@@ -705,6 +707,11 @@ void qla_nvme_register_hba(struct scsi_qla_host *vha)
 	    "register_localport: host-traddr=nn-0x%llx:pn-0x%llx on portID:%x\n",
 	    pinfo.node_name, pinfo.port_name, pinfo.port_id);
 	qla_nvme_fc_transport.dma_boundary = vha->host->dma_boundary;
+
+	if (!tech_preview_warning_issued) {
+		mark_tech_preview("NVMe over FC", THIS_MODULE);
+		tech_preview_warning_issued = true;
+	}
 
 	ret = nvme_fc_register_localport(&pinfo, tmpl,
 	    get_device(&ha->pdev->dev), &vha->nvme_local_port);
