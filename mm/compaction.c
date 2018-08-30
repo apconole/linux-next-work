@@ -185,11 +185,11 @@ static bool compact_unlock_should_abort(spinlock_t *lock,
 	}
 
 	if (need_resched()) {
+		cond_resched();
 		if (!cc->sync) {
 			cc->contended = true;
 			return true;
 		}
-		cond_resched();
 	}
 
 	return false;
@@ -251,12 +251,12 @@ static inline bool compact_should_abort(struct compact_control *cc)
 {
 	/* async compaction aborts if contended */
 	if (need_resched()) {
+		cond_resched();
 		if (!cc->sync) {
 			cc->contended = true;
 			return true;
 		}
 
-		cond_resched();
 	}
 
 	return false;
