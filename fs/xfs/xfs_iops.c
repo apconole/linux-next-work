@@ -1198,9 +1198,8 @@ xfs_inode_supports_dax(
 	if (!S_ISREG(VFS_I(ip)->i_mode))
 		return false;
 
-	/* DAX mount option or DAX iflag must be set. */
-	if (!(mp->m_flags & XFS_MOUNT_DAX) &&
-	    !(ip->i_d.di_flags2 & XFS_DIFLAG2_DAX))
+	/* DAX mount option must be set. */
+	if (!(mp->m_flags & XFS_MOUNT_DAX))
 		return false;
 
 	/* Block size must match page size */
