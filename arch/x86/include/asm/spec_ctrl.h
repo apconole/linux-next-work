@@ -288,13 +288,13 @@ static __always_inline int cpu_has_spec_ctrl(void)
 
 static __always_inline bool ibrs_enabled_kernel(void)
 {
-	if (cpu_has_spec_ctrl()) {
-		unsigned int ibrs = __this_cpu_read(spec_ctrl_pcp.entry);
+	/*
+	 * We don't need to do the cpu_has_spec_ctrl() check here as
+	 * the IBRS bit won't be on if no such capability exists.
+	 */
+	unsigned int ibrs = __this_cpu_read(spec_ctrl_pcp.entry);
 
-		return ibrs & SPEC_CTRL_IBRS;
-	}
-
-	return false;
+	return ibrs & SPEC_CTRL_IBRS;
 }
 
 static inline bool retp_enabled(void)
@@ -435,6 +435,9 @@ static __always_inline void x86_spec_ctrl_restore_host(u64 guest_spec_ctrl,
 /*
  * The spec_ctrl_ibrs_off() is called before a cpu enters idle state and
  * spec_ctrl_ibrs_off() is called after exit from an idle state.
+ *
+ * There is no need to turn off and on IBRS when entering and exiting
+ * idle state if enhanced IBRS feature is present.
  */
 static __always_inline void spec_ctrl_ibrs_on(void)
 {
@@ -442,7 +445,11 @@ static __always_inline void spec_ctrl_ibrs_on(void)
 	 * IBRS may have barrier semantics so it must be set even for ALWAYS
 	 * mode.
 	 */
-	if (ibrs_enabled_kernel()) {
+	if (static_cpu_has(X86_FEATURE_IBRS_ENHANCED)) {
+		if (ibrs_enabled_kernel())
+			return;
+		/* Fall back to retpoline check */
+	} else if (ibrs_enabled_kernel()) {
 		u64 spec_ctrl = this_cpu_read(spec_ctrl_pcp.entry64);
 
 		native_wrmsrl(MSR_IA32_SPEC_CTRL, spec_ctrl);
@@ -459,7 +466,8 @@ static __always_inline void spec_ctrl_ibrs_on(void)
 
 static __always_inline void spec_ctrl_ibrs_off(void)
 {
-	if (ibrs_enabled_kernel()) {
+	if (!static_cpu_has(X86_FEATURE_IBRS_ENHANCED) &&
+	    ibrs_enabled_kernel()) {
 		u64 spec_ctrl = x86_spec_ctrl_base;
 
 		/* SSBD controlled in MSR_SPEC_CTRL */
