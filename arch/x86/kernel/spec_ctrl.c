@@ -170,10 +170,12 @@ static void set_spec_ctrl_pcp(bool entry, bool exit)
 
 	/*
 	 * For ibrs_always, we only need to write the MSR at kernel entry
-	 * to fulfill the barrier semantics for some CPUs.
+	 * to fulfill the barrier semantics for some CPUs. For enhanced
+	 * IBRS, we don't need to write the MSR at kernel entry/exit anymore.
 	 */
 	if (entry && exit)
-		enabled = SPEC_CTRL_PCP_IBRS_ENTRY;
+		enabled = (ibrs_mode == IBRS_ENHANCED)
+			? 0 : SPEC_CTRL_PCP_IBRS_ENTRY;
 	else if (entry != exit)
 		enabled = SPEC_CTRL_PCP_IBRS_ENTRY|SPEC_CTRL_PCP_IBRS_EXIT;
 	else
@@ -268,8 +270,8 @@ static void set_spec_ctrl_pcp_ibrs_user(void)
 
 void clear_spec_ctrl_pcp(void)
 {
-	set_spec_ctrl_pcp(false, false);
 	ibrs_mode = IBRS_DISABLED;
+	set_spec_ctrl_pcp(false, false);
 }
 
 static void sync_all_cpus_spec_ctrl(void)
@@ -357,10 +359,23 @@ static bool is_skylake_era(void)
 	return false;
 }
 
+/*
+ * The caller should have checked X86_FEATURE_IBRS_ENHANCED before calling
+ * it, Which also implies X86_FEATURE_IBRS is present.
+ */
+void spec_ctrl_enable_ibrs_enhanced(void)
+{
+	ibrs_mode = IBRS_ENHANCED;
+	set_spec_ctrl_pcp(true, true);
+}
+
 bool spec_ctrl_force_enable_ibrs(void)
 {
 	if (cpu_has_spec_ctrl()) {
-		set_spec_ctrl_pcp_ibrs();
+		if (boot_cpu_has(X86_FEATURE_IBRS_ENHANCED))
+			spec_ctrl_enable_ibrs_enhanced();
+		else
+			set_spec_ctrl_pcp_ibrs();
 		return true;
 	}
 
@@ -371,7 +386,10 @@ bool spec_ctrl_cond_enable_ibrs(bool full_retp)
 {
 	if (cpu_has_spec_ctrl() && (is_skylake_era() || !full_retp) &&
 	    !noibrs_cmdline) {
-		set_spec_ctrl_pcp_ibrs();
+		if (boot_cpu_has(X86_FEATURE_IBRS_ENHANCED))
+			spec_ctrl_enable_ibrs_enhanced();
+		else
+			set_spec_ctrl_pcp_ibrs();
 		return true;
 	}
 
@@ -381,7 +399,10 @@ bool spec_ctrl_cond_enable_ibrs(bool full_retp)
 bool spec_ctrl_enable_ibrs_always(void)
 {
 	if (cpu_has_spec_ctrl()) {
-		set_spec_ctrl_pcp_ibrs_always();
+		if (boot_cpu_has(X86_FEATURE_IBRS_ENHANCED))
+			spec_ctrl_enable_ibrs_enhanced();
+		else
+			set_spec_ctrl_pcp_ibrs_always();
 		return true;
 	}
 
@@ -425,6 +446,11 @@ bool spec_ctrl_enable_retpoline_ibrs_user(void)
 	if (!cpu_has_spec_ctrl())
 		return false;
 
+	if (boot_cpu_has(X86_FEATURE_IBRS_ENHANCED)) {
+		spec_ctrl_enable_ibrs_enhanced();
+		return true;
+	}
+
 	set_spec_ctrl_retp(true);
 	set_spec_ctrl_pcp_ibrs_user();
 	return true;
@@ -449,6 +475,8 @@ enum spectre_v2_mitigation spec_ctrl_get_mitigation(void)
 		mode = SPECTRE_V2_IBRS_ALWAYS;
 	else if (ibrs_mode == IBRS_ENABLED)
 		mode = SPECTRE_V2_IBRS;
+	else if (ibrs_mode == IBRS_ENHANCED)
+		mode = SPECTRE_V2_IBRS_ENHANCED;
 	else if (retp_enabled()) {
 		if (!retp_enabled_full())
 			mode = SPECTRE_V2_RETPOLINE_MINIMAL;
@@ -495,6 +523,7 @@ void spec_ctrl_cpu_init(void)
 	}
 
 	if ((ibrs_mode == IBRS_ENABLED_ALWAYS) ||
+	    (ibrs_mode == IBRS_ENHANCED) ||
 	    (spec_ctrl_msr_write && (system_state == SYSTEM_BOOTING)))
 		native_wrmsr(MSR_IA32_SPEC_CTRL,
 			     this_cpu_read(spec_ctrl_pcp.entry),
@@ -700,6 +729,21 @@ static ssize_t ibrs_enabled_write(struct file *file,
 		goto out_unlock;
 	}
 
+	/*
+	 * With enhanced IBRS, it is either IBRS_ENHANCED or IBRS_DISABLED.
+	 * Other options are not supported.
+	 */
+	if (boot_cpu_has(X86_FEATURE_IBRS_ENHANCED) &&
+	   (enable != IBRS_DISABLED) && (enable != IBRS_ENHANCED)) {
+		count = -EINVAL;
+		goto out_unlock;
+	}
+	if (!boot_cpu_has(X86_FEATURE_IBRS_ENHANCED) &&
+	   (enable == IBRS_ENHANCED)) {
+		count = -EINVAL;
+		goto out_unlock;
+	}
+
 	if (enable == IBRS_DISABLED) {
 		clear_spec_ctrl_pcp();
 		sync_all_cpus_spec_ctrl();
@@ -708,6 +752,10 @@ static ssize_t ibrs_enabled_write(struct file *file,
 		set_spec_ctrl_retp(false);
 	} else if (enable == IBRS_ENABLED_ALWAYS) {
 		set_spec_ctrl_pcp_ibrs_always();
+		set_spec_ctrl_retp(false);
+		sync_all_cpus_spec_ctrl();
+	} else if (enable == IBRS_ENHANCED) {
+		spec_ctrl_enable_ibrs_enhanced();
 		set_spec_ctrl_retp(false);
 		sync_all_cpus_spec_ctrl();
 	} else {
@@ -781,7 +829,8 @@ static ssize_t retp_enabled_write(struct file *file,
 		if (ibp_disabled) {
 			sync_all_cpus_ibp(true);
 			ibp_disabled = false;
-		} else if (ibrs_mode == IBRS_ENABLED) {
+		} else if ((ibrs_mode == IBRS_ENABLED) ||
+			   (ibrs_mode == IBRS_ENHANCED)) {
 			clear_spec_ctrl_pcp();
 			sync_all_cpus_spec_ctrl();
 		} else if (ibrs_mode == IBRS_ENABLED_ALWAYS) {
@@ -839,6 +888,9 @@ static void ssbd_spec_ctrl_write(unsigned int mode)
 			break;
 		case IBRS_ENABLED_USER:
 			set_spec_ctrl_pcp_ibrs_user();
+			break;
+		case IBRS_ENHANCED:
+			spec_ctrl_enable_ibrs_enhanced();
 			break;
 	}
 	sync_all_cpus_spec_ctrl();

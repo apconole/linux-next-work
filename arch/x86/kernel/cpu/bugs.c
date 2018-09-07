@@ -133,6 +133,7 @@ static const char *spectre_v2_strings[] = {
 	[SPECTRE_V2_IBRS]			= "Mitigation: IBRS (kernel)",
 	[SPECTRE_V2_IBRS_ALWAYS]		= "Mitigation: IBRS (kernel and user space)",
 	[SPECTRE_V2_IBP_DISABLED]		= "Mitigation: IBP disabled",
+	[SPECTRE_V2_IBRS_ENHANCED]		= "Mitigation: Enhanced IBRS",
 };
 
 enum spectre_v2_mitigation_cmd spectre_v2_cmd = SPECTRE_V2_CMD_AUTO;
@@ -197,6 +198,10 @@ void __spectre_v2_select_mitigation(void)
 
 	case SPECTRE_V2_CMD_FORCE:
 	case SPECTRE_V2_CMD_AUTO:
+		if (boot_cpu_has(X86_FEATURE_IBRS_ENHANCED)) {
+			spec_ctrl_enable_ibrs_enhanced();
+			return;
+		}
 		break;
 
 	case SPECTRE_V2_CMD_RETPOLINE:

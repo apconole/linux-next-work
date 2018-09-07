@@ -118,6 +118,17 @@ ibrs_enabled 3: IBRS enabled in user mode.
 
 		requires SPEC_CTRL present
 
+ibrs_enabled 4: Enhanced IBRS in kernel and user mode. Only guest can
+		disable it.
+
+		CPU supports enhanced IBRS feature which can enable
+		protection on both kernel and usermode with much better
+		performance. This option can be selected only if the
+		CPU can support it. The presence of the enhanced IBRS
+		feature will disable the use of ibrs_enabled modes 1-3.
+
+		requires SPEC_CTRL and enhanced IBRS present
+
 ibpb_enabled 0: Disabled
 
 ibpb_enabled 1: IBPB IBP barrier is used to flush the IBP across mm

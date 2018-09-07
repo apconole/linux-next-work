@@ -194,6 +194,7 @@ extern void ssb_print_mitigation(void);
 bool spec_ctrl_force_enable_ibrs(void);
 bool spec_ctrl_cond_enable_ibrs(bool full_retpoline);
 bool spec_ctrl_enable_ibrs_always(void);
+void spec_ctrl_enable_ibrs_enhanced(void);
 bool spec_ctrl_force_enable_ibp_disabled(void);
 bool spec_ctrl_cond_enable_ibp_disabled(void);
 void spec_ctrl_enable_retpoline(void);
@@ -274,7 +275,10 @@ enum {
 	/* in host userland, disabled in kernel and guest */
 	IBRS_ENABLED_USER,
 
-	IBRS_MAX = IBRS_ENABLED_USER,
+	/* in both kernel and host userland (enhanced IBRS) */
+	IBRS_ENHANCED,
+
+	IBRS_MAX = IBRS_ENHANCED,
 };
 
 static __always_inline int cpu_has_spec_ctrl(void)
