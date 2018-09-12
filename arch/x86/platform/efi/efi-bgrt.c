@@ -39,12 +39,30 @@ void __init efi_bgrt_init(void)
 	if (ACPI_FAILURE(status))
 		return;
 
-	if (bgrt_tab->header.length < sizeof(*bgrt_tab))
+	if (bgrt_tab->header.length < sizeof(*bgrt_tab)) {
+		pr_err("Ignoring BGRT: invalid length %u (expected %zu)\n",
+		       bgrt_tab->header.length, sizeof(*bgrt_tab));
 		return;
-	if (bgrt_tab->version != 1 || bgrt_tab->status != 1)
+	}
+	if (bgrt_tab->version != 1) {
+		pr_err("Ignoring BGRT: invalid version %u (expected 1)\n",
+		       bgrt_tab->version);
 		return;
-	if (bgrt_tab->image_type != 0 || !bgrt_tab->image_address)
+	}
+	if (bgrt_tab->status != 1) {
+		pr_err("Ignoring BGRT: invalid status %u (expected 1)\n",
+		       bgrt_tab->status);
 		return;
+	}
+	if (bgrt_tab->image_type != 0) {
+		pr_err("Ignoring BGRT: invalid image type %u (expected 0)\n",
+		       bgrt_tab->image_type);
+		return;
+	}
+	if (!bgrt_tab->image_address) {
+		pr_err("Ignoring BGRT: null image address\n");
+		return;
+	}
 
 	image = ioremap(bgrt_tab->image_address, sizeof(bmp_header));
 	if (!image) {
@@ -56,9 +74,12 @@ void __init efi_bgrt_init(void)
 	iounmap(image);
 	bgrt_image_size = bmp_header.size;
 
-	bgrt_image = kmalloc(bgrt_image_size, GFP_KERNEL);
-	if (!bgrt_image)
+	bgrt_image = kmalloc(bgrt_image_size, GFP_KERNEL | __GFP_NOWARN);
+	if (!bgrt_image) {
+		pr_err("Ignoring BGRT: failed to allocate memory for image (wanted %zu bytes)\n",
+		       bgrt_image_size);
 		return;
+	}
 
 	image = ioremap(bgrt_tab->image_address, bmp_header.size);
 	if (!image) {
