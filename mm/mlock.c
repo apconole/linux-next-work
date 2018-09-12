@@ -614,8 +614,6 @@ static int do_mlock(unsigned long start, size_t len, vm_flags_t flags)
 	if (!can_do_mlock())
 		return -EPERM;
 
-	lru_add_drain_all();	/* flush pagevec */
-
 	len = PAGE_ALIGN(len + (offset_in_page(start)));
 	start &= PAGE_MASK;
 
@@ -729,9 +727,6 @@ SYSCALL_DEFINE1(mlockall, int, flags)
 
 	if (!can_do_mlock())
 		return -EPERM;
-
-	if (flags & MCL_CURRENT)
-		lru_add_drain_all();	/* flush pagevec */
 
 	lock_limit = rlimit(RLIMIT_MEMLOCK);
 	lock_limit >>= PAGE_SHIFT;
