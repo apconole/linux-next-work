@@ -442,6 +442,7 @@ static void __init setup_resources(void)
 		switch (memory_chunk[i].type) {
 		case CHUNK_READ_WRITE:
 			res->name = "System RAM";
+			res->flags |= IORESOURCE_SYSRAM;
 			break;
 		case CHUNK_READ_ONLY:
 			res->name = "System ROM";
