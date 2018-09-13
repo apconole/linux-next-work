@@ -8273,11 +8273,14 @@ void md_do_sync(struct md_thread *thread)
 			/((jiffies-mddev->resync_mark)/HZ +1) +1;
 
 		if (currspeed > speed_min(mddev)) {
-			if (currspeed > speed_max(mddev)) {
+			if (currspeed > speed_max(mddev) ||
+			    mddev->queue ? (!is_mddev_idle(mddev, 0) &&
+			    !blk_queue_nonrot(mddev->queue)) : false) {
 				msleep(500);
 				goto repeat;
 			}
-			if (!is_mddev_idle(mddev, 0)) {
+			if (!is_mddev_idle(mddev, 0) &&
+			    mddev->queue ? blk_queue_nonrot(mddev->queue) : true) {
 				/*
 				 * Give other IO more of a chance.
 				 * The faster the devices, the less we wait.
