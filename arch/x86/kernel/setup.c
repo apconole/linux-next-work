@@ -887,7 +887,7 @@ static bool valid_intel_processor(__u8 model, __u8 stepping)
 
 	switch(model) {
 	case INTEL_FAM6_KABYLAKE_DESKTOP:
-		valid = (stepping <= 10);
+		valid = (stepping <= 10 || stepping == 12);
 		break;
 
 	case INTEL_FAM6_KABYLAKE_MOBILE:
