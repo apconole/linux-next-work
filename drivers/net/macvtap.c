@@ -1055,11 +1055,13 @@ done:
 
 static ssize_t macvtap_do_read(struct macvtap_queue *q, struct kiocb *iocb,
 			       const struct iovec *iv, unsigned long len,
-			       int noblock)
+			       int noblock, struct sk_buff *skb)
 {
 	DEFINE_WAIT(wait);
-	struct sk_buff *skb;
 	ssize_t ret = 0;
+
+	if (skb)
+		goto put;
 
 	while (len) {
 		if (!noblock)
@@ -1081,16 +1083,19 @@ static ssize_t macvtap_do_read(struct macvtap_queue *q, struct kiocb *iocb,
 			schedule();
 			continue;
 		}
-		ret = macvtap_put_user(q, skb, iv, len);
-		if (unlikely(ret < 0))
-			kfree_skb(skb);
-		else
-			consume_skb(skb);
 		break;
 	}
 
 	if (!noblock)
 		finish_wait(sk_sleep(&q->sk), &wait);
+put:
+	if (skb) {
+		ret = macvtap_put_user(q, skb, iv, len);
+		if (unlikely(ret < 0))
+			kfree_skb(skb);
+		else
+			consume_skb(skb);
+	}
 	return ret;
 }
 
@@ -1107,7 +1112,8 @@ static ssize_t macvtap_aio_read(struct kiocb *iocb, const struct iovec *iv,
 		goto out;
 	}
 
-	ret = macvtap_do_read(q, iocb, iv, len, file->f_flags & O_NONBLOCK);
+	ret = macvtap_do_read(q, iocb, iv, len,
+		file->f_flags & O_NONBLOCK, NULL);
 	ret = min_t(ssize_t, ret, len); /* XXX copied from tun.c. Why? */
 out:
 	return ret;
@@ -1359,7 +1365,7 @@ static int macvtap_recvmsg(struct kiocb *iocb, struct socket *sock,
 	if (flags & ~(MSG_DONTWAIT|MSG_TRUNC))
 		return -EINVAL;
 	ret = macvtap_do_read(q, iocb, m->msg_iov, total_len,
-			  flags & MSG_DONTWAIT);
+			  flags & MSG_DONTWAIT, m->msg_control);
 	if (ret > total_len) {
 		m->msg_flags |= MSG_TRUNC;
 		ret = flags & MSG_TRUNC ? ret : total_len;
