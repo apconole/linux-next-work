@@ -1651,9 +1651,8 @@ out:
 
 static ssize_t tun_do_read(struct tun_struct *tun, struct tun_file *tfile,
 			   struct kiocb *iocb, const struct iovec *iv,
-			   ssize_t len, int noblock)
+			   ssize_t len, int noblock, struct sk_buff *skb)
 {
-	struct sk_buff *skb;
 	ssize_t ret;
 	int err;
 
@@ -1662,10 +1661,12 @@ static ssize_t tun_do_read(struct tun_struct *tun, struct tun_file *tfile,
 	if (!len)
 		return 0;
 
-	/* Read frames from ring */
-	skb = tun_ring_recv(tun, tfile, noblock, &err);
-	if (!skb)
-		return err;
+	if (!skb) {
+		/* Read frames from ring */
+		skb = tun_ring_recv(tun, tfile, noblock, &err);
+		if (!skb)
+			return err;
+	}
 
 	ret = tun_put_user(tun, tfile, skb, iv, len);
 	if (unlikely(ret < 0))
@@ -1693,7 +1694,7 @@ static ssize_t tun_chr_aio_read(struct kiocb *iocb, const struct iovec *iv,
 	}
 
 	ret = tun_do_read(tun, tfile, iocb, iv, len,
-			  file->f_flags & O_NONBLOCK);
+			  file->f_flags & O_NONBLOCK, NULL);
 	ret = min_t(ssize_t, ret, len);
 out:
 	tun_put(tun);
@@ -1848,7 +1849,7 @@ static int tun_recvmsg(struct kiocb *iocb, struct socket *sock,
 		goto out;
 	}
 	ret = tun_do_read(tun, tfile, iocb, m->msg_iov, total_len,
-			  flags & MSG_DONTWAIT);
+			  flags & MSG_DONTWAIT, m->msg_control);
 	if (ret > total_len) {
 		m->msg_flags |= MSG_TRUNC;
 		ret = flags & MSG_TRUNC ? ret : total_len;
