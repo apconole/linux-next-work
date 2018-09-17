@@ -1060,6 +1060,12 @@ static ssize_t macvtap_do_read(struct macvtap_queue *q, struct kiocb *iocb,
 	DEFINE_WAIT(wait);
 	ssize_t ret = 0;
 
+	if (!len) {
+		if (skb)
+			kfree_skb(skb);
+		return 0;
+	}
+
 	if (skb)
 		goto put;
 
@@ -1361,11 +1367,15 @@ static int macvtap_recvmsg(struct kiocb *iocb, struct socket *sock,
 			   int flags)
 {
 	struct macvtap_queue *q = container_of(sock, struct macvtap_queue, sock);
+	struct sk_buff *skb = m->msg_control;
 	int ret;
-	if (flags & ~(MSG_DONTWAIT|MSG_TRUNC))
+	if (flags & ~(MSG_DONTWAIT|MSG_TRUNC)) {
+		if (skb)
+			kfree_skb(skb);
 		return -EINVAL;
+	}
 	ret = macvtap_do_read(q, iocb, m->msg_iov, total_len,
-			  flags & MSG_DONTWAIT, m->msg_control);
+			flags & MSG_DONTWAIT, skb);
 	if (ret > total_len) {
 		m->msg_flags |= MSG_TRUNC;
 		ret = flags & MSG_TRUNC ? ret : total_len;
