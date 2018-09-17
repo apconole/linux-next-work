@@ -950,6 +950,7 @@ static int vhost_net_open(struct inode *inode, struct file *f)
 		n->vqs[i].done_idx = 0;
 		n->vqs[i].vhost_hlen = 0;
 		n->vqs[i].sock_hlen = 0;
+		n->vqs[i].rx_array = NULL;
 		vhost_net_buf_init(&n->vqs[i].rxq);
 	}
 	r = vhost_dev_init(dev, vqs, VHOST_NET_VQ_MAX);
