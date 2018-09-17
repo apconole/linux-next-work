@@ -1397,6 +1397,19 @@ struct socket *macvtap_get_socket(struct file *file)
 }
 EXPORT_SYMBOL_GPL(macvtap_get_socket);
 
+struct skb_array *macvtap_get_skb_array(struct file *file)
+{
+	struct macvtap_queue *q;
+
+	if (file->f_op != &macvtap_fops)
+		return ERR_PTR(-EINVAL);
+	q = file->private_data;
+	if (!q)
+		return ERR_PTR(-EBADFD);
+	return &q->skb_array;
+}
+EXPORT_SYMBOL_GPL(macvtap_get_skb_array);
+
 static int macvtap_queue_resize(struct macvlan_dev *vlan)
 {
 	struct net_device *dev = vlan->dev;
