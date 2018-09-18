@@ -52,6 +52,7 @@
 #include <asm/numa.h>
 #include <asm/cacheflush.h>
 #include <asm/init.h>
+#include <asm/uv/uv.h>
 #include <asm/setup.h>
 
 #include "mm_internal.h"
@@ -1231,10 +1232,12 @@ static unsigned long probe_memory_block_size(void)
 	/* start from 2g */
 	unsigned long bz = 1UL<<31;
 
-	if (totalram_pages >= (64ULL << (30 - PAGE_SHIFT))) {
-		pr_info("Using 2GB memory block size for large-memory system\n");
+#ifdef CONFIG_X86_UV
+	if (is_uv_system()) {
+		printk(KERN_INFO "UV: memory block size 2GB\n");
 		return 2UL * 1024 * 1024 * 1024;
 	}
+#endif
 
 	/* less than 64g installed */
 	if ((max_pfn << PAGE_SHIFT) < (16UL << 32))
