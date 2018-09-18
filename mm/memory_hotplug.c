@@ -1739,9 +1739,9 @@ static void node_states_clear_node(int node, struct memory_notify *arg)
 }
 
 static int __ref __offline_pages(unsigned long start_pfn,
-		  unsigned long end_pfn)
+		  unsigned long end_pfn, unsigned long timeout)
 {
-	unsigned long pfn, nr_pages;
+	unsigned long pfn, nr_pages, expire;
 	long offlined_pages;
 	int ret, node;
 	struct zone *zone;
@@ -1781,8 +1781,12 @@ static int __ref __offline_pages(unsigned long start_pfn,
 		goto failed_removal;
 
 	pfn = start_pfn;
+	expire = jiffies + timeout;
 repeat:
 	/* start memory hot removal */
+	ret = -EBUSY;
+	if (time_after(jiffies, expire))
+		goto failed_removal;
 	ret = -EINTR;
 	if (signal_pending(current))
 		goto failed_removal;
@@ -1852,7 +1856,7 @@ failed_removal:
 /* Must be protected by mem_hotplug_begin() */
 int offline_pages(unsigned long start_pfn, unsigned long nr_pages)
 {
-	return __offline_pages(start_pfn, start_pfn + nr_pages);
+	return __offline_pages(start_pfn, start_pfn + nr_pages, 120 * HZ);
 }
 #endif /* CONFIG_MEMORY_HOTREMOVE */
 
