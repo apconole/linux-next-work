@@ -81,6 +81,7 @@ void mlx5i_init(struct mlx5_core_dev *mdev,
 	priv->netdev      = netdev;
 	priv->profile     = profile;
 	priv->ppriv       = ppriv;
+	priv->max_opened_tc = 1;
 	mutex_init(&priv->state_lock);
 
 	mlx5e_build_nic_params(mdev, &priv->channels.params,
