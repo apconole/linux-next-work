@@ -2395,6 +2395,11 @@ static inline bool sk_fullsock(const struct sock *sk)
 	return (1 << sk->sk_state) & ~(TCPF_TIME_WAIT);
 }
 
+bool sk_ns_capable(const struct sock *sk,
+		   struct user_namespace *user_ns, int cap);
+bool sk_capable(const struct sock *sk, int cap);
+bool sk_net_capable(const struct sock *sk, int cap);
+
 extern __u32 sysctl_wmem_max;
 extern __u32 sysctl_rmem_max;
 
