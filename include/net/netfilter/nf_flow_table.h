@@ -20,11 +20,17 @@ struct nf_flowtable_type {
 	struct module			*owner;
 };
 
+enum nf_flowtable_flags {
+	NF_FLOWTABLE_F_HW		= 0x1,
+};
+
 struct nf_flowtable {
 	struct list_head		list;
 	struct rhashtable		rhashtable;
+	u32				flags;
 	const struct nf_flowtable_type	*type;
 	struct delayed_work		gc_work;
+	possible_net_t			ft_net;
 };
 
 enum flow_offload_tuple_dir {
@@ -69,6 +75,7 @@ struct flow_offload_tuple_rhash {
 #define FLOW_OFFLOAD_DNAT	0x2
 #define FLOW_OFFLOAD_DYING	0x4
 #define FLOW_OFFLOAD_TEARDOWN	0x8
+#define FLOW_OFFLOAD_HW		0x10
 
 struct flow_offload {
 	struct flow_offload_tuple_rhash		tuplehash[FLOW_OFFLOAD_DIR_MAX];
@@ -126,7 +133,33 @@ unsigned int nf_flow_offload_ip_hook(void *priv, struct sk_buff *skb,
 unsigned int nf_flow_offload_ipv6_hook(void *priv, struct sk_buff *skb,
 				       const struct nf_hook_state *state);
 
-#define MODULE_ALIAS_NF_FLOWTABLE(family)	\
+void nf_flow_offload_hw_add(struct net *net, struct flow_offload *flow,
+			    struct nf_conn *ct);
+void nf_flow_offload_hw_del(struct net *net, struct flow_offload *flow);
+
+struct nf_flow_table_hw {
+	struct module	*owner;
+	void		(*add)(struct net *net, struct flow_offload *flow,
+			       struct nf_conn *ct);
+	void		(*del)(struct net *net, struct flow_offload *flow);
+};
+
+static inline bool nf_flow_is_dying(const struct flow_offload *flow)
+{
+	return flow->flags & FLOW_OFFLOAD_DYING;
+}
+
+static inline bool nf_flow_in_hw(const struct flow_offload *flow)
+{
+	return flow->flags & FLOW_OFFLOAD_HW;
+}
+
+int nf_flow_table_hw_register(const struct nf_flow_table_hw *offload);
+void nf_flow_table_hw_unregister(const struct nf_flow_table_hw *offload);
+
+extern struct work_struct nf_flow_offload_hw_work;
+
+#define MODULE_ALIAS_NF_FLOWTABLE(family)			\
 	MODULE_ALIAS("nf-flowtable-" __stringify(family))
 
 #endif /* _FLOW_OFFLOAD_H */
