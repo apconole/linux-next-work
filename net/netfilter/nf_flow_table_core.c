@@ -192,6 +192,7 @@ int flow_offload_add(struct nf_flowtable *flow_table, struct flow_offload *flow)
 	rhashtable_insert_fast(&flow_table->rhashtable,
 			       &flow->tuplehash[FLOW_OFFLOAD_DIR_REPLY].node,
 			       nf_flow_offload_rhash_params);
+
 	return 0;
 }
 EXPORT_SYMBOL_GPL(flow_offload_add);
@@ -199,6 +200,7 @@ EXPORT_SYMBOL_GPL(flow_offload_add);
 static void flow_offload_del(struct nf_flowtable *flow_table,
 			     struct flow_offload *flow)
 {
+	struct net *net = read_pnet(&flow_table->ft_net);
 	struct flow_offload_entry *e;
 
 	rhashtable_remove_fast(&flow_table->rhashtable,
@@ -211,6 +213,8 @@ static void flow_offload_del(struct nf_flowtable *flow_table,
 	e = container_of(flow, struct flow_offload_entry, flow);
 	clear_bit(IPS_OFFLOAD_BIT, &e->ct->status);
 
+	if (nf_flow_in_hw(flow))
+		nf_flow_offload_hw_del(net, flow);
 	flow_offload_free(flow);
 }
 
@@ -315,6 +319,8 @@ static int nf_flow_offload_gc_step(struct nf_flowtable *flow_table)
 			continue;
 
 		flow = container_of(tuplehash, struct flow_offload, tuplehash[0]);
+		if (nf_flow_in_hw(flow) && !nf_flow_is_dying(flow))
+			continue;
 
 		if (nf_flow_has_expired(flow) ||
 		    (flow->flags & (FLOW_OFFLOAD_DYING |
@@ -453,6 +459,33 @@ int nf_flow_dnat_port(const struct flow_offload *flow,
 }
 EXPORT_SYMBOL_GPL(nf_flow_dnat_port);
 
+static const struct nf_flow_table_hw __rcu *nf_flow_table_hw_hook __read_mostly;
+
+static int nf_flow_offload_hw_init(struct nf_flowtable *flow_table)
+{
+	const struct nf_flow_table_hw *offload;
+
+	if (!rcu_access_pointer(nf_flow_table_hw_hook))
+		request_module("nf-flow-table-hw");
+
+	rcu_read_lock();
+	offload = rcu_dereference(nf_flow_table_hw_hook);
+	if (!offload)
+		goto err_no_hw_offload;
+
+	if (!try_module_get(offload->owner))
+		goto err_no_hw_offload;
+
+	rcu_read_unlock();
+
+	return 0;
+
+err_no_hw_offload:
+	rcu_read_unlock();
+
+	return -EOPNOTSUPP;
+}
+
 int nf_flow_table_init(struct nf_flowtable *flowtable)
 {
 	int err;
@@ -494,6 +527,8 @@ static void nf_flow_table_iterate_cleanup(struct nf_flowtable *flowtable,
 {
 	nf_flow_table_iterate(flowtable, nf_flow_table_do_cleanup, dev);
 	flush_delayed_work(&flowtable->gc_work);
+	if (flowtable->flags & NF_FLOWTABLE_F_HW)
+		flush_work(&nf_flow_offload_hw_work);
 }
 
 void nf_flow_table_cleanup(struct net *net, struct net_device *dev)
@@ -507,6 +542,26 @@ void nf_flow_table_cleanup(struct net *net, struct net_device *dev)
 }
 EXPORT_SYMBOL_GPL(nf_flow_table_cleanup);
 
+struct work_struct nf_flow_offload_hw_work;
+EXPORT_SYMBOL_GPL(nf_flow_offload_hw_work);
+
+/* Give the hardware workqueue the chance to remove entries from hardware.*/
+static void nf_flow_offload_hw_free(struct nf_flowtable *flow_table)
+{
+	const struct nf_flow_table_hw *offload;
+
+	flush_work(&nf_flow_offload_hw_work);
+
+	rcu_read_lock();
+	offload = rcu_dereference(nf_flow_table_hw_hook);
+	if (!offload) {
+		rcu_read_unlock();
+		return;
+	}
+	module_put(offload->owner);
+	rcu_read_unlock();
+}
+
 void nf_flow_table_free(struct nf_flowtable *flow_table)
 {
 	mutex_lock(&flowtable_lock);
@@ -516,8 +571,57 @@ void nf_flow_table_free(struct nf_flowtable *flow_table)
 	nf_flow_table_iterate(flow_table, nf_flow_table_do_cleanup, NULL);
 	WARN_ON(!nf_flow_offload_gc_step(flow_table));
 	rhashtable_destroy(&flow_table->rhashtable);
+	if (flow_table->flags & NF_FLOWTABLE_F_HW)
+		nf_flow_offload_hw_free(flow_table);
 }
 EXPORT_SYMBOL_GPL(nf_flow_table_free);
+
+/* Must be called from user context. */
+void nf_flow_offload_hw_add(struct net *net, struct flow_offload *flow,
+			    struct nf_conn *ct)
+{
+	const struct nf_flow_table_hw *offload;
+
+	rcu_read_lock();
+	offload = rcu_dereference(nf_flow_table_hw_hook);
+	if (offload)
+		offload->add(net, flow, ct);
+	rcu_read_unlock();
+}
+EXPORT_SYMBOL_GPL(nf_flow_offload_hw_add);
+
+/* Must be called from user context. */
+void nf_flow_offload_hw_del(struct net *net, struct flow_offload *flow)
+{
+	const struct nf_flow_table_hw *offload;
+
+	rcu_read_lock();
+	offload = rcu_dereference(nf_flow_table_hw_hook);
+	if (offload)
+		offload->del(net, flow);
+	rcu_read_unlock();
+}
+EXPORT_SYMBOL_GPL(nf_flow_offload_hw_del);
+
+int nf_flow_table_hw_register(const struct nf_flow_table_hw *offload)
+{
+	if (rcu_access_pointer(nf_flow_table_hw_hook))
+		return -EBUSY;
+
+	rcu_assign_pointer(nf_flow_table_hw_hook, offload);
+
+	return 0;
+}
+EXPORT_SYMBOL_GPL(nf_flow_table_hw_register);
+
+void nf_flow_table_hw_unregister(const struct nf_flow_table_hw *offload)
+{
+	WARN_ON(rcu_access_pointer(nf_flow_table_hw_hook) != offload);
+	rcu_assign_pointer(nf_flow_table_hw_hook, NULL);
+
+	synchronize_rcu();
+}
+EXPORT_SYMBOL_GPL(nf_flow_table_hw_unregister);
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Pablo Neira Ayuso <pablo@netfilter.org>");
