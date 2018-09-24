@@ -840,7 +840,6 @@ END_FTR_SECTION_IFCLR(CPU_FTR_ARCH_207S)
 	mftb	r7
 	subf	r3,r7,r8
 	mtspr	SPRN_DEC,r3
-	stw	r3,VCPU_DEC(r4)
 
 	ld	r5, VCPU_SPRG0(r4)
 	ld	r6, VCPU_SPRG1(r4)
