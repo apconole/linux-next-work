@@ -100,6 +100,7 @@ void opal_handle_events(uint64_t events)
 {
 	int virq, hwirq = 0;
 	u64 mask = opal_event_irqchip.mask;
+	u64 notifier_mask = 0;
 
 	if (!in_irq() && (events & mask)) {
 		last_outstanding_events = events;
@@ -107,16 +108,19 @@ void opal_handle_events(uint64_t events)
 		return;
 	}
 
-	while (events & mask) {
+	while (events) {
 		hwirq = fls64(events) - 1;
-		if (BIT_ULL(hwirq) & mask) {
-			virq = irq_find_mapping(opal_event_irqchip.domain,
-						hwirq);
-			if (virq)
+		virq = irq_find_mapping(opal_event_irqchip.domain,
+					hwirq);
+		if (virq) {
+			if (BIT_ULL(hwirq) & mask)
 				generic_handle_irq(virq);
-		}
+		} else
+			notifier_mask |= BIT_ULL(hwirq);
 		events &= ~BIT_ULL(hwirq);
 	}
+
+	opal_do_notifier(notifier_mask);
 }
 
 static irqreturn_t opal_interrupt(int irq, void *data)
