@@ -18,6 +18,10 @@ ifeq ($(CONFIG_INET),y)
 obj-$(CONFIG_BPF_SYSCALL) += sockmap.o
 endif
 endif
+ifneq ($(CONFIG_NF_FLOW_TABLE_HW),)
+# todo: this needs to be a y dependency... I think
+obj-$(CONFIG_BPF_SYSCALL) += flowmap.o
+endif
 endif
 ifeq ($(CONFIG_PERF_EVENTS),y)
 obj-$(CONFIG_BPF_SYSCALL) += stackmap.o
