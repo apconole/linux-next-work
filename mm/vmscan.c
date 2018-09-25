@@ -1594,13 +1594,12 @@ shrink_inactive_list(unsigned long nr_to_scan, struct lruvec *lruvec,
 			zone_set_flag(zone, ZONE_TAIL_LRU_DIRTY);
 
 		/*
-		 * In addition, if kswapd scans pages marked marked for
-		 * immediate reclaim and under writeback (nr_immediate), it
-		 * implies that pages are cycling through the LRU faster than
+		 * If kswapd scans pages marked marked for immediate
+		 * reclaim and under writeback (nr_immediate), it implies
+		 * that pages are cycling through the LRU faster than
 		 * they are written so also forcibly stall.
 		 */
-		if ((nr_unqueued_dirty == nr_taken || nr_immediate) &&
-		    current_may_throttle())
+		if (nr_immediate && current_may_throttle())
 			congestion_wait(BLK_RW_ASYNC, HZ/10);
 	}
 
