@@ -221,29 +221,41 @@ static ssize_t
 efivar_store_raw(struct efivar_entry *entry, const char *buf, size_t count)
 {
 	struct efi_variable *new_var, *var = &entry->var;
+	efi_char16_t *name;
+	unsigned long size;
+	efi_guid_t vendor;
+	u32 attributes;
+	u8 *data;
 	int err;
 
 	if (count != sizeof(struct efi_variable))
 		return -EINVAL;
 
 	new_var = (struct efi_variable *)buf;
+
+	attributes = new_var->Attributes;
+	vendor = new_var->VendorGuid;
+	name = new_var->VariableName;
+	size = new_var->DataSize;
+	data = new_var->Data;
+
 	/*
 	 * If only updating the variable data, then the name
 	 * and guid should remain the same
 	 */
-	if (memcmp(new_var->VariableName, var->VariableName, sizeof(var->VariableName)) ||
-		efi_guidcmp(new_var->VendorGuid, var->VendorGuid)) {
+	if (memcmp(name, var->VariableName, sizeof(var->VariableName)) ||
+		efi_guidcmp(vendor, var->VendorGuid)) {
 		printk(KERN_ERR "efivars: Cannot edit the wrong variable!\n");
 		return -EINVAL;
 	}
 
-	if ((new_var->DataSize <= 0) || (new_var->Attributes == 0)){
+	if ((size <= 0) || (attributes == 0)){
 		printk(KERN_ERR "efivars: DataSize & Attributes must be valid!\n");
 		return -EINVAL;
 	}
 
-	if ((new_var->Attributes & ~EFI_VARIABLE_MASK) != 0 ||
-	    efivar_validate(new_var, new_var->Data, new_var->DataSize) == false) {
+	if ((attributes & ~EFI_VARIABLE_MASK) != 0 ||
+	    efivar_validate(new_var, data, size) == false) {
 		printk(KERN_ERR "efivars: Malformed variable content\n");
 		return -EINVAL;
 	}
@@ -251,8 +263,7 @@ efivar_store_raw(struct efivar_entry *entry, const char *buf, size_t count)
 	mutex_lock(&entry->var_data_mutex);
 	memcpy(&entry->var, new_var, count);
 
-	err = efivar_entry_set(entry, new_var->Attributes,
-			       new_var->DataSize, new_var->Data, NULL);
+	err = efivar_entry_set(entry, attributes, size, data, NULL);
 	mutex_unlock(&entry->var_data_mutex);
 	if (err) {
 		printk(KERN_WARNING "efivars: set_variable() failed: status=%d\n", err);
@@ -359,13 +370,20 @@ static ssize_t efivar_create(struct file *filp, struct kobject *kobj,
 {
 	struct efi_variable *new_var = (struct efi_variable *)buf;
 	struct efivar_entry *new_entry;
+	unsigned long size;
+	u32 attributes;
+	u8 *data;
 	int err;
 
 	if (!capable(CAP_SYS_ADMIN))
 		return -EACCES;
 
-	if ((new_var->Attributes & ~EFI_VARIABLE_MASK) != 0 ||
-	    efivar_validate(new_var, new_var->Data, new_var->DataSize) == false) {
+	attributes = new_var->Attributes;
+	size = new_var->DataSize;
+	data = new_var->Data;
+
+	if ((attributes & ~EFI_VARIABLE_MASK) != 0 ||
+	    efivar_validate(new_var, data, size) == false) {
 		printk(KERN_ERR "efivars: Malformed variable content\n");
 		return -EINVAL;
 	}
@@ -383,8 +401,8 @@ static ssize_t efivar_create(struct file *filp, struct kobject *kobj,
 	 * to other threads until inserted into the efivar_sysfs_list by
 	 * efivar_create_sysfs_entry().
 	 */
-	err = efivar_entry_set(new_entry, new_var->Attributes, new_var->DataSize,
-			       new_var->Data, &efivar_sysfs_list);
+	err = efivar_entry_set(new_entry, attributes, size,
+			       data, &efivar_sysfs_list);
 	if (err) {
 		if (err == -EEXIST)
 			err = -EINVAL;
@@ -408,14 +426,18 @@ static ssize_t efivar_delete(struct file *filp, struct kobject *kobj,
 {
 	struct efi_variable *del_var = (struct efi_variable *)buf;
 	struct efivar_entry *entry;
+	efi_char16_t *name;
+	efi_guid_t vendor;
 	int err = 0;
 
 	if (!capable(CAP_SYS_ADMIN))
 		return -EACCES;
 
+	name = del_var->VariableName;
+	vendor = del_var->VendorGuid;
+
 	efivar_entry_iter_begin();
-	entry = efivar_entry_find(del_var->VariableName, del_var->VendorGuid,
-				  &efivar_sysfs_list, true);
+	entry = efivar_entry_find(name, vendor, &efivar_sysfs_list, true);
 	if (!entry)
 		err = -EINVAL;
 	else if (__efivar_entry_delete(entry))
