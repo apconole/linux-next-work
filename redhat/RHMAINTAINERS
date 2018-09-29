@@ -977,14 +977,15 @@ S:	Maintained
 F:	drivers/gpu/
 
 VIRTIO CONSOLE DRIVER
-M:	Amit Shah <amit.shah@redhat.com>
+M:	"Michael S. Tsirkin" <mst@redhat.com>
+M:	Jason Wang <jasowang@redhat.com>
 S:	Maintained
 F:	drivers/char/virtio_console.c
 F:	include/linux/virtio_console.h
 
 VIRTIO CORE, NET AND BLOCK DRIVERS
 M:	"Michael S. Tsirkin" <mst@redhat.com>
-M:	Amit Shah <amit.shah@redhat.com>
+M:	Jason Wang <jasowang@redhat.com>
 S:	Maintained
 F:	drivers/virtio/
 F:	drivers/net/virtio_net.c
@@ -993,6 +994,7 @@ F:	include/linux/virtio_*.h
 
 VIRTIO HOST (VHOST)
 M:	"Michael S. Tsirkin" <mst@redhat.com>
+M:	Jason Wang <jasowang@redhat.com>
 S:	Maintained
 F:	drivers/vhost/
 F:	include/linux/vhost.h
