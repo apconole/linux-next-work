@@ -50,7 +50,18 @@ static DEFINE_SPINLOCK(map_idr_lock);
 
 int sysctl_unprivileged_bpf_disabled __read_mostly;
 
+static const struct bpf_map_ops loadable_map;
+
 static const struct bpf_map_ops * const bpf_map_types[] = {
+#define BPF_PROG_TYPE(_id, _ops)
+#define BPF_MAP_TYPE(_id, _ops) \
+	[_id] = &_ops,
+#include <linux/bpf_types.h>
+#undef BPF_PROG_TYPE
+#undef BPF_MAP_TYPE
+};
+
+static const struct bpf_map_ops * bpf_loadable_map_types[] = {
 #define BPF_PROG_TYPE(_id, _ops)
 #define BPF_MAP_TYPE(_id, _ops) \
 	[_id] = &_ops,
@@ -106,6 +117,48 @@ const struct bpf_map_ops bpf_map_offload_ops = {
 	.map_check_btf = map_check_no_btf,
 };
 
+/*
+ * Fills in the modular ops map, provided that the entry is not already
+ * filled, and that the caller has CAP_SYS_ADMIN.  */
+void bpf_map_insert_ops(size_t id, const struct bpf_map_ops *ops)
+{
+#ifdef CONFIG_BPF_LOADABLE_MAPS
+	if (!capable(CAP_SYS_ADMIN))
+		return;
+
+	if (id >= ARRAY_SIZE(bpf_loadable_map_types))
+		return;
+
+	id = array_index_nospec(id, ARRAY_SIZE(bpf_loadable_map_types));
+	if (bpf_loadable_map_types[id] == NULL)
+		bpf_loadable_map_types[id] = ops;
+#endif
+}
+EXPORT_SYMBOL(bpf_map_insert_ops);
+
+static const struct bpf_map_ops *find_loadable_ops(u32 type)
+{
+	struct user_struct *user = get_current_user();
+	const struct bpf_map_ops *ops = NULL;
+
+	if (user->uid.val)
+		goto done;
+
+#ifdef CONFIG_BPF_LOADABLE_MAPS
+	if (!capable(CAP_SYS_ADMIN))
+		goto done;
+
+	if (type >= ARRAY_SIZE(bpf_loadable_map_types))
+		goto done;
+	type = array_index_nospec(type, ARRAY_SIZE(bpf_loadable_map_types));
+	ops = bpf_loadable_map_types[type];
+#endif
+
+done:
+	free_uid(user);
+	return ops;
+}
+
 static struct bpf_map *find_and_alloc_map(union bpf_attr *attr)
 {
 	const struct bpf_map_ops *ops;
@@ -116,7 +169,8 @@ static struct bpf_map *find_and_alloc_map(union bpf_attr *attr)
 	if (type >= ARRAY_SIZE(bpf_map_types))
 		return ERR_PTR(-EINVAL);
 	type = array_index_nospec(type, ARRAY_SIZE(bpf_map_types));
-	ops = bpf_map_types[type];
+	ops = bpf_map_types[type] ? bpf_map_types[type] :
+		find_loadable_ops(type);
 	if (!ops)
 		return ERR_PTR(-EINVAL);
 

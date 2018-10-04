@@ -530,6 +530,7 @@ static inline int bpf_map_attr_numa_node(const union bpf_attr *attr)
 
 struct bpf_prog *bpf_prog_get_type_path(const char *name, enum bpf_prog_type type);
 int array_map_alloc_check(union bpf_attr *attr);
+void bpf_map_insert_ops(size_t id, const struct bpf_map_ops *ops);
 
 #else /* !CONFIG_BPF_SYSCALL */
 static inline struct bpf_prog *bpf_prog_get(u32 ufd)
@@ -641,6 +642,11 @@ static inline struct bpf_prog *bpf_prog_get_type_path(const char *name,
 				enum bpf_prog_type type)
 {
 	return ERR_PTR(-EOPNOTSUPP);
+}
+
+static inline void bpf_map_insert_ops(size_t id,
+				      const struct bpf_map_ops *ops)
+{
 }
 #endif /* CONFIG_BPF_SYSCALL */
 

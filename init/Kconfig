@@ -1465,6 +1465,14 @@ config BPF_JIT_ALWAYS_ON
 	  Enables BPF JIT and removes BPF interpreter to avoid
 	  speculative execution of BPF instructions by the interpreter
 
+config BPF_LOADABLE_MAPS
+	bool "Allow map types to be loaded with modules"
+	depends on BPF_SYSCALL && MODULES
+	help
+	  Enables BPF map types to be provided by loadable modules
+	  instead of always compiled in.  Maps provided dynamically
+	  may only be used by super users.
+
 config USERFAULTFD
 	bool "Enable userfaultfd() system call"
 	select ANON_INODES
