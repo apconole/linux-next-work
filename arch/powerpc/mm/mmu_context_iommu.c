@@ -373,15 +373,13 @@ void mm_iommu_mapped_dec(struct mm_iommu_table_group_mem_t *mem)
 }
 EXPORT_SYMBOL_GPL(mm_iommu_mapped_dec);
 
-void mm_iommu_init(mm_context_t *ctx)
+void mm_iommu_init(struct mm_struct *mm)
 {
-	struct mm_struct *mm = container_of(ctx, struct mm_struct, context);
 	INIT_LIST_HEAD_RCU(&mm->iommu_group_mem_list);
 }
 
-void mm_iommu_cleanup(mm_context_t *ctx)
+void mm_iommu_cleanup(struct mm_struct *mm)
 {
-	struct mm_struct *mm = container_of(ctx, struct mm_struct, context);
 	struct mm_iommu_table_group_mem_t *mem, *tmp;
 
 	list_for_each_entry_safe(mem, tmp, &mm->iommu_group_mem_list, next) {

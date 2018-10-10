@@ -90,7 +90,7 @@ int init_new_context(struct task_struct *tsk, struct mm_struct *mm)
 	mm->context.pte_frag = NULL;
 #endif
 #ifdef CONFIG_SPAPR_TCE_IOMMU
-	mm_iommu_init(&mm->context);
+	mm_iommu_init(mm);
 #endif
 	return 0;
 }
@@ -135,7 +135,7 @@ static inline void destroy_pagetable_page(struct mm_struct *mm)
 void destroy_context(struct mm_struct *mm)
 {
 #ifdef CONFIG_SPAPR_TCE_IOMMU
-	mm_iommu_cleanup(&mm->context);
+	mm_iommu_cleanup(mm);
 #endif
 
 #ifdef CONFIG_PPC_ICSWX
