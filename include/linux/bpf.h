@@ -13,6 +13,7 @@
 #include <linux/err.h>
 #include <linux/percpu.h>
 #include <linux/err.h>
+#include <linux/numa.h>
 
 struct perf_event;
 struct bpf_map;
