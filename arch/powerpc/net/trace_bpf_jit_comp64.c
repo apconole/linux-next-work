@@ -23,11 +23,7 @@
 
 static void bpf_jit_fill_ill_insns(void *area, unsigned int size)
 {
-	int *p = area;
-
-	/* Fill whole space with trap instructions */
-	while (p < (int *)((char *)area + size))
-		*p++ = BREAKPOINT_INSTRUCTION;
+	memset32(area, BREAKPOINT_INSTRUCTION, size/4);
 }
 
 static inline void bpf_flush_icache(void *start, void *end)
