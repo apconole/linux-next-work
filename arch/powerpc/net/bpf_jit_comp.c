@@ -688,9 +688,11 @@ void bpf_jit_compile(struct sk_filter *fp)
 
 	if (image) {
 		bpf_flush_icache(code_base, code_base + (proglen/4));
+#ifdef PPC64_ELF_ABI_v1
 		/* Function descriptor nastiness: Address + TOC */
 		((u64 *)image)[0] = (u64)code_base;
 		((u64 *)image)[1] = local_paca->kernel_toc;
+#endif
 		fp->bpf_func = (void *)image;
 	}
 out:
