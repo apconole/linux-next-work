@@ -15,7 +15,7 @@
 
 #include <asm/ppc_asm.h>
 #include <asm/ptrace.h>
-#include "bpf_jit64.h"
+#include "trace_bpf_jit64.h"
 
 /*
  * All of these routines are called directly from generated code,
@@ -38,12 +38,12 @@
 #define r_val	r8
 #define r_tmp	r9
 
-_GLOBAL_TOC(sk_load_word)
+_GLOBAL_TOC(trace_sk_load_word)
 	cmpdi	r_off, 0
 	blt	bpf_slow_path_word_neg
 	b	sk_load_word_positive_offset
 
-_GLOBAL_TOC(sk_load_word_positive_offset)
+_GLOBAL_TOC(trace_sk_load_word_positive_offset)
 	/* Are we accessing past headlen? */
 	subi	r_tmp, r_hlen, 4
 	cmpd	r_tmp, r_off
@@ -52,24 +52,24 @@ _GLOBAL_TOC(sk_load_word_positive_offset)
 	LWZX_BE	r_val, r_data, r_off
 	blr	/* Return success, cr0 != LT */
 
-_GLOBAL_TOC(sk_load_half)
+_GLOBAL_TOC(trace_sk_load_half)
 	cmpdi	r_off, 0
 	blt	bpf_slow_path_half_neg
 	b	sk_load_half_positive_offset
 
-_GLOBAL_TOC(sk_load_half_positive_offset)
+_GLOBAL_TOC(trace_sk_load_half_positive_offset)
 	subi	r_tmp, r_hlen, 2
 	cmpd	r_tmp, r_off
 	blt	bpf_slow_path_half
 	LHZX_BE	r_val, r_data, r_off
 	blr
 
-_GLOBAL_TOC(sk_load_byte)
+_GLOBAL_TOC(trace_sk_load_byte)
 	cmpdi	r_off, 0
 	blt	bpf_slow_path_byte_neg
 	b	sk_load_byte_positive_offset
 
-_GLOBAL_TOC(sk_load_byte_positive_offset)
+_GLOBAL_TOC(trace_sk_load_byte_positive_offset)
 	cmpd	r_hlen, r_off
 	ble	bpf_slow_path_byte
 	lbzx	r_val, r_data, r_off
@@ -140,7 +140,7 @@ bpf_slow_path_word_neg:
 	blt	bpf_error	/* cr0 = LT */
 	b	sk_load_word_negative_offset
 
-_GLOBAL_TOC(sk_load_word_negative_offset)
+_GLOBAL_TOC(trace_sk_load_word_negative_offset)
 	sk_negative_common(4)
 	LWZX_BE	r_val, 0, r3
 	blr
@@ -151,7 +151,7 @@ bpf_slow_path_half_neg:
 	blt	bpf_error	/* cr0 = LT */
 	b	sk_load_half_negative_offset
 
-_GLOBAL_TOC(sk_load_half_negative_offset)
+_GLOBAL_TOC(trace_sk_load_half_negative_offset)
 	sk_negative_common(2)
 	LHZX_BE	r_val, 0, r3
 	blr
@@ -162,7 +162,7 @@ bpf_slow_path_byte_neg:
 	blt	bpf_error	/* cr0 = LT */
 	b	sk_load_byte_negative_offset
 
-_GLOBAL_TOC(sk_load_byte_negative_offset)
+_GLOBAL_TOC(trace_sk_load_byte_negative_offset)
 	sk_negative_common(1)
 	lbzx	r_val, 0, r3
 	blr

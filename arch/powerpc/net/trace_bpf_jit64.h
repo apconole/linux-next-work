@@ -12,7 +12,7 @@
 #ifndef _BPF_JIT64_H
 #define _BPF_JIT64_H
 
-#include "bpf_jit.h"
+#include "trace_bpf_jit.h"
 
 /*
  * Stack layout:
@@ -70,9 +70,9 @@ static const int b2p[] = {
 				u64 func##_negative_offset(u64 r3, u64 r4);	\
 				u64 func##_positive_offset(u64 r3, u64 r4);
 
-DECLARE_LOAD_FUNC(sk_load_word);
-DECLARE_LOAD_FUNC(sk_load_half);
-DECLARE_LOAD_FUNC(sk_load_byte);
+DECLARE_LOAD_FUNC(trace_sk_load_word);
+DECLARE_LOAD_FUNC(trace_sk_load_half);
+DECLARE_LOAD_FUNC(trace_sk_load_byte);
 
 #define CHOOSE_LOAD_FUNC(imm, func)						\
 			(imm < 0 ?						\

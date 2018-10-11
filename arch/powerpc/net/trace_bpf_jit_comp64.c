@@ -18,9 +18,7 @@
 #include <linux/if_vlan.h>
 #include <asm/kprobes.h>
 
-#include "bpf_jit64.h"
-
-int bpf_jit_enable __read_mostly;
+#include "trace_bpf_jit64.h"
 
 static void bpf_jit_fill_ill_insns(void *area, unsigned int size)
 {
@@ -784,13 +782,13 @@ cond_branch:
 
 		/* Absolute loads */
 		case BPF_LD | BPF_W | BPF_ABS:
-			func = (u8 *)CHOOSE_LOAD_FUNC(imm, sk_load_word);
+			func = (u8 *)CHOOSE_LOAD_FUNC(imm, trace_sk_load_word);
 			goto common_load_abs;
 		case BPF_LD | BPF_H | BPF_ABS:
-			func = (u8 *)CHOOSE_LOAD_FUNC(imm, sk_load_half);
+			func = (u8 *)CHOOSE_LOAD_FUNC(imm, trace_sk_load_half);
 			goto common_load_abs;
 		case BPF_LD | BPF_B | BPF_ABS:
-			func = (u8 *)CHOOSE_LOAD_FUNC(imm, sk_load_byte);
+			func = (u8 *)CHOOSE_LOAD_FUNC(imm, trace_sk_load_byte);
 common_load_abs:
 			/*
 			 * Load from [imm]
@@ -802,13 +800,13 @@ common_load_abs:
 
 		/* Indirect loads */
 		case BPF_LD | BPF_W | BPF_IND:
-			func = (u8 *)sk_load_word;
+			func = (u8 *)trace_sk_load_word;
 			goto common_load_ind;
 		case BPF_LD | BPF_H | BPF_IND:
-			func = (u8 *)sk_load_half;
+			func = (u8 *)trace_sk_load_half;
 			goto common_load_ind;
 		case BPF_LD | BPF_B | BPF_IND:
-			func = (u8 *)sk_load_byte;
+			func = (u8 *)trace_sk_load_byte;
 common_load_ind:
 			/*
 			 * Load from [src_reg + imm]
@@ -859,9 +857,9 @@ common_load:
 	return 0;
 }
 
-void bpf_jit_compile(struct bpf_prog *fp) { }
+void trace_bpf_jit_compile(struct bpf_prog *fp) { }
 
-struct bpf_prog *bpf_int_jit_compile(struct bpf_prog *fp)
+struct bpf_prog *trace_bpf_int_jit_compile(struct bpf_prog *fp)
 {
 	u32 proglen;
 	u32 alloclen;
@@ -942,7 +940,7 @@ out:
 	return fp;
 }
 
-void bpf_jit_free(struct bpf_prog *fp)
+void trace_bpf_jit_free(struct bpf_prog *fp)
 {
 	unsigned long addr = (unsigned long)fp->bpf_func & PAGE_MASK;
 	struct bpf_binary_header *bpf_hdr = (void *)addr;
