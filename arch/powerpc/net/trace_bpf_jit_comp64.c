@@ -959,8 +959,6 @@ common_load:
 	return 0;
 }
 
-void trace_bpf_jit_compile(struct bpf_prog *fp) { }
-
 struct bpf_prog *trace_bpf_int_jit_compile(struct bpf_prog *fp)
 {
 	u32 proglen;
