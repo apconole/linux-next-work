@@ -318,6 +318,11 @@ static inline unsigned long kvm_dirty_bitmap_bytes(struct kvm_memory_slot *memsl
 	return ALIGN(memslot->npages, BITS_PER_LONG) / 8;
 }
 
+struct kvm_hv_sint {
+	u32 vcpu;
+	u32 sint;
+};
+
 struct kvm_kernel_irq_routing_entry {
 	u32 gsi;
 	u32 type;
@@ -330,6 +335,7 @@ struct kvm_kernel_irq_routing_entry {
 			unsigned pin;
 		} irqchip;
 		struct msi_msg msi;
+		struct kvm_hv_sint hv_sint;
 	};
 	struct hlist_node link;
 };
