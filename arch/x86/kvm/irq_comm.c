@@ -390,7 +390,8 @@ void kvm_arch_post_irq_routing_update(struct kvm *kvm)
 	kvm_make_scan_ioapic_request(kvm);
 }
 
-void kvm_scan_ioapic_routes(struct kvm_vcpu *vcpu, u64 *eoi_exit_bitmap)
+void kvm_scan_ioapic_routes(struct kvm_vcpu *vcpu,
+			    ulong *ioapic_handled_vectors)
 {
 	struct kvm *kvm = vcpu->kvm;
 	struct kvm_kernel_irq_routing_entry *entry;
@@ -414,7 +415,7 @@ void kvm_scan_ioapic_routes(struct kvm_vcpu *vcpu, u64 *eoi_exit_bitmap)
 			if (irq.level && kvm_apic_match_dest(vcpu, NULL, 0,
 						irq.dest_id, irq.dest_mode))
 				__set_bit(irq.vector,
-				          (unsigned long *) eoi_exit_bitmap);
+					  ioapic_handled_vectors);
 		}
 	}
 	srcu_read_unlock(&kvm->irq_srcu, idx);

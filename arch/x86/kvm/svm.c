@@ -4646,7 +4646,7 @@ static void svm_refresh_apicv_exec_ctrl(struct kvm_vcpu *vcpu)
 	mark_dirty(vmcb, VMCB_INTR);
 }
 
-static void svm_load_eoi_exitmap(struct kvm_vcpu *vcpu)
+static void svm_load_eoi_exitmap(struct kvm_vcpu *vcpu, u64 *eoi_exit_bitmap)
 {
 	return;
 }

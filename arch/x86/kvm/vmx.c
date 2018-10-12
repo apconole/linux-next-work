@@ -8844,9 +8844,8 @@ static int vmx_sync_pir_to_irr(struct kvm_vcpu *vcpu)
 	return max_irr;
 }
 
-static void vmx_load_eoi_exitmap(struct kvm_vcpu *vcpu)
+static void vmx_load_eoi_exitmap(struct kvm_vcpu *vcpu, u64 *eoi_exit_bitmap)
 {
-	u64 *eoi_exit_bitmap = vcpu->arch.eoi_exit_bitmap;
 	if (!kvm_vcpu_apicv_active(vcpu))
 		return;
 
