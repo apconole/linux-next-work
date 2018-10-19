@@ -1043,6 +1043,7 @@ static void hv_compose_msi_msg(struct pci_dev *pdev, unsigned int irq,
 	struct hv_pcibus_device *hbus;
 	struct hv_pci_dev *hpdev;
 	struct pci_bus *pbus;
+	unsigned long flags;
 	struct compose_comp_ctxt comp;
 	struct tran_int_desc *int_desc;
 	struct {
@@ -1124,14 +1125,15 @@ static void hv_compose_msi_msg(struct pci_dev *pdev, unsigned int irq,
 		 * the channel callback directly when channel->target_cpu is
 		 * the current CPU. When the higher level interrupt code
 		 * calls us with interrupt enabled, let's add the
-		 * local_bh_disable()/enable() to avoid race.
+		 * local_irq_save()/restore() to avoid race:
+		 * hv_pci_onchannelcallback() can also run in tasklet.
 		 */
-		local_bh_disable();
+		local_irq_save(flags);
 
 		if (hbus->hdev->channel->target_cpu == smp_processor_id())
 			hv_pci_onchannelcallback(hbus);
 
-		local_bh_enable();
+		local_irq_restore(flags);
 
 		if (hpdev->state == hv_pcichild_ejecting) {
 			dev_err_once(&hbus->hdev->device,
