@@ -46,6 +46,7 @@ perf-y += is_printable_array.o
 perf-y += bitmap.o
 perf-y += perf-hooks.o
 perf-y += unit_number__scnprintf.o
+perf-y += clang.o
 
 $(OUTPUT)tests/llvm-src-base.c: tests/bpf-script-example.c
 	$(call rule_mkdir)

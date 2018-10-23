@@ -256,6 +256,15 @@ static struct test generic_tests[] = {
 		.func = test__bpf,
 	},
 	{
+		.desc = "builtin clang support",
+		.func = test__clang,
+		.subtest = {
+			.skip_if_fail	= true,
+			.get_nr		= test__clang_subtest_get_nr,
+			.get_desc	= test__clang_subtest_get_desc,
+		}
+	},
+	{
 		.func = NULL,
 	},
 };

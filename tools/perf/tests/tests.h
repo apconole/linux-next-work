@@ -95,6 +95,9 @@ int test__sdt_event(struct test *test, int subtest);
 int test__is_printable_array(struct test *test, int subtest);
 int test__bitmap_print(struct test *test, int subtest);
 int test__perf_hooks(struct test *test, int subtest);
+int test__clang(struct test *test, int subtest);
+const char *test__clang_subtest_get_desc(int subtest);
+int test__clang_subtest_get_nr(void);
 int test__unit_number__scnprint(struct test *test, int subtest);
 
 bool test__bp_signal_is_supported(void);
