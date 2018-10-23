@@ -1644,6 +1644,14 @@ int cmd_record(int argc, const char **argv)
 	 */
 	symbol_conf.allow_aliases = true;
 
+	err = bpf__setup_stdout(rec->evlist);
+	if (err) {
+		bpf__strerror_setup_stdout(rec->evlist, err, errbuf, sizeof(errbuf));
+		pr_err("ERROR: Setup BPF stdout failed: %s\n",
+			 errbuf);
+		return err;
+	}
+
 	symbol__init(NULL);
 
 	err = auxtrace_parse_filters(rec->evlist);
