@@ -2,6 +2,7 @@
 #libperf-y += statx.o
 libperf-y += clone.o
 libperf-y += fcntl.o
+libperf-y += flock.o
 ifeq ($(SRCARCH),$(filter $(SRCARCH),x86))
 libperf-y += ioctl.o
 endif
