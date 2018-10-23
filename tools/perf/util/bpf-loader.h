@@ -24,6 +24,8 @@ int bpf__strerror_probe(struct bpf_object *obj, int err,
 			char *buf, size_t size);
 
 #else
+#include <errno.h>
+
 static inline struct bpf_object *
 bpf__prepare_load(const char *filename __maybe_unused)
 {
