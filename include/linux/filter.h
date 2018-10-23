@@ -812,6 +812,9 @@ static inline void bpf_jit_free(struct sk_filter *fp)
 #define SK_RUN_FILTER(FILTER, SKB) sk_run_filter(SKB, FILTER->insns)
 #endif
 
+void bpf_prog_kallsyms_del_subprogs(struct bpf_prog *fp);
+void bpf_prog_kallsyms_del_all(struct bpf_prog *fp);
+
 void *trace_bpf_internal_load_pointer_neg_helper(const struct sk_buff *skb,
 						 int k, unsigned int size);
 
