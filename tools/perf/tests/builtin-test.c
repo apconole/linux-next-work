@@ -179,7 +179,7 @@ static struct test generic_tests[] = {
 		.func = test__thread_map,
 	},
 	{
-		.desc = "Test LLVM searching and compiling",
+		.desc = "LLVM search and compile",
 		.func = test__llvm,
 		.subtest = {
 			.skip_if_fail	= true,
@@ -232,7 +232,7 @@ static struct test generic_tests[] = {
 		.func = test__cpu_map_print,
 	},
 	{
-		.desc = "Test SDT event probing",
+		.desc = "Probe SDT events",
 		.func = test__sdt_event,
 	},
 	{
@@ -252,7 +252,7 @@ static struct test generic_tests[] = {
 		.func = test__unit_number__scnprint,
 	},
 	{
-		.desc = "Test BPF filter",
+		.desc = "BPF filter",
 		.func = test__bpf,
 		.subtest = {
 			.skip_if_fail	= true,
