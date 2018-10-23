@@ -693,11 +693,11 @@ int parse_events_load_bpf(struct parse_events_state *data,
 	struct bpf_object *obj;
 
 	obj = bpf__prepare_load(bpf_file_name, source);
-	if (IS_ERR(obj) || !obj) {
+	if (IS_ERR(obj)) {
 		char errbuf[BUFSIZ];
 		int err;
 
-		err = obj ? PTR_ERR(obj) : -EINVAL;
+		err = PTR_ERR(obj);
 
 		if (err == -ENOTSUP)
 			snprintf(errbuf, sizeof(errbuf),
