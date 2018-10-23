@@ -1599,19 +1599,6 @@ static int bpf_prog_get_info_by_fd(struct bpf_prog *prog,
 		goto done;
 	}
 
-	ulen = info.jited_prog_len;
-	info.jited_prog_len = prog->jited_len;
-	if (info.jited_prog_len && ulen) {
-		if (bpf_dump_raw_ok()) {
-			uinsns = u64_to_user_ptr(info.jited_prog_insns);
-			ulen = min_t(u32, info.jited_prog_len, ulen);
-			if (copy_to_user(uinsns, prog->bpf_func, ulen))
-				return -EFAULT;
-		} else {
-			info.jited_prog_insns = 0;
-		}
-	}
-
 	ulen = info.xlated_prog_len;
 	info.xlated_prog_len = bpf_prog_insn_size(prog);
 	if (info.xlated_prog_len && ulen) {
@@ -1631,6 +1618,23 @@ static int bpf_prog_get_info_by_fd(struct bpf_prog *prog,
 		kfree(insns_sanitized);
 		if (fault)
 			return -EFAULT;
+	}
+
+	/* NOTE: the following code is supposed to be skipped for offload.
+	 * bpf_prog_offload_info_fill() is the place to fill similar fields
+	 * for offload.
+	 */
+	ulen = info.jited_prog_len;
+	info.jited_prog_len = prog->jited_len;
+	if (info.jited_prog_len && ulen) {
+		if (bpf_dump_raw_ok()) {
+			uinsns = u64_to_user_ptr(info.jited_prog_insns);
+			ulen = min_t(u32, info.jited_prog_len, ulen);
+			if (copy_to_user(uinsns, prog->bpf_func, ulen))
+				return -EFAULT;
+		} else {
+			info.jited_prog_insns = 0;
+		}
 	}
 
 done:
