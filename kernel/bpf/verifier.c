@@ -5352,6 +5352,7 @@ static int jit_subprogs(struct bpf_verifier_env *env)
 	 */
 	for (i = 0; i <= env->subprog_cnt; i++) {
 		bpf_prog_lock_ro(func[i]);
+		bpf_prog_kallsyms_add(func[i]);
 	}
 
 	/* Last step: make now unused interpreter insns from main
