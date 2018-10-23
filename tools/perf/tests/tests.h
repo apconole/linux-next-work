@@ -80,6 +80,8 @@ int test__llvm(struct test *test, int subtest);
 const char *test__llvm_subtest_get_desc(int subtest);
 int test__llvm_subtest_get_nr(void);
 int test__bpf(struct test *test, int subtest);
+const char *test__bpf_subtest_get_desc(int subtest);
+int test__bpf_subtest_get_nr(void);
 int test__session_topology(struct test *test, int subtest);
 int test__thread_map_synthesize(struct test *test, int subtest);
 int test__thread_map_remove(struct test *test, int subtest);
