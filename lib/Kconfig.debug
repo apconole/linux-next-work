@@ -604,6 +604,13 @@ config DEBUG_WW_MUTEX_SLOWPATH
 	 will test all possible w/w mutex interface abuse with the
 	 exception of simply not acquiring all the required locks.
 
+config DEBUG_RWSEMS
+	bool "RW Semaphore debugging: basic checks"
+	depends on DEBUG_KERNEL && RWSEM_SPIN_ON_OWNER
+	help
+	  This debugging feature allows mismatched rw semaphore locks and unlocks
+	  to be detected and reported.
+
 config DEBUG_LOCK_ALLOC
 	bool "Lock debugging: detect incorrect freeing of live locks"
 	depends on DEBUG_KERNEL && TRACE_IRQFLAGS_SUPPORT && STACKTRACE_SUPPORT && LOCKDEP_SUPPORT
@@ -625,6 +632,7 @@ config PROVE_LOCKING
 	select DEBUG_SPINLOCK
 	select DEBUG_MUTEXES
 	select DEBUG_LOCK_ALLOC
+	select DEBUG_RWSEMS if RWSEM_SPIN_ON_OWNER
 	select TRACE_IRQFLAGS
 	default n
 	help
