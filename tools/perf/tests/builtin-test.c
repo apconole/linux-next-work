@@ -247,6 +247,10 @@ static struct test generic_tests[] = {
 		.func = test__unit_number__scnprint,
 	},
 	{
+		.desc = "Test BPF filter",
+		.func = test__bpf,
+	},
+	{
 		.func = NULL,
 	},
 };
