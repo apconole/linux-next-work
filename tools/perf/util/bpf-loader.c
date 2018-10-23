@@ -121,6 +121,16 @@ config__exec(const char *value, struct perf_probe_event *pev)
 	return 0;
 }
 
+static int
+config__module(const char *value, struct perf_probe_event *pev)
+{
+	pev->uprobes = false;
+	pev->target = strdup(value);
+	if (!pev->target)
+		return -ENOMEM;
+	return 0;
+}
+
 static struct {
 	const char *key;
 	const char *usage;
@@ -133,6 +143,12 @@ static struct {
 		.desc	= "Set uprobe target",
 		.func	= config__exec,
 	},
+	{
+		.key	= "module",
+		.usage	= "module=<module name>    ",
+		.desc	= "Set kprobe module",
+		.func	= config__module,
+	}
 };
 
 static int
