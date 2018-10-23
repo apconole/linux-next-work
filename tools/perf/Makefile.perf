@@ -661,7 +661,7 @@ $(LIBSUBCMD)-clean:
 	$(Q)$(MAKE) -C $(SUBCMD_DIR) O=$(OUTPUT) clean
 
 $(LIBBPF): FORCE
-	$(Q)$(MAKE) -C $(BPF_DIR) O=$(OUTPUT) $(OUTPUT)libbpf.a
+	$(Q)$(MAKE) -C $(BPF_DIR) O=$(OUTPUT) $(OUTPUT)libbpf.a FEATURES_DUMP=$(realpath $(OUTPUT)FEATURE-DUMP)
 
 $(LIBBPF)-clean:
 	$(call QUIET_CLEAN, libbpf)
