@@ -98,6 +98,7 @@ libperf-y += time-utils.o
 libperf-y += expr-bison.o
 libperf-y += branch.o
 
+libperf-$(CONFIG_LIBBPF) += bpf-loader.o
 libperf-$(CONFIG_LIBELF) += symbol-elf.o
 libperf-$(CONFIG_LIBELF) += probe-file.o
 libperf-$(CONFIG_LIBELF) += probe-event.o
