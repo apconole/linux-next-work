@@ -18,7 +18,7 @@ typedef int (*bpf_prog_iter_callback_t)(struct probe_trace_event *tev,
 					int fd, void *arg);
 
 #ifdef HAVE_LIBBPF_SUPPORT
-struct bpf_object *bpf__prepare_load(const char *filename);
+struct bpf_object *bpf__prepare_load(const char *filename, bool source);
 
 void bpf__clear(void);
 
@@ -36,7 +36,8 @@ int bpf__foreach_tev(struct bpf_object *obj,
 #include <errno.h>
 
 static inline struct bpf_object *
-bpf__prepare_load(const char *filename __maybe_unused)
+bpf__prepare_load(const char *filename __maybe_unused,
+		  bool source __maybe_unused)
 {
 	pr_debug("ERROR: eBPF object loading is disabled during compiling.\n");
 	return ERR_PTR(-ENOTSUP);
