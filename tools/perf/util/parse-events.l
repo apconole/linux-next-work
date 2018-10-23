@@ -9,8 +9,8 @@
 %{
 #include <errno.h>
 #include "../perf.h"
-#include "parse-events-bison.h"
 #include "parse-events.h"
+#include "parse-events-bison.h"
 
 char *parse_events_get_text(yyscan_t yyscanner);
 YYSTYPE *parse_events_get_lval(yyscan_t yyscanner);
@@ -131,6 +131,7 @@ do {							\
 %x mem
 %s config
 %x event
+%x array
 
 group		[^,{}/]*[{][^}]*[}][^,{}/]*
 event_pmu	[^,{}/]+[/][^/]*[/][^,{}/]*
@@ -197,6 +198,14 @@ modifier_bp	[rwx]{1,3}
 
 }
 
+<array>{
+"]"			{ BEGIN(config); return ']'; }
+{num_dec}		{ return value(yyscanner, 10); }
+{num_hex}		{ return value(yyscanner, 16); }
+,			{ return ','; }
+"\.\.\."		{ return PE_ARRAY_RANGE; }
+}
+
 <config>{
 	/*
 	 * Please update config_term_names when new static term is added.
@@ -218,6 +227,8 @@ no-overwrite		{ return term(yyscanner, PARSE_EVENTS__TERM_TYPE_NOOVERWRITE); }
 ,			{ return ','; }
 "/"			{ BEGIN(INITIAL); return '/'; }
 {name_minus}		{ return str(yyscanner, PE_NAME); }
+\[all\]			{ return PE_ARRAY_ALL; }
+"["			{ BEGIN(array); return '['; }
 @{drv_cfg_term}		{ return drv_str(yyscanner, PE_DRV_CFG_TERM); }
 }
 
