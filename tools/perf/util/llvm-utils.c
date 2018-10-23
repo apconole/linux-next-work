@@ -15,10 +15,11 @@
 #include <sys/wait.h>
 
 #define CLANG_BPF_CMD_DEFAULT_TEMPLATE				\
-		"$CLANG_EXEC -D__KERNEL__ $CLANG_OPTIONS "	\
-		"$KERNEL_INC_OPTIONS -Wno-unused-value "	\
-		"-Wno-pointer-sign -working-directory "		\
-		"$WORKING_DIR -c \"$CLANG_SOURCE\" -target bpf -O2 -o -"
+		"$CLANG_EXEC -D__KERNEL__ -D__NR_CPUS__=$NR_CPUS "\
+		"$CLANG_OPTIONS $KERNEL_INC_OPTIONS "		\
+		"-Wno-unused-value -Wno-pointer-sign "		\
+		"-working-directory $WORKING_DIR "		\
+		"-c \"$CLANG_SOURCE\" -target bpf -O2 -o -"
 
 struct llvm_param llvm_param = {
 	.clang_path = "clang",
@@ -332,9 +333,9 @@ get_kbuild_opts(char **kbuild_dir, char **kbuild_include_opts)
 int llvm__compile_bpf(const char *path, void **p_obj_buf,
 		      size_t *p_obj_buf_sz)
 {
-	int err;
+	int err, nr_cpus_avail;
 	const char *clang_opt = llvm_param.clang_opt;
-	char clang_path[PATH_MAX], abspath[PATH_MAX];
+	char clang_path[PATH_MAX], nr_cpus_avail_str[64], abspath[PATH_MAX];
 	char serr[STRERR_BUFSIZE];
 	const char *template = llvm_param.clang_bpf_cmd_template;
 	char *kbuild_dir = NULL, *kbuild_include_opts = NULL;
@@ -368,6 +369,17 @@ int llvm__compile_bpf(const char *path, void **p_obj_buf,
 	 */
 	get_kbuild_opts(&kbuild_dir, &kbuild_include_opts);
 
+	nr_cpus_avail = sysconf(_SC_NPROCESSORS_CONF);
+	if (nr_cpus_avail <= 0) {
+		pr_err(
+"WARNING:\tunable to get available CPUs in this system: %s\n"
+"        \tUse 128 instead.\n", strerror(errno));
+		nr_cpus_avail = 128;
+	}
+	snprintf(nr_cpus_avail_str, sizeof(nr_cpus_avail_str), "%d",
+		 nr_cpus_avail);
+
+	force_set_env("NR_CPUS", nr_cpus_avail_str);
 	force_set_env("CLANG_EXEC", clang_path);
 	force_set_env("CLANG_OPTIONS", clang_opt);
 	force_set_env("KERNEL_INC_OPTIONS", kbuild_include_opts);
