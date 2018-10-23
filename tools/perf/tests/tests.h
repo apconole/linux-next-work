@@ -77,6 +77,8 @@ int test__fdarray__add(struct test *test, int subtest);
 int test__kmod_path__parse(struct test *test, int subtest);
 int test__thread_map(struct test *test, int subtest);
 int test__llvm(struct test *test, int subtest);
+const char *test__llvm_subtest_get_desc(int subtest);
+int test__llvm_subtest_get_nr(void);
 int test__bpf(struct test *test, int subtest);
 int test__session_topology(struct test *test, int subtest);
 int test__thread_map_synthesize(struct test *test, int subtest);

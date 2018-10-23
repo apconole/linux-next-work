@@ -181,6 +181,11 @@ static struct test generic_tests[] = {
 	{
 		.desc = "Test LLVM searching and compiling",
 		.func = test__llvm,
+		.subtest = {
+			.skip_if_fail	= true,
+			.get_nr		= test__llvm_subtest_get_nr,
+			.get_desc	= test__llvm_subtest_get_desc,
+		},
 	},
 	{
 		.desc = "Session topology",
