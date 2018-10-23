@@ -66,4 +66,14 @@ void perf_set_multithreaded(void);
 int fetch_kernel_version(unsigned int *puint,
 			 char *str, size_t str_sz);
 
+#ifndef O_CLOEXEC
+#ifdef __sparc__
+#define O_CLOEXEC      0x400000
+#elif defined(__alpha__) || defined(__hppa__)
+#define O_CLOEXEC      010000000
+#else
+#define O_CLOEXEC      02000000
+#endif
+#endif
+
 #endif /* GIT_COMPAT_UTIL_H */
