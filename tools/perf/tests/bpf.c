@@ -111,8 +111,7 @@ static int do_test(struct bpf_object *obj, int (*func)(void),
 	err = parse_events_load_bpf_obj(&parse_evlist, &parse_evlist.list, obj, NULL);
 	if (err || list_empty(&parse_evlist.list)) {
 		pr_debug("Failed to add events selected by BPF\n");
-		if (!err)
-			return TEST_FAIL;
+		return TEST_FAIL;
 	}
 
 	snprintf(pid, sizeof(pid), "%d", getpid());
@@ -172,8 +171,10 @@ static int do_test(struct bpf_object *obj, int (*func)(void),
 		perf_mmap__read_done(md);
 	}
 
-	if (count != expect)
+	if (count != expect) {
 		pr_debug("BPF filter result incorrect\n");
+		goto out_delete_evlist;
+	}
 
 	ret = TEST_OK;
 
