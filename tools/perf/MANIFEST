@@ -6,6 +6,7 @@ tools/include
 tools/lib/traceevent
 tools/lib/api
 tools/lib/subcmd
+tools/lib/bpf
 tools/lib/hweight.c
 tools/lib/rbtree.c
 tools/lib/string.c

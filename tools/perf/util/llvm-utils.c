@@ -26,6 +26,7 @@ struct llvm_param llvm_param = {
 	.clang_opt = NULL,
 	.kbuild_dir = NULL,
 	.kbuild_opts = NULL,
+	.user_set_param = false,
 };
 
 int perf_llvm_config(const char *var, const char *value)
@@ -48,6 +49,7 @@ int perf_llvm_config(const char *var, const char *value)
 		pr_debug("Invalid LLVM config option: %s\n", value);
 		return -1;
 	}
+	llvm_param.user_set_param = true;
 	return 0;
 }
 
@@ -409,4 +411,11 @@ errout:
 	if (p_obj_buf_sz)
 		*p_obj_buf_sz = 0;
 	return err;
+}
+
+int llvm__search_clang(void)
+{
+	char clang_path[PATH_MAX];
+
+	return search_program(llvm_param.clang_path, "clang", clang_path);
 }

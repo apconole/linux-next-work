@@ -179,6 +179,10 @@ static struct test generic_tests[] = {
 		.func = test__thread_map,
 	},
 	{
+		.desc = "Test LLVM searching and compiling",
+		.func = test__llvm,
+	},
+	{
 		.desc = "Session topology",
 		.func = test__session_topology,
 	},
