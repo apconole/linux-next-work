@@ -107,6 +107,7 @@ struct parse_events_state {
 	int			   nr_groups;
 	struct parse_events_error *error;
 	struct list_head	  *terms;
+	struct perf_evlist	  *evlist;
 };
 
 void parse_events__shrink_config_terms(void);
