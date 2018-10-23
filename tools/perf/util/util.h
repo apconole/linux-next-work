@@ -63,4 +63,7 @@ void perf_set_multithreaded(void);
 #define KVER_FMT	"%d.%d.%d"
 #define KVER_PARAM(x)	KVER_VERSION(x), KVER_PATCHLEVEL(x), KVER_SUBLEVEL(x)
 
+int fetch_kernel_version(unsigned int *puint,
+			 char *str, size_t str_sz);
+
 #endif /* GIT_COMPAT_UTIL_H */
