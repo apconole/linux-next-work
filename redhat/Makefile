@@ -335,7 +335,8 @@ rh-full-help:
 	@echo  '  rh-brew-test  - Calls rh-brew and passes the task number into an RHTS test. See rh-test for more'
 	@echo  '  rh-rpms	- Create the binary RPMS for the kernel'
 	@echo  '  rh-kernel-<type> - Create  binary RPMS for a particular kernel type'
-	@echo  '                   - <type> can be: baseonly or dbgonly'
+	@echo  '                     Available <type>s:'\
+		$$(sed -n 's/^%define with_\([^ ]*only\).*/\1/p' kernel.spec.template)
 
 	@echo  '  rh-all-rpms	- Create the binary RPMS and the SRPM for the kernel'
 	@echo  '  rh-prep	- Setup the redhat/rpm/BUILD/ directory with the kernel source'
