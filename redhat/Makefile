@@ -289,6 +289,23 @@ rh-get-latest:
 
 rh-help:
 	@echo  'Cleaning targets:'
+	@echo  '  rh-clean          - Clean redhat/configs/ and redhat/rpm/ directories.'
+	@echo  ''
+	@echo  'Building targets:'
+	@echo  '  rh-srpm           - Create a source RPM.'
+	@echo  '  rh-all-rpms       - Create a source RPM and build binary RPMs locally.'
+	@echo  '  rh-brew           - Create a source RPM and call brew to build binary RPMs.'
+	@echo  '  rhg-brew          - Build RPMs using a remote git repo. [Configuration needed.]'
+	@echo  '  rh-cross-all-rpms - Build RPMs for all supported archs using a cross compiler.'
+	@echo  ''
+	@echo  'Configuration targets:'
+	@echo  '  rh-configs        - Create RHEL config files in redhat/config/.'
+	@echo  ''
+	@echo  'For detailed description and full list of targets, run `make rh-full-help`.'
+	@echo  ''
+
+rh-full-help:
+	@echo  'Cleaning targets:'
 	@echo  '  rh-clean            - Do rh-clean-sources, rh-clean-configs, & rh-clean-rpmdirs'
 	@echo  '  rh-clean-sources    - Clean the redhat/rpm/SOURCES/ directory'
 	@echo  '  rh-clean-configs    - Clean the redhat/configs/ directory'
