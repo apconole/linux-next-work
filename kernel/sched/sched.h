@@ -232,8 +232,13 @@ struct cfs_bandwidth {
 	u64 quota, runtime;
 	s64 hierarchal_quota;
 	u64 runtime_expires;
-
+#ifndef __GENKSYMS__
+	int expires_seq;
+	short idle;
+	short timer_active;
+#else
 	int idle, timer_active;
+#endif
 	struct hrtimer period_timer, slack_timer;
 	struct list_head throttled_cfs_rq;
 
@@ -445,6 +450,9 @@ struct cfs_rq {
 #ifdef CONFIG_SMP
 	RH_KABI_EXTEND(u64 last_h_load_update)
 	RH_KABI_EXTEND(struct sched_entity *h_load_next)
+#endif
+#ifdef CONFIG_CFS_BANDWIDTH
+	RH_KABI_EXTEND(int expires_seq)
 #endif
 #endif /* CONFIG_FAIR_GROUP_SCHED */
 };
