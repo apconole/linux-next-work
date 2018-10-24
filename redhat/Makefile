@@ -1,6 +1,5 @@
 include Makefile.common
 include Makefile.rhpkg
-include Makefile.test
 
 LANG=C
 BUILD_DEFAULT_TARGET = rhel-${RHELMAJOR}.${RHELMINOR}-test-pesign
@@ -327,12 +326,6 @@ rh-full-help:
 	@echo  '  rhg-koji	- Pass HEAD of the current git branch to koji to build an RPM set.'
 	@echo  '                  Do not forget to push to the remote repository first.'
 	@echo  '                  See the rhg-brew target for options and configuration.'
-	@echo  '  rh-test	- Pass in brew task number, TASK=1234 make rh-test, to use for an RHTS test'
-	@echo  '		  setup ./tests to use a test from redhat/tests (minus the .xml)'
-	@echo  '		  uses a known stable RHEL6 distro as the default'
-	@echo  '		  use TASK=None to use a non-scratch build based on RELEASE string'
-	@echo  '		  see output for possible override options (USER_ID,DISTRO,FAMILY,..)'
-	@echo  '  rh-brew-test  - Calls rh-brew and passes the task number into an RHTS test. See rh-test for more'
 	@echo  '  rh-rpms	- Create the binary RPMS for the kernel'
 	@echo  '  rh-kernel-<type> - Create  binary RPMS for a particular kernel type'
 	@echo  '                     Available <type>s:'\
