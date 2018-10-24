@@ -351,9 +351,6 @@ rh-full-help:
 	@echo  '		      ppc64, x86_64 using RHEL cross compiler'
 	@echo  '  rh-cross-[ARCH]-rpms - [x86_64 only] execute rpm builds for specified'
 	@echo  '			 ARCH using RHEL cross compiler'
-	@echo  '  rh-get-latest - returns latest-pkg tag from brew'
-	@echo  '  rh-git-dirtytree  - Test to see if git tree is dirty.  Will fail if'
-	@echo  '		      git config value rhel.faildirtytree is true.'
 
 	@echo  ''
 	@echo  'kABI targets:'
@@ -378,4 +375,11 @@ rh-full-help:
 	@echo  '		redhat/configs/ directory. This is the target to use for a config!'
 	@echo  '		Copy the config file you want from the redhat/configs/ directory'
 	@echo  '		to .config'
+
+	@echo  ''
+	@echo  'Misc targets:'
+	@echo  '  rh-get-latest     - Returns the latest "known good" kernel from brew. This should not'
+	@echo  '                      be confused with the latest top-of-tree development tag.'
+	@echo  '  rh-git-dirtytree  - Test to see if git tree is dirty. Will fail if git config value'
+	@echo  '		      rhel.faildirtytree is true.'
 	@echo  ''
