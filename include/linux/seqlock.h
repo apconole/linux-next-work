@@ -133,15 +133,15 @@ static inline unsigned raw_read_seqcount(const seqcount_t *s)
 }
 
 /**
- * read_seqcount_begin_no_lockdep - start seq-read critical section w/o lockdep
+ * raw_read_seqcount_begin - start seq-read critical section w/o lockdep
  * @s: pointer to seqcount_t
  * Returns: count to be passed to read_seqcount_retry
  *
- * read_seqcount_begin_no_lockdep opens a read critical section of the given
+ * raw_read_seqcount_begin opens a read critical section of the given
  * seqcount, but without any lockdep checking. Validity of the critical
  * section is tested by checking read_seqcount_retry function.
  */
-static inline unsigned read_seqcount_begin_no_lockdep(const seqcount_t *s)
+static inline unsigned raw_read_seqcount_begin(const seqcount_t *s)
 {
 	unsigned ret = __read_seqcount_begin(s);
 	smp_rmb();
@@ -160,7 +160,7 @@ static inline unsigned read_seqcount_begin_no_lockdep(const seqcount_t *s)
 static inline unsigned read_seqcount_begin(const seqcount_t *s)
 {
 	seqcount_lockdep_reader_access(s);
-	return read_seqcount_begin_no_lockdep(s);
+	return raw_read_seqcount_begin(s);
 }
 
 /**
@@ -238,14 +238,26 @@ static inline void raw_write_seqcount_latch(seqcount_t *s)
        smp_wmb();      /* increment "sequence" before following stores */
 }
 
+
+static inline void raw_write_seqcount_begin(seqcount_t *s)
+{
+	s->sequence++;
+	smp_wmb();
+}
+
+static inline void raw_write_seqcount_end(seqcount_t *s)
+{
+	smp_wmb();
+	s->sequence++;
+}
+
 /*
  * Sequence counter only version assumes that callers are using their
  * own mutexing.
  */
 static inline void write_seqcount_begin_nested(seqcount_t *s, int subclass)
 {
-	s->sequence++;
-	smp_wmb();
+	raw_write_seqcount_begin(s);
 	seqcount_acquire(&s->dep_map, subclass, 0, _RET_IP_);
 }
 
@@ -257,8 +269,7 @@ static inline void write_seqcount_begin(seqcount_t *s)
 static inline void write_seqcount_end(seqcount_t *s)
 {
 	seqcount_release(&s->dep_map, 1, _RET_IP_);
-	smp_wmb();
-	s->sequence++;
+	raw_write_seqcount_end(s);
 }
 
 /**
