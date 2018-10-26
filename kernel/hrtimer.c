@@ -492,12 +492,21 @@ static inline void debug_deactivate(struct hrtimer *timer)
 }
 
 #if defined(CONFIG_NO_HZ_COMMON) || defined(CONFIG_HIGH_RES_TIMERS)
+static inline void hrtimer_update_next_timer(struct hrtimer_cpu_base *cpu_base,
+					     struct hrtimer *timer)
+{
+#ifdef CONFIG_HIGH_RES_TIMERS
+	cpu_base->next_timer = timer;
+#endif
+}
+
 ktime_t __hrtimer_get_next_event(struct hrtimer_cpu_base *cpu_base)
 {
 	struct hrtimer_clock_base *base = cpu_base->clock_base;
 	ktime_t expires, expires_next = { .tv64 = KTIME_MAX };
 	unsigned int active = cpu_base->active_bases;
 
+	hrtimer_update_next_timer(cpu_base, NULL);
 	for (; active; base++, active >>= 1) {
 		struct timerqueue_node *next;
 		struct hrtimer *timer;
@@ -508,8 +517,10 @@ ktime_t __hrtimer_get_next_event(struct hrtimer_cpu_base *cpu_base)
 		next = timerqueue_getnext(&base->active);
 		timer = container_of(next, struct hrtimer, node);
 		expires = ktime_sub(hrtimer_get_expires(timer), base->offset);
-		if (expires.tv64 < expires_next.tv64)
+		if (expires.tv64 < expires_next.tv64) {
 			expires_next = expires;
+			hrtimer_update_next_timer(cpu_base, timer);
+		}
 	}
 	/*
 	 * clock_was_set() might have changed base->offset of any of
@@ -655,6 +666,8 @@ static void hrtimer_reprogram(struct hrtimer *timer,
 
 	if (expires.tv64 >= cpu_base->expires_next.tv64)
 		return;
+
+	cpu_base->next_timer = timer;
 
 	/*
 	 * If a hang was detected in the last timer interrupt then we
@@ -911,30 +924,29 @@ static void __remove_hrtimer(struct hrtimer *timer,
 			     struct hrtimer_clock_base *base,
 			     unsigned long newstate, int reprogram)
 {
-	struct timerqueue_node *next_timer;
-	if (!(timer->state & HRTIMER_STATE_ENQUEUED))
-		goto out;
+	struct hrtimer_cpu_base *cpu_base = base->cpu_base;
+	unsigned int state = timer->state;
 
-	next_timer = timerqueue_getnext(&base->active);
+	timer->state = newstate;
+	if (!(state & HRTIMER_STATE_ENQUEUED))
+		return;
+
 	timerqueue_del(&base->active, &timer->node);
 	if (!timerqueue_getnext(&base->active))
-		base->cpu_base->active_bases &= ~(1 << base->index);
+		cpu_base->active_bases &= ~(1 << base->index);
 
-	if (&timer->node == next_timer) {
 #ifdef CONFIG_HIGH_RES_TIMERS
-		/* Reprogram the clock event device. if enabled */
-		if (reprogram && hrtimer_hres_active()) {
-			ktime_t expires;
-
-			expires = ktime_sub(hrtimer_get_expires(timer),
-					    base->offset);
-			if (base->cpu_base->expires_next.tv64 == expires.tv64)
-				hrtimer_force_reprogram(base->cpu_base, 1);
-		}
+	/*
+	 * Note: If reprogram is false we do not update
+	 * cpu_base->next_timer. This happens when we remove the first
+	 * timer on a remote cpu. No harm as we never dereference
+	 * cpu_base->next_timer. So the worst thing what can happen is
+	 * an superflous call to hrtimer_force_reprogram() on the
+	 * remote cpu later on if the same timer gets enqueued again.
+	 */
+	if (reprogram && timer == cpu_base->next_timer)
+		hrtimer_force_reprogram(cpu_base, 1);
 #endif
-	}
-out:
-	timer->state = newstate;
 }
 
 /*

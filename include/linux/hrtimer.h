@@ -181,6 +181,11 @@ enum  hrtimer_base_type {
  * @in_hrtirq:		hrtimer_interrupt() is currently executing
  * @migration_enabled: The migration of hrtimers to other cpus is enabled
  * @nohz_active:	The nohz functionality is enabled
+ * @next_timer:		Pointer to the first expiring timer
+ *
+ * Note: next_timer is just an optimization for __remove_hrtimer().
+ *      Do not dereference the pointer because it is not reliable on
+ *      cross cpu removals.
  */
 struct hrtimer_cpu_base {
 	raw_spinlock_t			lock;
@@ -200,6 +205,7 @@ struct hrtimer_cpu_base {
 	RH_KABI_EXTEND(int in_hrtirq)
 	RH_KABI_EXTEND(bool migration_enabled)
 	RH_KABI_EXTEND(bool nohz_active)
+	RH_KABI_EXTEND(struct hrtimer *next_timer)
 };
 
 static inline void hrtimer_set_expires(struct hrtimer *timer, ktime_t time)
