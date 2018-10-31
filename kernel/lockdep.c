@@ -3425,6 +3425,13 @@ found_it:
 	curr->lockdep_depth = i;
 	curr->curr_chain_key = hlock->prev_chain_key;
 
+	/*
+	 * The most likely case is when the unlock is on the innermost
+	 * lock. In this case, we are done!
+	 */
+	if (i == depth - 1)
+		return 1;
+
 	for (i++; i < depth; i++) {
 		hlock = curr->held_locks + i;
 		if (!__lock_acquire(hlock->instance,
@@ -3439,9 +3446,13 @@ found_it:
 	 * We had N bottles of beer on the wall, we drank one, but now
 	 * there's not N-1 bottles of beer left on the wall...
 	 */
-	if (DEBUG_LOCKS_WARN_ON(curr->lockdep_depth != depth - 1))
-		return 0;
-	return 1;
+	DEBUG_LOCKS_WARN_ON(curr->lockdep_depth != depth - 1);
+
+	/*
+	 * Since __lock_acquire() would have called check_chain_key(),
+	 * we don't need to do it again on return.
+	 */
+	return 0;
 }
 
 /*
