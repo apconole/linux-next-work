@@ -388,9 +388,7 @@ static void raid1_end_read_request(struct bio *bio, int error)
 
 static void close_write(struct r1bio *r1_bio)
 {
-	struct bio *bio = r1_bio->master_bio;
-	struct r1conf *conf = r1_bio->mddev->private;
-	int done = 0;
+	struct r1bio *master_r1bio = r1_bio->master_r1bio;
 
 	/* it really is the end of this request */
 	if (test_bit(R1BIO_BehindIO, &r1_bio->state)) {
@@ -407,17 +405,10 @@ static void close_write(struct r1bio *r1_bio)
 			!test_bit(R1BIO_Degraded, &r1_bio->state),
 			test_bit(R1BIO_BehindIO, &r1_bio->state));
 
-	if (bio->bi_phys_segments) {
-	        unsigned long flags;
-	        spin_lock_irqsave(&conf->device_lock, flags);
-	        bio->bi_phys_segments--;
-	        done = (bio->bi_phys_segments == 0);
-	        spin_unlock_irqrestore(&conf->device_lock, flags);
-	} else
-	        done = 1;
-	if (done)
-	        md_write_end(r1_bio->mddev);
-
+	if (atomic_dec_and_test(&master_r1bio->split_bios)) {
+	        md_write_end(master_r1bio->mddev);
+		free_r1bio(master_r1bio);
+	}
 }
 
 static void r1_bio_write_done(struct r1bio *r1_bio)
@@ -1308,6 +1299,7 @@ static bool raid1_write_request(struct mddev *mddev, struct bio *bio,
 				 struct r1bio *r1_bio)
 {
 	struct r1conf *conf = mddev->private;
+	struct r1bio *master_r1bio;
 	int i, disks;
 	struct bitmap *bitmap = mddev->bitmap;
 	unsigned long flags;
@@ -1324,18 +1316,6 @@ static bool raid1_write_request(struct mddev *mddev, struct bio *bio,
 	int max_sectors;
 
 	/*
-	 * We might need to issue multiple writes to different
-	 * devices if there are bad blocks around or span more than
-	 * one bucket, so we keep track of the number of writes
-	 * in bio->bi_phys_segments. If this is 0, there is only one
-	 * r1_bio and no locking will be needed when requests complete.
-	 * If it is non-zero, then it is the number of not-completed
-	 * requests.
-	 */
-	bio->bi_phys_segments = 0;
-	clear_bit(BIO_SEG_VALID, &bio->bi_flags);
-
-	/*
 	 * Register the new request and wait if the reconstruction
 	 * thread has put up a bar for new requests.
 	 * Continue immediately if no resync is active currently.
@@ -1349,6 +1329,10 @@ static bool raid1_write_request(struct mddev *mddev, struct bio *bio,
 		wait_event(conf->wait_barrier,
 			   conf->pending_count < max_queued_requests);
 	}
+
+	master_r1bio = alloc_r1bio(mddev, bio, 0);
+	atomic_set(&master_r1bio->split_bios, 0);
+
 	/* first select target devices under rcu_lock and
 	 * inc refcount on their rdev.  Record them by setting
 	 * bios[x] to bio
@@ -1363,6 +1347,8 @@ static bool raid1_write_request(struct mddev *mddev, struct bio *bio,
 	disks = conf->raid_disks * 2;
  retry_write:
 	wait_barrier(conf, r1_bio->sector);
+	r1_bio->master_r1bio = master_r1bio;
+	atomic_inc(&master_r1bio->split_bios);
 	blocked_rdev = NULL;
 	rcu_read_lock();
 	max_sectors = r1_bio->sectors;
@@ -1530,12 +1516,6 @@ static bool raid1_write_request(struct mddev *mddev, struct bio *bio,
 	if (sectors_handled < bio_sectors(bio)) {
 		/* We need another r1_bio, which must be counted */
 		bio_inc_remaining(bio);
-		spin_lock_irq(&conf->device_lock);
-		if (bio->bi_phys_segments == 0)
-		        bio->bi_phys_segments = 2;
-		else
-		        bio->bi_phys_segments++;
-		spin_unlock_irq(&conf->device_lock);
 		r1_bio_write_done(r1_bio);
 		r1_bio = alloc_r1bio(mddev, bio, sectors_handled);
 		goto retry_write;
