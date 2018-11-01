@@ -1,6 +1,6 @@
-#
+# SPDX-License-Identifier: GPL-2.0
 # Intel pin control drivers
-#
+
 
 config PINCTRL_BAYTRAIL
 	bool "Intel Baytrail GPIO pin control"
