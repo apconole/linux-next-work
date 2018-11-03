@@ -109,6 +109,10 @@ enum pageflags {
 #ifdef CONFIG_TRANSPARENT_HUGEPAGE
 	PG_compound_lock,
 #endif
+#if defined(CONFIG_IDLE_PAGE_TRACKING) && defined(CONFIG_64BIT)
+	PG_young,
+	PG_idle,
+#endif
 	__NR_PAGEFLAGS,
 
 	/* Filesystems */
@@ -221,6 +225,13 @@ PAGEFLAG(Private, private) __SETPAGEFLAG(Private, private)
 	__CLEARPAGEFLAG(Private, private)
 PAGEFLAG(Private2, private_2) TESTSCFLAG(Private2, private_2)
 PAGEFLAG(OwnerPriv1, owner_priv_1) TESTCLEARFLAG(OwnerPriv1, owner_priv_1)
+
+#if defined(CONFIG_IDLE_PAGE_TRACKING) && defined(CONFIG_64BIT)
+TESTPAGEFLAG(Young, young)
+SETPAGEFLAG(Young, young)
+TESTCLEARFLAG(Young, young)
+PAGEFLAG(Idle, idle)
+#endif
 
 /*
  * Only test-and-set exist for PG_writeback.  The unconditional operators are
