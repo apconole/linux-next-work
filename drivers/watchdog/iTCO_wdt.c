@@ -424,7 +424,7 @@ static int iTCO_wdt_probe(struct platform_device *dev)
 {
 	int ret = -ENODEV;
 	unsigned long val32;
-	struct itco_wdt_platform_data *pdata = dev->dev.platform_data;
+	struct itco_wdt_platform_data *pdata = dev_get_platdata(&dev->dev);
 
 	if (!pdata)
 		goto out;
