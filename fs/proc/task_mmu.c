@@ -1080,33 +1080,7 @@ static pagemap_entry_t pte_to_pagemap_entry(struct pagemapread *pm,
 	return make_pme(frame, flags);
 }
 
-#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-static pagemap_entry_t thp_pmd_to_pagemap_entry(struct pagemapread *pm,
-		pmd_t pmd, int offset, u64 flags)
-{
-	u64 frame = 0;
-
-	/*
-	 * Currently pmd for thp is always present because thp can not be
-	 * swapped-out, migrated, or HWPOISONed (split in such cases instead.)
-	 * This if-check is just to prepare for future implementation.
-	 */
-	if (pmd_present(pmd)) {
-		frame = pmd_pfn(pmd) + offset;
-		flags |= PM_PRESENT;
-	}
-
-	return make_pme(frame, flags);
-}
-#else
-static pagemap_entry_t thp_pmd_to_pagemap_entry(struct pagemapread *pm,
-		pmd_t pmd, int offset, u64 flags)
-{
-	return make_pme(0, 0);
-}
-#endif
-
-static int pagemap_pte_range(pmd_t *pmd, unsigned long addr, unsigned long end,
+static int pagemap_pmd_range(pmd_t *pmdp, unsigned long addr, unsigned long end,
 			     struct mm_walk *walk)
 {
 	struct vm_area_struct *vma;
@@ -1117,29 +1091,41 @@ static int pagemap_pte_range(pmd_t *pmd, unsigned long addr, unsigned long end,
 
 	/* find the first VMA at or above 'addr' */
 	vma = find_vma(walk->mm, addr);
-	if (vma && pmd_trans_huge_lock(pmd, vma, &ptl) == 1) {
-		u64 flags = 0;
+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
+	if (vma && pmd_trans_huge_lock(pmdp, vma, &ptl) == 1) {
+		u64 flags = 0, frame = 0;
+		pmd_t pmd = *pmdp;
 
-		if ((vma->vm_flags & VM_SOFTDIRTY) || pmd_soft_dirty(*pmd))
+		if ((vma->vm_flags & VM_SOFTDIRTY) || pmd_soft_dirty(pmd))
 			flags |= PM_SOFT_DIRTY;
 
-		for (; addr != end; addr += PAGE_SIZE) {
-			unsigned long offset;
-			pagemap_entry_t pme;
+		/*
+		 * Currently pmd for thp is always present because thp
+		 * can not be swapped-out, migrated, or HWPOISONed
+		 * (split in such cases instead.)
+		 * This if-check is just to prepare for future implementation.
+		 */
+		if (pmd_present(pmd)) {
+			flags |= PM_PRESENT;
+			frame = pmd_pfn(pmd) +
+				((addr & ~PMD_MASK) >> PAGE_SHIFT);
+		}
 
-			offset = (addr & ~PAGEMAP_WALK_MASK) >>
-					PAGE_SHIFT;
-			pme = thp_pmd_to_pagemap_entry(pm, *pmd, offset, flags);
+		for (; addr != end; addr += PAGE_SIZE) {
+			pagemap_entry_t pme = make_pme(frame, flags);
 			err = add_to_pagemap(addr, &pme, pm);
 			if (err)
 				break;
+			if (flags & PM_PRESENT)
+				frame++;
 		}
 		spin_unlock(ptl);
 		return err;
 	}
 
-	if (pmd_trans_unstable(pmd))
+	if (pmd_trans_unstable(pmdp))
 		return 0;
+#endif /* CONFIG_TRANSPARENT_HUGEPAGE */
 
 	while (1) {
 		/* End of address space hole, which we mark as non-present. */
@@ -1173,7 +1159,7 @@ static int pagemap_pte_range(pmd_t *pmd, unsigned long addr, unsigned long end,
 		/* Addresses in the VMA. */
 		for (; addr < min(end, vma->vm_end); addr += PAGE_SIZE) {
 			pagemap_entry_t pme;
-			pte = pte_offset_map(pmd, addr);
+			pte = pte_offset_map(pmdp, addr);
 			pme = pte_to_pagemap_entry(pm, vma, addr, *pte);
 			pte_unmap(pte);
 			err = add_to_pagemap(addr, &pme, pm);
@@ -1193,29 +1179,16 @@ static int pagemap_pte_range(pmd_t *pmd, unsigned long addr, unsigned long end,
 }
 
 #ifdef CONFIG_HUGETLB_PAGE
-static pagemap_entry_t huge_pte_to_pagemap_entry(struct pagemapread *pm,
-					pte_t pte, int offset, u64 flags)
-{
-	u64 frame = 0;
-
-	if (pte_present(pte)) {
-		frame = pte_pfn(pte) + offset;
-		flags |= PM_PRESENT;
-	}
-
-	return make_pme(frame, flags);
-}
-
 /* This function walks within one hugetlb entry in the single call */
-static int pagemap_hugetlb_range(pte_t *pte, unsigned long hmask,
+static int pagemap_hugetlb_range(pte_t *ptep, unsigned long hmask,
 				 unsigned long addr, unsigned long end,
 				 struct mm_walk *walk)
 {
 	struct pagemapread *pm = walk->private;
 	struct vm_area_struct *vma;
+	u64 flags = 0, frame = 0;
 	int err = 0;
-	u64 flags = 0;
-	pagemap_entry_t pme;
+	pte_t pte;
 
 	vma = find_vma(walk->mm, addr);
 	WARN_ON_ONCE(!vma);
@@ -1223,12 +1196,26 @@ static int pagemap_hugetlb_range(pte_t *pte, unsigned long hmask,
 	if (vma && (vma->vm_flags & VM_SOFTDIRTY))
 		flags |= PM_SOFT_DIRTY;
 
+	pte = huge_ptep_get(ptep);
+	if (pte_present(pte)) {
+		struct page *page = pte_page(pte);
+
+		if (!PageAnon(page))
+			flags |= PM_FILE;
+
+		flags |= PM_PRESENT;
+		frame = pte_pfn(pte) +
+			((addr & ~hmask) >> PAGE_SHIFT);
+	}
+
 	for (; addr != end; addr += PAGE_SIZE) {
-		int offset = (addr & ~hmask) >> PAGE_SHIFT;
-		pme = huge_pte_to_pagemap_entry(pm, *pte, offset, flags);
+		pagemap_entry_t pme = make_pme(frame, flags);
+
 		err = add_to_pagemap(addr, &pme, pm);
 		if (err)
 			return err;
+		if (flags & PM_PRESENT)
+			frame++;
 	}
 
 	cond_resched();
@@ -1292,7 +1279,7 @@ static ssize_t pagemap_read(struct file *file, char __user *buf,
 	if (!pm.buffer)
 		goto out_mm;
 
-	pagemap_walk.pmd_entry = pagemap_pte_range;
+	pagemap_walk.pmd_entry = pagemap_pmd_range;
 	pagemap_walk.pte_hole = pagemap_pte_hole;
 #ifdef CONFIG_HUGETLB_PAGE
 	pagemap_walk.hugetlb_entry = pagemap_hugetlb_range;
