@@ -531,6 +531,7 @@ struct lpc_ich_info lpc_chipset_info[] = {
 	},
 	[LPC_APL] = {
 		.name = "Apollo Lake SoC",
+		.iTCO_version = 5,
 	},
 };
 
