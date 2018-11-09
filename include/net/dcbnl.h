@@ -104,8 +104,11 @@ struct dcbnl_rtnl_ops_ext {
 	int (*ieee_getqcn) (struct net_device *, struct ieee_qcn *);
 	int (*ieee_setqcn) (struct net_device *, struct ieee_qcn *);
 	int (*ieee_getqcnstats) (struct net_device *, struct ieee_qcn_stats *);
-	RH_KABI_RESERVE_P(1)
-	RH_KABI_RESERVE_P(2)
+
+	/* buffer settings */
+	int (*dcbnl_getbuffer)(struct net_device *, struct dcbnl_buffer *);
+	int (*dcbnl_setbuffer)(struct net_device *, struct dcbnl_buffer *);
+
 	RH_KABI_RESERVE_P(3)
 	RH_KABI_RESERVE_P(4)
 	RH_KABI_RESERVE_P(5)
