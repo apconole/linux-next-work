@@ -394,7 +394,6 @@ static int __init opal_message_init(void)
 	}
 	return 0;
 }
-machine_early_initcall(powernv, opal_message_init);
 
 int opal_get_chars(uint32_t vtermno, char *buf, int count)
 {
@@ -789,6 +788,18 @@ static int __init opal_init(void)
 
 	/* Setup a heatbeat thread if requested by OPAL */
 	opal_init_heartbeat();
+
+	/* Initialise OPAL messaging system */
+	opal_message_init();
+
+	/* Initialise OPAL asynchronous completion interface */
+	opal_async_comp_init();
+
+	/* Initialise OPAL sensor interface */
+	opal_sensor_init();
+
+	/* Initialise OPAL hypervisor maintainence interrupt handling */
+	opal_hmi_handler_init();
 
 	/* Create i2c platform devices */
 	opal_i2c_create_devs();
