@@ -35,6 +35,8 @@ struct opal_sg_list {
 /* We calculate number of sg entries based on PAGE_SIZE */
 #define SG_ENTRIES_PER_NODE ((PAGE_SIZE - 16) / sizeof(struct opal_sg_entry))
 
+void opal_wake_poller(void);
+
 #endif /* __ASSEMBLY__ */
 
 /****** OPAL APIs ******/
