@@ -827,7 +827,6 @@ out:
  * @inode: The inode
  * @dibh: The buffer_head containing the on-disk inode
  * @pos: The file position
- * @len: The length of the write
  * @copied: How much was actually copied by the VFS
  * @page: The page
  *
@@ -841,8 +840,6 @@ static int gfs2_stuffed_write_end(struct inode *inode, struct buffer_head *dibh,
 				  struct page *page)
 {
 	struct gfs2_inode *ip = GFS2_I(inode);
-	struct gfs2_sbd *sdp = GFS2_SB(inode);
-	struct gfs2_inode *m_ip = GFS2_I(sdp->sd_statfs_inode);
 	u64 to = pos + copied;
 	void *kaddr;
 	unsigned char *buf = dibh->b_data + sizeof(struct gfs2_dinode);
@@ -865,20 +862,6 @@ static int gfs2_stuffed_write_end(struct inode *inode, struct buffer_head *dibh,
 			i_size_write(inode, to);
 		mark_inode_dirty(inode);
 	}
-
-	if (inode == sdp->sd_rindex) {
-		adjust_fs_space(inode);
-		sdp->sd_rindex_uptodate = 0;
-	}
-
-	brelse(dibh);
-	gfs2_trans_end(sdp);
-	if (inode == sdp->sd_rindex) {
-		gfs2_glock_dq(&m_ip->i_gh);
-		gfs2_holder_uninit(&m_ip->i_gh);
-	}
-	gfs2_glock_dq(&ip->i_gh);
-	gfs2_holder_uninit(&ip->i_gh);
 	return copied;
 }
 
@@ -892,9 +875,8 @@ static int gfs2_stuffed_write_end(struct inode *inode, struct buffer_head *dibh,
  * @page: The page that has been written
  * @fsdata: The fsdata (unused in GFS2)
  *
- * The main write_end function for GFS2. We have a separate one for
- * stuffed files as they are slightly different, otherwise we just
- * put our locking around the VFS provided functions.
+ * The main write_end function for GFS2. We just put our locking around the VFS
+ * provided functions.
  *
  * Returns: errno
  */
@@ -915,32 +897,37 @@ static int gfs2_write_end(struct file *file, struct address_space *mapping,
 	BUG_ON(gfs2_glock_is_locked_by_me(ip->i_gl) == NULL);
 
 	ret = gfs2_meta_inode_buffer(ip, &dibh);
-	if (unlikely(ret)) {
-		unlock_page(page);
-		page_cache_release(page);
-		goto failed;
-	}
+	if (unlikely(ret))
+		goto out;
 
-	if (gfs2_is_stuffed(ip))
-		return gfs2_stuffed_write_end(inode, dibh, pos, len, copied, page);
+	if (gfs2_is_stuffed(ip)) {
+		ret = gfs2_stuffed_write_end(inode, dibh, pos, len, copied, page);
+		page = NULL;
+		goto out2;
+	}
 
 	if (!gfs2_is_writeback(ip))
 		gfs2_page_add_databufs(ip, page, pos & ~PAGE_MASK, len);
 
 	ret = generic_write_end(file, mapping, pos, len, copied, page, fsdata);
+	page = NULL;
 	if (tr->tr_num_buf_new)
 		__mark_inode_dirty(inode, I_DIRTY_DATASYNC);
 	else
 		gfs2_trans_add_meta(ip->i_gl, dibh);
 
-
+out2:
 	if (inode == sdp->sd_rindex) {
 		adjust_fs_space(inode);
 		sdp->sd_rindex_uptodate = 0;
 	}
 
 	brelse(dibh);
-failed:
+out:
+	if (page) {
+		unlock_page(page);
+		page_cache_release(page);
+	}
 	gfs2_trans_end(sdp);
 	gfs2_inplace_release(ip);
 	if (ip->i_qadata && ip->i_qadata->qa_qd_num)
