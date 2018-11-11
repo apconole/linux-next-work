@@ -111,7 +111,7 @@ static int gfs2_writepage_common(struct page *page,
 	/* Is the page fully outside i_size? (truncate in progress) */
 	offset = i_size & (PAGE_CACHE_SIZE-1);
 	if (page->index > end_index || (page->index == end_index && !offset)) {
-		page->mapping->a_ops->invalidatepage(page, 0);
+		page->mapping->a_ops->invalidatepage_range(page, 0, PAGE_CACHE_SIZE);
 		goto out;
 	}
 	return 1;
@@ -1015,7 +1015,8 @@ static void gfs2_discard(struct gfs2_sbd *sdp, struct buffer_head *bh)
 	unlock_buffer(bh);
 }
 
-static void gfs2_invalidatepage(struct page *page, unsigned long offset)
+static void gfs2_invalidatepage(struct page *page, unsigned int offset,
+				unsigned int length)
 {
 	struct gfs2_sbd *sdp = GFS2_SB(page->mapping->host);
 	struct buffer_head *bh, *head;
@@ -1218,7 +1219,7 @@ static const struct address_space_operations gfs2_writeback_aops = {
 	.write_begin = gfs2_write_begin,
 	.write_end = gfs2_write_end,
 	.bmap = gfs2_bmap,
-	.invalidatepage = gfs2_invalidatepage,
+	.invalidatepage_range = gfs2_invalidatepage,
 	.releasepage = gfs2_releasepage,
 	.direct_IO = gfs2_direct_IO,
 	.migratepage = buffer_migrate_page,
@@ -1235,7 +1236,7 @@ static const struct address_space_operations gfs2_ordered_aops = {
 	.write_end = gfs2_write_end,
 	.set_page_dirty = gfs2_set_page_dirty,
 	.bmap = gfs2_bmap,
-	.invalidatepage = gfs2_invalidatepage,
+	.invalidatepage_range = gfs2_invalidatepage,
 	.releasepage = gfs2_releasepage,
 	.direct_IO = gfs2_direct_IO,
 	.migratepage = buffer_migrate_page,
@@ -1252,7 +1253,7 @@ static const struct address_space_operations gfs2_jdata_aops = {
 	.write_end = gfs2_write_end,
 	.set_page_dirty = gfs2_set_page_dirty,
 	.bmap = gfs2_bmap,
-	.invalidatepage = gfs2_invalidatepage,
+	.invalidatepage_range = gfs2_invalidatepage,
 	.releasepage = gfs2_releasepage,
 	.is_partially_uptodate = block_is_partially_uptodate,
 	.error_remove_page = generic_error_remove_page,
