@@ -569,10 +569,13 @@ static int iomap_to_fiemap(struct fiemap_extent_info *fi,
 	case IOMAP_DELALLOC:
 		flags |= FIEMAP_EXTENT_DELALLOC | FIEMAP_EXTENT_UNKNOWN;
 		break;
+	case IOMAP_MAPPED:
+		break;
 	case IOMAP_UNWRITTEN:
 		flags |= FIEMAP_EXTENT_UNWRITTEN;
 		break;
-	case IOMAP_MAPPED:
+	case IOMAP_INLINE:
+		flags |= FIEMAP_EXTENT_DATA_INLINE;
 		break;
 	}
 
@@ -580,8 +583,6 @@ static int iomap_to_fiemap(struct fiemap_extent_info *fi,
 		flags |= FIEMAP_EXTENT_MERGED;
 	if (iomap->flags & IOMAP_F_SHARED)
 		flags |= FIEMAP_EXTENT_SHARED;
-	if (iomap->flags & IOMAP_F_DATA_INLINE)
-		flags |= FIEMAP_EXTENT_DATA_INLINE;
 
 	return fiemap_fill_next_extent(fi, iomap->offset,
 			iomap->addr != IOMAP_NULL_ADDR ? iomap->addr : 0,
