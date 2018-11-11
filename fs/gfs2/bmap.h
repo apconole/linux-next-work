@@ -59,5 +59,6 @@ extern int gfs2_truncatei_resume(struct gfs2_inode *ip);
 extern int gfs2_file_dealloc(struct gfs2_inode *ip);
 extern int gfs2_write_alloc_required(struct gfs2_inode *ip, u64 offset,
 				     unsigned int len);
+extern int __gfs2_punch_hole(struct file *file, loff_t offset, loff_t length);
 
 #endif /* __BMAP_DOT_H__ */
