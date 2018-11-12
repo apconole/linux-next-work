@@ -2,7 +2,7 @@ PROGS := tm-resched-dscr tm-syscall
 
 all: $(PROGS)
 
-$(PROGS):
+$(PROGS): ../harness.c
 
 tm-syscall: tm-syscall-asm.S
 tm-syscall: CFLAGS += -mhtm -I../../../../../usr/include
