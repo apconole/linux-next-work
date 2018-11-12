@@ -17,6 +17,7 @@ typedef   signed long long s64;
 typedef uint32_t u32;
 typedef uint8_t u8;
 
+extern void *get_auxv_entry(int type);
 
 int test_harness(int (test_function)(void), char *name);
 
