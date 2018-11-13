@@ -1406,9 +1406,9 @@ static struct task_struct *copy_process(unsigned long clone_flags,
 	prev_cputime_init(&p->prev_cputime);
 
 #ifdef CONFIG_VIRT_CPU_ACCOUNTING_GEN
-	seqlock_init(&p->vtime_seqlock);
-	p->vtime_starttime = 0;
-	p->vtime_state = VTIME_SLEEPING;
+	seqlock_init(&p->vtime.seqlock);
+	p->vtime.starttime = 0;
+	p->vtime.state = VTIME_SLEEPING;
 #endif
 
 #if defined(SPLIT_RSS_COUNTING)

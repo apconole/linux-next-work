@@ -802,6 +802,23 @@ extern struct user_struct root_user;
 struct backing_dev_info;
 struct reclaim_state;
 
+#ifndef __GENKSYMS__
+enum vtime_state {
+	/* Task is sleeping or running in a CPU with VTIME inactive: */
+	VTIME_SLEEPING = 0,
+	/* Task runs in userspace in a CPU with VTIME active: */
+	VTIME_USER,
+	/* Task runs in kernelspace in a CPU with VTIME active: */
+	VTIME_SYS,
+};
+#endif /* __GENKSYMS__ */
+
+struct vtime {
+	seqlock_t		seqlock;
+	unsigned long long	starttime;
+	enum vtime_state	state;
+};
+
 #ifdef CONFIG_SCHED_INFO
 struct sched_info {
 	/* cumulative counters */
@@ -1481,16 +1498,15 @@ struct task_struct {
 	RH_KABI_DEPRECATE(struct cputime,	prev_cputime)
 #endif
 #ifdef CONFIG_VIRT_CPU_ACCOUNTING_GEN
-	seqlock_t vtime_seqlock;
+	RH_KABI_DEPRECATE(seqlock_t,		vtime_seqlock)
+	RH_KABI_DEPRECATE(unsigned long long,	vtime_snap)
 #ifndef __GENKSYMS__
-	unsigned long long vtime_starttime;
 	enum {
-		VTIME_SLEEPING = 0,
-		VTIME_USER,
-		VTIME_SYS,
+		KABI_VTIME_SLEEPING = 0,
+		KABI_VTIME_USER,
+		KABI_VTIME_SYS,
 	} vtime_state;
 #else
-	unsigned long long vtime_snap;
 	enum {
 		VTIME_SLEEPING = 0,
 		VTIME_USER,
@@ -1844,6 +1860,7 @@ struct task_struct {
 	struct sched_statistics statistics;
 	struct wake_q_node wake_q;
 	struct prev_cputime prev_cputime;
+	struct vtime vtime;
 #endif /* __GENKSYMS__ */
 };
 
