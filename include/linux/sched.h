@@ -817,6 +817,9 @@ struct vtime {
 	seqlock_t		seqlock;
 	unsigned long long	starttime;
 	enum vtime_state	state;
+	u64			utime;
+	u64			stime;
+	u64			gtime;
 };
 
 #ifdef CONFIG_SCHED_INFO
