@@ -1482,12 +1482,21 @@ struct task_struct {
 #endif
 #ifdef CONFIG_VIRT_CPU_ACCOUNTING_GEN
 	seqlock_t vtime_seqlock;
+#ifndef __GENKSYMS__
+	unsigned long long vtime_starttime;
+	enum {
+		VTIME_SLEEPING = 0,
+		VTIME_USER,
+		VTIME_SYS,
+	} vtime_state;
+#else
 	unsigned long long vtime_snap;
 	enum {
 		VTIME_SLEEPING = 0,
 		VTIME_USER,
 		VTIME_SYS,
 	} vtime_snap_whence;
+#endif /* __GENKSYMS__ */
 #endif
 	unsigned long nvcsw, nivcsw; /* context switch counts */
 	struct timespec start_time; 		/* monotonic time */
