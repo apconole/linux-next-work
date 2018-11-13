@@ -723,11 +723,11 @@ void vtime_account_user(struct task_struct *tsk)
 	cputime_t delta_cpu;
 
 	write_seqcount_begin(&tsk->vtime_seqlock.seqcount);
-	tsk->vtime_snap_whence = VTIME_SYS;
 	if (vtime_delta(tsk)) {
 		delta_cpu = get_vtime_delta(tsk);
 		account_user_time(tsk, delta_cpu, cputime_to_scaled(delta_cpu));
 	}
+	tsk->vtime_snap_whence = VTIME_SYS;
 	write_seqcount_end(&tsk->vtime_seqlock.seqcount);
 }
 
