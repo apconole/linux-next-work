@@ -158,7 +158,7 @@ static inline void *fixup_red_left(struct kmem_cache *s, void *p)
  */
 #define MAX_PARTIAL 10
 
-#define DEBUG_DEFAULT_FLAGS (SLAB_DEBUG_FREE | SLAB_RED_ZONE | \
+#define DEBUG_DEFAULT_FLAGS (SLAB_CONSISTENCY_CHECKS | SLAB_RED_ZONE | \
 				SLAB_POISON | SLAB_STORE_USER)
 
 /*
@@ -175,7 +175,7 @@ static inline void *fixup_red_left(struct kmem_cache *s, void *p)
 		SLAB_TRACE | SLAB_DESTROY_BY_RCU | SLAB_NOLEAKTRACE | \
 		SLAB_FAILSLAB)
 
-#define SLUB_MERGE_SAME (SLAB_DEBUG_FREE | SLAB_RECLAIM_ACCOUNT | \
+#define SLUB_MERGE_SAME (SLAB_CONSISTENCY_CHECKS | SLAB_RECLAIM_ACCOUNT | \
 		SLAB_CACHE_DMA | SLAB_NOTRACK)
 
 #define OO_SHIFT	16
@@ -1093,19 +1093,31 @@ static void setup_object_debug(struct kmem_cache *s, struct page *page,
 	init_tracking(s, object);
 }
 
-static noinline int alloc_debug_processing(struct kmem_cache *s, struct page *page,
+static inline int alloc_consistency_checks(struct kmem_cache *s, struct page *page,
 					void *object, unsigned long addr)
 {
 	if (!check_slab(s, page))
-		goto bad;
+		return 0;
 
 	if (!check_valid_pointer(s, page, object)) {
 		object_err(s, page, object, "Freelist Pointer check fails");
-		goto bad;
+		return 0;
 	}
 
 	if (!check_object(s, page, object, SLUB_RED_INACTIVE))
-		goto bad;
+		return 0;
+
+	return 1;
+}
+
+static noinline int alloc_debug_processing(struct kmem_cache *s,
+					struct page *page,
+					void *object, unsigned long addr)
+{
+	if (s->flags & SLAB_CONSISTENCY_CHECKS) {
+		if (!alloc_consistency_checks(s, page, object, addr))
+			goto bad;
+	}
 
 	/* Success perform special debug activities for allocs */
 	if (s->flags & SLAB_STORE_USER)
@@ -1128,6 +1140,39 @@ bad:
 	return 0;
 }
 
+static inline int free_consistency_checks(struct kmem_cache *s,
+		struct page *page, void *object, unsigned long addr)
+{
+	if (!check_valid_pointer(s, page, object)) {
+		slab_err(s, page, "Invalid object pointer 0x%p", object);
+		return 0;
+	}
+
+	if (on_freelist(s, page, object)) {
+		object_err(s, page, object, "Object already free");
+		return 0;
+	}
+
+	if (!check_object(s, page, object, SLUB_RED_ACTIVE))
+		return 0;
+
+	if (unlikely(s != page->slab_cache)) {
+		if (!PageSlab(page)) {
+			slab_err(s, page, "Attempt to free object(0x%p) "
+				"outside of slab", object);
+		} else if (!page->slab_cache) {
+			printk(KERN_ERR
+				"SLUB <none>: no slab for object 0x%p.\n",
+						object);
+			dump_stack();
+		} else
+			object_err(s, page, object,
+					"page slab pointer corrupt.");
+		return 0;
+	}
+	return 1;
+}
+
 /* Supports checking bulk free of a constructed freelist */
 static noinline int free_debug_processing(
 	struct kmem_cache *s, struct page *page,
@@ -1143,38 +1188,17 @@ static noinline int free_debug_processing(
 	spin_lock_irqsave(&n->list_lock, flags);
 	slab_lock(page);
 
-	if (!check_slab(s, page))
-		goto out;
+	if (s->flags & SLAB_CONSISTENCY_CHECKS) {
+		if (!check_slab(s, page))
+			goto out;
+	}
 
 next_object:
 	cnt++;
 
-	if (!check_valid_pointer(s, page, object)) {
-		slab_err(s, page, "Invalid object pointer 0x%p", object);
-		goto out;
-	}
-
-	if (on_freelist(s, page, object)) {
-		object_err(s, page, object, "Object already free");
-		goto out;
-	}
-
-	if (!check_object(s, page, object, SLUB_RED_ACTIVE))
-		goto out;
-
-	if (unlikely(s != page->slab_cache)) {
-		if (!PageSlab(page)) {
-			slab_err(s, page, "Attempt to free object(0x%p) "
-				"outside of slab", object);
-		} else if (!page->slab_cache) {
-			printk(KERN_ERR
-				"SLUB <none>: no slab for object 0x%p.\n",
-						object);
-			dump_stack();
-		} else
-			object_err(s, page, object,
-					"page slab pointer corrupt.");
-		goto out;
+	if (s->flags & SLAB_CONSISTENCY_CHECKS) {
+		if (!free_consistency_checks(s, page, object, addr))
+			goto out;
 	}
 
 	if (s->flags & SLAB_STORE_USER)
@@ -1240,7 +1264,7 @@ static int __init setup_slub_debug(char *str)
 	for (; *str && *str != ','; str++) {
 		switch (tolower(*str)) {
 		case 'f':
-			slub_debug |= SLAB_DEBUG_FREE;
+			slub_debug |= SLAB_CONSISTENCY_CHECKS;
 			break;
 		case 'z':
 			slub_debug |= SLAB_RED_ZONE;
@@ -1490,7 +1514,7 @@ static void __free_slab(struct kmem_cache *s, struct page *page)
 	int order = compound_order(page);
 	int pages = 1 << order;
 
-	if (kmem_cache_debug(s)) {
+	if (s->flags & SLAB_CONSISTENCY_CHECKS) {
 		void *p;
 
 		slab_pad_check(s, page);
@@ -4922,16 +4946,16 @@ SLAB_ATTR_RO(total_objects);
 
 static ssize_t sanity_checks_show(struct kmem_cache *s, char *buf)
 {
-	return sprintf(buf, "%d\n", !!(s->flags & SLAB_DEBUG_FREE));
+	return sprintf(buf, "%d\n", !!(s->flags & SLAB_CONSISTENCY_CHECKS));
 }
 
 static ssize_t sanity_checks_store(struct kmem_cache *s,
 				const char *buf, size_t length)
 {
-	s->flags &= ~SLAB_DEBUG_FREE;
+	s->flags &= ~SLAB_CONSISTENCY_CHECKS;
 	if (buf[0] == '1') {
 		s->flags &= ~__CMPXCHG_DOUBLE;
-		s->flags |= SLAB_DEBUG_FREE;
+		s->flags |= SLAB_CONSISTENCY_CHECKS;
 	}
 	return length;
 }
@@ -5443,7 +5467,7 @@ static char *create_unique_id(struct kmem_cache *s)
 		*p++ = 'd';
 	if (s->flags & SLAB_RECLAIM_ACCOUNT)
 		*p++ = 'a';
-	if (s->flags & SLAB_DEBUG_FREE)
+	if (s->flags & SLAB_CONSISTENCY_CHECKS)
 		*p++ = 'F';
 	if (!(s->flags & SLAB_NOTRACK))
 		*p++ = 't';
