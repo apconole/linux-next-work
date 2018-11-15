@@ -73,13 +73,16 @@ static void nft_flow_offload_eval(const struct nft_expr *expr,
 	struct nf_conn *ct;
 	int ret;
 
+	printk("Eval 1\n");
 	if (nft_flow_offload_skip(pkt->skb))
 		goto out;
 
+	printk("Eval 2\n");
 	ct = nf_ct_get(pkt->skb, &ctinfo);
 	if (!ct)
 		goto out;
 
+	printk("Eval 3\n");
 	switch (ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.dst.protonum) {
 	case IPPROTO_TCP:
 	case IPPROTO_UDP:
@@ -88,6 +91,7 @@ static void nft_flow_offload_eval(const struct nft_expr *expr,
 		goto out;
 	}
 
+	printk("Eval 4\n");
 	if (test_bit(IPS_HELPER_BIT, &ct->status))
 		goto out;
 
@@ -95,6 +99,7 @@ static void nft_flow_offload_eval(const struct nft_expr *expr,
 	    ctinfo == IP_CT_RELATED)
 		goto out;
 
+	printk("Eval 4\n");
 	if (test_and_set_bit(IPS_OFFLOAD_BIT, &ct->status))
 		goto out;
 
@@ -102,6 +107,7 @@ static void nft_flow_offload_eval(const struct nft_expr *expr,
 	if (nft_flow_route(pkt, ct, &route, dir) < 0)
 		goto err_flow_route;
 
+	printk("Eval 5\n");
 	flow = flow_offload_alloc(ct, &route);
 	if (!flow)
 		goto err_flow_alloc;
@@ -109,6 +115,12 @@ static void nft_flow_offload_eval(const struct nft_expr *expr,
 	ret = flow_offload_add(flowtable, flow);
 	if (ret < 0)
 		goto err_flow_add;
+
+	printk("Eval 6\n");
+	if (flowtable->flags & NF_FLOWTABLE_F_HW) {
+		printk("adding.\n");
+		nf_flow_offload_hw_add(nft_net(pkt), flow, ct);
+	}
 
 	return;
 
@@ -139,14 +151,17 @@ static int nft_flow_offload_init(const struct nft_ctx *ctx,
 	u8 genmask = nft_genmask_next(ctx->net);
 	struct nft_flowtable *flowtable;
 
+	printk("Init- 1\n");
 	if (!tb[NFTA_FLOW_TABLE_NAME])
 		return -EINVAL;
+	printk("Init- 2\n");
 
 	flowtable = nft_flowtable_lookup(ctx->table, tb[NFTA_FLOW_TABLE_NAME],
 					 genmask);
 	if (IS_ERR(flowtable))
 		return PTR_ERR(flowtable);
 
+	printk("Init- 3\n");
 	priv->flowtable = flowtable;
 	flowtable->use++;
 

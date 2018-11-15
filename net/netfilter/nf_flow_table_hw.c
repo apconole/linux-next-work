@@ -26,15 +26,17 @@ static int do_flow_offload_hw(struct net *net, struct flow_offload *flow,
 			      int type)
 {
 	struct net_device *indev;
-	int ret, ifindex;
+	int ret = 1, ifindex;
 
+	printk("flow add called\n");
 	ifindex = flow->tuplehash[FLOW_OFFLOAD_DIR_ORIGINAL].tuple.iifidx;
 	indev = dev_get_by_index(net, ifindex);
 	if (WARN_ON(!indev))
 		return 0;
 
 	mutex_lock(&nf_flow_offload_hw_mutex);
-	ret = indev->netdev_ops->ndo_flow_offload(type, flow);
+	if (indev->netdev_ops->ndo_flow_offload)
+		ret = indev->netdev_ops->ndo_flow_offload(type, flow);
 	mutex_unlock(&nf_flow_offload_hw_mutex);
 
 	dev_put(indev);
@@ -102,6 +104,7 @@ static void flow_offload_hw_add(struct net *net, struct flow_offload *flow,
 {
 	struct flow_offload_hw *offload;
 
+	printk("Flow offload add...\n");
 	offload = kmalloc(sizeof(struct flow_offload_hw), GFP_ATOMIC);
 	if (!offload)
 		return;
@@ -112,6 +115,7 @@ static void flow_offload_hw_add(struct net *net, struct flow_offload *flow,
 	offload->flow = flow;
 	write_pnet(&offload->flow_hw_net, net);
 
+	printk("Flow offload queued...\n");
 	flow_offload_queue_work(offload);
 }
 

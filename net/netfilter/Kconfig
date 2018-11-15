@@ -718,6 +718,16 @@ config NF_FLOW_TABLE_HW
 
 	  To compile it as a module, choose M here.
 
+config NF_FLOW_TABLE_BPF
+	tristate "Netfilter flowtable BPF map"
+	depends on NF_FLOW_TABLE_HW
+	depends on BPF_LOADABLE_MAPS
+	help
+	  This option adds support for retrieving flow table entries
+	  via a loadable BPF map.
+
+	  To compile it as a module, choose M here.
+
 config NETFILTER_XTABLES
 	tristate "Netfilter Xtables support (required for ip_tables)"
 	default m if NETFILTER_ADVANCED=n

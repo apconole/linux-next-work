@@ -2943,4 +2943,9 @@ struct bpf_flow_keys {
 	};
 };
 
+struct bpf_flow_map {
+	struct bpf_flow_keys	flow;
+	__u32			ifindex;
+};
+
 #endif /* _UAPI__LINUX_BPF_H__ */

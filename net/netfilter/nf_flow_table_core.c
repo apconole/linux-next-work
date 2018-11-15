@@ -184,6 +184,7 @@ static const struct rhashtable_params nf_flow_offload_rhash_params = {
 
 int flow_offload_add(struct nf_flowtable *flow_table, struct flow_offload *flow)
 {
+	printk("Add a flow to offload...\n");
 	flow->timeout = (u32)jiffies;
 
 	rhashtable_insert_fast(&flow_table->rhashtable,
@@ -242,6 +243,7 @@ flow_offload_lookup(struct nf_flowtable *flow_table,
 	if (!tuplehash)
 		return NULL;
 
+	printk("Found tmp flow...\n");
 	dir = tuplehash->tuple.dir;
 	flow = container_of(tuplehash, struct flow_offload, tuplehash[dir]);
 	if (flow->flags & (FLOW_OFFLOAD_DYING | FLOW_OFFLOAD_TEARDOWN))

@@ -49,7 +49,7 @@ static DEFINE_SPINLOCK(map_idr_lock);
 
 int sysctl_unprivileged_bpf_disabled __read_mostly;
 
-static const struct bpf_map_ops loadable_map;
+const struct bpf_map_ops loadable_map = {};
 
 static const struct bpf_map_ops * const bpf_map_types[] = {
 #define BPF_PROG_TYPE(_id, _ops)
@@ -63,7 +63,7 @@ static const struct bpf_map_ops * const bpf_map_types[] = {
 static const struct bpf_map_ops * bpf_loadable_map_types[] = {
 #define BPF_PROG_TYPE(_id, _ops)
 #define BPF_MAP_TYPE(_id, _ops) \
-	[_id] = &_ops,
+	[_id] = NULL,
 #include <linux/bpf_types.h>
 #undef BPF_PROG_TYPE
 #undef BPF_MAP_TYPE
@@ -122,9 +122,6 @@ const struct bpf_map_ops bpf_map_offload_ops = {
 void bpf_map_insert_ops(size_t id, const struct bpf_map_ops *ops)
 {
 #ifdef CONFIG_BPF_LOADABLE_MAPS
-	if (!capable(CAP_SYS_ADMIN))
-		return;
-
 	if (id >= ARRAY_SIZE(bpf_loadable_map_types))
 		return;
 
@@ -133,7 +130,7 @@ void bpf_map_insert_ops(size_t id, const struct bpf_map_ops *ops)
 		bpf_loadable_map_types[id] = ops;
 #endif
 }
-EXPORT_SYMBOL(bpf_map_insert_ops);
+EXPORT_SYMBOL_GPL(bpf_map_insert_ops);
 
 static const struct bpf_map_ops *find_loadable_ops(u32 type)
 {
@@ -142,13 +139,17 @@ static const struct bpf_map_ops *find_loadable_ops(u32 type)
 
 	if (user->uid.val)
 		goto done;
-
+	printk("got loadable uid...\n");
 #ifdef CONFIG_BPF_LOADABLE_MAPS
 	if (!capable(CAP_SYS_ADMIN))
 		goto done;
+	printk("got loadable caps...\n");
 
 	if (type >= ARRAY_SIZE(bpf_loadable_map_types))
 		goto done;
+
+	printk("got loadable type found...\n");
+
 	type = array_index_nospec(type, ARRAY_SIZE(bpf_loadable_map_types));
 	ops = bpf_loadable_map_types[type];
 #endif
@@ -168,7 +169,7 @@ static struct bpf_map *find_and_alloc_map(union bpf_attr *attr)
 	if (type >= ARRAY_SIZE(bpf_map_types))
 		return ERR_PTR(-EINVAL);
 	type = array_index_nospec(type, ARRAY_SIZE(bpf_map_types));
-	ops = bpf_map_types[type] ? bpf_map_types[type] :
+	ops = (bpf_map_types[type] != &loadable_map) ? bpf_map_types[type] :
 		find_loadable_ops(type);
 	if (!ops)
 		return ERR_PTR(-EINVAL);
@@ -234,6 +235,7 @@ int bpf_map_precharge_memlock(u32 pages)
 		return -EPERM;
 	return 0;
 }
+EXPORT_SYMBOL_GPL(bpf_map_precharge_memlock);
 
 static int bpf_charge_memlock(struct user_struct *user, u32 pages)
 {

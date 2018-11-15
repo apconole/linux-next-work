@@ -122,6 +122,7 @@ obj-$(CONFIG_NFT_FWD_NETDEV)	+= nft_fwd_netdev.o
 # flow table infrastructure
 obj-$(CONFIG_NF_FLOW_TABLE)	+= nf_flow_table.o
 obj-$(CONFIG_NF_FLOW_TABLE_HW)	+= nf_flow_table_hw.o
+obj-$(CONFIG_NF_FLOW_TABLE_BPF)	+= nf_flow_table_bpf_flowmap.o
 nf_flow_table-objs := nf_flow_table_core.o nf_flow_table_ip.o
 
 obj-$(CONFIG_NF_FLOW_TABLE_INET) += nf_flow_table_inet.o
