@@ -119,7 +119,7 @@ void fuse_invalidate_attr(struct inode *inode)
 void fuse_invalidate_atime(struct inode *inode)
 {
 	if (!IS_RDONLY(inode))
-		fuse_invalidate_attr(inode);
+		WRITE_ONCE(get_fuse_inode(inode)->inval_atime, 1);
 }
 
 /*
@@ -1771,6 +1771,9 @@ static int fuse_getattr(struct vfsmount *mnt, struct dentry *entry,
 
 	if (!fuse_allow_current_process(fc))
 		return -EACCES;
+
+	if (READ_ONCE(get_fuse_inode(inode)->inval_atime))
+		fuse_invalidate_attr(inode);
 
 	return fuse_update_attributes(inode, stat, NULL, NULL);
 }
