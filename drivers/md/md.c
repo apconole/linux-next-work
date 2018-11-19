@@ -8273,9 +8273,11 @@ void md_do_sync(struct md_thread *thread)
 			/((jiffies-mddev->resync_mark)/HZ +1) +1;
 
 		if (currspeed > speed_min(mddev)) {
-			if (currspeed > speed_max(mddev) ||
-			    mddev->queue ? (!is_mddev_idle(mddev, 0) &&
-			    !blk_queue_nonrot(mddev->queue)) : false) {
+			bool check = false;
+			if (mddev->queue && !is_mddev_idle(mddev, 0) &&
+				!blk_queue_nonrot(mddev->queue))
+				check = true;
+			if (currspeed > speed_max(mddev) || check) {
 				msleep(500);
 				goto repeat;
 			}
