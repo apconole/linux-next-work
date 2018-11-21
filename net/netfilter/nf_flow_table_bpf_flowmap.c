@@ -68,7 +68,7 @@ static struct bpf_map *flow_map_alloc(union bpf_attr *attr)
 	}
 
 	memset(&fmap_ret->net_flow_table, 0, sizeof(fmap_ret->net_flow_table));
-	fmap_ret->net_flow_table.flags |= NF_FLOWTABLE_F_HW;
+	fmap_ret->net_flow_table.flags |= NF_FLOWTABLE_F_SNOOP;
 	nf_flow_table_init(&fmap_ret->net_flow_table);
 
 	return &fmap_ret->map;

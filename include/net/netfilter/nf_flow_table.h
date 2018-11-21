@@ -22,6 +22,7 @@ struct nf_flowtable_type {
 
 enum nf_flowtable_flags {
 	NF_FLOWTABLE_F_HW		= 0x1,
+	NF_FLOWTABLE_F_SNOOP		= 0x2,
 };
 
 struct nf_flowtable {

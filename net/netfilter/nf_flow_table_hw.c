@@ -22,6 +22,9 @@ struct flow_offload_hw {
 	possible_net_t          flow_hw_net;
 };
 
+/* the following is a *big* hack and will need to be replaced */
+static struct nf_flowtable shared_flow_table;
+
 static int do_flow_offload_hw(struct net *net, struct flow_offload *flow,
 			      int type)
 {
@@ -117,6 +120,7 @@ static void flow_offload_hw_add(struct net *net, struct flow_offload *flow,
 
 	printk("Flow offload queued...\n");
 	flow_offload_queue_work(offload);
+	flow_offload_add(&shared_flow_table, flow); /* remove this */
 }
 
 static void flow_offload_hw_del(struct net *net, struct flow_offload *flow)
@@ -133,6 +137,7 @@ static void flow_offload_hw_del(struct net *net, struct flow_offload *flow)
 	write_pnet(&offload->flow_hw_net, net);
 
 	flow_offload_queue_work(offload);
+	/* remove the shared list */
 }
 
 static const struct nf_flow_table_hw flow_offload_hw = {
@@ -145,6 +150,7 @@ static int __init nf_flow_table_hw_module_init(void)
 {
 	INIT_WORK(&nf_flow_offload_hw_work, flow_offload_hw_work);
 	nf_flow_table_hw_register(&flow_offload_hw);
+	nf_flow_table_init(&shared_flow_table);
 
 	return 0;
 }

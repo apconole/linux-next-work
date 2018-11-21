@@ -182,9 +182,9 @@ static const struct rhashtable_params nf_flow_offload_rhash_params = {
 	.automatic_shrinking	= true,
 };
 
-int flow_offload_add(struct nf_flowtable *flow_table, struct flow_offload *flow)
+static void __flow_offload_add(struct nf_flowtable *flow_table,
+			      struct flow_offload *flow)
 {
-	printk("Add a flow to offload...\n");
 	flow->timeout = (u32)jiffies;
 
 	rhashtable_insert_fast(&flow_table->rhashtable,
@@ -193,13 +193,29 @@ int flow_offload_add(struct nf_flowtable *flow_table, struct flow_offload *flow)
 	rhashtable_insert_fast(&flow_table->rhashtable,
 			       &flow->tuplehash[FLOW_OFFLOAD_DIR_REPLY].node,
 			       nf_flow_offload_rhash_params);
+}
+
+int flow_offload_add(struct nf_flowtable *flow_table, struct flow_offload *flow)
+{
+	struct nf_flowtable *flowtable;
+	printk("Add a flow to offload\n");
+
+	__flow_offload_add(flow_table, flow);
+
+	mutex_lock(&flowtable_lock);
+	list_for_each_entry(flowtable, &flowtables, list) {
+		if (flowtable->flags & NF_FLOWTABLE_F_SNOOP) {
+			__flow_offload_add(flowtable, flow);
+		}
+	}
+	mutex_unlock(&flowtable_lock);
 
 	return 0;
 }
 EXPORT_SYMBOL_GPL(flow_offload_add);
 
-static void flow_offload_del(struct nf_flowtable *flow_table,
-			     struct flow_offload *flow)
+static void __flow_offload_del(struct nf_flowtable *flow_table,
+			       struct flow_offload *flow)
 {
 	struct net *net = read_pnet(&flow_table->ft_net);
 	struct flow_offload_entry *e;
@@ -217,6 +233,23 @@ static void flow_offload_del(struct nf_flowtable *flow_table,
 	if (nf_flow_in_hw(flow))
 		nf_flow_offload_hw_del(net, flow);
 	flow_offload_free(flow);
+}
+
+static void flow_offload_del(struct nf_flowtable *flow_table,
+			     struct flow_offload *flow)
+{
+	struct nf_flowtable *flowtable;
+	printk("Delete a flow\n");
+	
+	__flow_offload_del(flow_table, flow);
+
+	mutex_lock(&flowtable_lock);
+	list_for_each_entry(flowtable, &flowtables, list) {
+		if (flowtable->flags & NF_FLOWTABLE_F_SNOOP) {
+			__flow_offload_del(flowtable, flow);
+		}
+	}
+	mutex_unlock(&flowtable_lock);
 }
 
 void flow_offload_teardown(struct flow_offload *flow)
@@ -462,9 +495,9 @@ static int nf_flow_offload_hw_init(struct nf_flowtable *flow_table)
 	if (!offload)
 		goto err_no_hw_offload;
 
-	if (!try_module_get(offload->owner))
+	/*	if (!try_module_get(offload->owner))
 		goto err_no_hw_offload;
-
+	*/
 	rcu_read_unlock();
 
 	return 0;
