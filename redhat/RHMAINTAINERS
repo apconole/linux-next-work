@@ -717,7 +717,7 @@ F:	include/linux/openvswitch.h
 
 PCI SUBSYSTEM
 M:	Myron Stowe <myron.stowe@redhat.com>
-M:	Prarit Bhargava <prarit@redhat.com>
+M:	Donald Dutile <ddutile@redhat.com>
 S:	Maintained
 F:	drivers/pci/
 
