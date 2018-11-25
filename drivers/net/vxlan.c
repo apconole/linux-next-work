@@ -2167,8 +2167,7 @@ static void vxlan_xmit_one(struct sk_buff *skb, struct net_device *dev,
 		if (skb_dst(skb)) {
 			int mtu = dst_mtu(ndst) - VXLAN_HEADROOM;
 
-			skb_dst(skb)->ops->update_pmtu(skb_dst(skb), NULL,
-						       skb, mtu);
+			skb_dst_update_pmtu(skb, mtu);
 		}
 
 		tos = ip_tunnel_ecn_encap(tos, old_iph, skb);
@@ -2209,8 +2208,7 @@ static void vxlan_xmit_one(struct sk_buff *skb, struct net_device *dev,
 		if (skb_dst(skb)) {
 			int mtu = dst_mtu(ndst) - VXLAN6_HEADROOM;
 
-			skb_dst(skb)->ops->update_pmtu(skb_dst(skb), NULL,
-						       skb, mtu);
+			skb_dst_update_pmtu(skb, mtu);
 		}
 
 		tos = ip_tunnel_ecn_encap(tos, old_iph, skb);
