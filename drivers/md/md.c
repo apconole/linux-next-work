@@ -471,10 +471,11 @@ static void md_end_flush(struct bio *fbio, int err)
 	rdev_dec_pending(rdev, mddev);
 
 	if (atomic_dec_and_test(&fi->flush_pending)) {
-		if (bio->bi_size == 0)
+		if (bio->bi_size == 0) {
 			/* an empty barrier - all done */
 			bio_endio(bio, 0);
-		else {
+			mempool_free(fi, mddev->flush_pool);
+		} else {
 			INIT_WORK(&fi->flush_work, submit_flushes);
 			queue_work(md_wq, &fi->flush_work);
 		}
@@ -527,10 +528,11 @@ void md_flush_request(struct mddev *mddev, struct bio *bio)
 	rcu_read_unlock();
 
 	if (atomic_dec_and_test(&fi->flush_pending)) {
-		if (bio->bi_size == 0)
+		if (bio->bi_size == 0) {
 			/* an empty barrier - all done */
 			bio_endio(bio, 0);
-		else {
+			mempool_free(fi, mddev->flush_pool);
+		} else {
 			INIT_WORK(&fi->flush_work, submit_flushes);
 			queue_work(md_wq, &fi->flush_work);
 		}
