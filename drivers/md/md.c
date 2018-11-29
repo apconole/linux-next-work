@@ -5850,6 +5850,14 @@ static void __md_stop(struct mddev *mddev)
 		mddev->to_remove = &md_redundancy_group;
 	module_put(pers->owner);
 	clear_bit(MD_RECOVERY_FROZEN, &mddev->recovery);
+	if (mddev->flush_bio_pool) {
+		mempool_destroy(mddev->flush_bio_pool);
+		mddev->flush_bio_pool = NULL;
+	}
+	if (mddev->flush_pool) {
+		mempool_destroy(mddev->flush_pool);
+		mddev->flush_pool = NULL;
+	}
 }
 
 void md_stop(struct mddev *mddev)
@@ -5859,14 +5867,6 @@ void md_stop(struct mddev *mddev)
 	 */
 	__md_stop(mddev);
 	bitmap_destroy(mddev);
-	if (mddev->flush_bio_pool) {
-		mempool_destroy(mddev->flush_bio_pool);
-		mddev->flush_bio_pool = NULL;
-	}
-	if (mddev->flush_pool) {
-		mempool_destroy(mddev->flush_pool);
-		mddev->flush_pool = NULL;
-	}
 	if (mddev->bio_set) {
 		bioset_free(mddev->bio_set);
 		mddev->bio_set = NULL;
