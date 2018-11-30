@@ -1,5 +1,5 @@
 /* Intel(R) Ethernet Switch Host Interface Driver
- * Copyright(c) 2013 - 2017 Intel Corporation.
+ * Copyright(c) 2013 - 2018 Intel Corporation.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -431,7 +431,7 @@ static void fm10k_restore_vxlan_port(struct fm10k_intfc *interface)
 
 /**
  * fm10k_add_vxlan_port
- * @netdev: network interface device structure
+ * @dev: network interface device structure
  * @sa_family: Address family of new port
  * @port: port number used for VXLAN
  * @type: Enumerated value specifying udp encapsulation type
@@ -479,7 +479,7 @@ insert_tail:
 
 /**
  * fm10k_del_vxlan_port
- * @netdev: network interface device structure
+ * @dev: network interface device structure
  * @sa_family: Address family of freed port
  * @port: port number used for VXLAN
  * @type: Enumerated value specifying udp encapsulation type
@@ -776,7 +776,7 @@ int fm10k_queue_vlan_request(struct fm10k_intfc *interface,
  * @glort: the target glort for this update
  * @addr: the address to update
  * @vid: the vid to update
- * @sync: whether to add or remove
+ * @set: whether to add or remove
  *
  * This function queues up a MAC request for sending to the switch manager.
  * A separate thread monitors the queue and sends updates to the switch
