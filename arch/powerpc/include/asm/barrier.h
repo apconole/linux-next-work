@@ -37,7 +37,7 @@
 #define gmb()  __asm__ __volatile__ ("ori 31,31,0": : : "memory")
 #define barrier_nospec() gmb()
 
-#define set_mb(var, value)	do { var = value; mb(); } while (0)
+#define set_mb(var, value)	do { WRITE_ONCE(var, value); mb(); } while (0)
 
 #ifdef __SUBARCH_HAS_LWSYNC
 #    define SMPWMB      LWSYNC
