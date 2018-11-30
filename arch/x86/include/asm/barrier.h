@@ -62,12 +62,12 @@ static inline unsigned long array_index_mask_nospec(unsigned long index,
 #define smp_mb()	mb()
 #define smp_rmb()	dma_rmb()
 #define smp_wmb()	barrier()
-#define set_mb(var, value) do { (void)xchg(&var, value); } while (0)
+#define smp_store_mb(var, value) do { (void)xchg(&var, value); } while (0)
 #else /* !SMP */
 #define smp_mb()	barrier()
 #define smp_rmb()	barrier()
 #define smp_wmb()	barrier()
-#define set_mb(var, value) do { WRITE_ONCE(var, value); barrier(); } while (0)
+#define smp_store_mb(var, value) do { WRITE_ONCE(var, value); barrier(); } while (0)
 #endif /* SMP */
 
 #define read_barrier_depends()		do { } while (0)

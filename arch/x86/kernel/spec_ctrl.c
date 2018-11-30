@@ -874,7 +874,7 @@ static void ssbd_spec_ctrl_write(unsigned int mode)
 	 * the existing SSBD bit in the spec_ctrl_pcp won't carry over.
 	 */
 	if (!ssb_is_user_settable(mode))
-		set_mb(ssb_mode, mode);
+		smp_store_mb(ssb_mode, mode);
 
 	switch (ibrs_mode) {
 		case IBRS_DISABLED:
@@ -917,7 +917,7 @@ static void ssbd_amd_write(unsigned int mode)
 	 * ssb_mode first.
 	 */
 	if (!ssb_is_user_settable(mode))
-		set_mb(ssb_mode, mode);
+		smp_store_mb(ssb_mode, mode);
 
 	/*
 	 * If the old mode isn't user settable, it is assumed that no
