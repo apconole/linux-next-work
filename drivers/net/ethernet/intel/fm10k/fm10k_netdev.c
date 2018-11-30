@@ -1617,9 +1617,6 @@ static const struct net_device_ops fm10k_netdev_ops = {
 	.extended.ndo_dfwd_add_station	= fm10k_dfwd_add_station,
 	.extended.ndo_dfwd_del_station	= fm10k_dfwd_del_station,
 #endif
-#ifdef CONFIG_NET_POLL_CONTROLLER
-	.ndo_poll_controller	= fm10k_netpoll,
-#endif
 };
 
 #define DEFAULT_DEBUG_LEVEL_SHIFT 3
