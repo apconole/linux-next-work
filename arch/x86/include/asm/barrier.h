@@ -70,9 +70,6 @@ static inline unsigned long array_index_mask_nospec(unsigned long index,
 #define smp_store_mb(var, value) do { WRITE_ONCE(var, value); barrier(); } while (0)
 #endif /* SMP */
 
-#define read_barrier_depends()		do { } while (0)
-#define smp_read_barrier_depends()	do { } while (0)
-
 #if defined(CONFIG_X86_PPRO_FENCE)
 
 /*
@@ -129,5 +126,7 @@ static __always_inline void rdtsc_barrier(void)
 {
 	alternative(ASM_NOP3, "lfence", X86_FEATURE_LFENCE_RDTSC);
 }
+
+#include <asm-generic/barrier.h>
 
 #endif /* _ASM_X86_BARRIER_H */
