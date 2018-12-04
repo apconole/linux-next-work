@@ -123,19 +123,19 @@ int ptp_open(struct posix_clock *pc, fmode_t fmode)
 
 long ptp_ioctl(struct posix_clock *pc, unsigned int cmd, unsigned long arg)
 {
-	struct ptp_clock_caps caps;
-	struct ptp_clock_request req;
-	struct ptp_sys_offset *sysoff = NULL;
-	struct ptp_sys_offset_precise precise_offset;
-	struct ptp_pin_desc pd;
 	struct ptp_clock *ptp = container_of(pc, struct ptp_clock, clock);
-	struct ptp_clock_info *ops = ptp->info;
-	struct ptp_clock_time *pct;
-	struct timespec64 ts;
+	struct ptp_sys_offset_precise precise_offset;
 	struct system_device_crosststamp xtstamp;
+	struct ptp_clock_info *ops = ptp->info;
+	struct ptp_sys_offset *sysoff = NULL;
+	struct ptp_clock_request req;
+	struct ptp_clock_caps caps;
+	struct ptp_clock_time *pct;
+	unsigned int i, pin_index;
+	struct ptp_pin_desc pd;
+	struct timespec64 ts;
 	struct timespec t2;
 	int enable, err = 0;
-	unsigned int i, pin_index;
 
 	switch (cmd) {
 
