@@ -235,11 +235,13 @@ long ptp_ioctl(struct posix_clock *pc, unsigned int cmd, unsigned long arg)
 			pct->nsec = ts.tv_nsec;
 			pct++;
 			if (ptp->info->gettime64) {
-				ptp->info->gettime64(ptp->info, &ts);
+				err = ptp->info->gettime64(ptp->info, &ts);
 			} else {
-				ptp->info->gettime(ptp->info, &t2);
+				err = ptp->info->gettime(ptp->info, &t2);
 				ts = timespec_to_timespec64(t2);
 			}
+			if (err)
+				goto out;
 			pct->sec = ts.tv_sec;
 			pct->nsec = ts.tv_nsec;
 			pct++;
@@ -290,6 +292,7 @@ long ptp_ioctl(struct posix_clock *pc, unsigned int cmd, unsigned long arg)
 		break;
 	}
 
+out:
 	kfree(sysoff);
 	return err;
 }
