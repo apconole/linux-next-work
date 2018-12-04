@@ -266,8 +266,10 @@ long ptp_ioctl(struct posix_clock *pc, unsigned int cmd, unsigned long arg)
 			pct->sec = ts.tv_sec;
 			pct->nsec = ts.tv_nsec;
 			pct++;
-			if (ptp->info->gettime64) {
-				err = ptp->info->gettime64(ptp->info, &ts);
+			if (ops->gettimex64) {
+				err = ops->gettimex64(ops, &ts, NULL);
+			} else if (ops->gettime64) {
+				err = ops->gettime64(ops, &ts);
 			} else {
 				err = ptp->info->gettime(ptp->info, &t2);
 				ts = timespec_to_timespec64(t2);

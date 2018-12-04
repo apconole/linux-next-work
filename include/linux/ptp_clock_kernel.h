@@ -88,6 +88,8 @@ struct ptp_system_timestamp {
  *            parameter ts: Time value to set.
  *
  * @gettime64:  Reads the current time from the hardware clock.
+ *              This method is deprecated.  New drivers should implement
+ *              the @gettimex64 method instead.
  *              parameter ts: Holds the result.
  *
  * @gettimex64:  Reads the current time from the hardware clock and optionally
