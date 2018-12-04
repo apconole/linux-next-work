@@ -10540,8 +10540,8 @@ _scsih_probe(struct pci_dev *pdev, const struct pci_device_id *id)
 
 	rv = scsi_init_shared_tag_map(shost, shost->can_queue);
 	if (rv) {
-		pr_err(MPT3SAS_FMT "failure at %s:%d/%s()!\n",
-			ioc->name, __FILE__, __LINE__, __func__);
+		ioc_err(ioc, "failure at %s:%d/%s()!\n",
+			__FILE__, __LINE__, __func__);
 		goto out_add_shost_fail;
 	}
 

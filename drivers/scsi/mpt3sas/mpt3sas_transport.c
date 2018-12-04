@@ -1860,8 +1860,8 @@ _transport_smp_handler(struct Scsi_Host *shost, struct sas_rphy *rphy,
 	struct bio_vec *bvec = NULL;
 
 	if (!rsp) {
-		pr_err(MPT3SAS_FMT "%s: the smp response space is missing\n",
-			ioc->name, __func__);
+		ioc_err(ioc, "%s: the smp response space is missing\n",
+			__func__);
 		return -EINVAL;
 	}
 
