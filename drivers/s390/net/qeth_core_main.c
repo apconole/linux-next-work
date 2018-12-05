@@ -156,6 +156,8 @@ const char *qeth_get_cardname_short(struct qeth_card *card)
 				return "OSD_1000";
 			case QETH_LINK_TYPE_10GBIT_ETH:
 				return "OSD_10GIG";
+			case QETH_LINK_TYPE_25GBIT_ETH:
+				return "OSD_25GIG";
 			case QETH_LINK_TYPE_LANE_ETH100:
 				return "OSD_FE_LANE";
 			case QETH_LINK_TYPE_LANE_TR:
@@ -4373,7 +4375,8 @@ int qeth_mdio_read(struct net_device *dev, int phy_id, int regnum)
 		rc = BMCR_FULLDPLX;
 		if ((card->info.link_type != QETH_LINK_TYPE_GBIT_ETH) &&
 		    (card->info.link_type != QETH_LINK_TYPE_OSN) &&
-		    (card->info.link_type != QETH_LINK_TYPE_10GBIT_ETH))
+		    (card->info.link_type != QETH_LINK_TYPE_10GBIT_ETH) &&
+		    (card->info.link_type != QETH_LINK_TYPE_25GBIT_ETH))
 			rc |= BMCR_SPEED100;
 		break;
 	case MII_BMSR: /* Basic mode status register */
@@ -5895,8 +5898,14 @@ static void qeth_set_cmd_adv_sup(struct ethtool_link_ksettings *cmd,
 		WARN_ON_ONCE(1);
 	}
 
-	/* fallthrough from high to low, to select all legal speeds: */
+	/* partially does fall through, to also select lower speeds */
 	switch (maxspeed) {
+	case SPEED_25000:
+		ethtool_link_ksettings_add_link_mode(cmd, supported,
+						     25000baseSR_Full);
+		ethtool_link_ksettings_add_link_mode(cmd, advertising,
+						     25000baseSR_Full);
+		break;
 	case SPEED_10000:
 		ethtool_link_ksettings_add_link_mode(cmd, supported,
 						     10000baseT_Full);
@@ -5979,6 +5988,10 @@ int qeth_core_ethtool_get_link_ksettings(struct net_device *netdev,
 		cmd->base.speed = SPEED_10000;
 		cmd->base.port = PORT_FIBRE;
 		break;
+	case QETH_LINK_TYPE_25GBIT_ETH:
+		cmd->base.speed = SPEED_25000;
+		cmd->base.port = PORT_FIBRE;
+		break;
 	default:
 		cmd->base.speed = SPEED_10;
 		cmd->base.port = PORT_TP;
@@ -6045,6 +6058,9 @@ int qeth_core_ethtool_get_link_ksettings(struct net_device *netdev,
 		break;
 	case CARD_INFO_PORTS_10G:
 		cmd->base.speed = SPEED_10000;
+		break;
+	case CARD_INFO_PORTS_25G:
+		cmd->base.speed = SPEED_25000;
 		break;
 	}
 
