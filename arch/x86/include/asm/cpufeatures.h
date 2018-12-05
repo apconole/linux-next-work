@@ -323,6 +323,7 @@
 #define X86_FEATURE_AVX512_VNNI (16*32+ 11) /* Vector Neural Network Instructions */
 #define X86_FEATURE_AVX512_BITALG (16*32+12) /* Support for VPOPCNT[B,W] and VPSHUF-BITQMB */
 #define X86_FEATURE_AVX512_VPOPCNTDQ (16*32+14) /* POPCNT for vectors of DW/QW */
+#define X86_FEATURE_CLDEMOTE		(16*32+25) /* CLDEMOTE instruction */
 #define X86_FEATURE_MOVDIRI		(16*32+27) /* MOVDIRI instruction */
 #define X86_FEATURE_MOVDIR64B		(16*32+28) /* MOVDIR64B instruction */
 
