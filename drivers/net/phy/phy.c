@@ -505,7 +505,10 @@ int phy_start_aneg(struct phy_device *phydev)
 	/* Invalidate LP advertising flags */
 	phydev->lp_advertising = 0;
 
-	err = phydev->drv->config_aneg(phydev);
+	if (phydev->drv->config_aneg)
+		err = phydev->drv->config_aneg(phydev);
+	else
+		err = genphy_config_aneg(phydev);
 	if (err < 0)
 		goto out_unlock;
 
