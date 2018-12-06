@@ -41,7 +41,7 @@
 _GLOBAL_TOC(trace_sk_load_word)
 	cmpdi	r_off, 0
 	blt	bpf_slow_path_word_neg
-	b	sk_load_word_positive_offset
+	b	trace_sk_load_word_positive_offset
 
 _GLOBAL_TOC(trace_sk_load_word_positive_offset)
 	/* Are we accessing past headlen? */
@@ -55,7 +55,7 @@ _GLOBAL_TOC(trace_sk_load_word_positive_offset)
 _GLOBAL_TOC(trace_sk_load_half)
 	cmpdi	r_off, 0
 	blt	bpf_slow_path_half_neg
-	b	sk_load_half_positive_offset
+	b	trace_sk_load_half_positive_offset
 
 _GLOBAL_TOC(trace_sk_load_half_positive_offset)
 	subi	r_tmp, r_hlen, 2
@@ -67,7 +67,7 @@ _GLOBAL_TOC(trace_sk_load_half_positive_offset)
 _GLOBAL_TOC(trace_sk_load_byte)
 	cmpdi	r_off, 0
 	blt	bpf_slow_path_byte_neg
-	b	sk_load_byte_positive_offset
+	b	trace_sk_load_byte_positive_offset
 
 _GLOBAL_TOC(trace_sk_load_byte_positive_offset)
 	cmpd	r_hlen, r_off
@@ -138,7 +138,7 @@ bpf_slow_path_word_neg:
 	lis     r_tmp, -32	/* SKF_LL_OFF */
 	cmpd	r_off, r_tmp	/* addr < SKF_* */
 	blt	bpf_error	/* cr0 = LT */
-	b	sk_load_word_negative_offset
+	b	trace_sk_load_word_negative_offset
 
 _GLOBAL_TOC(trace_sk_load_word_negative_offset)
 	sk_negative_common(4)
@@ -149,7 +149,7 @@ bpf_slow_path_half_neg:
 	lis     r_tmp, -32	/* SKF_LL_OFF */
 	cmpd	r_off, r_tmp	/* addr < SKF_* */
 	blt	bpf_error	/* cr0 = LT */
-	b	sk_load_half_negative_offset
+	b	trace_sk_load_half_negative_offset
 
 _GLOBAL_TOC(trace_sk_load_half_negative_offset)
 	sk_negative_common(2)
@@ -160,7 +160,7 @@ bpf_slow_path_byte_neg:
 	lis     r_tmp, -32	/* SKF_LL_OFF */
 	cmpd	r_off, r_tmp	/* addr < SKF_* */
 	blt	bpf_error	/* cr0 = LT */
-	b	sk_load_byte_negative_offset
+	b	trace_sk_load_byte_negative_offset
 
 _GLOBAL_TOC(trace_sk_load_byte_negative_offset)
 	sk_negative_common(1)
