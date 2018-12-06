@@ -331,8 +331,8 @@ struct phy_c45_device_ids {
  * adjust_link: Callback for the enet controller to respond to
  * changes in the link state.
  *
- * speed, duplex, pause, supported, advertising, and
- * autoneg are used like in mii_if_info
+ * speed, duplex, pause, supported, advertising, lp_advertising,
+ * and autoneg are used like in mii_if_info
  *
  * interrupts currently only supports enabled or disabled,
  * but could be changed in the future to support enabling
@@ -411,6 +411,7 @@ struct phy_device {
 
 	void (*adjust_link)(struct net_device *dev);
 	RH_KABI_DEPRECATE_FN(void, adjust_state, struct net_device *dev)
+	RH_KABI_EXTEND(u32 lp_advertising)
 };
 #define to_phy_device(d) container_of(d, struct phy_device, dev)
 
