@@ -331,7 +331,8 @@ smsc9420_ethtool_getregs(struct net_device *dev, struct ethtool_regs *regs,
 		return;
 
 	for (i = 0; i <= 31; i++)
-		data[j++] = smsc9420_mii_read(phy_dev->bus, phy_dev->addr, i);
+		data[j++] = smsc9420_mii_read(phy_dev->mdio_bus,
+					      phy_dev->mdio_addr, i);
 }
 
 static void smsc9420_eeprom_enable_access(struct smsc9420_pdata *pd)

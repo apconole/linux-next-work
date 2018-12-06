@@ -454,7 +454,7 @@ static int mdio_bus_match(struct device *dev, struct device_driver *drv)
 
 static bool mdio_bus_phy_may_suspend(struct phy_device *phydev)
 {
-	struct device_driver *drv = phydev->dev.driver;
+	struct device_driver *drv = phydev->mdio_dev.driver;
 	struct phy_driver *phydrv = to_phy_driver(drv);
 	struct net_device *netdev = phydev->attached_dev;
 

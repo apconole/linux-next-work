@@ -47,11 +47,11 @@ void phy_print_status(struct phy_device *phydev)
 {
 	if (phydev->link) {
 		pr_info("%s - Link is Up - %d/%s\n",
-			dev_name(&phydev->dev),
+			dev_name(&phydev->mdio_dev),
 			phydev->speed,
 			DUPLEX_FULL == phydev->duplex ? "Full" : "Half");
 	} else	{
-		pr_info("%s - Link is Down\n", dev_name(&phydev->dev));
+		pr_info("%s - Link is Down\n", dev_name(&phydev->mdio_dev));
 	}
 }
 EXPORT_SYMBOL(phy_print_status);
@@ -236,7 +236,7 @@ int phy_ethtool_sset(struct phy_device *phydev, struct ethtool_cmd *cmd)
 {
 	u32 speed = ethtool_cmd_speed(cmd);
 
-	if (cmd->phy_address != phydev->addr)
+	if (cmd->phy_address != phydev->mdio_addr)
 		return -EINVAL;
 
 	/* We make sure that we don't pass unsupported values in to the PHY */
@@ -292,7 +292,7 @@ int phy_ethtool_gset(struct phy_device *phydev, struct ethtool_cmd *cmd)
 		cmd->port = PORT_BNC;
 	else
 		cmd->port = PORT_MII;
-	cmd->phy_address = phydev->addr;
+	cmd->phy_address = phydev->mdio_addr;
 	cmd->transceiver = phy_is_internal(phydev) ?
 		XCVR_INTERNAL : XCVR_EXTERNAL;
 	cmd->autoneg = phydev->autoneg;
@@ -319,16 +319,17 @@ int phy_mii_ioctl(struct phy_device *phydev, struct ifreq *ifr, int cmd)
 
 	switch (cmd) {
 	case SIOCGMIIPHY:
-		mii_data->phy_id = phydev->addr;
+		mii_data->phy_id = phydev->mdio_addr;
 		/* fall through */
 
 	case SIOCGMIIREG:
-		mii_data->val_out = mdiobus_read(phydev->bus, mii_data->phy_id,
+		mii_data->val_out = mdiobus_read(phydev->mdio_bus,
+						 mii_data->phy_id,
 						 mii_data->reg_num);
 		return 0;
 
 	case SIOCSMIIREG:
-		if (mii_data->phy_id == phydev->addr) {
+		if (mii_data->phy_id == phydev->mdio_addr) {
 			switch (mii_data->reg_num) {
 			case MII_BMCR:
 				if ((val & (BMCR_RESET | BMCR_ANENABLE)) == 0)
@@ -354,7 +355,7 @@ int phy_mii_ioctl(struct phy_device *phydev, struct ifreq *ifr, int cmd)
 			}
 		}
 
-		mdiobus_write(phydev->bus, mii_data->phy_id,
+		mdiobus_write(phydev->mdio_bus, mii_data->phy_id,
 			      mii_data->reg_num, val);
 
 		if (mii_data->reg_num == MII_BMCR &&
@@ -549,7 +550,7 @@ int phy_start_interrupts(struct phy_device *phydev)
 				"phy_interrupt",
 				phydev) < 0) {
 		pr_warn("%s: Can't get IRQ %d (PHY)\n",
-			phydev->bus->name, phydev->irq);
+			phydev->mdio_bus->name, phydev->irq);
 		phydev->irq = PHY_POLL;
 		return 0;
 	}
@@ -941,11 +942,11 @@ static inline void mmd_phy_indirect(struct mii_bus *bus, int prtad, int devad,
 int phy_read_mmd_indirect(struct phy_device *phydev, int prtad, int devad)
 {
 	struct phy_driver *phydrv = phydev->drv;
-	int addr = phydev->addr;
+	int addr = phydev->mdio_addr;
 	int value = -1;
 
 	if (phydrv->read_mmd_indirect == NULL) {
-		struct mii_bus *bus = phydev->bus;
+		struct mii_bus *bus = phydev->mdio_bus;
 
 		mutex_lock(&bus->mdio_lock);
 		mmd_phy_indirect(bus, prtad, devad, addr);
@@ -979,10 +980,10 @@ void phy_write_mmd_indirect(struct phy_device *phydev, int prtad,
 				   int devad, u32 data)
 {
 	struct phy_driver *phydrv = phydev->drv;
-	int addr = phydev->addr;
+	int addr = phydev->mdio_addr;
 
 	if (phydrv->write_mmd_indirect == NULL) {
-		struct mii_bus *bus = phydev->bus;
+		struct mii_bus *bus = phydev->mdio_bus;
 
 		mutex_lock(&bus->mdio_lock);
 		mmd_phy_indirect(bus, prtad, devad, addr);

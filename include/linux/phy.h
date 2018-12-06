@@ -353,9 +353,9 @@ struct phy_device {
 	/* And management functions */
 	struct phy_driver *drv;
 
-	struct mii_bus *bus;
+	struct mii_bus RH_KABI_RENAME(*bus, *mdio_bus);
 
-	struct device dev;
+	struct device RH_KABI_RENAME(dev, mdio_dev);
 
 	u32 phy_id;
 
@@ -372,7 +372,7 @@ struct phy_device {
 	phy_interface_t interface;
 
 	/* Bus address of the PHY (0-31) */
-	int addr;
+	int RH_KABI_RENAME(addr, mdio_addr);
 
 	/*
 	 * forced speed & duplex (no autoneg)
@@ -422,7 +422,7 @@ struct phy_device {
 	RH_KABI_EXTEND(u32 lp_advertising)
 	RH_KABI_EXTEND(u8 mdix)
 };
-#define to_phy_device(d) container_of(d, struct phy_device, dev)
+#define to_phy_device(d) container_of(d, struct phy_device, mdio_dev)
 
 /* struct phy_driver: Driver structure for a particular PHY type
  *
@@ -587,7 +587,7 @@ static inline int phy_read_mmd(struct phy_device *phydev, int devad, u32 regnum)
 	if (!phydev->is_c45)
 		return -EOPNOTSUPP;
 
-	return mdiobus_read(phydev->bus, phydev->addr,
+	return mdiobus_read(phydev->mdio_bus, phydev->mdio_addr,
 			    MII_ADDR_C45 | (devad << 16) | (regnum & 0xffff));
 }
 
@@ -613,7 +613,7 @@ int phy_read_mmd_indirect(struct phy_device *phydev, int prtad, int devad);
  */
 static inline int phy_read(struct phy_device *phydev, u32 regnum)
 {
-	return mdiobus_read(phydev->bus, phydev->addr, regnum);
+	return mdiobus_read(phydev->mdio_bus, phydev->mdio_addr, regnum);
 }
 
 /**
@@ -628,7 +628,7 @@ static inline int phy_read(struct phy_device *phydev, u32 regnum)
  */
 static inline int phy_write(struct phy_device *phydev, u32 regnum, u16 val)
 {
-	return mdiobus_write(phydev->bus, phydev->addr, regnum, val);
+	return mdiobus_write(phydev->mdio_bus, phydev->mdio_addr, regnum, val);
 }
 
 /**
@@ -670,7 +670,7 @@ static inline int phy_write_mmd(struct phy_device *phydev, int devad,
 
 	regnum = MII_ADDR_C45 | ((devad & 0x1f) << 16) | (regnum & 0xffff);
 
-	return mdiobus_write(phydev->bus, phydev->addr, regnum, val);
+	return mdiobus_write(phydev->mdio_bus, phydev->mdio_addr, regnum, val);
 }
 
 /**
@@ -721,14 +721,14 @@ static inline int phy_read_status(struct phy_device *phydev)
 }
 
 #define phydev_err(_phydev, format, args...)	\
-	dev_err(&_phydev->dev, format, ##args)
+	dev_err(&_phydev->mdio_dev, format, ##args)
 
 #define phydev_dbg(_phydev, format, args...)	\
-	dev_dbg(&_phydev->dev, format, ##args)
+	dev_dbg(&_phydev->mdio_dev, format, ##args);
 
 static inline const char *phydev_name(const struct phy_device *phydev)
 {
-	return dev_name(&phydev->dev);
+	return dev_name(&phydev->mdio_dev);
 }
 
 void phy_attached_print(struct phy_device *phydev, const char *fmt, ...)
