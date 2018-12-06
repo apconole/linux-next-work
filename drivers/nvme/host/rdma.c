@@ -191,6 +191,7 @@ static int nvme_rdma_alloc_qe(struct ib_device *ibdev, struct nvme_rdma_qe *qe,
 	qe->dma = ib_dma_map_single(ibdev, qe->data, capsule_size, dir);
 	if (ib_dma_mapping_error(ibdev, qe->dma)) {
 		kfree(qe->data);
+		qe->data = NULL;
 		return -ENOMEM;
 	}
 
@@ -597,6 +598,7 @@ static void nvme_rdma_free_queue(struct nvme_rdma_queue *queue)
 		nvme_rdma_free_qe(queue->device->dev,
 			&queue->ctrl->async_event_sqe,
 			sizeof(struct nvme_command), DMA_TO_DEVICE);
+		queue->ctrl->async_event_sqe.data = NULL;
 	}
 
 	nvme_rdma_destroy_queue_ib(queue);
