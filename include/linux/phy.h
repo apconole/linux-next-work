@@ -536,6 +536,31 @@ struct phy_driver {
 	/* Determines the auto negotiation result */
 	RH_KABI_EXTEND(int (*aneg_done)(struct phy_device *phydev))
 
+	/*
+	 * Phy specific driver override for reading a MMD register.
+	 * This function is optional for PHY specific drivers.  When
+	 * not provided, the default MMD read function will be used
+	 * by phy_read_mmd(), which will use either a direct read for
+	 * Clause 45 PHYs or an indirect read for Clause 22 PHYs.
+	 *  devnum is the MMD device number within the PHY device,
+	 *  regnum is the register within the selected MMD device.
+	 */
+	RH_KABI_EXTEND(int (*read_mmd)(struct phy_device *dev, int devnum,
+				       u16 regnum))
+
+	/*
+	 * Phy specific driver override for writing a MMD register.
+	 * This function is optional for PHY specific drivers.  When
+	 * not provided, the default MMD write function will be used
+	 * by phy_write_mmd(), which will use either a direct write for
+	 * Clause 45 PHYs, or an indirect write for Clause 22 PHYs.
+	 *  devnum is the MMD device number within the PHY device,
+	 *  regnum is the register within the selected MMD device.
+	 *  val is the value to be written.
+	 */
+	RH_KABI_EXTEND(int (*write_mmd)(struct phy_device *dev, int devnum,
+					u16 regnum, u16 val))
+
 	/* A function provided by a phy specific driver to override the
 	 * the PHY driver framework support for reading a MMD register
 	 * from the PHY. If not supported, return -1. This function is
