@@ -74,11 +74,12 @@ typedef enum {
 	PHY_INTERFACE_MODE_RGMII_TXID,
 	PHY_INTERFACE_MODE_RTBI,
 	PHY_INTERFACE_MODE_SMII,
+#ifndef __GENKSYMS__
+	PHY_INTERFACE_MODE_XGMII,
+	PHY_INTERFACE_MODE_MOCA,
+	PHY_INTERFACE_MODE_MAX,
+#endif
 } phy_interface_t;
-
-#define PHY_INTERFACE_MODE_XGMII	(PHY_INTERFACE_MODE_SMII+1)
-#define PHY_INTERFACE_MODE_MAX \
-	(PHY_INTERFACE_MODE_XGMII - PHY_INTERFACE_MODE_NA + 1)
 
 /**
  * It maps 'enum phy_interface_t' found in include/linux/phy.h
@@ -112,6 +113,10 @@ static inline const char *phy_modes(phy_interface_t interface)
 		return "rtbi";
 	case PHY_INTERFACE_MODE_SMII:
 		return "smii";
+	case PHY_INTERFACE_MODE_XGMII:
+		return "xgmii";
+	case PHY_INTERFACE_MODE_MOCA:
+		return "moca";
 	default:
 		return "unknown";
 	}
