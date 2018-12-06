@@ -583,14 +583,7 @@ struct phy_fixup {
  *
  * Same rules as for phy_read();
  */
-static inline int phy_read_mmd(struct phy_device *phydev, int devad, u32 regnum)
-{
-	if (!phydev->is_c45)
-		return -EOPNOTSUPP;
-
-	return mdiobus_read(phydev->mdio_bus, phydev->mdio_addr,
-			    MII_ADDR_C45 | (devad << 16) | (regnum & 0xffff));
-}
+int phy_read_mmd(struct phy_device *phydev, int devad, u32 regnum);
 
 /**
  * phy_read_mmd_indirect - reads data from the MMD registers
@@ -663,16 +656,7 @@ static inline bool phy_is_internal(struct phy_device *phydev)
  *
  * Same rules as for phy_write();
  */
-static inline int phy_write_mmd(struct phy_device *phydev, int devad,
-				u32 regnum, u16 val)
-{
-	if (!phydev->is_c45)
-		return -EOPNOTSUPP;
-
-	regnum = MII_ADDR_C45 | ((devad & 0x1f) << 16) | (regnum & 0xffff);
-
-	return mdiobus_write(phydev->mdio_bus, phydev->mdio_addr, regnum, val);
-}
+int phy_write_mmd(struct phy_device *phydev, int devad, u32 regnum, u16 val);
 
 /**
  * phy_write_mmd_indirect - writes data to the MMD registers
