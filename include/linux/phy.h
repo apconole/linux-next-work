@@ -421,6 +421,7 @@ struct phy_device {
 	RH_KABI_DEPRECATE_FN(void, adjust_state, struct net_device *dev)
 	RH_KABI_EXTEND(u32 lp_advertising)
 	RH_KABI_EXTEND(u8 mdix)
+	RH_KABI_EXTEND(int mdio_flags)
 };
 #define to_phy_device(d) container_of(d, struct phy_device, mdio_dev)
 

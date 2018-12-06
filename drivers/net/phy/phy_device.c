@@ -162,6 +162,7 @@ struct phy_device *phy_device_create(struct mii_bus *bus, int addr, int phy_id,
 	dev->mdio_dev.bus = &mdio_bus_type;
 	dev->mdio_bus = bus;
 	dev->mdio_addr = addr;
+	dev->mdio_flags = MDIO_DEVICE_FLAG_PHY;
 
 	dev->speed = 0;
 	dev->duplex = -1;
@@ -347,10 +348,9 @@ int phy_device_register(struct phy_device *phydev)
 {
 	int err;
 
-	/* Don't register a phy if one is already registered at this address */
-	if (phydev->mdio_bus->phy_map[phydev->mdio_addr])
-		return -EINVAL;
-	phydev->mdio_bus->phy_map[phydev->mdio_addr] = phydev;
+	err = mdiobus_register_device(phydev);
+	if (err)
+		return err;
 
 	/* Run all of the fixups for this PHY */
 	err = phy_scan_fixups(phydev);
@@ -368,7 +368,7 @@ int phy_device_register(struct phy_device *phydev)
 	return 0;
 
  out:
-	phydev->mdio_bus->phy_map[phydev->mdio_addr] = NULL;
+	mdiobus_unregister_device(phydev);
 	return err;
 }
 EXPORT_SYMBOL(phy_device_register);
@@ -383,11 +383,8 @@ EXPORT_SYMBOL(phy_device_register);
  */
 void phy_device_remove(struct phy_device *phydev)
 {
-	struct mii_bus *bus = phydev->mdio_bus;
-	int addr = phydev->mdio_addr;
-
 	device_del(&phydev->mdio_dev);
-	bus->phy_map[addr] = NULL;
+	mdiobus_unregister_device(phydev);
 }
 EXPORT_SYMBOL(phy_device_remove);
 
@@ -397,11 +394,13 @@ EXPORT_SYMBOL(phy_device_remove);
  */
 struct phy_device *phy_find_first(struct mii_bus *bus)
 {
+	struct phy_device *phydev;
 	int addr;
 
 	for (addr = 0; addr < PHY_MAX_ADDR; addr++) {
-		if (bus->phy_map[addr])
-			return bus->phy_map[addr];
+		phydev = mdiobus_get_phy(bus, addr);
+		if (phydev)
+			return phydev;
 	}
 	return NULL;
 }
