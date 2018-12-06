@@ -16,6 +16,7 @@
 #ifndef __PHY_H
 #define __PHY_H
 
+#include <linux/compiler.h>
 #include <linux/spinlock.h>
 #include <linux/ethtool.h>
 #include <linux/mdio.h>
@@ -730,6 +731,9 @@ static inline const char *phydev_name(const struct phy_device *phydev)
 	return dev_name(&phydev->dev);
 }
 
+void phy_attached_print(struct phy_device *phydev, const char *fmt, ...)
+	__printf(2, 3);
+void phy_attached_info(struct phy_device *phydev);
 int genphy_restart_aneg(struct phy_device *phydev);
 int genphy_config_aneg(struct phy_device *phydev);
 int genphy_aneg_done(struct phy_device *phydev);
