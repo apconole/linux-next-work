@@ -36,12 +36,15 @@
 enum xdp_mem_type {
 	MEM_TYPE_PAGE_SHARED = 0, /* Split-page refcnt based model */
 	MEM_TYPE_PAGE_ORDER0,     /* Orig XDP full page model */
+	MEM_TYPE_PAGE_POOL,
 	MEM_TYPE_MAX,
 };
 
 struct xdp_mem_info {
 	u32 type; /* enum xdp_mem_type, but known size type */
 };
+
+struct page_pool;
 
 struct xdp_rxq_info {
 	struct net_device *dev;
