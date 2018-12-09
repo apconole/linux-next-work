@@ -371,6 +371,7 @@ struct pci_dev {
 	RH_KABI_FILL_HOLE(unsigned int has_secondary_link:1)
 	RH_KABI_FILL_HOLE(unsigned int non_compliant_bars:1) /* broken BARs; ignore them */
 	RH_KABI_FILL_HOLE(unsigned int is_thunderbolt:1) /* Thunderbolt controller */
+	RH_KABI_FILL_HOLE(unsigned int shpc_managed:1) /* SHPC owned by shpchp */
 	pci_dev_flags_t dev_flags;
 	atomic_t	enable_cnt;	/* pci_enable_device has been called */
 
