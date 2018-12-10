@@ -826,18 +826,21 @@ static void ceph_msg_data_bio_cursor_init(struct ceph_msg_data_cursor *cursor,
 {
 	struct ceph_msg_data *data = cursor->data;
 	struct bio *bio;
+	unsigned int index;
 
 	BUG_ON(data->type != CEPH_MSG_DATA_BIO);
 
 	bio = data->bio;
 	BUG_ON(!bio);
-	BUG_ON(!bio->bi_vcnt);
+
+	index = bio->bi_idx;
+	BUG_ON(index >= (unsigned int) bio->bi_vcnt);
 
 	cursor->resid = min(length, data->bio_length);
 	cursor->bio = bio;
-	cursor->vector_index = 0;
+	cursor->vector_index = index;
 	cursor->vector_offset = 0;
-	cursor->last_piece = length <= bio->bi_io_vec[0].bv_len;
+	cursor->last_piece = length <= bio->bi_io_vec[index].bv_len;
 }
 
 static struct page *ceph_msg_data_bio_next(struct ceph_msg_data_cursor *cursor,
@@ -900,7 +903,7 @@ static bool ceph_msg_data_bio_advance(struct ceph_msg_data_cursor *cursor,
 
 	if (++index == (unsigned int) bio->bi_vcnt) {
 		bio = bio->bi_next;
-		index = 0;
+		index = (bio ? bio->bi_idx : 0);
 	}
 	cursor->bio = bio;
 	cursor->vector_index = index;
