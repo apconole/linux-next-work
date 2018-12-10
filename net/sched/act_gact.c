@@ -148,7 +148,7 @@ static int tcf_gact(struct sk_buff *skb, const struct tc_action *a,
 }
 
 static void tcf_gact_stats_update(struct tc_action *a, u64 bytes, u32 packets,
-				  u64 lastuse)
+				  u64 lastuse, bool hw)
 {
 	struct tcf_gact *gact = to_gact(a);
 	int action = READ_ONCE(gact->tcf_action);
@@ -158,6 +158,10 @@ static void tcf_gact_stats_update(struct tc_action *a, u64 bytes, u32 packets,
 			   packets);
 	if (action == TC_ACT_SHOT)
 		this_cpu_ptr(gact->common.cpu_qstats)->drops += packets;
+
+	if (hw)
+		_bstats_cpu_update(this_cpu_ptr(gact->common.cpu_bstats_hw),
+				   bytes, packets);
 
 	tm->lastuse = lastuse;
 }

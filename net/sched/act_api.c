@@ -63,6 +63,7 @@ static void tcf_action_goto_chain_exec(const struct tc_action *a,
 static void free_tcf(struct tc_action *p)
 {
 	free_percpu(p->cpu_bstats);
+	free_percpu(p->cpu_bstats_hw);
 	free_percpu(p->cpu_qstats);
 
 	if (p->act_cookie) {
@@ -289,11 +290,17 @@ err1:
 			kfree(p);
 			return err;
 		}
-		p->cpu_qstats = alloc_percpu(struct gnet_stats_queue);
-		if (!p->cpu_qstats) {
+		p->cpu_bstats_hw = netdev_alloc_pcpu_stats(struct gnet_stats_basic_cpu);
+		if (!p->cpu_bstats_hw) {
 err2:
 			free_percpu(p->cpu_bstats);
 			goto err1;
+		}
+		p->cpu_qstats = alloc_percpu(struct gnet_stats_queue);
+		if (!p->cpu_qstats) {
+err3:
+			free_percpu(p->cpu_bstats_hw);
+			goto err2;
 		}
 	}
 	spin_lock_init(&p->tcfa_lock);
@@ -306,9 +313,9 @@ err2:
 		spin_unlock_bh(&idrinfo->lock);
 		idr_preload_end();
 		if (err) {
-err3:
+err4:
 			free_percpu(p->cpu_qstats);
-			goto err2;
+			goto err3;
 		}
 		p->tcfa_index = idr_index;
 	} else {
@@ -319,7 +326,7 @@ err3:
 		spin_unlock_bh(&idrinfo->lock);
 		idr_preload_end();
 		if (err)
-			goto err3;
+			goto err4;
 		p->tcfa_index = index;
 	}
 
@@ -331,7 +338,7 @@ err3:
 					&p->tcfa_rate_est,
 					&p->tcfa_lock, NULL, est);
 		if (err) {
-			goto err3;
+			goto err4;
 		}
 	}
 
@@ -799,6 +806,8 @@ int tcf_action_copy_stats(struct sk_buff *skb, struct tc_action *p,
 		goto errout;
 
 	if (gnet_stats_copy_basic(NULL, &d, p->cpu_bstats, &p->tcfa_bstats) < 0 ||
+	    gnet_stats_copy_basic_hw(NULL, &d, p->cpu_bstats_hw,
+				     &p->tcfa_bstats_hw) < 0 ||
 	    gnet_stats_copy_rate_est(&d, &p->tcfa_rate_est) < 0 ||
 	    gnet_stats_copy_queue(&d, p->cpu_qstats,
 				  &p->tcfa_qstats,
