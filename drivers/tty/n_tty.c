@@ -112,6 +112,7 @@ struct n_tty_data {
 	struct mutex output_lock;
 	struct mutex echo_lock;
 	raw_spinlock_t read_lock;
+	struct rw_semaphore reset_copy_rwsem;
 };
 
 #define MASK(x) ((x) & (N_TTY_BUF_SIZE - 1))
@@ -249,9 +250,11 @@ static void reset_buffer_flags(struct n_tty_data *ldata)
 {
 	unsigned long flags;
 
+	down_write(&ldata->reset_copy_rwsem);
 	raw_spin_lock_irqsave(&ldata->read_lock, flags);
 	ldata->read_head = ldata->read_tail = 0;
 	raw_spin_unlock_irqrestore(&ldata->read_lock, flags);
+	up_write(&ldata->reset_copy_rwsem);
 
 	mutex_lock(&ldata->echo_lock);
 	ldata->echo_pos = ldata->echo_cnt = ldata->echo_overrun = 0;
@@ -1685,6 +1688,7 @@ static int n_tty_open(struct tty_struct *tty)
 	mutex_init(&ldata->output_lock);
 	mutex_init(&ldata->echo_lock);
 	raw_spin_lock_init(&ldata->read_lock);
+	init_rwsem(&ldata->reset_copy_rwsem);
 
 	/* These are ugly. Currently a malloc failure here can panic */
 	ldata->read_buf = kzalloc(N_TTY_BUF_SIZE, GFP_KERNEL);
@@ -2049,8 +2053,10 @@ do_it_again:
 			int uncopied;
 			/* The copy function takes the read lock and handles
 			   locking internally for this case */
+			down_read(&ldata->reset_copy_rwsem);
 			uncopied = copy_from_read_buf(tty, &b, &nr);
 			uncopied += copy_from_read_buf(tty, &b, &nr);
+			up_read(&ldata->reset_copy_rwsem);
 			if (uncopied) {
 				retval = -EFAULT;
 				break;
