@@ -992,6 +992,8 @@ struct net_device_ops_extended {
 	void                    (*ndo_xdp_flush)(struct net_device *dev);
 	int                     (*ndo_bpf)(struct net_device *dev,
 					   struct netdev_bpf *bpf);
+	int			(*ndo_xsk_async_xmit)(struct net_device *dev,
+						      u32 queue_id);
 };
 
 /* These structures hold the attributes of xdp state that are being passed
