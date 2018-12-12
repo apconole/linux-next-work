@@ -3309,6 +3309,10 @@ static inline ktime_t net_invalid_timestamp(void)
 	return ktime_set(0, 0);
 }
 
+static inline void skb_metadata_set(struct sk_buff *skb, u8 meta_len)
+{
+}
+
 struct sk_buff *skb_clone_sk(struct sk_buff *skb);
 
 void skb_timestamping_init(void);
