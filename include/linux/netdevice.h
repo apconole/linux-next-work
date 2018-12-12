@@ -920,9 +920,13 @@ struct tc_to_netdev {
  * int (*ndo_xdp)(struct net_device *dev, struct netdev_xdp *xdp);
  *	This function is used to set or query state related to XDP on the
  *	netdevice. See definition of enum xdp_netdev_command for details.
- * int (*ndo_xdp_xmit)(struct net_device *dev, struct xdp_frame *xdp);
- *	This function is used to submit a XDP packet for transmit on a
- *	netdevice.
+ * int (*ndo_xdp_xmit)(struct net_device *dev, int n, struct xdp_frame **xdp);
+ *	This function is used to submit @n XDP packets for transmit on a
+ *	netdevice. Returns number of frames successfully transmitted, frames
+ *	that got dropped are freed/returned via xdp_return_frame().
+ *	Returns negative number, means general error invoking ndo, meaning
+ *	no frames were xmit'ed and core-caller will free all frames.
+ *	TODO: Consider add flag to allow sending flush operation.
  * void (*ndo_xdp_flush)(struct net_device *dev);
  *	This function is used to inform the driver to flush a paticular
  *	xpd tx queue. Must be called on same CPU as xdp_xmit.
@@ -982,8 +986,8 @@ struct net_device_ops_extended {
 						   void *type_data);
 	int			(*ndo_xdp)(struct net_device *dev,
 						  struct netdev_xdp *xdp);
-	int			(*ndo_xdp_xmit)(struct net_device *dev,
-						  struct xdp_frame *xdp);
+	int			(*ndo_xdp_xmit)(struct net_device *dev, int n,
+						struct xdp_frame **xdp);
 	void                    (*ndo_xdp_flush)(struct net_device *dev);
 	int                     (*ndo_bpf)(struct net_device *dev,
 					   struct netdev_bpf *bpf);
