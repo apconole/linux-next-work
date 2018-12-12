@@ -920,7 +920,7 @@ struct tc_to_netdev {
  * int (*ndo_xdp)(struct net_device *dev, struct netdev_xdp *xdp);
  *	This function is used to set or query state related to XDP on the
  *	netdevice. See definition of enum xdp_netdev_command for details.
- * int (*ndo_xdp_xmit)(struct net_device *dev, struct xdp_buff *xdp);
+ * int (*ndo_xdp_xmit)(struct net_device *dev, struct xdp_frame *xdp);
  *	This function is used to submit a XDP packet for transmit on a
  *	netdevice.
  * void (*ndo_xdp_flush)(struct net_device *dev);
@@ -982,8 +982,8 @@ struct net_device_ops_extended {
 						   void *type_data);
 	int			(*ndo_xdp)(struct net_device *dev,
 						  struct netdev_xdp *xdp);
-	int                     (*ndo_xdp_xmit)(struct net_device *dev,
-						struct xdp_buff *xdp);
+	int			(*ndo_xdp_xmit)(struct net_device *dev,
+						  struct xdp_frame *xdp);
 	void                    (*ndo_xdp_flush)(struct net_device *dev);
 	int                     (*ndo_bpf)(struct net_device *dev,
 					   struct netdev_bpf *bpf);
