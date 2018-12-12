@@ -85,6 +85,12 @@ void xdp_return_frame(struct xdp_frame *xdpf)
 	return;
 }
 
+static inline
+void xdp_return_frame_rx_napi(struct xdp_frame *xdpf)
+{
+	return;
+}
+
 int xdp_rxq_info_reg(struct xdp_rxq_info *xdp_rxq,
 		     struct net_device *dev, u32 queue_index);
 void xdp_rxq_info_unreg(struct xdp_rxq_info *xdp_rxq);
