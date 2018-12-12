@@ -1007,7 +1007,11 @@ enum xdp_netdev_command {
 	 */
 	XDP_SETUP_PROG,
 	XDP_QUERY_PROG,
+	XDP_QUERY_XSK_UMEM,
+	XDP_SETUP_XSK_UMEM,
 };
+
+struct xdp_umem;
 
 struct netdev_xdp {
 	enum xdp_netdev_command command;
@@ -1018,6 +1022,11 @@ struct netdev_xdp {
 		struct {
 			u32 prog_id;
 		};
+		/* XDP_SETUP_XSK_UMEM */
+		struct {
+			struct xdp_umem *umem;
+			u16 queue_id;
+		} xsk;
 	};
 };
 
