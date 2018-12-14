@@ -5719,8 +5719,10 @@ static int megasas_init_fw(struct megasas_instance *instance)
 					    &instance->sriov_heartbeat_timer,
 					    megasas_sriov_heartbeat_handler,
 					    MEGASAS_SRIOV_HEARTBEAT_INTERVAL_VF);
-		else
+		else {
 			instance->skip_heartbeat_timer_del = 1;
+			goto fail_get_ld_pd_list;
+		}
 	}
 
 	/*
