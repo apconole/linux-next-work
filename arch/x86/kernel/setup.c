@@ -907,6 +907,7 @@ static bool valid_intel_processor(__u8 model, __u8 stepping)
 		break;
 
 	case INTEL_FAM6_XEON_PHI_KNM:
+	case INTEL_FAM6_ATOM_GOLDMONT:
 	case INTEL_FAM6_ATOM_GEMINI_LAKE:
 	case INTEL_FAM6_ATOM_DENVERTON:
 	case INTEL_FAM6_XEON_PHI_KNL:
