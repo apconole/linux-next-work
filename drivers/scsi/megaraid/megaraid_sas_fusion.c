@@ -230,7 +230,7 @@ megasas_fire_cmd_fusion(struct megasas_instance *instance,
 {
 #if defined(writeq) && defined(CONFIG_64BIT)
 	u64 req_data = (((u64)le32_to_cpu(req_desc->u.high) << 32) |
-			le32_to_cpu(req_desc->u.low));
+		le32_to_cpu(req_desc->u.low));
 
 	writeq(req_data, &instance->reg_set->inbound_low_queue_port);
 #else
