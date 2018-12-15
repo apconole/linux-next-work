@@ -386,10 +386,17 @@ bool spec_ctrl_cond_enable_ibrs(bool full_retp)
 {
 	if (cpu_has_spec_ctrl() && (is_skylake_era() || !full_retp) &&
 	    !noibrs_cmdline) {
-		if (boot_cpu_has(X86_FEATURE_IBRS_ENHANCED))
+		if (boot_cpu_has(X86_FEATURE_IBRS_ENHANCED)) {
 			spec_ctrl_enable_ibrs_enhanced();
-		else
+		} else {
 			set_spec_ctrl_pcp_ibrs();
+			/*
+			 * Print a warning message about performance
+			 * impact of enabling IBRS vs. retpoline.
+			 */
+			pr_warn_once("Using IBRS as the default Spectre v2 mitigation for a Skylake-\n");
+			pr_warn_once("generation CPU.  This may have a negative performance impact.\n");
+		}
 		return true;
 	}
 
@@ -482,8 +489,6 @@ enum spectre_v2_mitigation spec_ctrl_get_mitigation(void)
 			mode = SPECTRE_V2_RETPOLINE_MINIMAL;
 		else if (!boot_cpu_has(X86_FEATURE_IBPB))
 			mode = SPECTRE_V2_RETPOLINE_NO_IBPB;
-		else if (is_skylake_era())
-			mode = SPECTRE_V2_RETPOLINE_SKYLAKE;
 		else if (unsafe_module)
 			mode = SPECTRE_V2_RETPOLINE_UNSAFE_MODULE;
 		else if (ibrs_mode == IBRS_ENABLED_USER)
