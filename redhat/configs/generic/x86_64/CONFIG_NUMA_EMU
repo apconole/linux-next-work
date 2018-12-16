@@ -1,1 +1,1 @@
-# CONFIG_NUMA_EMU is not set
+CONFIG_NUMA_EMU=y
