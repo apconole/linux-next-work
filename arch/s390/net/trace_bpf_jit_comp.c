@@ -1326,6 +1326,7 @@ struct bpf_prog *trace_bpf_int_jit_compile(struct bpf_prog *fp)
 	bpf_jit_binary_lock_ro(header);
 	fp->bpf_func = (void *) jit.prg_buf;
 	fp->jited = 1;
+	fp->jited_len = jit.size;
 free_addrs:
 	kfree(jit.addrs);
 out:
