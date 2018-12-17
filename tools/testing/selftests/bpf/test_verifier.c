@@ -12040,6 +12040,9 @@ static struct bpf_test tests[] = {
 		.prog_type = BPF_PROG_TYPE_SCHED_CLS,
 		.result = ACCEPT,
 		.retval = 10,
+#ifdef __s390x__
+		.disabled = true,
+#endif
 	},
 	{
 		"pass unmodified ctx pointer to helper",
