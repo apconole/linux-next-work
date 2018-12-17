@@ -1325,7 +1325,7 @@ struct bpf_prog *trace_bpf_int_jit_compile(struct bpf_prog *fp)
 			print_fn_code(jit.prg_buf, jit.size_prg);
 	}
 	if (jit.prg_buf) {
-		set_memory_ro((unsigned long)header, header->pages);
+		bpf_jit_binary_lock_ro(header);
 		fp->bpf_func = (void *) jit.prg_buf;
 		fp->jited = 1;
 	}

@@ -1299,7 +1299,7 @@ out_image:
 
 	if (image) {
 		if (!prog->is_func || extra_pass) {
-			set_memory_ro((unsigned long)header, header->pages);
+			bpf_jit_binary_lock_ro(header);
 		} else {
 			jit_data->addrs = addrs;
 			jit_data->ctx = ctx;
