@@ -8,7 +8,7 @@
  */
 
 #include <linux/linkage.h>
-#include "bpf_jit.h"
+#include "trace_bpf_jit.h"
 
 /*
  * Calling convention:
@@ -44,18 +44,18 @@
 /*
  * Load SIZE bytes from SKB
  */
-#define sk_load_common(NAME, SIZE, LOAD)				\
-ENTRY(sk_load_##NAME);							\
+#define trace_sk_load_common(NAME, SIZE, LOAD)				\
+ENTRY(trace_sk_load_##NAME);							\
 	ltgr	%r3,%r3;		/* Is offset negative? */	\
-	jl	sk_load_##NAME##_slow_neg;				\
-ENTRY(sk_load_##NAME##_pos);						\
+	jl	trace_sk_load_##NAME##_slow_neg;				\
+ENTRY(trace_sk_load_##NAME##_pos);						\
 	aghi	%r3,SIZE;		/* Offset + SIZE */		\
 	clg	%r3,STK_OFF_HLEN(%r15);	/* Offset + SIZE > hlen? */	\
-	jh	sk_load_##NAME##_slow;					\
+	jh	trace_sk_load_##NAME##_slow;					\
 	LOAD	%r14,-SIZE(%r3,%r12);	/* Get data from skb */		\
 	b	OFF_OK(%r6);		/* Return */			\
 									\
-sk_load_##NAME##_slow:;							\
+trace_sk_load_##NAME##_slow:;							\
 	lgr	%r2,%r7;		/* Arg1 = skb pointer */	\
 	aghi	%r3,-SIZE;		/* Arg2 = offset */		\
 	la	%r4,STK_OFF_TMP(%r15);	/* Arg3 = temp bufffer */	\
@@ -65,23 +65,23 @@ sk_load_##NAME##_slow:;							\
 	ltgr	%r2,%r2;		/* Set cc to (%r2 != 0) */	\
 	br	%r6;			/* Return */
 
-sk_load_common(word, 4, llgf)	/* r14 = *(u32 *) (skb->data+offset) */
-sk_load_common(half, 2, llgh)	/* r14 = *(u16 *) (skb->data+offset) */
+trace_sk_load_common(word, 4, llgf)	/* r14 = *(u32 *) (skb->data+offset) */
+trace_sk_load_common(half, 2, llgh)	/* r14 = *(u16 *) (skb->data+offset) */
 
 /*
  * Load 1 byte from SKB (optimized version)
  */
 	/* r14 = *(u8 *) (skb->data+offset) */
-ENTRY(sk_load_byte)
+ENTRY(trace_sk_load_byte)
 	ltgr	%r3,%r3			# Is offset negative?
-	jl	sk_load_byte_slow_neg
-ENTRY(sk_load_byte_pos)
+	jl	trace_sk_load_byte_slow_neg
+ENTRY(trace_sk_load_byte_pos)
 	clg	%r3,STK_OFF_HLEN(%r15)	# Offset >= hlen?
-	jnl	sk_load_byte_slow
+	jnl	trace_sk_load_byte_slow
 	llgc	%r14,0(%r3,%r12)	# Get byte from skb
 	b	OFF_OK(%r6)		# Return OK
 
-sk_load_byte_slow:
+trace_sk_load_byte_slow:
 	lgr	%r2,%r7			# Arg1 = skb pointer
 					# Arg2 = offset
 	la	%r4,STK_OFF_TMP(%r15)	# Arg3 = pointer to temp buffer
@@ -92,7 +92,7 @@ sk_load_byte_slow:
 	br	%r6			# Return cc
 
 #define sk_negative_common(NAME, SIZE, LOAD)				\
-sk_load_##NAME##_slow_neg:;						\
+trace_sk_load_##NAME##_slow_neg:;						\
 	cgfi	%r3,SKF_MAX_NEG_OFF;					\
 	jl	bpf_error;						\
 	lgr	%r2,%r7;		/* Arg1 = skb pointer */	\

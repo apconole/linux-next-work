@@ -15,8 +15,8 @@
 #include <linux/filter.h>
 #include <linux/types.h>
 
-extern u8 sk_load_word_pos[], sk_load_half_pos[], sk_load_byte_pos[];
-extern u8 sk_load_word[], sk_load_half[], sk_load_byte[];
+extern u8 trace_sk_load_word_pos[], trace_sk_load_half_pos[], trace_sk_load_byte_pos[];
+extern u8 trace_sk_load_word[], trace_sk_load_half[], trace_sk_load_byte[];
 
 #endif /* __ASSEMBLY__ */
 

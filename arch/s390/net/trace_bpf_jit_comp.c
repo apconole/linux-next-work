@@ -24,9 +24,7 @@
 #include <linux/bpf.h>
 #include <asm/cacheflush.h>
 #include <asm/dis.h>
-#include "bpf_jit.h"
-
-int bpf_jit_enable __read_mostly;
+#include "trace_bpf_jit.h"
 
 struct bpf_jit {
 	u32 seen;		/* Flags to remember seen eBPF instructions */
@@ -1163,23 +1161,23 @@ branch_oc:
 	case BPF_LD | BPF_ABS | BPF_B: /* b0 = *(u8 *) (skb->data+imm) */
 	case BPF_LD | BPF_IND | BPF_B: /* b0 = *(u8 *) (skb->data+imm+src) */
 		if ((BPF_MODE(insn->code) == BPF_ABS) && (imm >= 0))
-			func_addr = __pa(sk_load_byte_pos);
+			func_addr = __pa(trace_sk_load_byte_pos);
 		else
-			func_addr = __pa(sk_load_byte);
+			func_addr = __pa(trace_sk_load_byte);
 		goto call_fn;
 	case BPF_LD | BPF_ABS | BPF_H: /* b0 = *(u16 *) (skb->data+imm) */
 	case BPF_LD | BPF_IND | BPF_H: /* b0 = *(u16 *) (skb->data+imm+src) */
 		if ((BPF_MODE(insn->code) == BPF_ABS) && (imm >= 0))
-			func_addr = __pa(sk_load_half_pos);
+			func_addr = __pa(trace_sk_load_half_pos);
 		else
-			func_addr = __pa(sk_load_half);
+			func_addr = __pa(trace_sk_load_half);
 		goto call_fn;
 	case BPF_LD | BPF_ABS | BPF_W: /* b0 = *(u32 *) (skb->data+imm) */
 	case BPF_LD | BPF_IND | BPF_W: /* b0 = *(u32 *) (skb->data+imm+src) */
 		if ((BPF_MODE(insn->code) == BPF_ABS) && (imm >= 0))
-			func_addr = __pa(sk_load_word_pos);
+			func_addr = __pa(trace_sk_load_word_pos);
 		else
-			func_addr = __pa(sk_load_word);
+			func_addr = __pa(trace_sk_load_word);
 		goto call_fn;
 call_fn:
 		jit->seen |= SEEN_SKB | SEEN_RET0 | SEEN_FUNC;
@@ -1262,7 +1260,7 @@ void bpf_jit_compile(struct bpf_prog *fp)
 /*
  * Compile eBPF program "fp"
  */
-void bpf_int_jit_compile(struct bpf_prog *fp)
+void trace_bpf_int_jit_compile(struct bpf_prog *fp)
 {
 	struct bpf_binary_header *header;
 	struct bpf_jit jit;
@@ -1310,7 +1308,7 @@ free_addrs:
 /*
  * Free eBPF program
  */
-void bpf_jit_free(struct bpf_prog *fp)
+void trace_bpf_jit_free(struct bpf_prog *fp)
 {
 	unsigned long addr = (unsigned long)fp->bpf_func & PAGE_MASK;
 	struct bpf_binary_header *header = (void *)addr;
