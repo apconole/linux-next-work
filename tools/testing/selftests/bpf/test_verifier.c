@@ -9763,6 +9763,9 @@ static struct bpf_test tests[] = {
 		},
 		.prog_type = BPF_PROG_TYPE_TRACEPOINT,
 		.result = ACCEPT,
+#ifdef __s390x__
+		.disabled = true,
+#endif
 	},
 	{
 		"calls: not on unpriviledged",
@@ -9777,6 +9780,9 @@ static struct bpf_test tests[] = {
 		.result_unpriv = REJECT,
 		.result = ACCEPT,
 		.retval = 1,
+#ifdef __s390x__
+		.disabled = true,
+#endif
 	},
 	{
 		"calls: div by 0 in subprog",
@@ -9958,6 +9964,9 @@ static struct bpf_test tests[] = {
 		},
 		.prog_type = BPF_PROG_TYPE_TRACEPOINT,
 		.result = ACCEPT,
+#ifdef __s390x__
+		.disabled = true,
+#endif
 	},
 	{
 		"calls: conditional call 3",
@@ -9993,6 +10002,9 @@ static struct bpf_test tests[] = {
 		},
 		.prog_type = BPF_PROG_TYPE_TRACEPOINT,
 		.result = ACCEPT,
+#ifdef __s390x__
+		.disabled = true,
+#endif
 	},
 	{
 		"calls: conditional call 5",
@@ -10036,6 +10048,9 @@ static struct bpf_test tests[] = {
 		},
 		.prog_type = BPF_PROG_TYPE_TRACEPOINT,
 		.result = ACCEPT,
+#ifdef __s390x__
+		.disabled = true,
+#endif
 	},
 	{
 		"calls: using uninit r0 from callee",
@@ -10074,6 +10089,9 @@ static struct bpf_test tests[] = {
 		.result_unpriv = REJECT,
 		.result = ACCEPT,
 		.retval = POINTER_VALUE,
+#ifdef __s390x__
+		.disabled = true,
+#endif
 	},
 	{
 		"calls: callee using wrong args2",
@@ -10176,6 +10194,9 @@ static struct bpf_test tests[] = {
 		.prog_type = BPF_PROG_TYPE_SCHED_CLS,
 		.result = ACCEPT,
 		.retval = 42,
+#ifdef __s390x__
+		.disabled = true,
+#endif
 	},
 	{
 		"calls: calls with misaligned stack access",
@@ -11088,6 +11109,9 @@ static struct bpf_test tests[] = {
 		.prog_type = BPF_PROG_TYPE_SCHED_CLS,
 		.fixup_map1 = { 12, 22 },
 		.result = ACCEPT,
+#ifdef __s390x__
+		.disabled = true,
+#endif
 	},
 	{
 		"calls: two jumps that receive map_value via arg=ptr_stack_of_jumper. test3",
@@ -11231,6 +11255,9 @@ static struct bpf_test tests[] = {
 		.prog_type = BPF_PROG_TYPE_SCHED_CLS,
 		.fixup_map1 = { 12, 22 },
 		.result = ACCEPT,
+#ifdef __s390x__
+		.disabled = true,
+#endif
 	},
 	{
 		"calls: two calls that receive map_value_ptr_or_null via arg. test2",
