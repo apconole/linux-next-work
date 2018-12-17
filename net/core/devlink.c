@@ -2655,20 +2655,6 @@ static const struct genl_ops devlink_nl_ops[] = {
 				  DEVLINK_NL_FLAG_NO_LOCK,
 	},
 	{
-		.cmd = DEVLINK_CMD_ESWITCH_GET,
-		.doit = devlink_nl_cmd_eswitch_get_doit,
-		.policy = devlink_nl_policy,
-		.flags = GENL_ADMIN_PERM,
-		.internal_flags = DEVLINK_NL_FLAG_NEED_DEVLINK,
-	},
-	{
-		.cmd = DEVLINK_CMD_ESWITCH_SET,
-		.doit = devlink_nl_cmd_eswitch_set_doit,
-		.policy = devlink_nl_policy,
-		.flags = GENL_ADMIN_PERM,
-		.internal_flags = DEVLINK_NL_FLAG_NEED_DEVLINK,
-	},
-	{
 		.cmd = DEVLINK_CMD_PORT_UNSPLIT,
 		.doit = devlink_nl_cmd_port_unsplit_doit,
 		.policy = devlink_nl_policy,
@@ -2751,6 +2737,21 @@ static const struct genl_ops devlink_nl_ops[] = {
 		.flags = GENL_ADMIN_PERM,
 		.internal_flags = DEVLINK_NL_FLAG_NEED_DEVLINK |
 				  DEVLINK_NL_FLAG_NEED_SB,
+	},
+	{
+		.cmd = DEVLINK_CMD_ESWITCH_GET,
+		.doit = devlink_nl_cmd_eswitch_get_doit,
+		.policy = devlink_nl_policy,
+		.flags = GENL_ADMIN_PERM,
+		.internal_flags = DEVLINK_NL_FLAG_NEED_DEVLINK,
+	},
+	{
+		.cmd = DEVLINK_CMD_ESWITCH_SET,
+		.doit = devlink_nl_cmd_eswitch_set_doit,
+		.policy = devlink_nl_policy,
+		.flags = GENL_ADMIN_PERM,
+		.internal_flags = DEVLINK_NL_FLAG_NEED_DEVLINK |
+				  DEVLINK_NL_FLAG_NO_LOCK,
 	},
 	{
 		.cmd = DEVLINK_CMD_DPIPE_TABLE_GET,
