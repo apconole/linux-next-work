@@ -1296,12 +1296,6 @@ static void ip6gre_tap_setup(struct net_device *dev)
 	netif_keep_dst(dev);
 }
 
-bool is_ip6gretap_dev(const struct net_device *dev)
-{
-	return dev->netdev_ops == &ip6gre_tap_netdev_ops;
-}
-EXPORT_SYMBOL_GPL(is_ip6gretap_dev);
-
 static int ip6gre_newlink(struct net *src_net, struct net_device *dev,
 	struct nlattr *tb[], struct nlattr *data[])
 {
