@@ -2803,6 +2803,9 @@ static struct ib_uflow_resources *flow_resources_alloc(size_t num_specs)
 	if (!resources)
 		return NULL;
 
+	if (!num_specs)
+		goto out;
+
 	resources->counters =
 		kcalloc(num_specs, sizeof(*resources->counters), GFP_KERNEL);
 	resources->collection =
@@ -2811,8 +2814,8 @@ static struct ib_uflow_resources *flow_resources_alloc(size_t num_specs)
 	if (!resources->counters || !resources->collection)
 		goto err;
 
+out:
 	resources->max = num_specs;
-
 	return resources;
 
 err:
