@@ -38,7 +38,7 @@
 #include <linux/slab.h>
 #include <linux/sched.h>
 
-#include <asm/uaccess.h>
+#include <linux/uaccess.h>
 
 #include <rdma/uverbs_types.h>
 #include <rdma/uverbs_std_types.h>
