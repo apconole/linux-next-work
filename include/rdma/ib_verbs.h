@@ -1459,6 +1459,11 @@ enum rdma_remove_reason {
 struct ib_ucontext {
 	struct ib_device       *device;
 	struct ib_uverbs_file  *ufile;
+	/*
+	 * 'closing' can be read by the driver only during a destroy callback,
+	 * it is set when we are closing the file descriptor and indicates
+	 * that mm_sem may be locked.
+	 */
 	int			closing;
 
 	bool cleanup_retryable;
