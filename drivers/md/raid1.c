@@ -1331,7 +1331,8 @@ static bool raid1_write_request(struct mddev *mddev, struct bio *bio,
 	}
 
 	master_r1bio = alloc_r1bio(mddev, bio, 0);
-	atomic_set(&master_r1bio->split_bios, 0);
+	atomic_set(&master_r1bio->split_bios, 1);
+	r1_bio->master_r1bio = master_r1bio;
 
 	/* first select target devices under rcu_lock and
 	 * inc refcount on their rdev.  Record them by setting
@@ -1347,8 +1348,6 @@ static bool raid1_write_request(struct mddev *mddev, struct bio *bio,
 	disks = conf->raid_disks * 2;
  retry_write:
 	wait_barrier(conf, r1_bio->sector);
-	r1_bio->master_r1bio = master_r1bio;
-	atomic_inc(&master_r1bio->split_bios);
 	blocked_rdev = NULL;
 	rcu_read_lock();
 	max_sectors = r1_bio->sectors;
@@ -1515,9 +1514,11 @@ static bool raid1_write_request(struct mddev *mddev, struct bio *bio,
 	 */
 	if (sectors_handled < bio_sectors(bio)) {
 		/* We need another r1_bio, which must be counted */
+		atomic_inc(&master_r1bio->split_bios);
 		bio_inc_remaining(bio);
 		r1_bio_write_done(r1_bio);
 		r1_bio = alloc_r1bio(mddev, bio, sectors_handled);
+		r1_bio->master_r1bio = master_r1bio;
 		goto retry_write;
 	}
 
