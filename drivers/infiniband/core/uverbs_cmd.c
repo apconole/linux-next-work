@@ -66,7 +66,6 @@ _ib_uverbs_lookup_comp_file(s32 fd, struct ib_uverbs_file *ufile)
 	_ib_uverbs_lookup_comp_file((_fd)*typecheck(s32, _fd), _ufile)
 
 ssize_t ib_uverbs_get_context(struct ib_uverbs_file *file,
-			      struct ib_device *ib_dev,
 			      const char __user *buf,
 			      int in_len, int out_len)
 {
@@ -75,6 +74,7 @@ ssize_t ib_uverbs_get_context(struct ib_uverbs_file *file,
 	struct ib_udata                   udata;
 	struct ib_ucontext		 *ucontext;
 	struct file			 *filp;
+	struct ib_device *ib_dev;
 	int ret;
 
 	if (out_len < sizeof resp)
@@ -84,6 +84,12 @@ ssize_t ib_uverbs_get_context(struct ib_uverbs_file *file,
 		return -EFAULT;
 
 	mutex_lock(&file->ucontext_lock);
+	ib_dev = srcu_dereference(file->device->ib_dev,
+				  &file->device->disassociate_srcu);
+	if (!ib_dev) {
+		ret = -EIO;
+		goto err;
+	}
 
 	if (file->ucontext) {
 		ret = -EINVAL;
@@ -168,11 +174,12 @@ err:
 	return ret;
 }
 
-static void copy_query_dev_fields(struct ib_uverbs_file *file,
-				  struct ib_device *ib_dev,
+static void copy_query_dev_fields(struct ib_ucontext *ucontext,
 				  struct ib_uverbs_query_device_resp *resp,
 				  struct ib_device_attr *attr)
 {
+	struct ib_device *ib_dev = ucontext->device;
+
 	resp->fw_ver		= attr->fw_ver;
 	resp->node_guid		= ib_dev->node_guid;
 	resp->sys_image_guid	= attr->sys_image_guid;
@@ -216,12 +223,16 @@ static void copy_query_dev_fields(struct ib_uverbs_file *file,
 }
 
 ssize_t ib_uverbs_query_device(struct ib_uverbs_file *file,
-			       struct ib_device *ib_dev,
 			       const char __user *buf,
 			       int in_len, int out_len)
 {
 	struct ib_uverbs_query_device      cmd;
 	struct ib_uverbs_query_device_resp resp;
+	struct ib_ucontext *ucontext;
+
+	ucontext = ib_uverbs_get_ucontext(file);
+	if (IS_ERR(ucontext))
+		return PTR_ERR(ucontext);
 
 	if (out_len < sizeof resp)
 		return -ENOSPC;
@@ -230,7 +241,7 @@ ssize_t ib_uverbs_query_device(struct ib_uverbs_file *file,
 		return -EFAULT;
 
 	memset(&resp, 0, sizeof resp);
-	copy_query_dev_fields(file, ib_dev, &resp, &ib_dev->attrs);
+	copy_query_dev_fields(ucontext, &resp, &ucontext->device->attrs);
 
 	if (copy_to_user(u64_to_user_ptr(cmd.response), &resp, sizeof resp))
 		return -EFAULT;
@@ -260,7 +271,6 @@ static u32 make_port_cap_flags(const struct ib_port_attr *attr)
 }
 
 ssize_t ib_uverbs_query_port(struct ib_uverbs_file *file,
-			     struct ib_device *ib_dev,
 			     const char __user *buf,
 			     int in_len, int out_len)
 {
@@ -268,6 +278,13 @@ ssize_t ib_uverbs_query_port(struct ib_uverbs_file *file,
 	struct ib_uverbs_query_port_resp resp;
 	struct ib_port_attr              attr;
 	int                              ret;
+	struct ib_ucontext *ucontext;
+	struct ib_device *ib_dev;
+
+	ucontext = ib_uverbs_get_ucontext(file);
+	if (IS_ERR(ucontext))
+		return PTR_ERR(ucontext);
+	ib_dev = ucontext->device;
 
 	if (out_len < sizeof resp)
 		return -ENOSPC;
@@ -319,7 +336,6 @@ ssize_t ib_uverbs_query_port(struct ib_uverbs_file *file,
 }
 
 ssize_t ib_uverbs_alloc_pd(struct ib_uverbs_file *file,
-			   struct ib_device *ib_dev,
 			   const char __user *buf,
 			   int in_len, int out_len)
 {
@@ -329,6 +345,7 @@ ssize_t ib_uverbs_alloc_pd(struct ib_uverbs_file *file,
 	struct ib_uobject             *uobj;
 	struct ib_pd                  *pd;
 	int                            ret;
+	struct ib_device *ib_dev;
 
 	if (out_len < sizeof resp)
 		return -ENOSPC;
@@ -341,7 +358,7 @@ ssize_t ib_uverbs_alloc_pd(struct ib_uverbs_file *file,
                    in_len - sizeof(cmd) - sizeof(struct ib_uverbs_cmd_hdr),
                    out_len - sizeof(resp));
 
-	uobj = uobj_alloc(UVERBS_OBJECT_PD, file);
+	uobj = uobj_alloc(UVERBS_OBJECT_PD, file, &ib_dev);
 	if (IS_ERR(uobj))
 		return PTR_ERR(uobj);
 
@@ -378,7 +395,6 @@ err:
 }
 
 ssize_t ib_uverbs_dealloc_pd(struct ib_uverbs_file *file,
-			     struct ib_device *ib_dev,
 			     const char __user *buf,
 			     int in_len, int out_len)
 {
@@ -477,7 +493,6 @@ static void xrcd_table_delete(struct ib_uverbs_device *dev,
 }
 
 ssize_t ib_uverbs_open_xrcd(struct ib_uverbs_file *file,
-			    struct ib_device *ib_dev,
 			    const char __user *buf, int in_len,
 			    int out_len)
 {
@@ -490,6 +505,7 @@ ssize_t ib_uverbs_open_xrcd(struct ib_uverbs_file *file,
 	struct inode                   *inode = NULL;
 	int				ret = 0;
 	int				new_xrcd = 0;
+	struct ib_device *ib_dev;
 
 	if (out_len < sizeof resp)
 		return -ENOSPC;
@@ -526,7 +542,8 @@ ssize_t ib_uverbs_open_xrcd(struct ib_uverbs_file *file,
 		}
 	}
 
-	obj = (struct ib_uxrcd_object *)uobj_alloc(UVERBS_OBJECT_XRCD, file);
+	obj = (struct ib_uxrcd_object *)uobj_alloc(UVERBS_OBJECT_XRCD, file,
+						   &ib_dev);
 	if (IS_ERR(obj)) {
 		ret = PTR_ERR(obj);
 		goto err_tree_mutex_unlock;
@@ -597,7 +614,6 @@ err_tree_mutex_unlock:
 }
 
 ssize_t ib_uverbs_close_xrcd(struct ib_uverbs_file *file,
-			     struct ib_device *ib_dev,
 			     const char __user *buf, int in_len,
 			     int out_len)
 {
@@ -636,7 +652,6 @@ int ib_uverbs_dealloc_xrcd(struct ib_uobject *uobject,
 }
 
 ssize_t ib_uverbs_reg_mr(struct ib_uverbs_file *file,
-			 struct ib_device *ib_dev,
 			 const char __user *buf, int in_len,
 			 int out_len)
 {
@@ -647,6 +662,7 @@ ssize_t ib_uverbs_reg_mr(struct ib_uverbs_file *file,
 	struct ib_pd                *pd;
 	struct ib_mr                *mr;
 	int                          ret;
+	struct ib_device *ib_dev;
 
 	if (out_len < sizeof resp)
 		return -ENOSPC;
@@ -666,7 +682,7 @@ ssize_t ib_uverbs_reg_mr(struct ib_uverbs_file *file,
 	if (ret)
 		return ret;
 
-	uobj = uobj_alloc(UVERBS_OBJECT_MR, file);
+	uobj = uobj_alloc(UVERBS_OBJECT_MR, file, &ib_dev);
 	if (IS_ERR(uobj))
 		return PTR_ERR(uobj);
 
@@ -728,7 +744,6 @@ err_free:
 }
 
 ssize_t ib_uverbs_rereg_mr(struct ib_uverbs_file *file,
-			   struct ib_device *ib_dev,
 			   const char __user *buf, int in_len,
 			   int out_len)
 {
@@ -820,7 +835,6 @@ put_uobjs:
 }
 
 ssize_t ib_uverbs_dereg_mr(struct ib_uverbs_file *file,
-			   struct ib_device *ib_dev,
 			   const char __user *buf, int in_len,
 			   int out_len)
 {
@@ -834,7 +848,6 @@ ssize_t ib_uverbs_dereg_mr(struct ib_uverbs_file *file,
 }
 
 ssize_t ib_uverbs_alloc_mw(struct ib_uverbs_file *file,
-			   struct ib_device *ib_dev,
 			   const char __user *buf, int in_len,
 			   int out_len)
 {
@@ -845,6 +858,7 @@ ssize_t ib_uverbs_alloc_mw(struct ib_uverbs_file *file,
 	struct ib_mw                  *mw;
 	struct ib_udata		       udata;
 	int                            ret;
+	struct ib_device *ib_dev;
 
 	if (out_len < sizeof(resp))
 		return -ENOSPC;
@@ -852,7 +866,7 @@ ssize_t ib_uverbs_alloc_mw(struct ib_uverbs_file *file,
 	if (copy_from_user(&cmd, buf, sizeof(cmd)))
 		return -EFAULT;
 
-	uobj = uobj_alloc(UVERBS_OBJECT_MW, file);
+	uobj = uobj_alloc(UVERBS_OBJECT_MW, file, &ib_dev);
 	if (IS_ERR(uobj))
 		return PTR_ERR(uobj);
 
@@ -902,7 +916,6 @@ err_free:
 }
 
 ssize_t ib_uverbs_dealloc_mw(struct ib_uverbs_file *file,
-			     struct ib_device *ib_dev,
 			     const char __user *buf, int in_len,
 			     int out_len)
 {
@@ -916,7 +929,6 @@ ssize_t ib_uverbs_dealloc_mw(struct ib_uverbs_file *file,
 }
 
 ssize_t ib_uverbs_create_comp_channel(struct ib_uverbs_file *file,
-				      struct ib_device *ib_dev,
 				      const char __user *buf, int in_len,
 				      int out_len)
 {
@@ -924,6 +936,7 @@ ssize_t ib_uverbs_create_comp_channel(struct ib_uverbs_file *file,
 	struct ib_uverbs_create_comp_channel_resp  resp;
 	struct ib_uobject			  *uobj;
 	struct ib_uverbs_completion_event_file	  *ev_file;
+	struct ib_device *ib_dev;
 
 	if (out_len < sizeof resp)
 		return -ENOSPC;
@@ -931,7 +944,7 @@ ssize_t ib_uverbs_create_comp_channel(struct ib_uverbs_file *file,
 	if (copy_from_user(&cmd, buf, sizeof cmd))
 		return -EFAULT;
 
-	uobj = uobj_alloc(UVERBS_OBJECT_COMP_CHANNEL, file);
+	uobj = uobj_alloc(UVERBS_OBJECT_COMP_CHANNEL, file, &ib_dev);
 	if (IS_ERR(uobj))
 		return PTR_ERR(uobj);
 
@@ -950,7 +963,6 @@ ssize_t ib_uverbs_create_comp_channel(struct ib_uverbs_file *file,
 }
 
 static struct ib_ucq_object *create_cq(struct ib_uverbs_file *file,
-					struct ib_device *ib_dev,
 				       struct ib_udata *ucore,
 				       struct ib_udata *uhw,
 				       struct ib_uverbs_ex_create_cq *cmd,
@@ -968,16 +980,20 @@ static struct ib_ucq_object *create_cq(struct ib_uverbs_file *file,
 	int                             ret;
 	struct ib_uverbs_ex_create_cq_resp resp;
 	struct ib_cq_init_attr attr = {};
-
-	if (!ib_dev->create_cq)
-		return ERR_PTR(-EOPNOTSUPP);
+	struct ib_device *ib_dev;
 
 	if (cmd->comp_vector >= file->device->num_comp_vectors)
 		return ERR_PTR(-EINVAL);
 
-	obj = (struct ib_ucq_object *)uobj_alloc(UVERBS_OBJECT_CQ, file);
+	obj = (struct ib_ucq_object *)uobj_alloc(UVERBS_OBJECT_CQ, file,
+						 &ib_dev);
 	if (IS_ERR(obj))
 		return obj;
+
+	if (!ib_dev->create_cq) {
+		ret = -EOPNOTSUPP;
+		goto err;
+	}
 
 	if (cmd->comp_channel >= 0) {
 		ev_file = ib_uverbs_lookup_comp_file(cmd->comp_channel, file);
@@ -1057,7 +1073,6 @@ static int ib_uverbs_create_cq_cb(struct ib_uverbs_file *file,
 }
 
 ssize_t ib_uverbs_create_cq(struct ib_uverbs_file *file,
-			    struct ib_device *ib_dev,
 			    const char __user *buf, int in_len,
 			    int out_len)
 {
@@ -1088,7 +1103,7 @@ ssize_t ib_uverbs_create_cq(struct ib_uverbs_file *file,
 	cmd_ex.comp_vector = cmd.comp_vector;
 	cmd_ex.comp_channel = cmd.comp_channel;
 
-	obj = create_cq(file, ib_dev, &ucore, &uhw, &cmd_ex,
+	obj = create_cq(file, &ucore, &uhw, &cmd_ex,
 			offsetof(typeof(cmd_ex), comp_channel) +
 			sizeof(cmd.comp_channel), ib_uverbs_create_cq_cb,
 			NULL);
@@ -1111,7 +1126,6 @@ static int ib_uverbs_ex_create_cq_cb(struct ib_uverbs_file *file,
 }
 
 int ib_uverbs_ex_create_cq(struct ib_uverbs_file *file,
-			 struct ib_device *ib_dev,
 			   struct ib_udata *ucore,
 			   struct ib_udata *uhw)
 {
@@ -1137,7 +1151,7 @@ int ib_uverbs_ex_create_cq(struct ib_uverbs_file *file,
 			     sizeof(resp.response_length)))
 		return -ENOSPC;
 
-	obj = create_cq(file, ib_dev, ucore, uhw, &cmd,
+	obj = create_cq(file, ucore, uhw, &cmd,
 			min(ucore->inlen, sizeof(cmd)),
 			ib_uverbs_ex_create_cq_cb, NULL);
 
@@ -1145,7 +1159,6 @@ int ib_uverbs_ex_create_cq(struct ib_uverbs_file *file,
 }
 
 ssize_t ib_uverbs_resize_cq(struct ib_uverbs_file *file,
-			    struct ib_device *ib_dev,
 			    const char __user *buf, int in_len,
 			    int out_len)
 {
@@ -1213,7 +1226,6 @@ static int copy_wc_to_user(struct ib_device *ib_dev, void __user *dest,
 }
 
 ssize_t ib_uverbs_poll_cq(struct ib_uverbs_file *file,
-			  struct ib_device *ib_dev,
 			  const char __user *buf, int in_len,
 			  int out_len)
 {
@@ -1244,7 +1256,7 @@ ssize_t ib_uverbs_poll_cq(struct ib_uverbs_file *file,
 		if (!ret)
 			break;
 
-		ret = copy_wc_to_user(ib_dev, data_ptr, &wc);
+		ret = copy_wc_to_user(cq->device, data_ptr, &wc);
 		if (ret)
 			goto out_put;
 
@@ -1265,7 +1277,6 @@ out_put:
 }
 
 ssize_t ib_uverbs_req_notify_cq(struct ib_uverbs_file *file,
-				struct ib_device *ib_dev,
 				const char __user *buf, int in_len,
 				int out_len)
 {
@@ -1288,7 +1299,6 @@ ssize_t ib_uverbs_req_notify_cq(struct ib_uverbs_file *file,
 }
 
 ssize_t ib_uverbs_destroy_cq(struct ib_uverbs_file *file,
-			     struct ib_device *ib_dev,
 			     const char __user *buf, int in_len,
 			     int out_len)
 {
@@ -1341,11 +1351,13 @@ static int create_qp(struct ib_uverbs_file *file,
 	int				ret;
 	struct ib_rwq_ind_table *ind_tbl = NULL;
 	bool has_sq = true;
+	struct ib_device *ib_dev;
 
 	if (cmd->qp_type == IB_QPT_RAW_PACKET && !capable(CAP_NET_RAW))
 		return -EPERM;
 
-	obj = (struct ib_uqp_object *)uobj_alloc(UVERBS_OBJECT_QP, file);
+	obj = (struct ib_uqp_object *)uobj_alloc(UVERBS_OBJECT_QP, file,
+						 &ib_dev);
 	if (IS_ERR(obj))
 		return PTR_ERR(obj);
 	obj->uxrcd = NULL;
@@ -1602,7 +1614,6 @@ static int ib_uverbs_create_qp_cb(struct ib_uverbs_file *file,
 }
 
 ssize_t ib_uverbs_create_qp(struct ib_uverbs_file *file,
-			    struct ib_device *ib_dev,
 			    const char __user *buf, int in_len,
 			    int out_len)
 {
@@ -1663,7 +1674,6 @@ static int ib_uverbs_ex_create_qp_cb(struct ib_uverbs_file *file,
 }
 
 int ib_uverbs_ex_create_qp(struct ib_uverbs_file *file,
-			   struct ib_device *ib_dev,
 			   struct ib_udata *ucore,
 			   struct ib_udata *uhw)
 {
@@ -1700,7 +1710,6 @@ int ib_uverbs_ex_create_qp(struct ib_uverbs_file *file,
 }
 
 ssize_t ib_uverbs_open_qp(struct ib_uverbs_file *file,
-			  struct ib_device *ib_dev,
 			  const char __user *buf, int in_len, int out_len)
 {
 	struct ib_uverbs_open_qp        cmd;
@@ -1712,6 +1721,7 @@ ssize_t ib_uverbs_open_qp(struct ib_uverbs_file *file,
 	struct ib_qp                   *qp;
 	struct ib_qp_open_attr          attr;
 	int ret;
+	struct ib_device *ib_dev;
 
 	if (out_len < sizeof resp)
 		return -ENOSPC;
@@ -1724,7 +1734,8 @@ ssize_t ib_uverbs_open_qp(struct ib_uverbs_file *file,
 		   in_len - sizeof(cmd) - sizeof(struct ib_uverbs_cmd_hdr),
 		   out_len - sizeof(resp));
 
-	obj = (struct ib_uqp_object *)uobj_alloc(UVERBS_OBJECT_QP, file);
+	obj = (struct ib_uqp_object *)uobj_alloc(UVERBS_OBJECT_QP, file,
+						 &ib_dev);
 	if (IS_ERR(obj))
 		return PTR_ERR(obj);
 
@@ -1806,7 +1817,6 @@ static void copy_ah_attr_to_uverbs(struct ib_uverbs_qp_dest *uverb_attr,
 }
 
 ssize_t ib_uverbs_query_qp(struct ib_uverbs_file *file,
-			   struct ib_device *ib_dev,
 			   const char __user *buf, int in_len,
 			   int out_len)
 {
@@ -2058,7 +2068,6 @@ out:
 }
 
 ssize_t ib_uverbs_modify_qp(struct ib_uverbs_file *file,
-			    struct ib_device *ib_dev,
 			    const char __user *buf, int in_len,
 			    int out_len)
 {
@@ -2085,7 +2094,6 @@ ssize_t ib_uverbs_modify_qp(struct ib_uverbs_file *file,
 }
 
 int ib_uverbs_ex_modify_qp(struct ib_uverbs_file *file,
-			   struct ib_device *ib_dev,
 			   struct ib_udata *ucore,
 			   struct ib_udata *uhw)
 {
@@ -2121,7 +2129,6 @@ int ib_uverbs_ex_modify_qp(struct ib_uverbs_file *file,
 }
 
 ssize_t ib_uverbs_destroy_qp(struct ib_uverbs_file *file,
-			     struct ib_device *ib_dev,
 			     const char __user *buf, int in_len,
 			     int out_len)
 {
@@ -2160,7 +2167,6 @@ static void *alloc_wr(size_t wr_size, __u32 num_sge)
 }
 
 ssize_t ib_uverbs_post_send(struct ib_uverbs_file *file,
-			    struct ib_device *ib_dev,
 			    const char __user *buf, int in_len,
 			    int out_len)
 {
@@ -2441,7 +2447,6 @@ err:
 }
 
 ssize_t ib_uverbs_post_recv(struct ib_uverbs_file *file,
-			    struct ib_device *ib_dev,
 			    const char __user *buf, int in_len,
 			    int out_len)
 {
@@ -2491,7 +2496,6 @@ out:
 }
 
 ssize_t ib_uverbs_post_srq_recv(struct ib_uverbs_file *file,
-				struct ib_device *ib_dev,
 				const char __user *buf, int in_len,
 				int out_len)
 {
@@ -2542,7 +2546,6 @@ out:
 }
 
 ssize_t ib_uverbs_create_ah(struct ib_uverbs_file *file,
-			    struct ib_device *ib_dev,
 			    const char __user *buf, int in_len,
 			    int out_len)
 {
@@ -2554,6 +2557,7 @@ ssize_t ib_uverbs_create_ah(struct ib_uverbs_file *file,
 	struct rdma_ah_attr		attr = {};
 	int ret;
 	struct ib_udata                   udata;
+	struct ib_device *ib_dev;
 
 	if (out_len < sizeof resp)
 		return -ENOSPC;
@@ -2561,17 +2565,19 @@ ssize_t ib_uverbs_create_ah(struct ib_uverbs_file *file,
 	if (copy_from_user(&cmd, buf, sizeof cmd))
 		return -EFAULT;
 
-	if (!rdma_is_port_valid(ib_dev, cmd.attr.port_num))
-		return -EINVAL;
-
 	ib_uverbs_init_udata(&udata, buf + sizeof(cmd),
 		   u64_to_user_ptr(cmd.response) + sizeof(resp),
 		   in_len - sizeof(cmd) - sizeof(struct ib_uverbs_cmd_hdr),
 		   out_len - sizeof(resp));
 
-	uobj = uobj_alloc(UVERBS_OBJECT_AH, file);
+	uobj = uobj_alloc(UVERBS_OBJECT_AH, file, &ib_dev);
 	if (IS_ERR(uobj))
 		return PTR_ERR(uobj);
+
+	if (!rdma_is_port_valid(ib_dev, cmd.attr.port_num)) {
+		ret = -EINVAL;
+		goto err;
+	}
 
 	pd = uobj_get_obj_read(pd, UVERBS_OBJECT_PD, cmd.pd_handle, file);
 	if (!pd) {
@@ -2629,7 +2635,6 @@ err:
 }
 
 ssize_t ib_uverbs_destroy_ah(struct ib_uverbs_file *file,
-			     struct ib_device *ib_dev,
 			     const char __user *buf, int in_len, int out_len)
 {
 	struct ib_uverbs_destroy_ah cmd;
@@ -2642,7 +2647,6 @@ ssize_t ib_uverbs_destroy_ah(struct ib_uverbs_file *file,
 }
 
 ssize_t ib_uverbs_attach_mcast(struct ib_uverbs_file *file,
-			       struct ib_device *ib_dev,
 			       const char __user *buf, int in_len,
 			       int out_len)
 {
@@ -2692,7 +2696,6 @@ out_put:
 }
 
 ssize_t ib_uverbs_detach_mcast(struct ib_uverbs_file *file,
-			       struct ib_device *ib_dev,
 			       const char __user *buf, int in_len,
 			       int out_len)
 {
@@ -3061,7 +3064,6 @@ static int kern_spec_to_ib_spec(struct ib_uverbs_file *ufile,
 }
 
 int ib_uverbs_ex_create_wq(struct ib_uverbs_file *file,
-			   struct ib_device *ib_dev,
 			   struct ib_udata *ucore,
 			   struct ib_udata *uhw)
 {
@@ -3075,6 +3077,7 @@ int ib_uverbs_ex_create_wq(struct ib_uverbs_file *file,
 	struct ib_wq_init_attr wq_init_attr = {};
 	size_t required_cmd_sz;
 	size_t required_resp_len;
+	struct ib_device *ib_dev;
 
 	required_cmd_sz = offsetof(typeof(cmd), max_sge) + sizeof(cmd.max_sge);
 	required_resp_len = offsetof(typeof(resp), wqn) + sizeof(resp.wqn);
@@ -3097,7 +3100,8 @@ int ib_uverbs_ex_create_wq(struct ib_uverbs_file *file,
 	if (cmd.comp_mask)
 		return -EOPNOTSUPP;
 
-	obj = (struct ib_uwq_object *)uobj_alloc(UVERBS_OBJECT_WQ, file);
+	obj = (struct ib_uwq_object *)uobj_alloc(UVERBS_OBJECT_WQ, file,
+						 &ib_dev);
 	if (IS_ERR(obj))
 		return PTR_ERR(obj);
 
@@ -3176,7 +3180,6 @@ err_uobj:
 }
 
 int ib_uverbs_ex_destroy_wq(struct ib_uverbs_file *file,
-			    struct ib_device *ib_dev,
 			    struct ib_udata *ucore,
 			    struct ib_udata *uhw)
 {
@@ -3223,7 +3226,6 @@ int ib_uverbs_ex_destroy_wq(struct ib_uverbs_file *file,
 }
 
 int ib_uverbs_ex_modify_wq(struct ib_uverbs_file *file,
-			   struct ib_device *ib_dev,
 			   struct ib_udata *ucore,
 			   struct ib_udata *uhw)
 {
@@ -3273,7 +3275,6 @@ out:
 }
 
 int ib_uverbs_ex_create_rwq_ind_table(struct ib_uverbs_file *file,
-				      struct ib_device *ib_dev,
 				      struct ib_udata *ucore,
 				      struct ib_udata *uhw)
 {
@@ -3291,6 +3292,7 @@ int ib_uverbs_ex_create_rwq_ind_table(struct ib_uverbs_file *file,
 	u32 expected_in_size;
 	size_t required_cmd_sz_header;
 	size_t required_resp_len;
+	struct ib_device *ib_dev;
 
 	required_cmd_sz_header = offsetof(typeof(cmd), log_ind_tbl_size) + sizeof(cmd.log_ind_tbl_size);
 	required_resp_len = offsetof(typeof(resp), ind_tbl_num) + sizeof(resp.ind_tbl_num);
@@ -3356,7 +3358,7 @@ int ib_uverbs_ex_create_rwq_ind_table(struct ib_uverbs_file *file,
 		wqs[num_read_wqs] = wq;
 	}
 
-	uobj = uobj_alloc(UVERBS_OBJECT_RWQ_IND_TBL, file);
+	uobj = uobj_alloc(UVERBS_OBJECT_RWQ_IND_TBL, file, &ib_dev);
 	if (IS_ERR(uobj)) {
 		err = PTR_ERR(uobj);
 		goto put_wqs;
@@ -3416,7 +3418,6 @@ err_free:
 }
 
 int ib_uverbs_ex_destroy_rwq_ind_table(struct ib_uverbs_file *file,
-				       struct ib_device *ib_dev,
 				       struct ib_udata *ucore,
 				       struct ib_udata *uhw)
 {
@@ -3446,7 +3447,6 @@ int ib_uverbs_ex_destroy_rwq_ind_table(struct ib_uverbs_file *file,
 }
 
 int ib_uverbs_ex_create_flow(struct ib_uverbs_file *file,
-			     struct ib_device *ib_dev,
 			     struct ib_udata *ucore,
 			     struct ib_udata *uhw)
 {
@@ -3463,6 +3463,7 @@ int ib_uverbs_ex_create_flow(struct ib_uverbs_file *file,
 	int err = 0;
 	void *ib_spec;
 	int i;
+	struct ib_device *ib_dev;
 
 	if (ucore->inlen < sizeof(cmd))
 		return -EINVAL;
@@ -3518,7 +3519,7 @@ int ib_uverbs_ex_create_flow(struct ib_uverbs_file *file,
 		kern_flow_attr = &cmd.flow_attr;
 	}
 
-	uobj = uobj_alloc(UVERBS_OBJECT_FLOW, file);
+	uobj = uobj_alloc(UVERBS_OBJECT_FLOW, file, &ib_dev);
 	if (IS_ERR(uobj)) {
 		err = PTR_ERR(uobj);
 		goto err_free_attr;
@@ -3630,7 +3631,6 @@ err_free_attr:
 }
 
 int ib_uverbs_ex_destroy_flow(struct ib_uverbs_file *file,
-			      struct ib_device *ib_dev,
 			      struct ib_udata *ucore,
 			      struct ib_udata *uhw)
 {
@@ -3652,7 +3652,6 @@ int ib_uverbs_ex_destroy_flow(struct ib_uverbs_file *file,
 }
 
 static int __uverbs_create_xsrq(struct ib_uverbs_file *file,
-				struct ib_device *ib_dev,
 				struct ib_uverbs_create_xsrq *cmd,
 				struct ib_udata *udata)
 {
@@ -3663,8 +3662,10 @@ static int __uverbs_create_xsrq(struct ib_uverbs_file *file,
 	struct ib_uobject               *uninitialized_var(xrcd_uobj);
 	struct ib_srq_init_attr          attr;
 	int ret;
+	struct ib_device *ib_dev;
 
-	obj = (struct ib_usrq_object *)uobj_alloc(UVERBS_OBJECT_SRQ, file);
+	obj = (struct ib_usrq_object *)uobj_alloc(UVERBS_OBJECT_SRQ, file,
+						  &ib_dev);
 	if (IS_ERR(obj))
 		return PTR_ERR(obj);
 
@@ -3787,7 +3788,6 @@ err:
 }
 
 ssize_t ib_uverbs_create_srq(struct ib_uverbs_file *file,
-			     struct ib_device *ib_dev,
 			     const char __user *buf, int in_len,
 			     int out_len)
 {
@@ -3817,7 +3817,7 @@ ssize_t ib_uverbs_create_srq(struct ib_uverbs_file *file,
 		   in_len - sizeof(cmd) - sizeof(struct ib_uverbs_cmd_hdr),
 		   out_len - sizeof(resp));
 
-	ret = __uverbs_create_xsrq(file, ib_dev, &xcmd, &udata);
+	ret = __uverbs_create_xsrq(file, &xcmd, &udata);
 	if (ret)
 		return ret;
 
@@ -3825,7 +3825,6 @@ ssize_t ib_uverbs_create_srq(struct ib_uverbs_file *file,
 }
 
 ssize_t ib_uverbs_create_xsrq(struct ib_uverbs_file *file,
-			      struct ib_device *ib_dev,
 			      const char __user *buf, int in_len, int out_len)
 {
 	struct ib_uverbs_create_xsrq     cmd;
@@ -3844,7 +3843,7 @@ ssize_t ib_uverbs_create_xsrq(struct ib_uverbs_file *file,
 		   in_len - sizeof(cmd) - sizeof(struct ib_uverbs_cmd_hdr),
 		   out_len - sizeof(resp));
 
-	ret = __uverbs_create_xsrq(file, ib_dev, &cmd, &udata);
+	ret = __uverbs_create_xsrq(file, &cmd, &udata);
 	if (ret)
 		return ret;
 
@@ -3852,7 +3851,6 @@ ssize_t ib_uverbs_create_xsrq(struct ib_uverbs_file *file,
 }
 
 ssize_t ib_uverbs_modify_srq(struct ib_uverbs_file *file,
-			     struct ib_device *ib_dev,
 			     const char __user *buf, int in_len,
 			     int out_len)
 {
@@ -3883,7 +3881,6 @@ ssize_t ib_uverbs_modify_srq(struct ib_uverbs_file *file,
 }
 
 ssize_t ib_uverbs_query_srq(struct ib_uverbs_file *file,
-			    struct ib_device *ib_dev,
 			    const char __user *buf,
 			    int in_len, int out_len)
 {
@@ -3923,7 +3920,6 @@ ssize_t ib_uverbs_query_srq(struct ib_uverbs_file *file,
 }
 
 ssize_t ib_uverbs_destroy_srq(struct ib_uverbs_file *file,
-			      struct ib_device *ib_dev,
 			      const char __user *buf, int in_len,
 			      int out_len)
 {
@@ -3952,14 +3948,20 @@ ssize_t ib_uverbs_destroy_srq(struct ib_uverbs_file *file,
 }
 
 int ib_uverbs_ex_query_device(struct ib_uverbs_file *file,
-			      struct ib_device *ib_dev,
 			      struct ib_udata *ucore,
 			      struct ib_udata *uhw)
 {
 	struct ib_uverbs_ex_query_device_resp resp = { {0} };
 	struct ib_uverbs_ex_query_device  cmd;
 	struct ib_device_attr attr = {0};
+	struct ib_ucontext *ucontext;
+	struct ib_device *ib_dev;
 	int err;
+
+	ucontext = ib_uverbs_get_ucontext(file);
+	if (IS_ERR(ucontext))
+		return PTR_ERR(ucontext);
+	ib_dev = ucontext->device;
 
 	if (!ib_dev->query_device)
 		return -EOPNOTSUPP;
@@ -3986,7 +3988,7 @@ int ib_uverbs_ex_query_device(struct ib_uverbs_file *file,
 	if (err)
 		return err;
 
-	copy_query_dev_fields(file, ib_dev, &resp.base, &attr);
+	copy_query_dev_fields(ucontext, &resp.base, &attr);
 
 	if (ucore->outlen < resp.response_length + sizeof(resp.odp_caps))
 		goto end;
@@ -4073,7 +4075,6 @@ end:
 }
 
 int ib_uverbs_ex_modify_cq(struct ib_uverbs_file *file,
-			   struct ib_device *ib_dev,
 			   struct ib_udata *ucore,
 			   struct ib_udata *uhw)
 {
