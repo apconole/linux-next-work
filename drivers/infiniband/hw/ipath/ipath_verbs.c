@@ -1533,7 +1533,8 @@ static int ipath_query_device(struct ib_device *ibdev, struct ib_device_attr *pr
 	props->max_mr_size = ~0ull;
 	props->max_qp = ib_ipath_max_qps;
 	props->max_qp_wr = ib_ipath_max_qp_wrs;
-	props->max_sge = ib_ipath_max_sges;
+	props->max_send_sge = ib_ipath_max_sges;
+	props->max_recv_sge = ib_ipath_max_sges;
 	props->max_sge_rd = ib_ipath_max_sges;
 	props->max_cq = ib_ipath_max_cqs;
 	props->max_ah = ib_ipath_max_ahs;
