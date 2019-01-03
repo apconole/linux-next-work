@@ -333,7 +333,7 @@ static void ipath_copy_from_sge(void *data, struct ipath_sge_state *ss,
  * @qp: the QP to post on
  * @wr: the work request to send
  */
-static int ipath_post_one_send(struct ipath_qp *qp, struct ib_send_wr *wr)
+static int ipath_post_one_send(struct ipath_qp *qp, const struct ib_send_wr *wr)
 {
 	struct ipath_swqe *wqe;
 	u32 next;
@@ -455,8 +455,8 @@ bail:
  *
  * This may be called from interrupt context.
  */
-static int ipath_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
-			   struct ib_send_wr **bad_wr)
+static int ipath_post_send(struct ib_qp *ibqp, const struct ib_send_wr *wr,
+			   const struct ib_send_wr **bad_wr)
 {
 	struct ipath_qp *qp = to_iqp(ibqp);
 	int err = 0;
@@ -484,8 +484,8 @@ bail:
  *
  * This may be called from interrupt context.
  */
-static int ipath_post_receive(struct ib_qp *ibqp, struct ib_recv_wr *wr,
-			      struct ib_recv_wr **bad_wr)
+static int ipath_post_receive(struct ib_qp *ibqp, const struct ib_recv_wr *wr,
+			      const struct ib_recv_wr **bad_wr)
 {
 	struct ipath_qp *qp = to_iqp(ibqp);
 	struct ipath_rwq *wq = qp->r_rq.wq;
