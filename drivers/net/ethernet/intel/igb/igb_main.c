@@ -2499,12 +2499,7 @@ static int igb_offload_cbs(struct igb_adapter *adapter,
 /* RHEL 7: We don't have a struct netlink_ext_ack and so we don't have the
    tc_cls_common_offload::extack member (yet?) Fortunately this member is
    only used to store an error message here.  Override the usage for now. */
-#ifdef NL_SET_ERR_MSG_MOD
-#error "Remove NL_SET_ERR_MSG_MOD override"
-#else
 #define __rhel7_no_netlink_ext_ack
-#define NL_SET_ERR_MSG_MOD(_e,_m) netdev_err(adapter->netdev, (_m))
-#endif
 
 static int igb_parse_cls_flower(struct igb_adapter *adapter,
 				struct tc_cls_flower_offload *f,
