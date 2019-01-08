@@ -307,7 +307,7 @@
 #define __NR_s390_guarded_storage	378
 /* Number 379 is reserved for sys_statx */
 #define __NR_s390_sthyi		380
-#define NR_syscalls 382
+#define NR_syscalls 381
 
 /* 
  * There are some system calls that are not present on 64 bit, some
