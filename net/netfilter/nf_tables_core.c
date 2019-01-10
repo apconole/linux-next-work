@@ -52,10 +52,10 @@ static noinline void __nft_trace_packet(struct nft_traceinfo *info,
 
 	nft_trace_notify(info);
 
-	nf_log_trace(pkt->net, pkt->pf, pkt->hook, pkt->skb, pkt->in,
-		     pkt->out, &trace_loginfo, "TRACE: %s:%s:%s:%u ",
-		     chain->table->name, chain->name, comments[type],
-		     rulenum);
+	nf_log_trace(nft_net(pkt), nft_pf(pkt), nft_hook(pkt), pkt->skb,
+		     nft_in(pkt), nft_out(pkt), &trace_loginfo,
+		     "TRACE: %s:%s:%s:%u ",
+		     chain->table->name, chain->name, comments[type], rulenum);
 }
 
 static inline void nft_trace_packet(struct nft_traceinfo *info,
@@ -121,7 +121,7 @@ nft_do_chain(struct nft_pktinfo *pkt, const struct nf_hook_ops *ops)
 {
 	const struct nft_chain *chain = ops->priv, *basechain = chain;
 	const struct net *chain_net = read_pnet(&nft_base_chain(basechain)->pnet);
-	const struct net *net = pkt->net;
+	const struct net *net = nft_net(pkt);
 	const struct nft_rule *rule;
 	const struct nft_expr *expr, *last;
 	struct nft_regs regs;

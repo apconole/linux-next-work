@@ -14,19 +14,34 @@
 
 struct nft_pktinfo {
 	struct sk_buff			*skb;
-	struct net			*net;
-	const struct net_device		*in;
-	const struct net_device		*out;
-	u8				pf;
-	u8				hook;
 	u8				tprot;
 	/* for x_tables compatibility */
 	struct xt_action_param		xt;
 };
 
-static inline struct net *pkt_net(const struct nft_pktinfo *pkt)
+static inline struct net *nft_net(const struct nft_pktinfo *pkt)
 {
-	return dev_net(pkt->in ? pkt->in : pkt->out);
+	return pkt->xt.net;
+}
+
+static inline unsigned int nft_hook(const struct nft_pktinfo *pkt)
+{
+	return pkt->xt.hooknum;
+}
+
+static inline u8 nft_pf(const struct nft_pktinfo *pkt)
+{
+	return pkt->xt.family;
+}
+
+static inline const struct net_device *nft_in(const struct nft_pktinfo *pkt)
+{
+	return pkt->xt.in;
+}
+
+static inline const struct net_device *nft_out(const struct nft_pktinfo *pkt)
+{
+	return pkt->xt.out;
 }
 
 static inline void nft_set_pktinfo(struct nft_pktinfo *pkt,
@@ -34,11 +49,6 @@ static inline void nft_set_pktinfo(struct nft_pktinfo *pkt,
 				   const struct nf_hook_state *state)
 {
 	pkt->skb = skb;
-	pkt->net = pkt->xt.net = state->net;
-	pkt->in = pkt->xt.in = state->in;
-	pkt->out = pkt->xt.out = state->out;
-	pkt->hook = pkt->xt.hooknum = state->hook;
-	pkt->pf = pkt->xt.family = state->pf;
 }
 
 /**
