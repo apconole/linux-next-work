@@ -530,7 +530,7 @@ ovs_ct_expect_find(struct net *net, const struct nf_conntrack_zone *zone,
 	struct nf_conntrack_tuple tuple;
 	struct nf_conntrack_expect *exp;
 
-	if (!nf_ct_get_tuplepr(skb, skb_network_offset(skb), proto, &tuple))
+	if (!nf_ct_get_tuplepr(skb, skb_network_offset(skb), proto, net, &tuple))
 		return NULL;
 
 	exp = __nf_ct_expect_find(net, zone, &tuple);
@@ -608,7 +608,7 @@ ovs_ct_find_existing(struct net *net, const struct nf_conntrack_zone *zone,
 	}
 	l4proto = __nf_ct_l4proto_find(l3num, protonum);
 	if (!nf_ct_get_tuple(skb, skb_network_offset(skb), dataoff, l3num,
-			     protonum, &tuple, l3proto, l4proto)) {
+			     protonum, net, &tuple, l3proto, l4proto)) {
 		pr_debug("ovs_ct_find_existing: Can't get tuple\n");
 		return NULL;
 	}
