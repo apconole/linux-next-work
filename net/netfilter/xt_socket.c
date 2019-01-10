@@ -183,6 +183,9 @@ socket_match(const struct sk_buff *skb, struct xt_action_param *par,
 	}
 #endif
 
+	if (!net_eq(xt_net(par), sock_net(sk)))
+		sk = NULL;
+
 	if (!sk)
 		sk = xt_socket_get_sock_v4(par->net, protocol,
 					   saddr, daddr, sport, dport,
@@ -347,6 +350,9 @@ socket_mt6_v1_v2(const struct sk_buff *skb, struct xt_action_param *par)
 	} else {
 		return false;
 	}
+
+	if (!net_eq(xt_net(par), sock_net(sk)))
+		sk = NULL;
 
 	if (!sk)
 		sk = xt_socket_get_sock_v6(par->net, tproto,
