@@ -10,6 +10,8 @@
 #include <linux/wait.h>
 #include <linux/list.h>
 #include <linux/netfilter_defs.h>
+#include <linux/netdevice.h>
+#include <net/net_namespace.h>
 
 #ifdef CONFIG_NETFILTER
 static inline int NF_DROP_GETERR(int verdict)
@@ -179,6 +181,8 @@ static inline int nf_hook_thresh(u_int8_t pf, unsigned int hook,
 				 int (*okfn)(struct sock *, struct sk_buff *),
 				 int thresh)
 {
+	struct net *net = dev_net(indev ? indev : outdev);
+
 	if (nf_hooks_active(pf, hook)) {
 		struct nf_hook_state state;
 
