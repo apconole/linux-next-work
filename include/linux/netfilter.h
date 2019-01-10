@@ -9,7 +9,8 @@
 #include <linux/in6.h>
 #include <linux/wait.h>
 #include <linux/list.h>
-#include <uapi/linux/netfilter.h>
+#include <linux/netfilter_defs.h>
+
 #ifdef CONFIG_NETFILTER
 static inline int NF_DROP_GETERR(int verdict)
 {
@@ -36,9 +37,6 @@ static inline void nf_inet_addr_mask(const union nf_inet_addr *a1,
 }
 
 int netfilter_init(void);
-
-/* Largest hook number + 1 */
-#define NF_MAX_HOOKS 8
 
 struct sk_buff;
 
