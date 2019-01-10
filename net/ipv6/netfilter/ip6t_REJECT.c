@@ -40,7 +40,7 @@ static unsigned int
 reject_tg6(struct sk_buff *skb, const struct xt_action_param *par)
 {
 	const struct ip6t_reject_info *reject = par->targinfo;
-	struct net *net = dev_net((par->in != NULL) ? par->in : par->out);
+	struct net *net = par->net;
 
 	pr_debug("%s: medium point\n", __func__);
 	switch (reject->with) {
