@@ -424,7 +424,7 @@ tproxy_handle_time_wait6(struct sk_buff *skb, int tproto, int thoff,
 		 * to a listener socket if there's one */
 		struct sock *sk2;
 
-		sk2 = nf_tproxy_get_sock_v6(par->net, tproto,
+		sk2 = nf_tproxy_get_sock_v6(xt_net(par), tproto,
 					    &iph->saddr,
 					    tproxy_laddr6(skb, &tgi->laddr.in6, &iph->daddr),
 					    hp->source,
@@ -468,10 +468,10 @@ tproxy_tg6_v1(struct sk_buff *skb, const struct xt_action_param *par)
 	 * addresses, this happens if the redirect already happened
 	 * and the current packet belongs to an already established
 	 * connection */
-	sk = nf_tproxy_get_sock_v6(par->net, tproto,
+	sk = nf_tproxy_get_sock_v6(xt_net(par), tproto,
 				   &iph->saddr, &iph->daddr,
 				   hp->source, hp->dest,
-				   par->in, NFT_LOOKUP_ESTABLISHED);
+				   xt_in(par), NFT_LOOKUP_ESTABLISHED);
 
 	laddr = tproxy_laddr6(skb, &tgi->laddr.in6, &iph->daddr);
 	lport = tgi->lport ? tgi->lport : hp->dest;
@@ -483,10 +483,10 @@ tproxy_tg6_v1(struct sk_buff *skb, const struct xt_action_param *par)
 	else if (!sk)
 		/* no there's no established connection, check if
 		 * there's a listener on the redirected addr/port */
-		sk = nf_tproxy_get_sock_v6(par->net, tproto,
+		sk = nf_tproxy_get_sock_v6(xt_net(par), tproto,
 					   &iph->saddr, laddr,
 					   hp->source, lport,
-					   par->in, NFT_LOOKUP_LISTENER);
+					   xt_in(par), NFT_LOOKUP_LISTENER);
 
 	/* NOTE: assign_sock consumes our sk reference */
 	if (sk && tproxy_sk_is_transparent(sk)) {

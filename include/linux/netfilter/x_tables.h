@@ -44,6 +44,41 @@ struct xt_action_param {
 	RH_KABI_EXTEND(struct net *net)
 };
 
+static inline struct net *xt_net(const struct xt_action_param *par)
+{
+	return par->net;
+}
+
+static inline const struct net_device *xt_in(const struct xt_action_param *par)
+{
+	return par->in;
+}
+
+static inline const char *xt_inname(const struct xt_action_param *par)
+{
+	return par->in->name;
+}
+
+static inline const struct net_device *xt_out(const struct xt_action_param *par)
+{
+	return par->out;
+}
+
+static inline const char *xt_outname(const struct xt_action_param *par)
+{
+	return par->out->name;
+}
+
+static inline unsigned int xt_hooknum(const struct xt_action_param *par)
+{
+	return par->hooknum;
+}
+
+static inline u_int8_t xt_family(const struct xt_action_param *par)
+{
+	return par->family;
+}
+
 /**
  * struct xt_mtchk_param - parameters for match extensions'
  * checkentry functions
