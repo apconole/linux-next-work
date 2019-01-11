@@ -1805,19 +1805,6 @@ int security_change_sid(u32 ssid,
 				    out_sid, false);
 }
 
-/* Clone the SID into the new SID table. */
-static int clone_sid(u32 sid,
-		     struct context *context,
-		     void *arg)
-{
-	struct sidtab *s = arg;
-
-	if (sid > SECINITSID_NUM)
-		return sidtab_insert(s, sid, context);
-	else
-		return 0;
-}
-
 static inline int convert_context_handle_invalid_context(struct context *context)
 {
 	char *s;
@@ -2098,20 +2085,13 @@ int security_load_policy(void *data, size_t len)
 		goto err;
 	}
 
-	/* Clone the SID table. */
-	sidtab_shutdown(&sidtab);
-
-	rc = sidtab_map(&sidtab, clone_sid, &newsidtab);
-	if (rc)
-		goto err;
-
 	/*
 	 * Convert the internal representations of contexts
 	 * in the new SID table.
 	 */
 	args.oldp = &policydb;
 	args.newp = newpolicydb;
-	rc = sidtab_map(&newsidtab, convert_context, &args);
+	rc = sidtab_convert(&sidtab, &newsidtab, convert_context, &args);
 	if (rc) {
 		printk(KERN_ERR "SELinux:  unable to convert the internal"
 			" representation of contexts in the new SID"
