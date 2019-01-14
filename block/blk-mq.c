@@ -2916,6 +2916,9 @@ int blk_mq_alloc_tag_set(struct blk_mq_tag_set *set)
 	if (set->nr_hw_queues > nr_cpu_ids)
 		set->nr_hw_queues = nr_cpu_ids;
 
+	/* make rq_aux() natual aligned */
+	set->cmd_size = round_up(set->cmd_size, sizeof(unsigned long));
+
 	set->tags = kzalloc_node(nr_cpu_ids * sizeof(struct blk_mq_tags *),
 				 GFP_KERNEL, set->numa_node);
 	if (!set->tags)
