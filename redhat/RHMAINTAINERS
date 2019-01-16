@@ -295,7 +295,7 @@ S:	Maintained
 F:	fs/direct-io.c
 
 Disk Array driver for HP Smart Array SAS controllers (hpsa)
-M:	Tomas Henzl <thenzl@redhat.com>
+M:	Joseph Szczypek <jszczype@redhat.com>
 S:	Maintained
 F:	drivers/scsi/hpsa*
 
