@@ -67,14 +67,14 @@ void __init efi_bgrt_init(void)
 		return;
 	}
 
-	image = ioremap(bgrt_tab->image_address, sizeof(bmp_header));
+	image = early_memremap(bgrt_tab->image_address, sizeof(bmp_header));
 	if (!image) {
 		pr_notice("Ignoring BGRT: failed to map image header memory\n");
 		return;
 	}
 
 	memcpy(&bmp_header, image, sizeof(bmp_header));
-	iounmap(image);
+	early_memunmap(image, sizeof(bmp_header));
 	if (bmp_header.id != 0x4d42) {
 		pr_notice("Ignoring BGRT: Incorrect BMP magic number 0x%x (expected 0x4d42)\n",
 			bmp_header.id);
@@ -89,7 +89,7 @@ void __init efi_bgrt_init(void)
 		return;
 	}
 
-	image = ioremap(bgrt_tab->image_address, bmp_header.size);
+	image = early_memremap(bgrt_tab->image_address, bmp_header.size);
 	if (!image) {
 		pr_notice("Ignoring BGRT: failed to map image memory\n");
 		kfree(bgrt_image);
@@ -98,5 +98,5 @@ void __init efi_bgrt_init(void)
 	}
 
 	memcpy(bgrt_image, image, bgrt_image_size);
-	iounmap(image);
+	early_memunmap(image, bmp_header.size);
 }
