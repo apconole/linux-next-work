@@ -5538,7 +5538,7 @@ xfs_bmse_shift_one(
 
 	mp = ip->i_mount;
 	ifp = XFS_IFORK_PTR(ip, whichfork);
-	total_extents = ifp->if_bytes / sizeof(xfs_bmbt_rec_t);
+	total_extents = xfs_iext_count(ifp);
 
 	xfs_bmbt_get_all(gotp, &got);
 
@@ -5700,7 +5700,7 @@ xfs_bmap_shift_extents(
 	 * are collapsing out, so we cannot use the count of real extents here.
 	 * Instead we have to calculate it from the incore fork.
 	 */
-	total_extents = ifp->if_bytes / sizeof(xfs_bmbt_rec_t);
+	total_extents = xfs_iext_count(ifp);
 	if (total_extents == 0) {
 		*done = 1;
 		goto del_cursor;
@@ -5755,13 +5755,12 @@ xfs_bmap_shift_extents(
 					   direction);
 		if (error)
 			goto del_cursor;
-
 		/*
 		 * If there was an extent merge during the shift, the extent
 		 * count can change. Update the total and grade the next record.
 		 */
 		if (direction == SHIFT_LEFT) {
-			total_extents = ifp->if_bytes / sizeof(xfs_bmbt_rec_t);
+			total_extents = xfs_iext_count(ifp);
 			stop_extent = total_extents;
 		}
 
@@ -5945,7 +5944,7 @@ xfs_bmap_split_extent(
 	int                     error;
 
 	error = xfs_trans_alloc(mp, &M_RES(mp)->tr_write,
-				XFS_DIOSTRAT_SPACE_RES(mp, 0), 0, 0, &tp);
+			XFS_DIOSTRAT_SPACE_RES(mp, 0), 0, 0, &tp);
 	if (error)
 		return error;
 
