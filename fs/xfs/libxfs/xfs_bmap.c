@@ -915,8 +915,7 @@ xfs_bmap_local_to_extents(
 	rec.br_state = XFS_EXT_NORM;
 	xfs_iext_insert(ip, 0, 1, &rec, 0);
 
-	trace_xfs_bmap_post_update(ip, 0,
-			whichfork == XFS_ATTR_FORK ? BMAP_ATTRFORK : 0,
+	trace_xfs_bmap_post_update(ip, 0, xfs_bmap_fork_to_state(whichfork),
 			_THIS_IP_);
 	XFS_IFORK_NEXT_SET(ip, whichfork, 1);
 	ip->i_d.di_nblocks = 1;
@@ -1560,12 +1559,12 @@ xfs_bmap_add_extent_delay_real(
 	xfs_bmbt_irec_t		r[3];	/* neighbor extent entries */
 					/* left is 0, right is 1, prev is 2 */
 	int			rval=0;	/* return value (logging flags) */
-	int			state = 0;/* state bits, accessed thru macros */
+	int			whichfork = XFS_DATA_FORK;
+	int			state = xfs_bmap_fork_to_state(whichfork);
 	xfs_filblks_t		da_new; /* new count del alloc blocks used */
 	xfs_filblks_t		da_old; /* old count del alloc blocks used */
 	xfs_filblks_t		temp=0;	/* value for da_new calculations */
 	int			tmp_rval;	/* partial logging flags */
-	int			whichfork = XFS_DATA_FORK;
 	struct xfs_mount	*mp;
 	struct xfs_bmbt_irec	old;
 
@@ -2085,7 +2084,7 @@ xfs_bmap_add_extent_unwritten_real(
 	xfs_bmbt_irec_t		r[3];	/* neighbor extent entries */
 					/* left is 0, right is 1, prev is 2 */
 	int			rval=0;	/* return value (logging flags) */
-	int			state = 0;/* state bits, accessed thru macros */
+	int			state = xfs_bmap_fork_to_state(whichfork);
 	struct xfs_mount	*mp = ip->i_mount;
 	struct xfs_bmbt_irec	old;
 
@@ -2570,11 +2569,10 @@ xfs_bmap_add_extent_hole_delay(
 	xfs_filblks_t		newlen=0;	/* new indirect size */
 	xfs_filblks_t		oldlen=0;	/* old indirect size */
 	xfs_bmbt_irec_t		right;	/* right neighbor extent entry */
-	int			state;  /* state bits, accessed thru macros */
+	int			state = xfs_bmap_fork_to_state(XFS_DATA_FORK);
 	xfs_filblks_t		temp;	 /* temp for indirect calculations */
 
 	ifp = XFS_IFORK_PTR(ip, XFS_DATA_FORK);
-	state = 0;
 	ASSERT(isnullstartblock(new->br_startblock));
 
 	/*
@@ -2727,7 +2725,7 @@ xfs_bmap_add_extent_hole_real(
 	xfs_bmbt_irec_t		left;	/* left neighbor extent entry */
 	xfs_bmbt_irec_t		right;	/* right neighbor extent entry */
 	int			rval=0;	/* return value (logging flags) */
-	int			state;	/* state bits, accessed thru macros */
+	int			state = xfs_bmap_fork_to_state(whichfork);
 	struct xfs_bmbt_irec	old;
 
 	ASSERT(*idx >= 0);
@@ -2736,10 +2734,6 @@ xfs_bmap_add_extent_hole_real(
 	ASSERT(!cur || !(cur->bc_private.b.flags & XFS_BTCUR_BPRV_WASDEL));
 
 	XFS_STATS_INC(mp, xs_add_exlist);
-
-	state = 0;
-	if (whichfork == XFS_ATTR_FORK)
-		state |= BMAP_ATTRFORK;
 
 	/*
 	 * Check and set flags if this segment has a left neighbor.
@@ -4578,7 +4572,8 @@ xfs_bmap_del_extent_delay(
 	int64_t			da_old, da_new, da_diff = 0;
 	xfs_fileoff_t		del_endoff, got_endoff;
 	xfs_filblks_t		got_indlen, new_indlen, stolen;
-	int			error = 0, state = 0;
+	int			state = xfs_bmap_fork_to_state(whichfork);
+	int			error = 0;
 	bool			isrt;
 
 	XFS_STATS_INC(mp, xs_del_exlist);
@@ -4725,14 +4720,11 @@ xfs_bmap_del_extent_real(
 	xfs_bmbt_irec_t		new;	/* new record to be inserted */
 	/* REFERENCED */
 	uint			qfield;	/* quota field to update */
-	int			state = 0;
+	int			state = xfs_bmap_fork_to_state(whichfork);
 	struct xfs_bmbt_irec	old;
 
 	mp = ip->i_mount;
 	XFS_STATS_INC(mp, xs_del_exlist);
-
-	if (whichfork == XFS_ATTR_FORK)
-		state |= BMAP_ATTRFORK;
 
 	ifp = XFS_IFORK_PTR(ip, whichfork);
 	ASSERT((*idx >= 0) && (*idx < xfs_iext_count(ifp)));

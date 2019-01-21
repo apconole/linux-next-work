@@ -214,4 +214,14 @@ int	xfs_bmapi_reserve_delalloc(struct xfs_inode *ip, xfs_fileoff_t off,
 		xfs_filblks_t len, xfs_filblks_t prealloc,
 		struct xfs_bmbt_irec *got, xfs_extnum_t *lastx, int eof);
 
+static inline int xfs_bmap_fork_to_state(int whichfork)
+{
+	switch (whichfork) {
+	case XFS_ATTR_FORK:
+		return BMAP_ATTRFORK;
+	default:
+		return 0;
+	}
+}
+
 #endif	/* __XFS_BMAP_H__ */
