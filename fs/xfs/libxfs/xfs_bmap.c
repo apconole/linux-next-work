@@ -4719,19 +4719,19 @@ xfs_bmap_del_extent_delay(
 	ip->i_delayed_blks -= del->br_blockcount;
 
 	if (got->br_startoff == del->br_startoff)
-		state |= BMAP_LEFT_CONTIG;
+		state |= BMAP_LEFT_FILLING;
 	if (got_endoff == del_endoff)
-		state |= BMAP_RIGHT_CONTIG;
+		state |= BMAP_RIGHT_FILLING;
 
-	switch (state & (BMAP_LEFT_CONTIG | BMAP_RIGHT_CONTIG)) {
-	case BMAP_LEFT_CONTIG | BMAP_RIGHT_CONTIG:
+	switch (state & (BMAP_LEFT_FILLING | BMAP_RIGHT_FILLING)) {
+	case BMAP_LEFT_FILLING | BMAP_RIGHT_FILLING:
 		/*
 		 * Matches the whole extent.  Delete the entry.
 		 */
 		xfs_iext_remove(ip, *idx, 1, state);
 		--*idx;
 		break;
-	case BMAP_LEFT_CONTIG:
+	case BMAP_LEFT_FILLING:
 		/*
 		 * Deleting the first part of the extent.
 		 */
@@ -4744,7 +4744,7 @@ xfs_bmap_del_extent_delay(
 		xfs_iext_update_extent(ifp, *idx, got);
 		trace_xfs_bmap_post_update(ip, *idx, state, _THIS_IP_);
 		break;
-	case BMAP_RIGHT_CONTIG:
+	case BMAP_RIGHT_FILLING:
 		/*
 		 * Deleting the last part of the extent.
 		 */
