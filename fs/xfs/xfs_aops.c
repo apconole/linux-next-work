@@ -729,6 +729,14 @@ xfs_vm_invalidatepage(
 {
 	trace_xfs_invalidatepage(page->mapping->host, page, offset,
 				 length);
+
+	/*
+	 * If we are invalidating the entire page, clear the dirty state from it
+	 * so that we can check for attempts to release dirty cached pages in
+	 * xfs_vm_releasepage().
+	 */
+	if (offset == 0 && length >= PAGE_SIZE)
+		cancel_dirty_page(page, PAGE_CACHE_SIZE);
 	block_invalidatepage_range(page, offset, length);
 }
 
@@ -1138,12 +1146,17 @@ xfs_vm_releasepage(
 	 * mm accommodates an old ext3 case where clean pages might not have had
 	 * the dirty bit cleared. Thus, it can send actual dirty pages to
 	 * ->releasepage() via shrink_active_list(). Conversely,
-	 * block_invalidatepage() can send pages that are still marked dirty
-	 * but otherwise have invalidated buffers.
+	 * block_invalidatepage() can send pages that are still marked dirty but
+	 * otherwise have invalidated buffers.
 	 *
-	 * We've historically freed buffers on the latter. Instead, quietly
-	 * filter out all dirty pages to avoid spurious buffer state warnings.
-	 * This can likely be removed once shrink_active_list() is fixed.
+	 * We want to release the latter to avoid unnecessary buildup of the
+	 * LRU, so xfs_vm_invalidatepage() clears the page dirty flag on pages
+	 * that are entirely invalidated and need to be released.  Hence the
+	 * only time we should get dirty pages here is through
+	 * shrink_active_list() and so we can simply skip those now.
+	 *
+	 * warn if we've left any lingering delalloc/unwritten buffers on clean
+	 * or invalidated pages we are about to release.
 	 *
 	 * RHEL7: Actually, XFS and the buffered write mechanism in RHEL can
 	 * also result in dirty pages with clean buffers in the event of a write
