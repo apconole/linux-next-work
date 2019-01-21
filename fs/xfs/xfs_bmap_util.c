@@ -406,11 +406,11 @@ static int
 xfs_getbmap_report_one(
 	struct xfs_inode	*ip,
 	struct getbmapx		*bmv,
-	struct getbmapx		*out,
+	struct kgetbmap		*out,
 	int64_t			bmv_end,
 	struct xfs_bmbt_irec	*got)
 {
-	struct getbmapx		*p = out + bmv->bmv_entries;
+	struct kgetbmap		*p = out + bmv->bmv_entries;
 
 	if (isnullstartblock(got->br_startblock) ||
 	    got->br_startblock == DELAYSTARTBLOCK) {
@@ -448,12 +448,12 @@ static void
 xfs_getbmap_report_hole(
 	struct xfs_inode	*ip,
 	struct getbmapx		*bmv,
-	struct getbmapx		*out,
+	struct kgetbmap		*out,
 	int64_t			bmv_end,
 	xfs_fileoff_t		bno,
 	xfs_fileoff_t		end)
 {
-	struct getbmapx		*p = out + bmv->bmv_entries;
+	struct kgetbmap		*p = out + bmv->bmv_entries;
 
 	if (bmv->bmv_iflags & BMV_IF_NO_HOLES)
 		return;
@@ -501,37 +501,28 @@ xfs_getbmap_next_rec(
  */
 int						/* error code */
 xfs_getbmap(
-	xfs_inode_t		*ip,
+	struct xfs_inode	*ip,
 	struct getbmapx		*bmv,		/* user bmap structure */
-	xfs_bmap_format_t	formatter,	/* format to user */
-	void			*arg)		/* formatter arg */
+	struct kgetbmap		*out)
 {
 	struct xfs_mount	*mp = ip->i_mount;
 	int			iflags = bmv->bmv_iflags;
-	int			whichfork, lock, i, error = 0;
+	int			whichfork, lock, error = 0;
 	int64_t			bmv_end, max_len;
 	xfs_fileoff_t		bno, first_bno;
 	struct xfs_ifork	*ifp;
-	struct getbmapx		*out;
 	struct xfs_bmbt_irec	got, rec;
 	xfs_filblks_t		len;
 	xfs_extnum_t		idx;
 
-	if (bmv->bmv_count <= 1)
+	if (bmv->bmv_iflags & ~BMV_IF_VALID)
 		return -EINVAL;
-	if (bmv->bmv_count > ULONG_MAX / sizeof(struct getbmapx))
-		return -ENOMEM;
 
 	if (bmv->bmv_length < -1)
 		return -EINVAL;
-
 	bmv->bmv_entries = 0;
 	if (bmv->bmv_length == 0)
 		return 0;
-
-	out = kmem_zalloc_large(bmv->bmv_count * sizeof(struct getbmapx), 0);
-	if (!out)
-		return -ENOMEM;
 
 	if (iflags & BMV_IF_ATTRFORK)
 		whichfork = XFS_ATTR_FORK;
@@ -664,15 +655,6 @@ out_unlock_ilock:
 	xfs_iunlock(ip, lock);
 out_unlock_iolock:
 	xfs_iunlock(ip, XFS_IOLOCK_SHARED);
-
-	for (i = 0; i < bmv->bmv_entries; i++) {
-		/* format results & advance arg */
-		error = formatter(&arg, &out[i]);
-		if (error)
-			break;
-	}
-
-	kmem_free(out);
 	return error;
 }
 
