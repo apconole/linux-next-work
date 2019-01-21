@@ -271,7 +271,7 @@ DECLARE_EVENT_CLASS(xfs_bmap_class,
 						ip->i_afp : &ip->i_df;
 		struct xfs_bmbt_irec	r;
 
-		xfs_bmbt_get_all(xfs_iext_get_ext(ifp, idx), &r);
+		xfs_iext_get_extent(ifp, idx, &r);
 		__entry->dev = VFS_I(ip)->i_sb->s_dev;
 		__entry->ino = ip->i_ino;
 		__entry->idx = idx;
