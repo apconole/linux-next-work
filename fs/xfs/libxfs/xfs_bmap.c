@@ -4588,12 +4588,12 @@ xfs_bmap_del_extent_delay(
 						       del->br_blockcount);
 
 		got->br_startblock = nullstartblock((int)got_indlen);
-		xfs_iext_update_extent(ip, state, *idx, got);
 
 		new.br_startoff = del_endoff;
 		new.br_state = got->br_state;
 		new.br_startblock = nullstartblock((int)new_indlen);
 
+		xfs_iext_update_extent(ip, state, *idx, got);
 		++*idx;
 		xfs_iext_insert(ip, *idx, 1, &new, state);
 
@@ -4819,8 +4819,8 @@ xfs_bmap_del_extent_real(
 			flags |= xfs_ilog_fext(whichfork);
 		XFS_IFORK_NEXT_SET(ip, whichfork,
 			XFS_IFORK_NEXTENTS(ip, whichfork) + 1);
-		xfs_iext_insert(ip, *idx + 1, 1, &new, state);
 		++*idx;
+		xfs_iext_insert(ip, *idx, 1, &new, state);
 		break;
 	}
 	/*
