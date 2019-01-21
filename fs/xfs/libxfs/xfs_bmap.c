@@ -4670,6 +4670,138 @@ xfs_bmap_split_indlen(
 	return stolen;
 }
 
+int
+xfs_bmap_del_extent_delay(
+	struct xfs_inode	*ip,
+	int			whichfork,
+	xfs_extnum_t		*idx,
+	struct xfs_bmbt_irec	*got,
+	struct xfs_bmbt_irec	*del)
+{
+	struct xfs_mount	*mp = ip->i_mount;
+	struct xfs_ifork	*ifp = XFS_IFORK_PTR(ip, whichfork);
+	struct xfs_bmbt_irec	new;
+	int64_t			da_old, da_new, da_diff = 0;
+	xfs_fileoff_t		del_endoff, got_endoff;
+	xfs_filblks_t		got_indlen, new_indlen, stolen;
+	int			error = 0, state = 0;
+	bool			isrt;
+
+	XFS_STATS_INC(mp, xs_del_exlist);
+
+	isrt = (whichfork == XFS_DATA_FORK) && XFS_IS_REALTIME_INODE(ip);
+	del_endoff = del->br_startoff + del->br_blockcount;
+	got_endoff = got->br_startoff + got->br_blockcount;
+	da_old = startblockval(got->br_startblock);
+	da_new = 0;
+
+	ASSERT(*idx >= 0);
+	ASSERT(*idx < ifp->if_bytes / sizeof(struct xfs_bmbt_rec));
+	ASSERT(del->br_blockcount > 0);
+	ASSERT(got->br_startoff <= del->br_startoff);
+	ASSERT(got_endoff >= del_endoff);
+
+	if (isrt) {
+		int64_t rtexts = XFS_FSB_TO_B(mp, del->br_blockcount);
+
+		do_div(rtexts, mp->m_sb.sb_rextsize);
+		xfs_mod_frextents(mp, rtexts);
+	}
+
+	/*
+	 * Update the inode delalloc counter now and wait to update the
+	 * sb counters as we might have to borrow some blocks for the
+	 * indirect block accounting.
+	 */
+	xfs_trans_reserve_quota_nblks(NULL, ip, -((long)del->br_blockcount), 0,
+			isrt ? XFS_QMOPT_RES_RTBLKS : XFS_QMOPT_RES_REGBLKS);
+	ip->i_delayed_blks -= del->br_blockcount;
+
+	if (got->br_startoff == del->br_startoff)
+		state |= BMAP_LEFT_CONTIG;
+	if (got_endoff == del_endoff)
+		state |= BMAP_RIGHT_CONTIG;
+
+	switch (state & (BMAP_LEFT_CONTIG | BMAP_RIGHT_CONTIG)) {
+	case BMAP_LEFT_CONTIG | BMAP_RIGHT_CONTIG:
+		/*
+		 * Matches the whole extent.  Delete the entry.
+		 */
+		xfs_iext_remove(ip, *idx, 1, state);
+		--*idx;
+		break;
+	case BMAP_LEFT_CONTIG:
+		/*
+		 * Deleting the first part of the extent.
+		 */
+		trace_xfs_bmap_pre_update(ip, *idx, state, _THIS_IP_);
+		got->br_startoff = del_endoff;
+		got->br_blockcount -= del->br_blockcount;
+		da_new = XFS_FILBLKS_MIN(xfs_bmap_worst_indlen(ip,
+				got->br_blockcount), da_old);
+		got->br_startblock = nullstartblock((int)da_new);
+		xfs_bmbt_set_all(xfs_iext_get_ext(ifp, *idx), got);
+		trace_xfs_bmap_post_update(ip, *idx, state, _THIS_IP_);
+		break;
+	case BMAP_RIGHT_CONTIG:
+		/*
+		 * Deleting the last part of the extent.
+		 */
+		trace_xfs_bmap_pre_update(ip, *idx, state, _THIS_IP_);
+		got->br_blockcount = got->br_blockcount - del->br_blockcount;
+		da_new = XFS_FILBLKS_MIN(xfs_bmap_worst_indlen(ip,
+				got->br_blockcount), da_old);
+		got->br_startblock = nullstartblock((int)da_new);
+		xfs_bmbt_set_all(xfs_iext_get_ext(ifp, *idx), got);
+		trace_xfs_bmap_post_update(ip, *idx, state, _THIS_IP_);
+		break;
+	case 0:
+		/*
+		 * Deleting the middle of the extent.
+		 *
+		 * Distribute the original indlen reservation across the two new
+		 * extents.  Steal blocks from the deleted extent if necessary.
+		 * Stealing blocks simply fudges the fdblocks accounting below.
+		 * Warn if either of the new indlen reservations is zero as this
+		 * can lead to delalloc problems.
+		 */
+		trace_xfs_bmap_pre_update(ip, *idx, state, _THIS_IP_);
+
+		got->br_blockcount = del->br_startoff - got->br_startoff;
+		got_indlen = xfs_bmap_worst_indlen(ip, got->br_blockcount);
+
+		new.br_blockcount = got_endoff - del_endoff;
+		new_indlen = xfs_bmap_worst_indlen(ip, new.br_blockcount);
+
+		WARN_ON_ONCE(!got_indlen || !new_indlen);
+		stolen = xfs_bmap_split_indlen(da_old, &got_indlen, &new_indlen,
+						       del->br_blockcount);
+
+		got->br_startblock = nullstartblock((int)got_indlen);
+		xfs_bmbt_set_all(xfs_iext_get_ext(ifp, *idx), got);
+		trace_xfs_bmap_post_update(ip, *idx, 0, _THIS_IP_);
+
+		new.br_startoff = del_endoff;
+		new.br_state = got->br_state;
+		new.br_startblock = nullstartblock((int)new_indlen);
+
+		++*idx;
+		xfs_iext_insert(ip, *idx, 1, &new, state);
+
+		da_new = got_indlen + new_indlen - stolen;
+		del->br_blockcount -= stolen;
+		break;
+	}
+
+	ASSERT(da_old >= da_new);
+	da_diff = da_old - da_new;
+	if (!isrt)
+		da_diff += del->br_blockcount;
+	if (da_diff)
+		xfs_mod_fdblocks(mp, da_diff, false);
+	return error;
+}
+
 /*
  * Called by xfs_bmapi to update file extent records and the btree
  * after removing space (or undoing a delayed allocation).
