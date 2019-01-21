@@ -143,11 +143,6 @@ static inline int xfs_bmapi_aflag(int w)
 	{ BMAP_ATTRFORK,	"ATTR" }
 
 
-enum shift_direction {
-	SHIFT_LEFT = 0,
-	SHIFT_RIGHT,
-};
-
 void	xfs_trim_extent(struct xfs_bmbt_irec *irec, xfs_fileoff_t bno,
 		xfs_filblks_t len);
 void	xfs_trim_extent_eof(struct xfs_bmbt_irec *, struct xfs_inode *);
