@@ -432,7 +432,7 @@ void		xfs_lock_two_inodes(xfs_inode_t *, xfs_inode_t *, uint);
 xfs_extlen_t	xfs_get_extsz_hint(struct xfs_inode *ip);
 
 int		xfs_dir_ialloc(struct xfs_trans **, struct xfs_inode *, umode_t,
-			       xfs_nlink_t, dev_t, prid_t, int,
+			       xfs_nlink_t, dev_t, prid_t,
 			       struct xfs_inode **, int *);
 
 /* from xfs_file.c */
