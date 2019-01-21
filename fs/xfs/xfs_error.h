@@ -102,7 +102,8 @@ extern void xfs_verifier_error(struct xfs_buf *bp);
 #define XFS_ERRTAG_DROP_WRITES				23
 #define XFS_ERRTAG_LOG_BAD_CRC				24
 #define XFS_ERRTAG_LOG_ITEM_PIN				25
-#define XFS_ERRTAG_MAX					26
+#define XFS_ERRTAG_BUF_LRU_REF				26
+#define XFS_ERRTAG_MAX					27
 
 /*
  * Random factors for above tags, 1 means always, 2 means 1/2 time, etc.
@@ -133,6 +134,7 @@ extern void xfs_verifier_error(struct xfs_buf *bp);
 #define XFS_RANDOM_DROP_WRITES				1
 #define XFS_RANDOM_LOG_BAD_CRC				1
 #define XFS_RANDOM_LOG_ITEM_PIN				1
+#define XFS_RANDOM_BUF_LRU_REF				2
 
 #ifdef DEBUG
 extern int xfs_errortag_init(struct xfs_mount *mp);
