@@ -303,6 +303,7 @@ static int cls_bpf_change(struct net *net, struct sk_buff *in_skb,
 	if (oldprog) {
 		list_replace_rcu(&oldprog->link, &prog->link);
 		tcf_unbind_filter(tp, &oldprog->res);
+		tcf_exts_get_net(&oldprog->exts);
 		call_rcu(&oldprog->rcu, cls_bpf_delete_prog_rcu);
 	} else {
 		list_add_rcu(&prog->link, &head->plist);
