@@ -826,6 +826,17 @@ xfs_iext_get_ext(
 	}
 }
 
+/* Convert bmap state flags to an inode fork. */
+struct xfs_ifork *
+xfs_iext_state_to_fork(
+	struct xfs_inode	*ip,
+	int			state)
+{
+	if (state & BMAP_ATTRFORK)
+		return ip->i_afp;
+	return &ip->i_df;
+}
+
 /*
  * Insert new item(s) into the extent records for incore inode
  * fork 'ifp'.  'count' new items are inserted at index 'idx'.
@@ -1879,12 +1890,17 @@ xfs_iext_get_extent(
 
 void
 xfs_iext_update_extent(
-	struct xfs_ifork	*ifp,
+	struct xfs_inode	*ip,
+	int			state,
 	xfs_extnum_t		idx,
 	struct xfs_bmbt_irec	*gotp)
 {
+	struct xfs_ifork	*ifp = xfs_iext_state_to_fork(ip, state);
+
 	ASSERT(idx >= 0);
 	ASSERT(idx < xfs_iext_count(ifp));
 
+	trace_xfs_bmap_pre_update(ip, idx, state, _RET_IP_);
 	xfs_bmbt_set_all(xfs_iext_get_ext(ifp, idx), gotp);
+	trace_xfs_bmap_post_update(ip, idx, state, _RET_IP_);
 }
