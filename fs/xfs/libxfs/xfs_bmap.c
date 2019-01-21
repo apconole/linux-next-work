@@ -4902,13 +4902,14 @@ xfs_bmap_del_extent_real(
 			goto done;
 		XFS_WANT_CORRUPTED_GOTO(mp, i == 1, done);
 	}
-	/*
-	 * Set flag value to use in switch statement.
-	 * Left-contig is 2, right-contig is 1.
-	 */
-	switch (((got.br_startoff == del->br_startoff) << 1) |
-		(got_endoff == del_endoff)) {
-	case 3:
+
+	if (got.br_startoff == del->br_startoff)
+		state |= BMAP_LEFT_FILLING;
+	if (got_endoff == del_endoff)
+		state |= BMAP_RIGHT_FILLING;
+
+	switch (state & (BMAP_LEFT_FILLING | BMAP_RIGHT_FILLING)) {
+	case BMAP_LEFT_FILLING | BMAP_RIGHT_FILLING:
 		/*
 		 * Matches the whole extent.  Delete the entry.
 		 */
@@ -4927,8 +4928,7 @@ xfs_bmap_del_extent_real(
 			goto done;
 		XFS_WANT_CORRUPTED_GOTO(mp, i == 1, done);
 		break;
-
-	case 2:
+	case BMAP_LEFT_FILLING:
 		/*
 		 * Deleting the first part of the extent.
 		 */
@@ -4947,8 +4947,7 @@ xfs_bmap_del_extent_real(
 				got.br_state)))
 			goto done;
 		break;
-
-	case 1:
+	case BMAP_RIGHT_FILLING:
 		/*
 		 * Deleting the last part of the extent.
 		 */
@@ -4966,7 +4965,6 @@ xfs_bmap_del_extent_real(
 				got.br_state)))
 			goto done;
 		break;
-
 	case 0:
 		/*
 		 * Deleting the middle of the extent.
