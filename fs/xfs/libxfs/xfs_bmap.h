@@ -152,6 +152,11 @@ static inline int xfs_bmapi_aflag(int w)
  */
 #define XFS_BMAP_MAX_SHIFT_EXTENTS	1
 
+enum shift_direction {
+	SHIFT_LEFT = 0,
+	SHIFT_RIGHT,
+};
+
 #ifdef DEBUG
 void	xfs_bmap_trace_exlist(struct xfs_inode *ip, xfs_extnum_t cnt,
 		int whichfork, unsigned long caller_ip);
@@ -196,9 +201,12 @@ int	xfs_bunmapi(struct xfs_trans *tp, struct xfs_inode *ip,
 		struct xfs_defer_ops *dfops, int *done);
 uint	xfs_default_attroffset(struct xfs_inode *ip);
 int	xfs_bmap_shift_extents(struct xfs_trans *tp, struct xfs_inode *ip,
-		xfs_fileoff_t start_fsb, xfs_fileoff_t offset_shift_fsb,
-		int *done, xfs_fileoff_t *next_fsb, xfs_fsblock_t *firstblock,
-		struct xfs_defer_ops *dfops, int num_exts);
+		xfs_fileoff_t *next_fsb, xfs_fileoff_t offset_shift_fsb,
+		int *done, xfs_fileoff_t stop_fsb, xfs_fsblock_t *firstblock,
+		struct xfs_defer_ops *dfops, enum shift_direction direction,
+		int num_exts);
+int	xfs_bmap_split_extent(struct xfs_inode *ip, xfs_fileoff_t split_offset);
+
 int	xfs_bmapi_reserve_delalloc(struct xfs_inode *ip, xfs_fileoff_t off,
 		xfs_filblks_t len, xfs_filblks_t prealloc,
 		struct xfs_bmbt_irec *got, xfs_extnum_t *lastx, int eof);
