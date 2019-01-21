@@ -2860,3 +2860,52 @@ err:
 	xfs_trans_brelse(tp, agbp);
 	return error;
 }
+
+/* Find the size of the AG, in blocks. */
+xfs_agblock_t
+xfs_ag_block_count(
+	struct xfs_mount	*mp,
+	xfs_agnumber_t		agno)
+{
+	ASSERT(agno < mp->m_sb.sb_agcount);
+
+	if (agno < mp->m_sb.sb_agcount - 1)
+		return mp->m_sb.sb_agblocks;
+	return mp->m_sb.sb_dblocks - (agno * mp->m_sb.sb_agblocks);
+}
+
+/*
+ * Verify that an AG block number pointer neither points outside the AG
+ * nor points at static metadata.
+ */
+bool
+xfs_verify_agbno(
+	struct xfs_mount	*mp,
+	xfs_agnumber_t		agno,
+	xfs_agblock_t		agbno)
+{
+	xfs_agblock_t		eoag;
+
+	eoag = xfs_ag_block_count(mp, agno);
+	if (agbno >= eoag)
+		return false;
+	if (agbno <= XFS_AGFL_BLOCK(mp))
+		return false;
+	return true;
+}
+
+/*
+ * Verify that an FS block number pointer neither points outside the
+ * filesystem nor points at static AG metadata.
+ */
+bool
+xfs_verify_fsbno(
+	struct xfs_mount	*mp,
+	xfs_fsblock_t		fsbno)
+{
+	xfs_agnumber_t		agno = XFS_FSB_TO_AGNO(mp, fsbno);
+
+	if (agno >= mp->m_sb.sb_agcount)
+		return false;
+	return xfs_verify_agbno(mp, agno, XFS_FSB_TO_AGBNO(mp, fsbno));
+}
