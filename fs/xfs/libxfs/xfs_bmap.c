@@ -4794,8 +4794,7 @@ xfs_bmap_del_extent_real(
 		/*
 		 * Matches the whole extent.  Delete the entry.
 		 */
-		xfs_iext_remove(ip, *idx, 1,
-				whichfork == XFS_ATTR_FORK ? BMAP_ATTRFORK : 0);
+		xfs_iext_remove(ip, *idx, 1, state);
 		--*idx;
 
 		XFS_IFORK_NEXT_SET(ip, whichfork,
