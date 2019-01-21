@@ -566,8 +566,6 @@ restart:
 	 */
 	spin_lock_irqsave(&ip->i_size_lock, flags);
 	if (*pos > i_size_read(inode)) {
-		bool	zero = false;
-
 		spin_unlock_irqrestore(&ip->i_size_lock, flags);
 		if (!drained_dio) {
 			if (*iolock == XFS_IOLOCK_SHARED) {
@@ -587,7 +585,7 @@ restart:
 			drained_dio = true;
 			goto restart;
 		}
-		error = xfs_zero_eof(ip, *pos, i_size_read(inode), &zero);
+		error = xfs_zero_eof(ip, *pos, i_size_read(inode), NULL);
 		if (error)
 			return error;
 	} else
