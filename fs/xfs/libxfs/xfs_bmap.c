@@ -6105,6 +6105,7 @@ xfs_bmap_split_extent(
 	return xfs_trans_commit(tp);
 
 out:
+	xfs_defer_cancel(&dfops);
 	xfs_trans_cancel(tp);
 	return error;
 }
