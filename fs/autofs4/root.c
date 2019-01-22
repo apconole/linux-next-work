@@ -516,7 +516,8 @@ static struct dentry *autofs4_lookup(struct inode *dir,
 	sbi = autofs4_sbi(dir->i_sb);
 
 	pr_debug("pid = %u, pgrp = %u, catatonic = %d, oz_mode = %d\n",
-		 current->pid, task_pgrp_nr(current), sbi->catatonic,
+		 current->pid, task_pgrp_nr(current),
+		 sbi->flags & AUTOFS_SBI_CATATONIC,
 		 autofs4_oz_mode(sbi));
 
 	active = autofs4_lookup_active(dentry);
@@ -569,7 +570,7 @@ static int autofs4_dir_symlink(struct inode *dir,
 	 * autofs mount is catatonic but the state of an autofs
 	 * file system needs to be preserved over restarts.
 	 */
-	if (sbi->catatonic)
+	if (sbi->flags & AUTOFS_SBI_CATATONIC)
 		return -EACCES;
 
 	BUG_ON(!ino);
@@ -632,7 +633,7 @@ static int autofs4_dir_unlink(struct inode *dir, struct dentry *dentry)
 	 * autofs mount is catatonic but the state of an autofs
 	 * file system needs to be preserved over restarts.
 	 */
-	if (sbi->catatonic)
+	if (sbi->flags & AUTOFS_SBI_CATATONIC)
 		return -EACCES;
 
 	if (atomic_dec_and_test(&ino->count)) {
@@ -720,7 +721,7 @@ static int autofs4_dir_rmdir(struct inode *dir, struct dentry *dentry)
 	 * autofs mount is catatonic but the state of an autofs
 	 * file system needs to be preserved over restarts.
 	 */
-	if (sbi->catatonic)
+	if (sbi->flags & AUTOFS_SBI_CATATONIC)
 		return -EACCES;
 
 	spin_lock(&sbi->lookup_lock);
@@ -765,7 +766,7 @@ static int autofs4_dir_mkdir(struct inode *dir,
 	 * autofs mount is catatonic but the state of an autofs
 	 * file system needs to be preserved over restarts.
 	 */
-	if (sbi->catatonic)
+	if (sbi->flags & AUTOFS_SBI_CATATONIC)
 		return -EACCES;
 
 	pr_debug("dentry %p, creating %pd\n", dentry, dentry);
