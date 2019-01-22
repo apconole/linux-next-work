@@ -919,9 +919,13 @@ enum cpu_idle_type {
  * called near the end of a function, where the fact that the queue is
  * not used again will be easy to see by inspection.
  *
- * Note that this can cause spurious wakeups. schedule() callers
+ * NOTE that this can cause spurious wakeups. schedule() callers
  * must ensure the call is done inside a loop, confirming that the
  * wakeup condition has in fact occurred.
+ *
+ * NOTE that there is no guarantee the wakeup will happen any later than the
+ * wake_q_add() location. Therefore task must be ready to be woken at the
+ * location of the wake_q_add().
  */
 struct wake_q_node {
 	struct wake_q_node *next;
