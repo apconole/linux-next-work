@@ -155,9 +155,6 @@ int autofs4_do_expire_multi(struct super_block *sb, struct vfsmount *mnt,
 			    struct autofs_sb_info *sbi, int when);
 int autofs4_expire_multi(struct super_block *, struct vfsmount *,
 			 struct autofs_sb_info *, int __user *);
-struct dentry *autofs4_expire_direct(struct super_block *sb,
-				     struct vfsmount *mnt,
-				     struct autofs_sb_info *sbi, int how);
 struct dentry *autofs4_expire_indirect(struct super_block *sb,
 				       struct vfsmount *mnt,
 				       struct autofs_sb_info *sbi, int how);
