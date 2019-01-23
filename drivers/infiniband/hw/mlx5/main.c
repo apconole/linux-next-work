@@ -3050,16 +3050,17 @@ static int init_node_data(struct mlx5_ib_dev *dev)
 	return mlx5_query_node_guid(dev, &dev->ib_dev.node_guid);
 }
 
-static ssize_t show_fw_pages(struct device *device, struct device_attribute *attr,
-			     char *buf)
+static ssize_t fw_pages_show(struct device *device,
+			     struct device_attribute *attr, char *buf)
 {
 	struct mlx5_ib_dev *dev =
 		container_of(device, struct mlx5_ib_dev, ib_dev.dev);
 
 	return sprintf(buf, "%d\n", dev->mdev->priv.fw_pages);
 }
+static DEVICE_ATTR_RO(fw_pages);
 
-static ssize_t show_reg_pages(struct device *device,
+static ssize_t reg_pages_show(struct device *device,
 			      struct device_attribute *attr, char *buf)
 {
 	struct mlx5_ib_dev *dev =
@@ -3067,44 +3068,47 @@ static ssize_t show_reg_pages(struct device *device,
 
 	return sprintf(buf, "%d\n", atomic_read(&dev->mdev->priv.reg_pages));
 }
+static DEVICE_ATTR_RO(reg_pages);
 
-static ssize_t show_hca(struct device *device, struct device_attribute *attr,
-			char *buf)
+static ssize_t hca_type_show(struct device *device,
+			     struct device_attribute *attr, char *buf)
 {
 	struct mlx5_ib_dev *dev =
 		container_of(device, struct mlx5_ib_dev, ib_dev.dev);
 	return sprintf(buf, "MT%d\n", dev->mdev->pdev->device);
 }
+static DEVICE_ATTR_RO(hca_type);
 
-static ssize_t show_rev(struct device *device, struct device_attribute *attr,
-			char *buf)
+static ssize_t hw_rev_show(struct device *device,
+			   struct device_attribute *attr, char *buf)
 {
 	struct mlx5_ib_dev *dev =
 		container_of(device, struct mlx5_ib_dev, ib_dev.dev);
 	return sprintf(buf, "%x\n", dev->mdev->rev_id);
 }
+static DEVICE_ATTR_RO(hw_rev);
 
-static ssize_t show_board(struct device *device, struct device_attribute *attr,
-			  char *buf)
+static ssize_t board_id_show(struct device *device,
+			     struct device_attribute *attr, char *buf)
 {
 	struct mlx5_ib_dev *dev =
 		container_of(device, struct mlx5_ib_dev, ib_dev.dev);
 	return sprintf(buf, "%.*s\n", MLX5_BOARD_ID_LEN,
 		       dev->mdev->board_id);
 }
+static DEVICE_ATTR_RO(board_id);
 
-static DEVICE_ATTR(hw_rev,   S_IRUGO, show_rev,    NULL);
-static DEVICE_ATTR(hca_type, S_IRUGO, show_hca,    NULL);
-static DEVICE_ATTR(board_id, S_IRUGO, show_board,  NULL);
-static DEVICE_ATTR(fw_pages, S_IRUGO, show_fw_pages, NULL);
-static DEVICE_ATTR(reg_pages, S_IRUGO, show_reg_pages, NULL);
+static struct attribute *mlx5_class_attributes[] = {
+	&dev_attr_hw_rev.attr,
+	&dev_attr_hca_type.attr,
+	&dev_attr_board_id.attr,
+	&dev_attr_fw_pages.attr,
+	&dev_attr_reg_pages.attr,
+	NULL,
+};
 
-static struct device_attribute *mlx5_class_attributes[] = {
-	&dev_attr_hw_rev,
-	&dev_attr_hca_type,
-	&dev_attr_board_id,
-	&dev_attr_fw_pages,
-	&dev_attr_reg_pages,
+static const struct attribute_group mlx5_attr_group = {
+	.attrs = mlx5_class_attributes,
 };
 
 static void pkey_change_handler(struct work_struct *work)
@@ -4791,6 +4795,7 @@ static int mlx5_ib_stage_ib_reg_init(struct mlx5_ib_dev *dev)
 {
 	const char *name;
 
+	rdma_set_device_sysfs_group(&dev->ib_dev, &mlx5_attr_group);
 	if (!mlx5_lag_is_active(dev->mdev))
 		name = "mlx5_%d";
 	else
@@ -4825,20 +4830,6 @@ static void mlx5_ib_stage_delay_drop_cleanup(struct mlx5_ib_dev *dev)
 	cancel_delay_drop(dev);
 }
 
-static int mlx5_ib_stage_class_attr_init(struct mlx5_ib_dev *dev)
-{
-	int err;
-	int i;
-
-	for (i = 0; i < ARRAY_SIZE(mlx5_class_attributes); i++) {
-		err = device_create_file(&dev->ib_dev.dev,
-					 mlx5_class_attributes[i]);
-		if (err)
-			return err;
-	}
-
-	return 0;
-}
 
 static void __mlx5_ib_remove(struct mlx5_ib_dev *dev,
 			     const struct mlx5_ib_profile *profile,
@@ -4932,9 +4923,6 @@ static const struct mlx5_ib_profile pf_profile = {
 	STAGE_CREATE(MLX5_IB_STAGE_DELAY_DROP,
 		     mlx5_ib_stage_delay_drop_init,
 		     mlx5_ib_stage_delay_drop_cleanup),
-	STAGE_CREATE(MLX5_IB_STAGE_CLASS_ATTR,
-		     mlx5_ib_stage_class_attr_init,
-		     NULL),
 };
 
 static void *mlx5_ib_add_slave_port(struct mlx5_core_dev *mdev, u8 port_num)
