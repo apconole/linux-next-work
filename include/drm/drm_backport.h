@@ -314,11 +314,6 @@ static inline int call_mmap(struct file *file, struct vm_area_struct *vma)
 	return file->f_op->mmap(file, vma);
 }
 
-static inline void mmgrab(struct mm_struct *mm)
-{
-	atomic_inc(&mm->mm_count);
-}
-
 /*
  * since we just use get_user()/put_user() for unsafe_put_user()
  * and unsafe_get_user(), these can be no-op
