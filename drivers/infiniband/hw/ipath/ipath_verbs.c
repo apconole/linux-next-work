@@ -2139,7 +2139,6 @@ int ipath_register_ib_device(struct ipath_devdata *dd)
 	idev->ib_unit = dd->ipath_unit;
 	idev->dd = dd;
 
-	strlcpy(dev->name, "ipath%d", IB_DEVICE_NAME_MAX);
 	dev->owner = THIS_MODULE;
 	dev->node_guid = dd->ipath_guid;
 	dev->uverbs_abi_ver = IPATH_UVERBS_ABI_VERSION;
@@ -2223,7 +2222,7 @@ int ipath_register_ib_device(struct ipath_devdata *dd)
 	snprintf(dev->node_desc, sizeof(dev->node_desc),
 		 IPATH_IDSTR " %s", init_utsname()->nodename);
 
-	ret = ib_register_device(dev, NULL);
+	ret = ib_register_device(dev, "ipath%d", NULL);
 	if (ret)
 		goto err_reg;
 

@@ -3642,7 +3642,6 @@ struct nes_ib_device *nes_init_ofa_device(struct net_device *netdev)
 	if (nesibdev == NULL) {
 		return NULL;
 	}
-	strlcpy(nesibdev->ibdev.name, "nes%d", IB_DEVICE_NAME_MAX);
 	nesibdev->ibdev.owner = THIS_MODULE;
 
 	nesibdev->ibdev.node_type = RDMA_NODE_RNIC;
@@ -3800,7 +3799,7 @@ int nes_register_ofa_device(struct nes_ib_device *nesibdev)
 	int i, ret;
 
 	nesvnic->nesibdev->ibdev.driver_id = RDMA_DRIVER_NES;
-	ret = ib_register_device(&nesvnic->nesibdev->ibdev, NULL);
+	ret = ib_register_device(&nesvnic->nesibdev->ibdev, "nes%d", NULL);
 	if (ret) {
 		return ret;
 	}
