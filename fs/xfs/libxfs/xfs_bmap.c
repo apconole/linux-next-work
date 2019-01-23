@@ -742,11 +742,8 @@ xfs_bmap_extents_to_btree(
 	args.wasdel = wasdel;
 	*logflagsp = 0;
 	if ((error = xfs_alloc_vextent(&args))) {
-		xfs_iroot_realloc(ip, -1, whichfork);
 		ASSERT(ifp->if_broot == NULL);
-		XFS_IFORK_FMT_SET(ip, whichfork, XFS_DINODE_FMT_EXTENTS);
-		xfs_btree_del_cursor(cur, XFS_BTREE_ERROR);
-		return error;
+		goto err1;
 	}
 	/*
 	 * Allocation can't fail, the space was reserved.
@@ -759,6 +756,10 @@ xfs_bmap_extents_to_btree(
 	ip->i_d.di_nblocks++;
 	xfs_trans_mod_dquot_byino(tp, ip, XFS_TRANS_DQ_BCOUNT, 1L);
 	abp = xfs_btree_get_bufl(mp, tp, args.fsbno, 0);
+	if (!abp) {
+		error = -ENOSPC;
+		goto err2;
+	}
 	/*
 	 * Fill in the child block.
 	 */
@@ -801,6 +802,15 @@ xfs_bmap_extents_to_btree(
 	*curp = cur;
 	*logflagsp = XFS_ILOG_CORE | xfs_ilog_fbroot(whichfork);
 	return 0;
+
+err2:
+	xfs_trans_mod_dquot_byino(tp, ip, XFS_TRANS_DQ_BCOUNT, -1L);
+err1:
+	xfs_iroot_realloc(ip, -1, whichfork);
+	XFS_IFORK_FMT_SET(ip, whichfork, XFS_DINODE_FMT_EXTENTS);
+	xfs_btree_del_cursor(cur, XFS_BTREE_ERROR);
+
+	return error;
 }
 
 /*
