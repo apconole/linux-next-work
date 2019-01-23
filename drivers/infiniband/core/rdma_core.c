@@ -804,7 +804,6 @@ static void ufile_destroy_ucontext(struct ib_uverbs_file *ufile,
 			ib_dev->disassociate_ucontext(ucontext);
 	}
 
-	put_pid(ucontext->tgid);
 
 	/*
 	 * FIXME: Drivers are not permitted to fail dealloc_ucontext, remove
