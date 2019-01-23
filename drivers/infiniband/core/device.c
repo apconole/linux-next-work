@@ -525,6 +525,8 @@ int ib_register_device(struct ib_device *device,
 		goto port_cleanup;
 	}
 
+	device->index = __dev_new_index();
+
 	memset(&device->attrs, 0, sizeof(device->attrs));
 	ret = device->query_device(device, &device->attrs, &uhw);
 	if (ret) {
@@ -545,7 +547,6 @@ int ib_register_device(struct ib_device *device,
 		if (!add_client_context(device, client) && client->add)
 			client->add(device);
 
-	device->index = __dev_new_index();
 	down_write(&lists_rwsem);
 	list_add_tail(&device->core_list, &device_list);
 	up_write(&lists_rwsem);
