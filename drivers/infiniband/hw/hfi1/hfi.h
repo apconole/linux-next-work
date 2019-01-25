@@ -1265,6 +1265,9 @@ struct hfi1_devdata {
 
 	/* Save the enabled LCB error bits */
 	u64 lcb_err_en;
+	struct cpu_mask_set *comp_vect;
+	int *comp_vect_mappings;
+	u32 comp_vect_possible_cpus;
 
 	/*
 	 * Capability to have different send engines simply by changing a
