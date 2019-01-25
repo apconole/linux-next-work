@@ -669,6 +669,14 @@ struct hfi1_msix_entry {
 	struct irq_affinity_notify notify;
 };
 
+struct hfi1_msix_info {
+	/* lock to synchronize in_use_msix access */
+	spinlock_t msix_lock;
+	DECLARE_BITMAP(in_use_msix, CCE_NUM_MSIX_VECTORS);
+	struct hfi1_msix_entry *msix_entries;
+	u16 max_requested;
+};
+
 /* per-SL CCA information */
 struct cca_timer {
 	struct hrtimer hrtimer;
@@ -994,7 +1002,6 @@ struct hfi1_vnic_data {
 	struct idr vesw_idr;
 	u8 rmt_start;
 	u8 num_ctxt;
-	u32 msix_idx;
 };
 
 struct hfi1_vnic_vport_info;
@@ -1208,9 +1215,7 @@ struct hfi1_devdata {
 	struct diag_client *diag_client;
 
 	/* MSI-X information */
-	struct hfi1_msix_entry *msix_entries;
-	u32 num_msix_entries;
-	u32 first_dyn_msix_idx;
+	struct hfi1_msix_info msix_info;
 
 	/* general interrupt: mask of handled interrupts */
 	u64 gi_mask[CCE_NUM_INT_CSRS];
