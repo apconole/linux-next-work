@@ -76,6 +76,9 @@ static void blk_mq_check_inflight(struct blk_mq_hw_ctx *hctx,
 {
 	struct mq_inflight *mi = priv;
 
+	if (!blk_mq_request_started(rq))
+		return;
+
 	/*
 	 * index[0] counts the specific partition that was asked
 	 * for. index[1] counts the ones that are active on the
@@ -102,6 +105,9 @@ static void blk_mq_check_inflight_rw(struct blk_mq_hw_ctx *hctx,
 				     bool reserved)
 {
 	struct mq_inflight *mi = priv;
+
+	if (!blk_mq_request_started(rq))
+		return;
 
 	if (rq->part == mi->part)
 		mi->inflight[rq_data_dir(rq)]++;
