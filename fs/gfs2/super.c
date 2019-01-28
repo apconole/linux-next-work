@@ -799,7 +799,7 @@ static void gfs2_dirty_inode(struct inode *inode, int flags)
 
 	if (!(flags & (I_DIRTY_DATASYNC|I_DIRTY_SYNC)))
 		return;
-	if (unlikely(test_bit(SDF_WITHDRAWN, &sdp->sd_flags)))
+	if (unlikely(gfs2_withdrawn(sdp)))
 		return;
 	if (!gfs2_glock_is_locked_by_me(ip->i_gl)) {
 		ret = gfs2_glock_nq_init(ip->i_gl, LM_ST_EXCLUSIVE, 0, &gh);
@@ -861,7 +861,7 @@ static int gfs2_make_fs_ro(struct gfs2_sbd *sdp)
 
 	error = gfs2_glock_nq_init(sdp->sd_trans_gl, LM_ST_SHARED, GL_NOCACHE,
 				   &t_gh);
-	if (error && !test_bit(SDF_WITHDRAWN, &sdp->sd_flags)) {
+	if (error && !gfs2_withdrawn(sdp)) {
 		if (init_threads(sdp) != 0)
 			gfs2_io_error(sdp);
 		return error;
@@ -972,7 +972,7 @@ static int gfs2_freeze(struct super_block *sb)
 	struct gfs2_sbd *sdp = sb->s_fs_info;
 	int error;
 
-	if (test_bit(SDF_WITHDRAWN, &sdp->sd_flags))
+	if (gfs2_withdrawn(sdp))
 		return -EINVAL;
 
 	for (;;) {

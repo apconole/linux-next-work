@@ -590,6 +590,7 @@ enum {
 	SDF_SKIP_DLM_UNLOCK	= 8,
 	SDF_FORCE_AIL_FLUSH     = 9,
 	SDF_AIL1_IO_ERROR	= 10,
+	SDF_WITHDRAWING		= 11, /* Will withdraw eventually */
 };
 
 #define GFS2_FSNAME_LEN		256
