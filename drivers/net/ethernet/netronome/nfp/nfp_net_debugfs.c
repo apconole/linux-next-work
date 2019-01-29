@@ -190,7 +190,7 @@ static int nfp_net_debugfs_tx_q_open(struct inode *inode, struct file *f)
 	return single_open(f, nfp_net_debugfs_tx_q_read, inode->i_private);
 }
 
-void nfp_net_debugfs_vnic_add(struct nfp_net *nn, struct dentry *ddir, int id)
+void nfp_net_debugfs_vnic_add(struct nfp_net *nn, struct dentry *ddir)
 {
 	struct dentry *queues, *tx, *rx;
 	char name[20];
@@ -200,7 +200,7 @@ void nfp_net_debugfs_vnic_add(struct nfp_net *nn, struct dentry *ddir, int id)
 		return;
 
 	if (nfp_net_is_data_vnic(nn))
-		sprintf(name, "vnic%d", id);
+		sprintf(name, "vnic%d", nn->id);
 	else
 		strcpy(name, "ctrl-vnic");
 	nn->debugfs_dir = debugfs_create_dir(name, ddir);
