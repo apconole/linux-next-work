@@ -2616,8 +2616,6 @@ static int cxgb_change_mtu(struct net_device *dev, int new_mtu)
 	int ret;
 	struct port_info *pi = netdev_priv(dev);
 
-	if (new_mtu < 81 || new_mtu > MAX_MTU)         /* accommodate SACK */
-		return -EINVAL;
 	ret = t4_set_rxmode(pi->adapter, pi->adapter->pf, pi->viid, new_mtu, -1,
 			    -1, -1, -1, true);
 	if (!ret)
@@ -3233,7 +3231,7 @@ static const struct net_device_ops cxgb4_netdev_ops = {
 	.ndo_set_features     = cxgb_set_features,
 	.ndo_validate_addr    = eth_validate_addr,
 	.ndo_do_ioctl         = cxgb_ioctl,
-	.ndo_change_mtu_rh74  = cxgb_change_mtu,
+	.extended.ndo_change_mtu       = cxgb_change_mtu,
 #ifdef CONFIG_NET_POLL_CONTROLLER
 	.ndo_poll_controller  = cxgb_netpoll,
 #endif
@@ -5639,6 +5637,10 @@ static int init_one(struct pci_dev *pdev, const struct pci_device_id *ent)
 		netdev->vlan_features = netdev->features & VLAN_FEAT;
 
 		netdev->priv_flags |= IFF_UNICAST_FLT;
+
+		/* MTU range: 81 - 9600 */
+		netdev->extended->min_mtu = 81;
+		netdev->extended->max_mtu = MAX_MTU;
 
 		netdev->netdev_ops = &cxgb4_netdev_ops;
 #ifdef CONFIG_CHELSIO_T4_DCB

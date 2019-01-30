@@ -1113,10 +1113,6 @@ static int cxgb4vf_change_mtu(struct net_device *dev, int new_mtu)
 	int ret;
 	struct port_info *pi = netdev_priv(dev);
 
-	/* accommodate SACK */
-	if (new_mtu < 81)
-		return -EINVAL;
-
 	ret = t4vf_set_rxmode(pi->adapter, pi->viid, new_mtu,
 			      -1, -1, -1, -1, true);
 	if (!ret)
@@ -2861,12 +2857,12 @@ static const struct net_device_ops cxgb4vf_netdev_ops	= {
 	.ndo_set_mac_address	= cxgb4vf_set_mac_addr,
 	.ndo_validate_addr	= eth_validate_addr,
 	.ndo_do_ioctl		= cxgb4vf_do_ioctl,
-	.ndo_change_mtu_rh74	= cxgb4vf_change_mtu,
 	.ndo_fix_features	= cxgb4vf_fix_features,
 	.ndo_set_features	= cxgb4vf_set_features,
 #ifdef CONFIG_NET_POLL_CONTROLLER
 	.ndo_poll_controller	= cxgb4vf_poll_controller,
 #endif
+	.extended.ndo_change_mtu	= cxgb4vf_change_mtu,
 };
 
 /*
@@ -3090,6 +3086,8 @@ static int cxgb4vf_pci_probe(struct pci_dev *pdev,
 			netdev->features |= NETIF_F_HIGHDMA;
 
 		netdev->priv_flags |= IFF_UNICAST_FLT;
+		netdev->extended->min_mtu = 81;
+		netdev->extended->max_mtu = ETH_MAX_MTU;
 
 		netdev->netdev_ops = &cxgb4vf_netdev_ops;
 		SET_ETHTOOL_OPS(netdev, &cxgb4vf_ethtool_ops);
