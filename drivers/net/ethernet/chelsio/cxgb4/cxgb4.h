@@ -884,7 +884,7 @@ struct mps_encap_entry {
 	atomic_t refcnt;
 };
 
-#ifdef CONFIG_THERMAL
+#if IS_ENABLED(CONFIG_THERMAL)
 struct ch_thermal {
 	struct thermal_zone_device *tzdev;
 	int trip_temp;
@@ -1010,7 +1010,7 @@ struct adapter {
 
 	/* Dump buffer for collecting logs in kdump kernel */
 	struct vmcoredd_data vmcoredd;
-#ifdef CONFIG_THERMAL
+#if IS_ENABLED(CONFIG_THERMAL)
 	struct ch_thermal ch_thermal;
 #endif
 };
@@ -1868,9 +1868,7 @@ int t4_set_vlan_acl(struct adapter *adap, unsigned int mbox, unsigned int vf,
 		    u16 vlan);
 int cxgb4_dcb_enabled(const struct net_device *dev);
 
-#ifdef CONFIG_THERMAL
 int cxgb4_thermal_init(struct adapter *adap);
 int cxgb4_thermal_remove(struct adapter *adap);
-#endif /* CONFIG_THERMAL */
 
 #endif /* __CXGB4_H__ */
