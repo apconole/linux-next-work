@@ -1012,6 +1012,24 @@ static void __init setup_hwcaps(void)
 }
 
 /*
+ * Issue diagnose 318 to set the control program name and
+ * version codes.
+ */
+static void __init setup_control_program_code(void)
+{
+	union diag318_info diag318_info = {
+		.cpnc = CPNC_LINUX,
+		.cpvc_linux = 0,
+		.cpvc_distro = {0},
+	};
+
+	if (!sclp_has_diag318())
+		return;
+
+	asm volatile("diag %0,0,0x318\n" : : "d" (diag318_info.val));
+}
+
+/*
  * Setup function called from init/main.c just after the banner
  * was printed.
  */
@@ -1068,6 +1086,7 @@ void __init setup_arch(char **cmdline_p)
 	setup_resources();
 	setup_vmcoreinfo();
 	setup_lowcore();
+	setup_control_program_code();
 
 	smp_fill_possible_mask();
         cpu_init();
