@@ -463,7 +463,6 @@ nfp_flower_add_offload(struct nfp_app *app, struct net_device *netdev,
 	struct nfp_flower_priv *priv = app->priv;
 	struct nfp_fl_payload *flow_pay;
 	struct nfp_fl_key_ls *key_layer;
-	unsigned long fl_key;
 	struct net_device *ingr_dev;
 	int err;
 
@@ -516,8 +515,7 @@ nfp_flower_add_offload(struct nfp_app *app, struct net_device *netdev,
 
 	INIT_HLIST_NODE(&flow_pay->link);
 	flow_pay->tc_flower_cookie = flow->cookie;
-	fl_key = nfp_flower_fl_key(flow->cookie);
-	hash_add_rcu(priv->flow_table, &flow_pay->link, fl_key);
+	hash_add_rcu(priv->flow_table, &flow_pay->link, flow->cookie);
 	port->tc_offload_cnt++;
 
 	/* Deallocate flow payload when flower rule has been destroyed. */

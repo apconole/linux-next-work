@@ -102,12 +102,11 @@ struct nfp_fl_payload *
 nfp_flower_search_fl_table(struct nfp_app *app, unsigned long tc_flower_cookie,
 			   struct net_device *netdev, __be32 host_ctx)
 {
-	unsigned long fl_key = nfp_flower_fl_key(tc_flower_cookie);
 	struct nfp_flower_priv *priv = app->priv;
 	struct nfp_fl_payload *flower_entry;
 
 	hash_for_each_possible_rcu(priv->flow_table, flower_entry, link,
-				   fl_key)
+				   tc_flower_cookie)
 		if (flower_entry->tc_flower_cookie == tc_flower_cookie &&
 		    (!netdev || flower_entry->ingress_dev == netdev) &&
 		    (host_ctx == NFP_FL_STATS_CTX_DONT_CARE ||
