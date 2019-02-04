@@ -984,6 +984,7 @@ static int unmap_and_move(new_page_t get_new_page, unsigned long private,
 	int rc = 0;
 	int *result = NULL;
 	struct page *newpage = get_new_page(page, private, &result);
+	bool is_lru = !isolated_balloon_page(page);
 
 	if (!newpage)
 		return -ENOMEM;
@@ -1015,9 +1016,12 @@ out:
 	}
 	/*
 	 * Move the new page to the LRU. If migration was not successful
-	 * then this will free the page.
+	 * then this will free the page. Use the old state of the isolated
+	 * source page to determine if we migrated a LRU page. newpage was
+	 * already unlocked and possibly modified by its owner - don't rely
+	 * on the page state.
 	 */
-	if (unlikely(__is_movable_balloon_page(newpage))) {
+	if (rc == MIGRATEPAGE_SUCCESS && unlikely(!is_lru)) {
 		/* drop our reference, page already in the balloon */
 		put_page(newpage);
 	} else {
