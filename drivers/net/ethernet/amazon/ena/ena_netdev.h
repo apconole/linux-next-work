@@ -314,7 +314,6 @@ struct ena_adapter {
 
 	int num_queues;
 
-	struct msix_entry *msix_entries;
 	int msix_vecs;
 
 	u32 missing_tx_completion_threshold;
