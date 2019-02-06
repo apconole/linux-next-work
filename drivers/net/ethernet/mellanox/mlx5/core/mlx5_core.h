@@ -33,6 +33,9 @@
 #ifndef __MLX5_CORE_H__
 #define __MLX5_CORE_H__
 
+/* W/A for missing netlink_ext_ack in RHEL-7 */
+struct netlink_ext_ack {};
+
 #include <linux/types.h>
 #include <linux/kernel.h>
 #include <linux/sched.h>
