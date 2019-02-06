@@ -49,6 +49,7 @@
 #include <net/switchdev.h>
 #include <linux/net_dim.h>
 #include <linux/refcount.h>
+#include <net/xdp.h>
 #include "wq.h"
 #include "mlx5_core.h"
 #include "en_stats.h"
@@ -545,6 +546,9 @@ struct mlx5e_rq {
 	u32                    rqn;
 	struct mlx5_core_dev  *mdev;
 	struct mlx5_core_mkey  umr_mkey;
+
+	/* XDP read-mostly */
+	struct xdp_rxq_info    xdp_rxq;
 } ____cacheline_aligned_in_smp;
 
 struct mlx5e_channel {

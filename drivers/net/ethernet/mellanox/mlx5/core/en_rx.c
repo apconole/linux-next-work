@@ -830,6 +830,7 @@ static inline bool mlx5e_xdp_handle(struct mlx5e_rq *rq,
 	xdp.data = va + *rx_headroom;
 	xdp.data_end = xdp.data + *len;
 	xdp.data_hard_start = va;
+	xdp.rxq = &rq->xdp_rxq;
 
 	act = bpf_prog_run_xdp(prog, &xdp);
 	switch (act) {
