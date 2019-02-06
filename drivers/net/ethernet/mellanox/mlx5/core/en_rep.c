@@ -58,7 +58,8 @@ struct mlx5e_rep_indr_block_priv {
 	struct list_head list;
 };
 
-static void mlx5e_rep_indr_unregister_block(struct net_device *netdev);
+static void mlx5e_rep_indr_unregister_block(struct mlx5e_rep_priv *rpriv,
+					    struct net_device *netdev);
 
 static void mlx5e_rep_get_drvinfo(struct net_device *dev,
 				  struct ethtool_drvinfo *drvinfo)
@@ -567,7 +568,7 @@ static void mlx5e_rep_indr_clean_block_privs(struct mlx5e_rep_priv *rpriv)
 	struct list_head *head = &rpriv->uplink_priv.tc_indr_block_priv_list;
 
 	list_for_each_entry_safe(cb_priv, temp, head, list) {
-		mlx5e_rep_indr_unregister_block(cb_priv->netdev);
+		mlx5e_rep_indr_unregister_block(rpriv, cb_priv->netdev);
 		kfree(cb_priv);
 	}
 }
@@ -641,7 +642,7 @@ mlx5e_rep_indr_setup_tc_block(struct net_device *netdev,
 
 		err = tcf_block_cb_register(f->block,
 					    mlx5e_rep_indr_setup_block_cb,
-					    netdev, indr_priv);
+					    indr_priv, indr_priv);
 		if (err) {
 			list_del(&indr_priv->list);
 			kfree(indr_priv);
@@ -649,14 +650,15 @@ mlx5e_rep_indr_setup_tc_block(struct net_device *netdev,
 
 		return err;
 	case TC_BLOCK_UNBIND:
+		indr_priv = mlx5e_rep_indr_block_priv_lookup(rpriv, netdev);
+		if (!indr_priv)
+			return -ENOENT;
+
 		tcf_block_cb_unregister(f->block,
 					mlx5e_rep_indr_setup_block_cb,
-					netdev);
-		indr_priv = mlx5e_rep_indr_block_priv_lookup(rpriv, netdev);
-		if (indr_priv) {
-			list_del(&indr_priv->list);
-			kfree(indr_priv);
-		}
+					indr_priv);
+		list_del(&indr_priv->list);
+		kfree(indr_priv);
 
 		return 0;
 	default:
@@ -685,7 +687,7 @@ static int mlx5e_rep_indr_register_block(struct mlx5e_rep_priv *rpriv,
 
 	err = __tc_indr_block_cb_register(netdev, rpriv,
 					  mlx5e_rep_indr_setup_tc_cb,
-					  netdev);
+					  rpriv);
 	if (err) {
 		struct mlx5e_priv *priv = netdev_priv(rpriv->netdev);
 
@@ -695,10 +697,11 @@ static int mlx5e_rep_indr_register_block(struct mlx5e_rep_priv *rpriv,
 	return err;
 }
 
-static void mlx5e_rep_indr_unregister_block(struct net_device *netdev)
+static void mlx5e_rep_indr_unregister_block(struct mlx5e_rep_priv *rpriv,
+					    struct net_device *netdev)
 {
 	__tc_indr_block_cb_unregister(netdev, mlx5e_rep_indr_setup_tc_cb,
-				      netdev);
+				      rpriv);
 }
 
 static int mlx5e_nic_rep_netdevice_event(struct notifier_block *nb,
@@ -717,7 +720,7 @@ static int mlx5e_nic_rep_netdevice_event(struct notifier_block *nb,
 		mlx5e_rep_indr_register_block(rpriv, netdev);
 		break;
 	case NETDEV_UNREGISTER:
-		mlx5e_rep_indr_unregister_block(netdev);
+		mlx5e_rep_indr_unregister_block(rpriv, netdev);
 		break;
 	}
 	return NOTIFY_OK;
