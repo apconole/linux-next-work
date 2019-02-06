@@ -346,6 +346,7 @@ enum {
 	MLX5E_SQ_STATE_IPSEC,
 	MLX5E_SQ_STATE_AM,
 	MLX5E_SQ_STATE_TLS,
+	MLX5E_SQ_STATE_REDIRECT,
 };
 
 struct mlx5e_sq_wqe_info {
@@ -600,6 +601,9 @@ struct mlx5e_channel {
 	__be32                     mkey_be;
 	u8                         num_tc;
 
+	/* XDP_REDIRECT */
+	struct mlx5e_xdpsq         xdpsq;
+
 	/* data path - accessed per napi poll */
 	struct irq_desc *irq_desc;
 	struct mlx5e_ch_stats     *stats;
@@ -623,6 +627,7 @@ struct mlx5e_channel_stats {
 	struct mlx5e_sq_stats sq[MLX5E_MAX_NUM_TC];
 	struct mlx5e_rq_stats rq;
 	struct mlx5e_xdpsq_stats rq_xdpsq;
+	struct mlx5e_xdpsq_stats xdpsq;
 } ____cacheline_aligned_in_smp;
 
 enum mlx5e_traffic_types {
