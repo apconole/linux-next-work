@@ -83,8 +83,8 @@ int mlx5e_napi_poll(struct napi_struct *napi, int budget)
 	if (MLX5E_TEST_BIT(c->rq.state, MLX5E_RQ_STATE_AM)) {
 		struct net_dim_sample dim_sample;
 		net_dim_sample(c->rq.cq.event_ctr,
-			       c->rq.stats->packets,
-			       c->rq.stats->bytes,
+			       c->rq.stats.packets,
+			       c->rq.stats.bytes,
 			       &dim_sample);
 		net_dim(&c->rq.dim, dim_sample);
 	}

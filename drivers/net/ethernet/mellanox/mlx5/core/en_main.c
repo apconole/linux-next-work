@@ -423,7 +423,6 @@ static int mlx5e_alloc_rq(struct mlx5e_channel *c,
 	rq->ix      = c->ix;
 	rq->mdev    = mdev;
 	rq->hw_mtu  = MLX5E_SW2HW_MTU(params, params->sw_mtu);
-	rq->stats   = &c->priv->channel_stats[c->ix].rq;
 
 	rq->xdp_prog = params->xdp_prog ? bpf_prog_inc(params->xdp_prog) : NULL;
 	if (IS_ERR(rq->xdp_prog)) {
@@ -959,8 +958,7 @@ static int mlx5e_alloc_txqsq(struct mlx5e_channel *c,
 			     int txq_ix,
 			     struct mlx5e_params *params,
 			     struct mlx5e_sq_param *param,
-			     struct mlx5e_txqsq *sq,
-			     int tc)
+			     struct mlx5e_txqsq *sq)
 {
 	void *sqc_wq               = MLX5_ADDR_OF(sqc, param->sqc, wq);
 	struct mlx5_core_dev *mdev = c->mdev;
@@ -975,7 +973,6 @@ static int mlx5e_alloc_txqsq(struct mlx5e_channel *c,
 	sq->uar_map   = mdev->mlx5e_res.bfreg.map;
 	sq->max_inline      = params->tx_max_inline;
 	sq->min_inline_mode = params->tx_min_inline_mode;
-	sq->stats     = &c->priv->channel_stats[c->ix].sq[tc];
 	if (MLX5_IPSEC_DEV(c->priv->mdev))
 		set_bit(MLX5E_SQ_STATE_IPSEC, &sq->state);
 
@@ -1128,14 +1125,13 @@ static int mlx5e_open_txqsq(struct mlx5e_channel *c,
 			    int txq_ix,
 			    struct mlx5e_params *params,
 			    struct mlx5e_sq_param *param,
-			    struct mlx5e_txqsq *sq,
-			    int tc)
+			    struct mlx5e_txqsq *sq)
 {
 	struct mlx5e_create_sq_param csp = {};
 	u32 tx_rate;
 	int err;
 
-	err = mlx5e_alloc_txqsq(c, txq_ix, params, param, sq, tc);
+	err = mlx5e_alloc_txqsq(c, txq_ix, params, param, sq);
 	if (err)
 		return err;
 
@@ -1498,14 +1494,14 @@ static int mlx5e_open_sqs(struct mlx5e_channel *c,
 			  struct mlx5e_params *params,
 			  struct mlx5e_channel_param *cparam)
 {
-	struct mlx5e_priv *priv = c->priv;
-	int err, tc, max_nch = priv->profile->max_nch(priv->mdev);
+	int err;
+	int tc;
 
 	for (tc = 0; tc < params->num_tc; tc++) {
-		int txq_ix = c->ix + tc * max_nch;
+		int txq_ix = c->ix + tc * params->num_channels;
 
 		err = mlx5e_open_txqsq(c, c->priv->tisn[tc], txq_ix,
-				       params, &cparam->sq, &c->sq[tc], tc);
+				       params, &cparam->sq, &c->sq[tc]);
 		if (err)
 			goto err_close_sqs;
 	}
@@ -1631,7 +1627,6 @@ static int mlx5e_open_channel(struct mlx5e_priv *priv, int ix,
 	c->mkey_be  = cpu_to_be32(priv->mdev->mlx5e_res.mkey.key);
 	c->num_tc   = params->num_tc;
 	c->xdp      = !!params->xdp_prog;
-	c->stats    = &priv->channel_stats[ix].ch;
 
 	mlx5_vector2eqn(priv->mdev, ix, &eqn, &irq);
 #ifdef CONFIG_GENERIC_HARDIRQS
@@ -2459,7 +2454,7 @@ static void mlx5e_build_channels_tx_maps(struct mlx5e_priv *priv)
 	struct mlx5e_txqsq *sq;
 	int i, tc;
 
-	for (i = 0; i < priv->profile->max_nch(priv->mdev); i++)
+	for (i = 0; i < priv->channels.num; i++)
 		for (tc = 0; tc < priv->profile->max_tc; tc++)
 			priv->channel_tc2txq[i][tc] = i + tc * priv->channels.num;
 
@@ -2950,8 +2945,6 @@ static int mlx5e_setup_tc_mqprio(struct net_device *netdev,
 	if (err)
 		goto out;
 
-	priv->max_opened_tc = max_t(u8, priv->max_opened_tc,
-				    new_channels.params.num_tc);
 	mlx5e_switch_priv_channels(priv, &new_channels, NULL);
 out:
 	mutex_unlock(&priv->state_lock);
@@ -3645,7 +3638,7 @@ static bool mlx5e_tx_timeout_eq_recover(struct net_device *dev,
 		return false;
 
 	netdev_err(dev, "Recover %d eqes on EQ 0x%x\n", eqe_count, eq->eqn);
-	sq->channel->stats->eq_rearm++;
+	sq->channel->stats.eq_rearm++;
 	return true;
 }
 
@@ -4068,7 +4061,6 @@ static void mlx5e_build_nic_netdev_priv(struct mlx5_core_dev *mdev,
 	priv->profile     = profile;
 	priv->ppriv       = ppriv;
 	priv->msglevel    = MLX5E_MSG_LEVEL;
-	priv->max_opened_tc = 1;
 
 	mlx5e_build_nic_params(mdev, &priv->channels.params,
 			       profile->max_nch(mdev), netdev->mtu);
