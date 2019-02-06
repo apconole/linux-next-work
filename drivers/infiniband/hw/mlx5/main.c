@@ -3871,12 +3871,11 @@ mlx5_ib_create_flow_action_esp(struct ib_device *device,
 	u64 flags;
 	int err = 0;
 
-	if (IS_UVERBS_COPY_ERR(uverbs_copy_from(&action_flags, attrs,
-						MLX5_IB_ATTR_CREATE_FLOW_ACTION_FLAGS)))
-		return ERR_PTR(-EFAULT);
-
-	if (action_flags >= (MLX5_FLOW_ACTION_ESP_CREATE_LAST_SUPPORTED << 1))
-		return ERR_PTR(-EOPNOTSUPP);
+	err = uverbs_get_flags64(
+		&action_flags, attrs, MLX5_IB_ATTR_CREATE_FLOW_ACTION_FLAGS,
+		((MLX5_FLOW_ACTION_ESP_CREATE_LAST_SUPPORTED << 1) - 1));
+	if (err)
+		return ERR_PTR(err);
 
 	flags = mlx5_ib_flow_action_flags_to_accel_xfrm_flags(action_flags);
 
