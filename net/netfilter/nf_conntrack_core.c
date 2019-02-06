@@ -476,6 +476,17 @@ nf_ct_key_equal(struct nf_conntrack_tuple_hash *h,
 	       nf_ct_is_confirmed(ct);
 }
 
+static inline bool
+nf_ct_match(const struct nf_conn *ct1, const struct nf_conn *ct2)
+{
+	return nf_ct_tuple_equal(&ct1->tuplehash[IP_CT_DIR_ORIGINAL].tuple,
+				 &ct2->tuplehash[IP_CT_DIR_ORIGINAL].tuple) &&
+	       nf_ct_tuple_equal(&ct1->tuplehash[IP_CT_DIR_REPLY].tuple,
+				 &ct2->tuplehash[IP_CT_DIR_REPLY].tuple) &&
+	       nf_ct_zone_equal(ct1, nf_ct_zone(ct2), IP_CT_DIR_ORIGINAL) &&
+	       nf_ct_zone_equal(ct1, nf_ct_zone(ct2), IP_CT_DIR_REPLY);
+}
+
 /* must be called with rcu read lock held */
 void nf_conntrack_get_ht(struct net *net, struct hlist_nulls_head **hash, unsigned int *hsize)
 {
@@ -677,19 +688,22 @@ static int nf_ct_resolve_clash(struct net *net, struct sk_buff *skb,
 {
 	/* This is the conntrack entry already in hashes that won race. */
 	struct nf_conn *ct = nf_ct_tuplehash_to_ctrack(h);
-	struct nf_conntrack_l4proto *l4proto;
+	const struct nf_conntrack_l4proto *l4proto;
 	enum ip_conntrack_info oldinfo;
 	struct nf_conn *loser_ct = nf_ct_get(skb, &oldinfo);
 
 	l4proto = __nf_ct_l4proto_find(nf_ct_l3num(ct), nf_ct_protonum(ct));
 	if (l4proto->allow_clash &&
-	    !nfct_nat(ct) &&
 	    !nf_ct_is_dying(ct) &&
 	    atomic_inc_not_zero(&ct->ct_general.use)) {
-		nf_ct_acct_merge(ct, ctinfo, (struct nf_conn *)skb->nfct);
-		nf_conntrack_put(&loser_ct->ct_general);
-		nf_ct_set(skb, ct, oldinfo);
-		return NF_ACCEPT;
+		if (((ct->status & IPS_NAT_DONE_MASK) == 0) ||
+		    nf_ct_match(ct, loser_ct)) {
+			nf_ct_acct_merge(ct, ctinfo, loser_ct);
+			nf_conntrack_put(&loser_ct->ct_general);
+			nf_ct_set(skb, ct, oldinfo);
+			return NF_ACCEPT;
+		}
+		nf_ct_put(ct);
 	}
 	NF_CT_STAT_INC(net, drop);
 	return NF_DROP;
