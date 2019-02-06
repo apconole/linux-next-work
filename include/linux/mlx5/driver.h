@@ -1274,22 +1274,7 @@ enum {
 static inline const struct cpumask *
 mlx5_get_vector_affinity_hint(struct mlx5_core_dev *dev, int vector)
 {
-/* calling irq_to_desc will result to undefinded irq_desc symbol */
-#ifndef CONFIG_GENERIC_HARDIRQS
-	return cpu_possible_mask;
-#else
-	struct irq_desc *desc;
-	unsigned int irq;
-	int eqn;
-	int err;
-
-	err = mlx5_vector2eqn(dev, vector, &eqn, &irq);
-	if (err)
-		return NULL;
-
-	desc = irq_to_desc(irq);
-	return desc->affinity_hint;
-#endif
+	return dev->priv.irq_info[vector].mask;
 }
 
 #endif /* MLX5_DRIVER_H */
