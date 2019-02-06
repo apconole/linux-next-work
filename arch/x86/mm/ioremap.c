@@ -401,7 +401,7 @@ int arch_ioremap_pmd_supported(void)
  * Convert a physical pointer to a virtual kernel pointer for /dev/mem
  * access
  */
-void *xlate_dev_mem_ptr(unsigned long phys)
+void *xlate_dev_mem_ptr(phys_addr_t phys)
 {
 	unsigned long start  = phys &  PAGE_MASK;
 	unsigned long offset = phys & ~PAGE_MASK;
@@ -417,7 +417,7 @@ void *xlate_dev_mem_ptr(unsigned long phys)
 	return vaddr;
 }
 
-void unxlate_dev_mem_ptr(unsigned long phys, void *addr)
+void unxlate_dev_mem_ptr(phys_addr_t phys, void *addr)
 {
 	memunmap((void *)((unsigned long)addr & PAGE_MASK));
 }
