@@ -53,7 +53,6 @@
 #include "wq.h"
 #include "mlx5_core.h"
 #include "en_stats.h"
-#include "vxlan.h"
 
 struct page_pool;
 
@@ -814,7 +813,6 @@ struct mlx5e_priv {
 	u32                        tx_rates[MLX5E_MAX_NUM_SQS];
 
 	struct mlx5e_flow_steering fs;
-	struct mlx5_vxlan          *vxlan;
 
 	struct workqueue_struct    *wq;
 	struct work_struct         update_carrier_work;
