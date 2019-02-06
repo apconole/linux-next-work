@@ -2800,7 +2800,7 @@ static int set_msg_len(u8 *block, unsigned int msglen, int csize)
 	return 0;
 }
 
-static void generate_b0(struct aead_request *req,
+static int generate_b0(struct aead_request *req,
 			struct chcr_aead_ctx *aeadctx,
 			unsigned short op_type)
 {
@@ -2826,6 +2826,8 @@ static void generate_b0(struct aead_request *req,
 	rc = set_msg_len(b0 + 16 - l,
 			 (op_type == CHCR_DECRYPT_OP) ?
 			 req->cryptlen - m : req->cryptlen, l);
+
+	return rc;
 }
 
 static inline int crypto_ccm_check_iv(const u8 *iv)
@@ -2858,7 +2860,7 @@ static int ccm_format_packet(struct aead_request *req,
 		*((unsigned short *)(reqctx->scratch_pad + 16)) =
 				htons(assoclen);
 
-	generate_b0(req, aeadctx, op_type);
+	rc = generate_b0(req, aeadctx, op_type);
 	/* zero the ctr value */
 	memset(reqctx->iv + 15 - reqctx->iv[0], 0, reqctx->iv[0] + 1);
 	return rc;
