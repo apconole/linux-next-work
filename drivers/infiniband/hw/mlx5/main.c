@@ -55,6 +55,7 @@
 #include <linux/in.h>
 #include <linux/etherdevice.h>
 #include "mlx5_ib.h"
+#include "ib_rep.h"
 #include "cmd.h"
 
 #define DRIVER_NAME "mlx5_ib"
