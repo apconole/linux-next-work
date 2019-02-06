@@ -5548,6 +5548,8 @@ static int populate_specs_root(struct mlx5_ib_dev *dev)
 	    MLX5_GENERAL_OBJ_TYPES_CAP_UCTX)
 		trees[num_trees++] = mlx5_ib_get_devx_tree();
 
+	num_trees += mlx5_ib_get_flow_trees(trees + num_trees);
+
 	WARN_ON(num_trees >= ARRAY_SIZE(dev->driver_trees));
 	trees[num_trees] = NULL;
 	dev->ib_dev.driver_specs = trees;
