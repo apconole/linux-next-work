@@ -55,6 +55,7 @@
 #include "en_stats.h"
 #include "en/fs.h"
 
+extern const struct net_device_ops mlx5e_netdev_ops;
 struct page_pool;
 
 #define MLX5E_METADATA_ETHER_TYPE (0x8CE4)
