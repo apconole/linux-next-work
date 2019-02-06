@@ -279,6 +279,7 @@ struct mlx5e_dcbx {
 	u8                         cap;
 
 	/* Buffer configuration */
+	bool                       manual_buffer;
 	u32                        cable_len;
 	u32                        xoff;
 };
@@ -1011,6 +1012,7 @@ static inline void mlx5e_cq_arm(struct mlx5e_cq *cq)
 extern const struct ethtool_ops mlx5e_ethtool_ops;
 #ifdef CONFIG_MLX5_CORE_EN_DCB
 extern const struct dcbnl_rtnl_ops mlx5e_dcbnl_ops;
+extern const struct dcbnl_rtnl_ops_ext mlx5e_dcbnl_ops_ext;
 int mlx5e_dcbnl_ieee_setets_core(struct mlx5e_priv *priv, struct ieee_ets *ets);
 void mlx5e_dcbnl_initialize(struct mlx5e_priv *priv);
 void mlx5e_dcbnl_init_app(struct mlx5e_priv *priv);
