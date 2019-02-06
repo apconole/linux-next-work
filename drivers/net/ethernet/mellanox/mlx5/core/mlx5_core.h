@@ -132,12 +132,8 @@ int mlx5_create_map_eq(struct mlx5_core_dev *dev, struct mlx5_eq *eq, u8 vecidx,
 int mlx5_destroy_unmap_eq(struct mlx5_core_dev *dev, struct mlx5_eq *eq);
 int mlx5_eq_add_cq(struct mlx5_eq *eq, struct mlx5_core_cq *cq);
 int mlx5_eq_del_cq(struct mlx5_eq *eq, struct mlx5_core_cq *cq);
-int mlx5_core_eq_query(struct mlx5_core_dev *dev, struct mlx5_eq *eq,
-		       u32 *out, int outlen);
-int mlx5_start_eqs(struct mlx5_core_dev *dev);
-void mlx5_stop_eqs(struct mlx5_core_dev *dev);
-int mlx5_alloc_comp_eqs(struct mlx5_core_dev *dev);
-void mlx5_free_comp_eqs(struct mlx5_core_dev *dev);
+int mlx5_eq_table_create(struct mlx5_core_dev *dev);
+void mlx5_eq_table_destroy(struct mlx5_core_dev *dev);
 struct mlx5_eq *mlx5_eqn2eq(struct mlx5_core_dev *dev, int eqn);
 u32 mlx5_eq_poll_irq_disabled(struct mlx5_eq *eq);
 void mlx5_cq_tasklet_cb(unsigned long data);
