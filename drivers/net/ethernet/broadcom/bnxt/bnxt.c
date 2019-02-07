@@ -3310,9 +3310,8 @@ static int bnxt_alloc_hwrm_short_cmd_req(struct bnxt *bp)
 	return 0;
 }
 
-static void bnxt_free_stats(struct bnxt *bp)
+static void bnxt_free_port_stats(struct bnxt *bp)
 {
-	u32 size, i;
 	struct pci_dev *pdev = bp->pdev;
 
 	bp->flags &= ~BNXT_FLAG_PORT_STATS;
@@ -3338,6 +3337,12 @@ static void bnxt_free_stats(struct bnxt *bp)
 				  bp->hw_rx_port_stats_ext_map);
 		bp->hw_rx_port_stats_ext = NULL;
 	}
+}
+
+static void bnxt_free_ring_stats(struct bnxt *bp)
+{
+	struct pci_dev *pdev = bp->pdev;
+	int size, i;
 
 	if (!bp->bnapi)
 		return;
@@ -3377,6 +3382,9 @@ static int bnxt_alloc_stats(struct bnxt *bp)
 	}
 
 	if (BNXT_PF(bp) && bp->chip_num != CHIP_NUM_58700) {
+		if (bp->hw_rx_port_stats)
+			goto alloc_ext_stats;
+
 		bp->hw_port_stats_size = sizeof(struct rx_port_stats) +
 					 sizeof(struct tx_port_stats) + 1024;
 
@@ -3393,10 +3401,14 @@ static int bnxt_alloc_stats(struct bnxt *bp)
 					   sizeof(struct rx_port_stats) + 512;
 		bp->flags |= BNXT_FLAG_PORT_STATS;
 
+alloc_ext_stats:
 		/* Display extended statistics only if FW supports it */
 		if (bp->hwrm_spec_code < 0x10804 ||
 		    bp->hwrm_spec_code == 0x10900)
 			return 0;
+
+		if (bp->hw_rx_port_stats_ext)
+			goto alloc_tx_ext_stats;
 
 		bp->hw_rx_port_stats_ext =
 			dma_zalloc_coherent(&pdev->dev,
@@ -3404,6 +3416,10 @@ static int bnxt_alloc_stats(struct bnxt *bp)
 					    &bp->hw_rx_port_stats_ext_map,
 					    GFP_KERNEL);
 		if (!bp->hw_rx_port_stats_ext)
+			return 0;
+
+alloc_tx_ext_stats:
+		if (bp->hw_tx_port_stats_ext)
 			return 0;
 
 		if (bp->hwrm_spec_code >= 0x10902) {
@@ -3513,7 +3529,7 @@ static void bnxt_free_mem(struct bnxt *bp, bool irq_re_init)
 	bnxt_free_cp_rings(bp);
 	bnxt_free_ntp_fltrs(bp, irq_re_init);
 	if (irq_re_init) {
-		bnxt_free_stats(bp);
+		bnxt_free_ring_stats(bp);
 		bnxt_free_ring_grps(bp);
 		bnxt_free_vnics(bp);
 		kfree(bp->tx_ring_map);
@@ -9879,6 +9895,7 @@ static void bnxt_remove_one(struct pci_dev *pdev)
 	kfree(bp->ctx);
 	bp->ctx = NULL;
 	bnxt_cleanup_pci(bp);
+	bnxt_free_port_stats(bp);
 	free_netdev(dev);
 }
 
