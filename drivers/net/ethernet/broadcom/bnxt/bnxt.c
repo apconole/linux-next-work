@@ -8322,8 +8322,6 @@ static void bnxt_remove_one(struct pci_dev *pdev)
 	kfree(bp->edev);
 	bp->edev = NULL;
 	bnxt_cleanup_pci(bp);
-	if (bp->xdp_prog)
-		bpf_prog_put(bp->xdp_prog);
 	free_netdev(dev);
 }
 
