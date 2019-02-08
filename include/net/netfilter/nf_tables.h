@@ -49,6 +49,11 @@ static inline void nft_set_pktinfo(struct nft_pktinfo *pkt,
 				   const struct nf_hook_state *state)
 {
 	pkt->skb = skb;
+	pkt->xt.net = state->net;
+	pkt->xt.in = state->in;
+	pkt->xt.out = state->out;
+	pkt->xt.hooknum = state->hook;
+	pkt->xt.family = state->pf;
 }
 
 /**
