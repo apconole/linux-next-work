@@ -270,6 +270,10 @@ static struct test generic_tests[] = {
 		}
 	},
 	{
+		.desc = "mem2node",
+		.func = test__mem2node,
+	},
+	{
 		.func = NULL,
 	},
 };
