@@ -81,4 +81,6 @@ struct record_opts {
 struct option;
 extern const char * const *record_usage;
 extern struct option *record_options;
+
+int record__parse_freq(const struct option *opt, const char *str, int unset);
 #endif
