@@ -72,6 +72,11 @@ enum nvme_quirks {
 	 * The deepest sleep state should not be used.
 	 */
 	NVME_QUIRK_NO_DEEPEST_PS		= (1 << 5),
+
+	/*
+	 * Set MEDIUM priority on SQ creation
+	 */
+	NVME_QUIRK_MEDIUM_PRIO_SQ		= (1 << 7),
 };
 
 /*
