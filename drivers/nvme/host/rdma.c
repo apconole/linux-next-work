@@ -1220,21 +1220,38 @@ static int nvme_rdma_map_data(struct nvme_rdma_queue *queue,
 	count = ib_dma_map_sg(ibdev, req->sg_table.sgl, nents,
 		    rq_data_dir(rq) == WRITE ? DMA_TO_DEVICE : DMA_FROM_DEVICE);
 	if (unlikely(count <= 0)) {
-		sg_free_table_chained(&req->sg_table, true);
-		return -EIO;
+		ret = -EIO;
+		goto out_free_table;
 	}
 
 	if (count == 1) {
 		if (rq_data_dir(rq) == WRITE &&
 		    map_len <= nvme_rdma_inline_data_size(queue) &&
-		    nvme_rdma_queue_idx(queue))
-			return nvme_rdma_map_sg_inline(queue, req, c);
+		    nvme_rdma_queue_idx(queue)) {
+			ret = nvme_rdma_map_sg_inline(queue, req, c);
+			goto out;
+		}
 
-		if (dev->pd->flags & IB_PD_UNSAFE_GLOBAL_RKEY)
-			return nvme_rdma_map_sg_single(queue, req, c);
+		if (dev->pd->flags & IB_PD_UNSAFE_GLOBAL_RKEY) {
+			ret = nvme_rdma_map_sg_single(queue, req, c);
+			goto out;
+		}
 	}
 
-	return nvme_rdma_map_sg_fr(queue, req, c, count);
+	ret = nvme_rdma_map_sg_fr(queue, req, c, count);
+out:
+	if (unlikely(ret))
+		goto out_unmap_sg;
+
+	return 0;
+
+out_unmap_sg:
+	ib_dma_unmap_sg(ibdev, req->sg_table.sgl,
+			req->nents, rq_data_dir(rq) ==
+			WRITE ? DMA_TO_DEVICE : DMA_FROM_DEVICE);
+out_free_table:
+	sg_free_table_chained(&req->sg_table, true);
+	return ret;
 }
 
 static void nvme_rdma_send_done(struct ib_cq *cq, struct ib_wc *wc)
