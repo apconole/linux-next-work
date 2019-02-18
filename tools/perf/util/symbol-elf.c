@@ -1397,6 +1397,7 @@ struct kcore_copy_info {
 	u64 last_symbol;
 	u64 first_module;
 	u64 last_module_symbol;
+	size_t phnum;
 	struct phdr_data kernel_map;
 	struct phdr_data modules_map;
 	struct list_head phdrs;
@@ -1515,6 +1516,8 @@ static int kcore_copy__read_maps(struct kcore_copy_info *kci, Elf *elf)
 		list_add_tail(&kci->kernel_map.node, &kci->phdrs);
 	if (kci->modules_map.len)
 		list_add_tail(&kci->modules_map.node, &kci->phdrs);
+
+	kci->phnum = !!kci->kernel_map.len + !!kci->modules_map.len;
 
 	return 0;
 }
@@ -1677,7 +1680,6 @@ int kcore_copy(const char *from_dir, const char *to_dir)
 {
 	struct kcore kcore;
 	struct kcore extract;
-	size_t count = 2;
 	int idx = 0, err = -1;
 	off_t offset = page_size, sz, modules_offset = 0;
 	struct kcore_copy_info kci = { .stext = 0, };
@@ -1704,10 +1706,7 @@ int kcore_copy(const char *from_dir, const char *to_dir)
 	if (kcore__init(&extract, extract_filename, kcore.elfclass, false))
 		goto out_kcore_close;
 
-	if (!kci.modules_map.addr)
-		count -= 1;
-
-	if (kcore__copy_hdr(&kcore, &extract, count))
+	if (kcore__copy_hdr(&kcore, &extract, kci.phnum))
 		goto out_extract_close;
 
 	if (kcore__add_phdr(&extract, idx++, offset, kci.kernel_map.addr,
