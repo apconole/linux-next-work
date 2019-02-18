@@ -113,16 +113,9 @@ static inline int elf_sym__is_label(const GElf_Sym *sym)
 		sym->st_shndx != SHN_ABS;
 }
 
-static bool elf_sym__is_a(GElf_Sym *sym, enum map_type type)
+static bool elf_sym__filter(GElf_Sym *sym)
 {
-	switch (type) {
-	case MAP__FUNCTION:
-		return elf_sym__is_function(sym);
-	case MAP__VARIABLE:
-		return elf_sym__is_object(sym);
-	default:
-		return false;
-	}
+	return elf_sym__is_function(sym) || elf_sym__is_object(sym);
 }
 
 static inline const char *elf_sym__name(const GElf_Sym *sym,
@@ -149,17 +142,10 @@ static inline bool elf_sec__is_data(const GElf_Shdr *shdr,
 	return strstr(elf_sec__name(shdr, secstrs), "data") != NULL;
 }
 
-static bool elf_sec__is_a(GElf_Shdr *shdr, Elf_Data *secstrs,
-			  enum map_type type)
+static bool elf_sec__filter(GElf_Shdr *shdr, Elf_Data *secstrs)
 {
-	switch (type) {
-	case MAP__FUNCTION:
-		return elf_sec__is_text(shdr, secstrs);
-	case MAP__VARIABLE:
-		return elf_sec__is_data(shdr, secstrs);
-	default:
-		return false;
-	}
+	return elf_sec__is_text(shdr, secstrs) || 
+	       elf_sec__is_data(shdr, secstrs);
 }
 
 static size_t elf_addr_to_index(Elf *elf, GElf_Addr addr)
@@ -255,7 +241,7 @@ static char *demangle_sym(struct dso *dso, int kmodule, const char *elf_name)
  * And always look at the original dso, not at debuginfo packages, that
  * have the PLT data stripped out (shdr_rel_plt.sh_type == SHT_NOBITS).
  */
-int dso__synthesize_plt_symbols(struct dso *dso, struct symsrc *ss, struct map *map)
+int dso__synthesize_plt_symbols(struct dso *dso, struct symsrc *ss)
 {
 	uint32_t nr_rel_entries, idx;
 	GElf_Sym sym;
@@ -368,7 +354,7 @@ int dso__synthesize_plt_symbols(struct dso *dso, struct symsrc *ss, struct map *
 				goto out_elf_end;
 
 			plt_offset += plt_entry_size;
-			symbols__insert(&dso->symbols[map->type], f);
+			symbols__insert(&dso->symbols, f);
 			++nr;
 		}
 	} else if (shdr_rel_plt.sh_type == SHT_REL) {
@@ -394,7 +380,7 @@ int dso__synthesize_plt_symbols(struct dso *dso, struct symsrc *ss, struct map *
 				goto out_elf_end;
 
 			plt_offset += plt_entry_size;
-			symbols__insert(&dso->symbols[map->type], f);
+			symbols__insert(&dso->symbols, f);
 			++nr;
 		}
 	}
@@ -843,7 +829,7 @@ int dso__load_sym(struct dso *dso, struct map *map, struct symsrc *syms_ss,
 	 * have the wrong values for the dso maps, so remove them.
 	 */
 	if (kmodule && syms_ss->symtab)
-		symbols__delete(&dso->symbols[map->type]);
+		symbols__delete(&dso->symbols);
 
 	if (!syms_ss->symtab) {
 		/*
@@ -935,7 +921,7 @@ int dso__load_sym(struct dso *dso, struct map *map, struct symsrc *syms_ss,
 		const char *section_name;
 		bool used_opd = false;
 
-		if (!is_label && !elf_sym__is_a(&sym, map->type))
+		if (!is_label && !elf_sym__filter(&sym))
 			continue;
 
 		/* Reject ARM ELF "mapping symbols": these aren't unique and
@@ -973,7 +959,7 @@ int dso__load_sym(struct dso *dso, struct map *map, struct symsrc *syms_ss,
 
 		gelf_getshdr(sec, &shdr);
 
-		if (is_label && !elf_sec__is_a(&shdr, secstrs, map->type))
+		if (is_label && !elf_sec__filter(&shdr, secstrs))
 			continue;
 
 		section_name = elf_sec__name(&shdr, secstrs);
@@ -1041,7 +1027,7 @@ int dso__load_sym(struct dso *dso, struct map *map, struct symsrc *syms_ss,
 			snprintf(dso_name, sizeof(dso_name),
 				 "%s%s", dso->short_name, section_name);
 
-			curr_map = __map_groups__find_by_name(kmaps, map->type, dso_name);
+			curr_map = map_groups__find_by_name(kmaps, dso_name);
 			if (curr_map == NULL) {
 				u64 start = sym.st_value;
 
@@ -1054,8 +1040,7 @@ int dso__load_sym(struct dso *dso, struct map *map, struct symsrc *syms_ss,
 				curr_dso->kernel = dso->kernel;
 				curr_dso->long_name = dso->long_name;
 				curr_dso->long_name_len = dso->long_name_len;
-				curr_map = map__new2(start, curr_dso,
-						     map->type);
+				curr_map = map__new2(start, curr_dso);
 				dso__put(curr_dso);
 				if (curr_map == NULL) {
 					goto out_elf_end;
@@ -1080,7 +1065,7 @@ int dso__load_sym(struct dso *dso, struct map *map, struct symsrc *syms_ss,
 				dsos__add(&map->groups->machine->dsos, curr_dso);
 				/* kmaps already got it */
 				map__put(curr_map);
-				dso__set_loaded(curr_dso, map->type);
+				dso__set_loaded(curr_dso);
 			} else
 				curr_dso = curr_map->dso;
 
@@ -1109,7 +1094,7 @@ new_symbol:
 
 		arch__sym_update(f, &sym);
 
-		__symbols__insert(&curr_dso->symbols[curr_map->type], f, dso->kernel);
+		__symbols__insert(&curr_dso->symbols, f, dso->kernel);
 		nr++;
 	}
 
@@ -1117,14 +1102,14 @@ new_symbol:
 	 * For misannotated, zeroed, ASM function sizes.
 	 */
 	if (nr > 0) {
-		symbols__fixup_end(&dso->symbols[map->type]);
-		symbols__fixup_duplicate(&dso->symbols[map->type]);
+		symbols__fixup_end(&dso->symbols);
+		symbols__fixup_duplicate(&dso->symbols);
 		if (kmap) {
 			/*
 			 * We need to fixup this here too because we create new
 			 * maps here, for things like vsyscall sections.
 			 */
-			__map_groups__fixup_end(kmaps, map->type);
+			map_groups__fixup_end(kmaps);
 		}
 	}
 	err = nr;
