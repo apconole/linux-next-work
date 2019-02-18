@@ -79,6 +79,7 @@ struct annotation_options {
 	int  min_pcnt;
 	int  max_lines;
 	int  context;
+	const char *disassembler_style;
 };
 
 enum {
@@ -366,8 +367,6 @@ static inline int symbol__tui_annotate(struct symbol *sym __maybe_unused,
 	return 0;
 }
 #endif
-
-extern const char	*disassembler_style;
 
 void annotation_config__init(void);
 
