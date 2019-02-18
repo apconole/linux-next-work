@@ -1048,6 +1048,27 @@
 #define E1000_TQAVCTRL_XMIT_MODE	BIT(0)
 #define E1000_TQAVCTRL_DATAFETCHARB	BIT(4)
 #define E1000_TQAVCTRL_DATATRANARB	BIT(8)
+#define E1000_TQAVCTRL_DATATRANTIM	BIT(9)
+/* RHEL7: don't define bit if ETF qdisc isn't available */
+#ifdef TC_SETUP_QDISC_ETF
+#define E1000_TQAVCTRL_SP_WAIT_SR	BIT(10)
+#else
+#define E1000_TQAVCTRL_SP_WAIT_SR	0
+#endif
+/* Fetch Time Delta - bits 31:16
+ *
+ * This field holds the value to be reduced from the launch time for
+ * fetch time decision. The FetchTimeDelta value is defined in 32 ns
+ * granularity.
+ *
+ * This field is 16 bits wide, and so the maximum value is:
+ *
+ * 65535 * 32 = 2097120 ~= 2.1 msec
+ *
+ * XXX: We are configuring the max value here since we couldn't come up
+ * with a reason for not doing so.
+ */
+#define E1000_TQAVCTRL_FETCHTIME_DELTA	(0xFFFF << 16)
 
 /* TX Qav Credit Control fields */
 #define E1000_TQAVCC_IDLESLOPE_MASK	0xFFFF
