@@ -53,13 +53,8 @@ check () {
   file=$1
 
   shift
-  opts=
-  while [ -n "$*" ]; do
-    opts="$opts \"$1\""
-    shift
-  done
 
-  cmd="diff $opts ../$file ../../$file > /dev/null"
+  cmd="diff $* ../$file ../../$file > /dev/null"
 
   test -f ../../$file &&
   eval $cmd || echo "Warning: Kernel ABI header at 'tools/$file' differs from latest version at '$file'" >&2
@@ -77,5 +72,5 @@ for i in $HEADERS; do
 done
 
 # diff with extra ignore lines
-check include/uapi/asm-generic/mman.h -I "^#include <\(uapi/\)*asm-generic/mman-common.h>"
-check include/uapi/linux/mman.h       -I "^#include <\(uapi/\)*asm/mman.h>"
+check include/uapi/asm-generic/mman.h '-I "^#include <\(uapi/\)*asm-generic/mman-common.h>"'
+check include/uapi/linux/mman.h       '-I "^#include <\(uapi/\)*asm/mman.h>"'
