@@ -19,6 +19,11 @@
 
 #include "igb.h"
 
+/* RHEL7-only */
+#ifndef WAKE_FILTER
+#define WAKE_FILTER 0
+#endif
+
 struct igb_stats {
 	char stat_string[ETH_GSTRING_LEN];
 	int sizeof_stat;
@@ -2114,7 +2119,7 @@ static int igb_set_wol(struct net_device *netdev, struct ethtool_wolinfo *wol)
 {
 	struct igb_adapter *adapter = netdev_priv(netdev);
 
-	if (wol->wolopts & (WAKE_ARP | WAKE_MAGICSECURE))
+	if (wol->wolopts & (WAKE_ARP | WAKE_MAGICSECURE | WAKE_FILTER))
 		return -EOPNOTSUPP;
 
 	if (!(adapter->flags & IGB_FLAG_WOL_SUPPORTED))
