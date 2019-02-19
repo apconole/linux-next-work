@@ -216,7 +216,7 @@ static void qede_get_strings_stats_txq(struct qede_dev *edev,
 	int i;
 
 	for (i = 0; i < QEDE_NUM_TQSTATS; i++) {
-		sprintf(*buf, "%d: %s", txq->index,
+		sprintf(*buf, "%d_%d: %s", txq->index, txq->cos,
 			qede_tqstats_arr[i].string);
 		*buf += ETH_GSTRING_LEN;
 	}
@@ -253,8 +253,13 @@ static void qede_get_strings_stats(struct qede_dev *edev, u8 *buf)
 		if (fp->type & QEDE_FASTPATH_RX)
 			qede_get_strings_stats_rxq(edev, fp->rxq, &buf);
 
-		if (fp->type & QEDE_FASTPATH_TX)
-			qede_get_strings_stats_txq(edev, fp->txq, &buf);
+		if (fp->type & QEDE_FASTPATH_TX) {
+			int cos;
+
+			for_each_cos_in_txq(edev, cos)
+				qede_get_strings_stats_txq(edev,
+							   &fp->txq[cos], &buf);
+		}
 	}
 
 	/* Account for non-queue statistics */
@@ -326,8 +331,12 @@ static void qede_get_ethtool_stats(struct net_device *dev,
 		if (fp->type & QEDE_FASTPATH_RX)
 			qede_get_ethtool_stats_rxq(fp->rxq, &buf);
 
-		if (fp->type & QEDE_FASTPATH_TX)
-			qede_get_ethtool_stats_txq(fp->txq, &buf);
+		if (fp->type & QEDE_FASTPATH_TX) {
+			int cos;
+
+			for_each_cos_in_txq(edev, cos)
+				qede_get_ethtool_stats_txq(&fp->txq[cos], &buf);
+		}
 	}
 
 	for (i = 0; i < QEDE_NUM_STATS; i++) {
@@ -354,7 +363,8 @@ static int qede_get_sset_count(struct net_device *dev, int stringset)
 				num_stats--;
 
 		/* Account for the Regular Tx statistics */
-		num_stats += QEDE_TSS_COUNT(edev) * QEDE_NUM_TQSTATS;
+		num_stats += QEDE_TSS_COUNT(edev) * QEDE_NUM_TQSTATS *
+				edev->dev_info.num_tc;
 
 		/* Account for the Regular Rx statistics */
 		num_stats += QEDE_RSS_COUNT(edev) * QEDE_NUM_RQSTATS;
@@ -735,9 +745,17 @@ static int qede_get_coalesce(struct net_device *dev,
 		}
 
 		for_each_queue(i) {
+			struct qede_tx_queue *txq;
+
 			fp = &edev->fp_array[i];
+
+			/* All TX queues of given fastpath uses same
+			 * coalescing value, so no need to iterate over
+			 * all TCs, TC0 txq should suffice.
+			 */
 			if (fp->type & QEDE_FASTPATH_TX) {
-				tx_handle = fp->txq->handle;
+				txq = QEDE_FP_TC0_TXQ(fp);
+				tx_handle = txq->handle;
 				break;
 			}
 		}
@@ -795,9 +813,17 @@ static int qede_set_coalesce(struct net_device *dev,
 		}
 
 		if (edev->fp_array[i].type & QEDE_FASTPATH_TX) {
+			struct qede_tx_queue *txq;
+
+			/* All TX queues of given fastpath uses same
+			 * coalescing value, so no need to iterate over
+			 * all TCs, TC0 txq should suffice.
+			 */
+			txq = QEDE_FP_TC0_TXQ(fp);
+
 			rc = edev->ops->common->set_coalesce(edev->cdev,
 							     0, txc,
-							     fp->txq->handle);
+							     txq->handle);
 			if (rc) {
 				DP_INFO(edev,
 					"Set TX coalesce error, rc = %d\n", rc);
@@ -1379,8 +1405,10 @@ static int qede_selftest_transmit_traffic(struct qede_dev *edev,
 	u16 val;
 
 	for_each_queue(i) {
-		if (edev->fp_array[i].type & QEDE_FASTPATH_TX) {
-			txq = edev->fp_array[i].txq;
+		struct qede_fastpath *fp = &edev->fp_array[i];
+
+		if (fp->type & QEDE_FASTPATH_TX) {
+			txq = QEDE_FP_TC0_TXQ(fp);
 			break;
 		}
 	}
