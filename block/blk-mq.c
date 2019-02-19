@@ -2786,11 +2786,26 @@ static int blk_mq_queue_reinit_notify(struct notifier_block *nb,
 
 	__blk_mq_freeze_all_queue_list();
 
-	list_for_each_entry(q, &all_q_list, all_q_node)
+	/*
+	 * Multiple queues can share the same tag set, so we keep track of
+	 * which tag_sets we have already locked by setting
+	 * BLK_MQ_F_TAG_LOCKED
+	 */
+	list_for_each_entry(q, &all_q_list, all_q_node) {
+		if (!(q->tag_set->flags & BLK_MQ_F_TAG_LOCKED)) {
+			mutex_lock(&q->tag_set->tag_list_lock);
+			q->tag_set->flags |= BLK_MQ_F_TAG_LOCKED;
+		}
 		blk_mq_queue_reinit(q, &online_new);
+	}
 
-	list_for_each_entry(q, &all_q_list, all_q_node)
+	list_for_each_entry(q, &all_q_list, all_q_node) {
+		if (q->tag_set->flags & BLK_MQ_F_TAG_LOCKED) {
+			q->tag_set->flags &= ~BLK_MQ_F_TAG_LOCKED;
+			mutex_unlock(&q->tag_set->tag_list_lock);
+		}
 		blk_mq_unfreeze_queue(q);
+	}
 
 	mutex_unlock(&all_q_mutex);
 	return NOTIFY_OK;
