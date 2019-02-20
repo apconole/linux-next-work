@@ -1474,6 +1474,12 @@ static inline bool report_flexpriority(void)
 	return flexpriority_enabled;
 }
 
+static inline unsigned nested_cpu_vmx_misc_cr3_count(struct kvm_vcpu *vcpu)
+{
+	return (to_vmx(vcpu)->nested.nested_vmx_misc_low &
+		GENMASK_ULL(24, 16)) >> 16;
+}
+
 static inline bool nested_cpu_has(struct vmcs12 *vmcs12, u32 bit)
 {
 	return vmcs12->cpu_based_vm_exec_control & bit;
@@ -10625,6 +10631,9 @@ static int check_vmentry_prereqs(struct kvm_vcpu *vcpu, struct vmcs12 *vmcs12)
 	    !vmx_control_verify(vmcs12->vm_entry_controls,
 				vmx->nested.nested_vmx_true_entry_ctls_low,
 				vmx->nested.nested_vmx_entry_ctls_high))
+		return VMXERR_ENTRY_INVALID_CONTROL_FIELD;
+
+	if (vmcs12->cr3_target_count > nested_cpu_vmx_misc_cr3_count(vcpu))
 		return VMXERR_ENTRY_INVALID_CONTROL_FIELD;
 
 	if (((vmcs12->host_cr0 & VMXON_CR0_ALWAYSON) != VMXON_CR0_ALWAYSON) ||
