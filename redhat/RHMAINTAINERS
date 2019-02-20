@@ -418,6 +418,12 @@ M:	Ken Cox <jkc@redhat.com>
 S:	Maintained
 F:	drivers/net/ethernet/intel/ixgbevf/
 
+INTEL E800 SERIES ETHERNET DRIVERS (ice)
+M:	Jonathan Toppins <jtoppins@redhat.com>
+S:	Maintained
+F:	drivers/net/ethernet/intel/ice
+F:	Documentation/networking/ice.txt
+
 INTEL MANAGEMENT ENGINE (mei)
 M:	Jerry Snitselaar <jsnitsel@redhat.com>
 S:	Maintained
