@@ -4451,6 +4451,7 @@ static void init_kvm_tdp_mmu(struct kvm_vcpu *vcpu)
 	struct kvm_mmu *context = &vcpu->arch.mmu;
 
 	context->base_role.word = 0;
+	context->base_role.guest_mode = is_guest_mode(vcpu);
 	context->base_role.smm = is_smm(vcpu);
 	context->base_role.ad_disabled = (shadow_accessed_mask == 0);
 	context->page_fault = tdp_page_fault;
@@ -4516,6 +4517,7 @@ void kvm_init_shadow_mmu(struct kvm_vcpu *vcpu)
 		= smep && !is_write_protection(vcpu);
 	context->base_role.smap_andnot_wp
 		= smap && !is_write_protection(vcpu);
+	context->base_role.guest_mode = is_guest_mode(vcpu);
 	context->base_role.smm = is_smm(vcpu);
 	reset_shadow_zero_bits_mask(vcpu, context);
 }
@@ -4541,7 +4543,7 @@ void kvm_init_shadow_ept_mmu(struct kvm_vcpu *vcpu, bool execonly,
 	context->root_hpa = INVALID_PAGE;
 	context->direct_map = false;
 	context->base_role.ad_disabled = !accessed_dirty;
-
+	context->base_role.guest_mode = 1;
 	update_permission_bitmask(vcpu, context, true);
 	update_pkru_bitmask(vcpu, context, true);
 	update_last_nonleaf_level(vcpu, context);
@@ -4799,6 +4801,7 @@ static void kvm_mmu_pte_write(struct kvm_vcpu *vcpu, gpa_t gpa,
 	mask.smep_andnot_wp = 1;
 	mask.smap_andnot_wp = 1;
 	mask.smm = 1;
+	mask.guest_mode = 1;
 	mask.ad_disabled = 1;
 
 	/*
