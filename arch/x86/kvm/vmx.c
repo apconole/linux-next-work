@@ -6583,9 +6583,7 @@ static int handle_ept_violation(struct kvm_vcpu *vcpu)
 	error_code |= (exit_qualification & 0x100) != 0 ?
 	       PFERR_GUEST_FINAL_MASK : PFERR_GUEST_PAGE_MASK;
 
-	vcpu->arch.gpa_available = true;
 	vcpu->arch.exit_qualification = exit_qualification;
-
 	return kvm_mmu_page_fault(vcpu, gpa, error_code, NULL, 0);
 }
 
@@ -6601,7 +6599,6 @@ static int handle_ept_misconfig(struct kvm_vcpu *vcpu)
 		return 1;
 	}
 
-	vcpu->arch.gpa_available = true;
 	ret = kvm_mmu_page_fault(vcpu, gpa, PFERR_RSVD_MASK, NULL, 0);
 	if (ret >= 0)
 		return ret;
@@ -8655,7 +8652,6 @@ static int vmx_handle_exit(struct kvm_vcpu *vcpu)
 	u32 vectoring_info = vmx->idt_vectoring_info;
 
 	trace_kvm_exit(exit_reason, vcpu, KVM_ISA_VMX);
-	vcpu->arch.gpa_available = false;
 
 	/*
 	 * Flush logged GPAs PML buffer, this will make dirty_bitmap more
