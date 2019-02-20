@@ -7992,6 +7992,43 @@ static int handle_preemption_timer(struct kvm_vcpu *vcpu)
 	return 1;
 }
 
+static bool valid_ept_address(struct kvm_vcpu *vcpu, u64 address)
+{
+       struct vcpu_vmx *vmx = to_vmx(vcpu);
+       u64 mask = address & 0x7;
+       int maxphyaddr = cpuid_maxphyaddr(vcpu);
+
+       /* Check for memory type validity */
+       switch (mask) {
+       case 0:
+               if (!(vmx->nested.nested_vmx_ept_caps & VMX_EPTP_UC_BIT))
+                       return false;
+               break;
+       case 6:
+               if (!(vmx->nested.nested_vmx_ept_caps & VMX_EPTP_WB_BIT))
+                       return false;
+               break;
+       default:
+               return false;
+       }
+
+       /* Bits 5:3 must be 3 */
+       if (((address >> VMX_EPT_GAW_EPTP_SHIFT) & 0x7) != VMX_EPT_DEFAULT_GAW)
+               return false;
+
+       /* Reserved bits should not be set */
+       if (address >> maxphyaddr || ((address >> 7) & 0x1f))
+               return false;
+
+       /* AD, if set, should be supported */
+       if ((address & VMX_EPT_AD_ENABLE_BIT)) {
+               if (!(vmx->nested.nested_vmx_ept_caps & VMX_EPT_AD_BIT))
+                      return false;
+       }
+
+       return true;
+}
+
 /*
  * The exit handlers return 1 if the exit was handled fully and guest execution
  * may resume.  Otherwise they set the kvm_run parameter to indicate what needs
@@ -9785,18 +9822,15 @@ static unsigned long nested_ept_get_cr3(struct kvm_vcpu *vcpu)
 
 static int nested_ept_init_mmu_context(struct kvm_vcpu *vcpu)
 {
-	bool wants_ad;
-
 	WARN_ON(mmu_is_nested(vcpu));
-	wants_ad = nested_ept_ad_enabled(vcpu);
-	if (wants_ad && !enable_ept_ad_bits)
+	if (!valid_ept_address(vcpu, nested_ept_get_cr3(vcpu)))
 		return 1;
 
 	kvm_mmu_unload(vcpu);
 	kvm_init_shadow_ept_mmu(vcpu,
 			to_vmx(vcpu)->nested.nested_vmx_ept_caps &
 			VMX_EPT_EXECUTE_ONLY_BIT,
-			wants_ad);
+			nested_ept_ad_enabled(vcpu));
 	vcpu->arch.mmu.set_cr3           = vmx_set_cr3;
 	vcpu->arch.mmu.get_cr3           = nested_ept_get_cr3;
 	vcpu->arch.mmu.inject_page_fault = nested_ept_inject_page_fault;
