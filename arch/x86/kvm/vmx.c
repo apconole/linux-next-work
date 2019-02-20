@@ -1496,15 +1496,20 @@ static inline bool nested_cpu_has2(struct vmcs12 *vmcs12, u32 bit)
 		(vmcs12->secondary_vm_exec_control & bit);
 }
 
-static inline bool nested_cpu_has_virtual_nmis(struct vmcs12 *vmcs12)
-{
-	return vmcs12->pin_based_vm_exec_control & PIN_BASED_VIRTUAL_NMIS;
-}
-
 static inline bool nested_cpu_has_preemption_timer(struct vmcs12 *vmcs12)
 {
 	return vmcs12->pin_based_vm_exec_control &
 		PIN_BASED_VMX_PREEMPTION_TIMER;
+}
+
+static inline bool nested_cpu_has_nmi_exiting(struct vmcs12 *vmcs12)
+{
+	return vmcs12->pin_based_vm_exec_control & PIN_BASED_NMI_EXITING;
+}
+
+static inline bool nested_cpu_has_virtual_nmis(struct vmcs12 *vmcs12)
+{
+	return vmcs12->pin_based_vm_exec_control & PIN_BASED_VIRTUAL_NMIS;
 }
 
 static inline int nested_cpu_has_ept(struct vmcs12 *vmcs12)
@@ -5665,8 +5670,7 @@ static bool nested_exit_intr_ack_set(struct kvm_vcpu *vcpu)
 
 static bool nested_exit_on_nmi(struct kvm_vcpu *vcpu)
 {
-	return get_vmcs12(vcpu)->pin_based_vm_exec_control &
-		PIN_BASED_NMI_EXITING;
+	return nested_cpu_has_nmi_exiting(get_vmcs12(vcpu));
 }
 
 static void enable_irq_window(struct kvm_vcpu *vcpu)
@@ -10710,6 +10714,19 @@ static int prepare_vmcs02(struct kvm_vcpu *vcpu, struct vmcs12 *vmcs12,
 	return 0;
 }
 
+static int nested_vmx_check_nmi_controls(struct vmcs12 *vmcs12)
+{
+	if (!nested_cpu_has_nmi_exiting(vmcs12) &&
+	    nested_cpu_has_virtual_nmis(vmcs12))
+		return -EINVAL;
+
+	if (!nested_cpu_has_virtual_nmis(vmcs12) &&
+	    nested_cpu_has(vmcs12, CPU_BASED_VIRTUAL_NMI_PENDING))
+		return -EINVAL;
+
+	return 0;
+}
+
 static int check_vmentry_prereqs(struct kvm_vcpu *vcpu, struct vmcs12 *vmcs12)
 {
 	struct vcpu_vmx *vmx = to_vmx(vcpu);
@@ -10752,6 +10769,9 @@ static int check_vmentry_prereqs(struct kvm_vcpu *vcpu, struct vmcs12 *vmcs12)
 	    !vmx_control_verify(vmcs12->vm_entry_controls,
 				vmx->nested.nested_vmx_true_entry_ctls_low,
 				vmx->nested.nested_vmx_entry_ctls_high))
+		return VMXERR_ENTRY_INVALID_CONTROL_FIELD;
+
+	if (nested_vmx_check_nmi_controls(vmcs12))
 		return VMXERR_ENTRY_INVALID_CONTROL_FIELD;
 
 	if (vmcs12->cr3_target_count > nested_cpu_vmx_misc_cr3_count(vcpu))
