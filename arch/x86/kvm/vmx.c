@@ -10908,7 +10908,10 @@ static int enter_vmx_non_root_mode(struct kvm_vcpu *vcpu, bool from_vmentry)
 	struct vcpu_vmx *vmx = to_vmx(vcpu);
 	struct vmcs12 *vmcs12 = get_vmcs12(vcpu);
 	u32 exit_qual;
+	u32 vmcs01_cpu_exec_ctrl;
 	int r;
+
+	vmcs01_cpu_exec_ctrl = vmcs_read32(CPU_BASED_VM_EXEC_CONTROL);
 
 	enter_guest_mode(vcpu);
 
@@ -10933,6 +10936,25 @@ static int enter_vmx_non_root_mode(struct kvm_vcpu *vcpu, bool from_vmentry)
 					vmcs12->vm_entry_msr_load_count);
 	if (exit_qual)
 		goto fail;
+
+	/*
+	 * If L1 had a pending IRQ/NMI until it executed
+	 * VMLAUNCH/VMRESUME which wasn't delivered because it was
+	 * disallowed (e.g. interrupts disabled), L0 needs to
+	 * evaluate if this pending event should cause an exit from L2
+	 * to L1 or delivered directly to L2 (e.g. In case L1 don't
+	 * intercept EXTERNAL_INTERRUPT).
+	 *
+	 * Usually this would be handled by L0 requesting a
+	 * IRQ/NMI window by setting VMCS accordingly. However,
+	 * this setting was done on VMCS01 and now VMCS02 is active
+	 * instead. Thus, we force L0 to perform pending event
+	 * evaluation by requesting a KVM_REQ_EVENT.
+	 */
+	if (vmcs01_cpu_exec_ctrl &
+		(CPU_BASED_VIRTUAL_INTR_PENDING | CPU_BASED_VIRTUAL_NMI_PENDING)) {
+		kvm_make_request(KVM_REQ_EVENT, vcpu);
+	}
 
 	/*
 	 * Note no nested_vmx_succeed or nested_vmx_fail here. At this point
