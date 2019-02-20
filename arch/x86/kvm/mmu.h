@@ -38,6 +38,7 @@
 	(((1ULL << PT32_DIR_PSE36_SIZE) - 1) << PT32_DIR_PSE36_SHIFT)
 
 #define PT64_ROOT_LEVEL 4
+#define PT64_ROOT_4LEVEL 4 /* RHEL7 doesn't have 5-level PT */
 #define PT32_ROOT_LEVEL 2
 #define PT32E_ROOT_LEVEL 3
 
