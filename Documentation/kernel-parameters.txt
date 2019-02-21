@@ -1419,9 +1419,14 @@ bytes respectively. Such letter suffixes can also be entirely omitted.
 			<cpu number>,...,<cpu number>
 			or
 			<cpu number>-<cpu number>
+			or
+			drivers
 			(must be a positive range in ascending order)
 			or a mixture
 			<cpu number>,...,<cpu number>-<cpu number>
+			drivers will use drivers' affinity masks for
+			default interrupt assignment instead of placing them
+			all on CPU0.
 
 	irqfixup	[HW]
 			When an interrupt is not handled search all handlers

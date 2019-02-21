@@ -23,8 +23,15 @@
 static struct lock_class_key irq_desc_lock_class;
 
 #if defined(CONFIG_SMP)
+bool irqaffinity_drivers = false;
+
 static int __init irq_affinity_setup(char *str)
 {
+	if (strstr(str, "drivers")) {
+		pr_info("IRQ: Defaulting to driver affinity masks\n");
+		irqaffinity_drivers = true;
+		return 1;
+	}
 	/*
 	 * Note: changes from upstream patch
 	 * Upstream used zalloc_cpumask_var() but when built on RHEL, boot hangs
