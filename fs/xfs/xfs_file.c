@@ -48,6 +48,10 @@
 
 static const struct vm_operations_struct xfs_file_vm_ops;
 
+STATIC ssize_t
+xfs_file_aio_write_checks(struct file *file, loff_t *pos, size_t *count,
+			  int *iolock);
+
 /*
  * Locking primitives for read and write IO paths to ensure we consistently use
  * and order the inode->i_mutex, ip->i_lock and ip->i_iolock.
@@ -461,6 +465,7 @@ xfs_file_splice_write(
 	struct inode		*inode = outfilp->f_mapping->host;
 	struct xfs_inode	*ip = XFS_I(inode);
 	ssize_t			ret;
+	int			iolock = XFS_IOLOCK_EXCL;
 
 	/*
 	 * For dax, we need to avoid the page cache.  Locking and stats will
@@ -475,16 +480,21 @@ xfs_file_splice_write(
 	if (XFS_FORCED_SHUTDOWN(ip->i_mount))
 		return -EIO;
 
-	xfs_rw_ilock(ip, XFS_IOLOCK_EXCL);
+	xfs_rw_ilock(ip, iolock);
 
 	trace_xfs_file_splice_write(ip, count, *ppos);
+
+	ret = xfs_file_aio_write_checks(outfilp, ppos, &count, &iolock);
+	if (ret)
+		goto out;
 
 	ret = splice_write_to_file(pipe, outfilp, ppos, count, flags,
 					xfs_file_splice_write_actor);
 	if (ret > 0)
 		XFS_STATS_ADD(ip->i_mount, xs_write_bytes, ret);
 
-	xfs_rw_iunlock(ip, XFS_IOLOCK_EXCL);
+out:
+	xfs_rw_iunlock(ip, iolock);
 	return ret;
 }
 
