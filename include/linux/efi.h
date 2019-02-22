@@ -865,6 +865,8 @@ extern struct efi {
 	RH_KABI_EXTEND(unsigned long flags)
 	/* Provide a non-blocking SetVariable() operation */
 	RH_KABI_EXTEND(efi_set_variable_nonblocking_t *set_variable_nonblocking)
+	/* Provide a non-blocking QueryVariableInfo() operation */
+	RH_KABI_EXTEND(efi_query_variable_info_t *query_variable_info_nonblocking)
 } efi;
 
 static inline int
