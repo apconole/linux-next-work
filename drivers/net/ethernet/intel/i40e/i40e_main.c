@@ -11888,7 +11888,6 @@ static const struct net_device_ops i40e_netdev_ops = {
 #if 0 /* XDP is stubbed in RHEL7 */
 	.extended.ndo_xdp	= i40e_xdp,
 	.extended.ndo_xdp_xmit	= i40e_xdp_xmit,
-	.extended.ndo_xdp_flush	= i40e_xdp_flush,
 #endif
 };
 
