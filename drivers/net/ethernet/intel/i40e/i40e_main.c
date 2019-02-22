@@ -3080,6 +3080,9 @@ static int i40e_configure_tx_ring(struct i40e_ring *ring)
 	i40e_status err = 0;
 	u32 qtx_ctl = 0;
 
+	if (ring_is_xdp(ring))
+		ring->xsk_umem = i40e_xsk_umem(ring);
+
 	/* some ATR related tx ring init */
 	if (vsi->back->flags & I40E_FLAG_FD_ATR_ENABLED) {
 		ring->atr_sample_rate = vsi->back->atr_sample_rate;
@@ -12214,6 +12217,7 @@ static const struct net_device_ops i40e_netdev_ops = {
 #if 0 /* XDP is stubbed in RHEL7 */
 	.extended.ndo_xdp	= i40e_xdp,
 	.extended.ndo_xdp_xmit	= i40e_xdp_xmit,
+	.ndo_xsk_async_xmit	= i40e_xsk_async_xmit,
 #endif
 };
 
