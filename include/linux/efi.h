@@ -1340,4 +1340,7 @@ extern void efi_call_virt_check_flags(unsigned long flags, const char *call);
 	arch_efi_call_virt_teardown(ibrs_on);				\
 })
 
+/* Workqueue to queue EFI Runtime Services */
+extern struct workqueue_struct *efi_rts_wq;
+
 #endif /* _LINUX_EFI_H */
