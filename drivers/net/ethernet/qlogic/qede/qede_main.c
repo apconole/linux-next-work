@@ -1360,7 +1360,7 @@ static int qede_alloc_mem_rxq(struct qede_dev *edev, struct qede_rx_queue *rxq)
 
 	rxq->rx_buf_size = NET_IP_ALIGN + ETH_OVERHEAD + edev->ndev->mtu;
 
-	rxq->rx_headroom = NET_SKB_PAD;
+	rxq->rx_headroom = edev->xdp_prog ? XDP_PACKET_HEADROOM : NET_SKB_PAD;
 	size = rxq->rx_headroom +
 	       SKB_DATA_ALIGN(sizeof(struct skb_shared_info));
 
