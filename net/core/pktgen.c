@@ -2643,9 +2643,9 @@ static int process_ipsec(struct pktgen_dev *pkt_dev,
 		struct xfrm_state *x = pkt_dev->flows[pkt_dev->curfl].x;
 		int nhead = 0;
 		if (x) {
-			int ret;
-			__u8 *eth;
+			struct ethhdr *eth;
 			struct iphdr *iph;
+			int ret;
 
 			nhead = x->props.header_len - skb_headroom(skb);
 			if (nhead > 0) {
@@ -2666,8 +2666,8 @@ static int process_ipsec(struct pktgen_dev *pkt_dev,
 			}
 			/* restore ll */
 			eth = skb_push(skb, ETH_HLEN);
-			memcpy(eth, pkt_dev->hh, 12);
-			*(u16 *) &eth[12] = protocol;
+			memcpy(eth, pkt_dev->hh, 2 * ETH_ALEN);
+			eth->h_proto = protocol;
 
 			/* Update IPv4 header len as well as checksum value */
 			iph = ip_hdr(skb);
