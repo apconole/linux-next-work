@@ -1273,6 +1273,7 @@ static ssize_t pktgen_if_write(struct file *file,
 				"IPSRC_RND, IPDST_RND, UDPSRC_RND, UDPDST_RND, "
 				"MACSRC_RND, MACDST_RND, TXSIZE_RND, IPV6, "
 				"MPLS_RND, VID_RND, SVID_RND, FLOW_SEQ, "
+				"QUEUE_MAP_RND, QUEUE_MAP_CPU, UDPCSUM, "
 				"NO_TIMESTAMP, "
 #ifdef CONFIG_XFRM
 				"IPSEC, "
