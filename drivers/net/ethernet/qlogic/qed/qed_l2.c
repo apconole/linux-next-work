@@ -2216,7 +2216,7 @@ static int qed_fill_eth_dev_info(struct qed_dev *cdev,
 			u16 num_queues = 0;
 
 			/* Since the feature controls only queue-zones,
-			 * make sure we have the contexts [rx, tx] to
+			 * make sure we have the contexts [rx, tx, xdp] to
 			 * match.
 			 */
 			for_each_hwfn(cdev, i) {
@@ -2226,7 +2226,7 @@ static int qed_fill_eth_dev_info(struct qed_dev *cdev,
 				u16 cids;
 
 				cids = hwfn->pf_params.eth_pf_params.num_cons;
-				num_queues += min_t(u16, l2_queues, cids / 2);
+				num_queues += min_t(u16, l2_queues, cids / 3);
 			}
 
 			/* queues might theoretically be >256, but interrupts'
