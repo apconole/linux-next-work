@@ -643,6 +643,7 @@ static const struct net_device_ops qede_netdev_ops = {
 	.extended.ndo_udp_tunnel_add = qede_udp_tunnel_add,
 	.extended.ndo_udp_tunnel_del = qede_udp_tunnel_del,
 	.ndo_features_check = qede_features_check,
+	.extended.ndo_xdp = qede_xdp,
 #ifdef CONFIG_RFS_ACCEL
 	.ndo_rx_flow_steer = qede_rx_flow_steer,
 #endif
@@ -888,6 +889,9 @@ static int qede_alloc_fp_array(struct qede_dev *edev)
 			fp->rxq = kzalloc(sizeof(*fp->rxq), GFP_KERNEL);
 			if (!fp->rxq)
 				goto err;
+
+			if (edev->xdp_prog)
+				fp->type |= QEDE_FASTPATH_XDP;
 		}
 	}
 
@@ -1186,6 +1190,10 @@ static void __qede_remove(struct pci_dev *pdev, enum qede_remove_mode mode)
 		pci_set_drvdata(pdev, NULL);
 	}
 
+	/* Release edev's reference to XDP's bpf if such exist */
+	if (edev->xdp_prog)
+		bpf_prog_put(edev->xdp_prog);
+
 	qede_ptp_disable(edev);
 
 	/* Use global ops since we've freed edev */
@@ -1350,9 +1358,15 @@ static int qede_alloc_mem_rxq(struct qede_dev *edev, struct qede_rx_queue *rxq)
 	if (rxq->rx_buf_size + size > PAGE_SIZE)
 		rxq->rx_buf_size = PAGE_SIZE - size;
 
-	/* Segment size to spilt a page in multiple equal parts */
-	size = size + rxq->rx_buf_size;
-	rxq->rx_buf_seg_size = roundup_pow_of_two(size);
+	/* Segment size to spilt a page in multiple equal parts ,
+	 * unless XDP is used in which case we'd use the entire page.
+	 */
+	if (!edev->xdp_prog) {
+		size = size + rxq->rx_buf_size;
+		rxq->rx_buf_seg_size = roundup_pow_of_two(size);
+	} else {
+		rxq->rx_buf_seg_size = PAGE_SIZE;
+	}
 
 	/* Allocate the parallel driver ring for Rx buffers */
 	size = sizeof(*rxq->sw_rx_ring) * RX_RING_SIZE;
@@ -1866,6 +1880,9 @@ static int qede_stop_queues(struct qede_dev *edev)
 				return rc;
 			}
 		}
+
+		if (fp->type & QEDE_FASTPATH_XDP)
+			bpf_prog_put(fp->rxq->xdp_prog);
 	}
 
 	/* Stop the vport */
@@ -2001,6 +2018,15 @@ static int qede_start_queues(struct qede_dev *edev, bool clear_stats)
 			rxq->hw_cons_ptr = val;
 
 			qede_update_rx_prod(edev, rxq);
+		}
+
+		if (fp->type & QEDE_FASTPATH_XDP) {
+			fp->rxq->xdp_prog = bpf_prog_add(edev->xdp_prog, 1);
+			if (IS_ERR(fp->rxq->xdp_prog)) {
+				rc = PTR_ERR(fp->rxq->xdp_prog);
+				fp->rxq->xdp_prog = NULL;
+				return rc;
+			}
 		}
 
 		if (fp->type & QEDE_FASTPATH_TX) {

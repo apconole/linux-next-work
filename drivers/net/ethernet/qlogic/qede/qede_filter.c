@@ -960,7 +960,17 @@ int qede_set_features(struct net_device *dev, netdev_features_t features)
 		args.u.features = features;
 		args.func = &qede_set_features_reload;
 
-		qede_reload(edev, &args, false);
+		/* Make sure that we definitely need to reload.
+		 * In case of an eBPF attached program, there will be no FW
+		 * aggregations, so no need to actually reload.
+		 */
+		__qede_lock(edev);
+		if (edev->xdp_prog)
+			args.func(edev, &args);
+		else
+			qede_reload(edev, &args, true);
+		__qede_unlock(edev);
+
 		return 1;
 	}
 
@@ -1069,6 +1079,43 @@ void qede_udp_tunnel_del(struct net_device *dev,
 		break;
 	default:
 		return;
+	}
+}
+
+static void qede_xdp_reload_func(struct qede_dev *edev,
+				 struct qede_reload_args *args)
+{
+	struct bpf_prog *old;
+
+	old = xchg(&edev->xdp_prog, args->u.new_prog);
+	if (old)
+		bpf_prog_put(old);
+}
+
+static int qede_xdp_set(struct qede_dev *edev, struct bpf_prog *prog)
+{
+	struct qede_reload_args args;
+
+	/* If we're called, there was already a bpf reference increment */
+	args.func = &qede_xdp_reload_func;
+	args.u.new_prog = prog;
+	qede_reload(edev, &args, false);
+
+	return 0;
+}
+
+int qede_xdp(struct net_device *dev, struct netdev_xdp *xdp)
+{
+	struct qede_dev *edev = netdev_priv(dev);
+
+	switch (xdp->command) {
+	case XDP_SETUP_PROG:
+		return qede_xdp_set(edev, xdp->prog);
+	case XDP_QUERY_PROG:
+		xdp->prog_id = edev->xdp_prog ? edev->xdp_prog->aux->id : 0;
+		return 0;
+	default:
+		return -EINVAL;
 	}
 }
 

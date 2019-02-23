@@ -39,6 +39,7 @@
 #include <linux/bitmap.h>
 #include <linux/kernel.h>
 #include <linux/mutex.h>
+#include <linux/bpf.h>
 #include <linux/qed/qede_rdma.h>
 #include <linux/io.h>
 #ifdef CONFIG_RFS_ACCEL
@@ -256,6 +257,8 @@ struct qede_dev {
 	bool				wol_enabled;
 
 	struct qede_rdma_dev		rdma_info;
+
+	struct bpf_prog *xdp_prog;
 };
 
 enum QEDE_STATE {
@@ -316,6 +319,8 @@ struct qede_rx_queue {
 	/* Required for the allocation of replacement buffers */
 	struct device *dev;
 
+	struct bpf_prog *xdp_prog;
+
 	u16 sw_rx_cons;
 	u16 sw_rx_prod;
 
@@ -343,6 +348,8 @@ struct qede_rx_queue {
 	u64 rx_hw_errors;
 	u64 rx_alloc_errors;
 	u64 rx_ip_frags;
+
+	u64 xdp_no_pass;
 
 	void *handle;
 };
@@ -410,6 +417,7 @@ struct qede_fastpath {
 	struct qede_dev	*edev;
 #define QEDE_FASTPATH_TX	BIT(0)
 #define QEDE_FASTPATH_RX	BIT(1)
+#define QEDE_FASTPATH_XDP	BIT(2)
 #define QEDE_FASTPATH_COMBINED	(QEDE_FASTPATH_TX | QEDE_FASTPATH_RX)
 	u8			type;
 	u8			id;
@@ -461,6 +469,7 @@ struct qede_reload_args {
 	void (*func)(struct qede_dev *edev, struct qede_reload_args *args);
 	union {
 		netdev_features_t features;
+		struct bpf_prog *new_prog;
 		u16 mtu;
 	} u;
 };
@@ -497,6 +506,8 @@ void qede_fill_rss_params(struct qede_dev *edev,
 
 void qede_udp_tunnel_add(struct net_device *dev, struct udp_tunnel_info *ti);
 void qede_udp_tunnel_del(struct net_device *dev, struct udp_tunnel_info *ti);
+
+int qede_xdp(struct net_device *dev, struct netdev_bpf *xdp);
 
 #ifdef CONFIG_DCB
 void qede_set_dcbnl_ops(struct net_device *ndev);

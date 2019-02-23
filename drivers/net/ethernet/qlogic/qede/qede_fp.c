@@ -991,6 +991,39 @@ static bool qede_pkt_is_ip_fragmented(struct eth_fast_path_rx_reg_cqe *cqe,
 	return false;
 }
 
+/* Return true iff packet is to be passed to stack */
+static bool qede_rx_xdp(struct qede_dev *edev,
+			struct qede_fastpath *fp,
+			struct qede_rx_queue *rxq,
+			struct bpf_prog *prog,
+			struct sw_rx_data *bd,
+			struct eth_fast_path_rx_reg_cqe *cqe)
+{
+	u16 len = le16_to_cpu(cqe->len_on_first_bd);
+	struct xdp_buff xdp;
+	enum xdp_action act;
+
+	xdp.data = page_address(bd->data) + cqe->placement_offset;
+	xdp.data_end = xdp.data + len;
+	act = bpf_prog_run_xdp(prog, &xdp);
+
+	if (act == XDP_PASS)
+		return true;
+
+	/* Count number of packets not to be passed to stack */
+	rxq->xdp_no_pass++;
+
+	switch (act) {
+	default:
+		bpf_warn_invalid_xdp_action(act);
+	case XDP_ABORTED:
+	case XDP_DROP:
+		qede_recycle_rx_bd_ring(rxq, cqe->bd_num);
+	}
+
+	return false;
+}
+
 static int qede_rx_build_jumbo(struct qede_dev *edev,
 			       struct qede_rx_queue *rxq,
 			       struct sk_buff *skb,
@@ -1072,6 +1105,7 @@ static int qede_rx_process_cqe(struct qede_dev *edev,
 			       struct qede_fastpath *fp,
 			       struct qede_rx_queue *rxq)
 {
+	struct bpf_prog *xdp_prog = READ_ONCE(rxq->xdp_prog);
 	struct eth_fast_path_rx_reg_cqe *fp_cqe;
 	u16 len, pad, bd_cons_idx, parse_flag;
 	enum eth_rx_cqe_type cqe_type;
@@ -1108,6 +1142,10 @@ static int qede_rx_process_cqe(struct qede_dev *edev,
 	len = le16_to_cpu(fp_cqe->len_on_first_bd);
 	pad = fp_cqe->placement_offset + rxq->rx_headroom;
 
+	/* Run eBPF program if one is attached */
+	if (xdp_prog)
+		if (!qede_rx_xdp(edev, fp, rxq, xdp_prog, bd, fp_cqe))
+			return 1;
 
 	/* If this is an error packet then drop it */
 	flags = cqe->fast_path_regular.pars_flags.flags;
