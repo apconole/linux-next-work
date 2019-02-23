@@ -1227,10 +1227,6 @@ static void __qede_remove(struct pci_dev *pdev, enum qede_remove_mode mode)
 		pci_set_drvdata(pdev, NULL);
 	}
 
-	/* Release edev's reference to XDP's bpf if such exist */
-	if (edev->xdp_prog)
-		bpf_prog_put(edev->xdp_prog);
-
 	qede_ptp_disable(edev);
 
 	/* Use global ops since we've freed edev */
