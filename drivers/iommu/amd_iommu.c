@@ -1966,7 +1966,7 @@ static struct dma_ops_domain *dma_ops_domain_alloc(void)
 		goto free_dma_dom;
 
 	init_iova_domain(&dma_dom->iovad, PAGE_SIZE,
-			 IOVA_START_PFN, DMA_32BIT_PFN);
+			 IOVA_START_PFN);
 
 	/* Initialize reserved ranges */
 	copy_reserved_iova(&reserved_iova_ranges, &dma_dom->iovad);
@@ -2871,7 +2871,7 @@ static int init_reserved_iova_ranges(void)
 	struct iova *val;
 
 	init_iova_domain(&reserved_iova_ranges, PAGE_SIZE,
-			 IOVA_START_PFN, DMA_32BIT_PFN);
+			 IOVA_START_PFN);
 
 	lockdep_set_class(&reserved_iova_ranges.iova_rbtree_lock,
 			  &reserved_rbtree_key);
