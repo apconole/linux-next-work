@@ -218,8 +218,14 @@ static void qede_get_strings_stats_txq(struct qede_dev *edev,
 	int i;
 
 	for (i = 0; i < QEDE_NUM_TQSTATS; i++) {
-		sprintf(*buf, "%d_%d: %s", txq->index, txq->cos,
-			qede_tqstats_arr[i].string);
+		if (txq->is_xdp)
+			sprintf(*buf, "%d [XDP]: %s",
+				QEDE_TXQ_XDP_TO_IDX(edev, txq),
+				qede_tqstats_arr[i].string);
+		else
+			sprintf(*buf, "%d_%d: %s", txq->index, txq->cos,
+				qede_tqstats_arr[i].string);
+
 		*buf += ETH_GSTRING_LEN;
 	}
 }
@@ -254,6 +260,9 @@ static void qede_get_strings_stats(struct qede_dev *edev, u8 *buf)
 
 		if (fp->type & QEDE_FASTPATH_RX)
 			qede_get_strings_stats_rxq(edev, fp->rxq, &buf);
+
+		if (fp->type & QEDE_FASTPATH_XDP)
+			qede_get_strings_stats_txq(edev, fp->xdp_tx, &buf);
 
 		if (fp->type & QEDE_FASTPATH_TX) {
 			int cos;
@@ -333,6 +342,9 @@ static void qede_get_ethtool_stats(struct net_device *dev,
 		if (fp->type & QEDE_FASTPATH_RX)
 			qede_get_ethtool_stats_rxq(fp->rxq, &buf);
 
+		if (fp->type & QEDE_FASTPATH_XDP)
+			qede_get_ethtool_stats_txq(fp->xdp_tx, &buf);
+
 		if (fp->type & QEDE_FASTPATH_TX) {
 			int cos;
 
@@ -371,6 +383,9 @@ static int qede_get_sset_count(struct net_device *dev, int stringset)
 		/* Account for the Regular Rx statistics */
 		num_stats += QEDE_RSS_COUNT(edev) * QEDE_NUM_RQSTATS;
 
+		/* Account for XDP statistics [if needed] */
+		if (edev->xdp_prog)
+			num_stats += QEDE_RSS_COUNT(edev) * QEDE_NUM_TQSTATS;
 		return num_stats;
 
 	case ETH_SS_PRIV_FLAGS:
@@ -1471,7 +1486,7 @@ static int qede_selftest_transmit_traffic(struct qede_dev *edev,
 
 	/* Fill the entry in the SW ring and the BDs in the FW ring */
 	idx = txq->sw_tx_prod;
-	txq->sw_tx_ring[idx].skb = skb;
+	txq->sw_tx_ring.skbs[idx].skb = skb;
 	first_bd = qed_chain_produce(&txq->tx_pbl);
 	memset(first_bd, 0, sizeof(*first_bd));
 	val = 1 << ETH_TX_1ST_BD_FLAGS_START_BD_SHIFT;
@@ -1526,7 +1541,7 @@ static int qede_selftest_transmit_traffic(struct qede_dev *edev,
 	dma_unmap_single(&edev->pdev->dev, BD_UNMAP_ADDR(first_bd),
 			 BD_UNMAP_LEN(first_bd), DMA_TO_DEVICE);
 	txq->sw_tx_cons = (txq->sw_tx_cons + 1) % txq->num_tx_buffers;
-	txq->sw_tx_ring[idx].skb = NULL;
+	txq->sw_tx_ring.skbs[idx].skb = NULL;
 
 	return 0;
 }
