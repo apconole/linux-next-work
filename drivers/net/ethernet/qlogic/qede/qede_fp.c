@@ -1064,13 +1064,14 @@ static bool qede_rx_xdp(struct qede_dev *edev,
 			struct qede_rx_queue *rxq,
 			struct bpf_prog *prog,
 			struct sw_rx_data *bd,
-			struct eth_fast_path_rx_reg_cqe *cqe)
+			struct eth_fast_path_rx_reg_cqe *cqe,
+			u16 data_offset)
 {
 	u16 len = le16_to_cpu(cqe->len_on_first_bd);
 	struct xdp_buff xdp;
 	enum xdp_action act;
 
-	xdp.data = page_address(bd->data) + cqe->placement_offset;
+	xdp.data = page_address(bd->data) + data_offset;
 	xdp.data_end = xdp.data + len;
 
 	/* Queues always have a full reset currently, so for the time
@@ -1099,7 +1100,7 @@ static bool qede_rx_xdp(struct qede_dev *edev,
 		/* Now if there's a transmission problem, we'd still have to
 		 * throw current buffer, as replacement was already allocated.
 		 */
-		if (qede_xdp_xmit(edev, fp, bd, cqe->placement_offset, len)) {
+		if (qede_xdp_xmit(edev, fp, bd, data_offset, len)) {
 			dma_unmap_page(rxq->dev, bd->mapping,
 				       PAGE_SIZE, DMA_BIDIRECTIONAL);
 			__free_page(bd->data);
@@ -1240,7 +1241,7 @@ static int qede_rx_process_cqe(struct qede_dev *edev,
 
 	/* Run eBPF program if one is attached */
 	if (xdp_prog)
-		if (!qede_rx_xdp(edev, fp, rxq, xdp_prog, bd, fp_cqe))
+		if (!qede_rx_xdp(edev, fp, rxq, xdp_prog, bd, fp_cqe, pad))
 			return 1;
 
 	/* If this is an error packet then drop it */
