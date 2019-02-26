@@ -398,7 +398,7 @@ struct perf_addr_filters_head {
 };
 
 /**
- * enum perf_event_active_state - the states of a event
+ * enum perf_event_active_state - the states of an event
  */
 enum perf_event_active_state {
 #ifndef __GENKSYMS__
