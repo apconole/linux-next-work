@@ -61,8 +61,8 @@ check_2 () {
 
   test -f $file2 && {
     eval $cmd || {
-      echo "Warning: Kernel ABI header at 'tools/$file' differs from latest version at '$file'" >&2
-      echo diff -u tools/$file $file
+      echo "Warning: Kernel ABI header at '$file1' differs from latest version at '$file2'" >&2
+      echo diff -u $file1 $file2
     }
   }
 }
@@ -72,13 +72,15 @@ check () {
 
   shift
 
-  check_2 ../$file ../../$file $*
+  check_2 tools/$file $file $*
 }
 
 # Check if we have the kernel headers (tools/perf/../../include), else
 # we're probably on a detached tarball, so no point in trying to check
 # differences.
 test -d ../../include || exit 0
+
+cd ../..
 
 # simple diff check
 for i in $HEADERS; do
@@ -88,3 +90,5 @@ done
 # diff with extra ignore lines
 check include/uapi/asm-generic/mman.h '-I "^#include <\(uapi/\)*asm-generic/mman-common.h>"'
 check include/uapi/linux/mman.h       '-I "^#include <\(uapi/\)*asm/mman.h>"'
+
+cd tools/perf
