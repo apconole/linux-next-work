@@ -2923,6 +2923,7 @@ static int trace__parse_events_option(const struct option *opt, const char *str,
 
 		if (trace__validate_ev_qualifier(trace))
 			goto out;
+		trace->trace_syscalls = true;
 	}
 
 	err = 0;
@@ -2978,7 +2979,7 @@ int cmd_trace(int argc, const char **argv)
 		},
 		.output = stderr,
 		.show_comm = true,
-		.trace_syscalls = true,
+		.trace_syscalls = false,
 		.kernel_syscallchains = false,
 		.max_stack = UINT_MAX,
 	};
@@ -3124,13 +3125,7 @@ int cmd_trace(int argc, const char **argv)
 
 	if (!trace.trace_syscalls && !trace.trace_pgfaults &&
 	    trace.evlist->nr_entries == 0 /* Was --events used? */) {
-		pr_err("Please specify something to trace.\n");
-		return -1;
-	}
-
-	if (!trace.trace_syscalls && trace.ev_qualifier) {
-		pr_err("The -e option can't be used with --no-syscalls.\n");
-		goto out;
+		trace.trace_syscalls = true;
 	}
 
 	if (output_name != NULL) {
