@@ -8,3 +8,4 @@ libperf-y += ioctl.o
 endif
 libperf-y += pkey_alloc.o
 libperf-y += prctl.o
+libperf-y += socket.o
