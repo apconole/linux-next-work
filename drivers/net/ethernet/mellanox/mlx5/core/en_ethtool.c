@@ -877,7 +877,7 @@ static int mlx5e_set_link_ksettings(struct net_device *netdev,
 {
 	struct mlx5e_priv *priv    = netdev_priv(netdev);
 	struct mlx5_core_dev *mdev = priv->mdev;
-	u32 eth_proto_cap, eth_proto_admin;
+	struct mlx5e_port_eth_proto eproto;
 	bool an_changes = false;
 	u8 an_disable_admin;
 	u8 an_disable_cap;
@@ -893,14 +893,14 @@ static int mlx5e_set_link_ksettings(struct net_device *netdev,
 		mlx5e_ethtool2ptys_adver_link(link_ksettings->link_modes.advertising) :
 		mlx5e_port_speed2linkmodes(speed);
 
-	err = mlx5_query_port_proto_cap(mdev, &eth_proto_cap, MLX5_PTYS_EN);
+	err = mlx5_port_query_eth_proto(mdev, 1, &eproto);
 	if (err) {
-		netdev_err(netdev, "%s: query port eth proto cap failed: %d\n",
+		netdev_err(netdev, "%s: query port eth proto failed: %d\n",
 			   __func__, err);
 		goto out;
 	}
 
-	link_modes = link_modes & eth_proto_cap;
+	link_modes = link_modes & eproto.cap;
 	if (!link_modes) {
 		netdev_err(netdev, "%s: Not supported link mode(s) requested",
 			   __func__);
@@ -908,24 +908,17 @@ static int mlx5e_set_link_ksettings(struct net_device *netdev,
 		goto out;
 	}
 
-	err = mlx5_query_port_proto_admin(mdev, &eth_proto_admin, MLX5_PTYS_EN);
-	if (err) {
-		netdev_err(netdev, "%s: query port eth proto admin failed: %d\n",
-			   __func__, err);
-		goto out;
-	}
-
-	mlx5_query_port_autoneg(mdev, MLX5_PTYS_EN, &an_status,
-				&an_disable_cap, &an_disable_admin);
+	mlx5_port_query_eth_autoneg(mdev, &an_status, &an_disable_cap,
+				    &an_disable_admin);
 
 	an_disable = link_ksettings->base.autoneg == AUTONEG_DISABLE;
 	an_changes = ((!an_disable && an_disable_admin) ||
 		      (an_disable && !an_disable_admin));
 
-	if (!an_changes && link_modes == eth_proto_admin)
+	if (!an_changes && link_modes == eproto.admin)
 		goto out;
 
-	mlx5_set_port_ptys(mdev, an_disable, link_modes, MLX5_PTYS_EN);
+	mlx5_port_set_eth_ptys(mdev, an_disable, link_modes);
 	mlx5_toggle_port_link(mdev);
 
 out:
