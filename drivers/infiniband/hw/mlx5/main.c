@@ -5576,6 +5576,7 @@ ADD_UVERBS_ATTRIBUTES_SIMPLE(
 
 static const struct uapi_definition mlx5_ib_defs[] = {
 #if IS_ENABLED(CONFIG_INFINIBAND_USER_ACCESS)
+	UAPI_DEF_CHAIN(mlx5_ib_devx_defs),
 	UAPI_DEF_CHAIN(mlx5_ib_flow_defs),
 #endif
 
@@ -5584,27 +5585,6 @@ static const struct uapi_definition mlx5_ib_defs[] = {
 	UAPI_DEF_CHAIN_OBJ_TREE(UVERBS_OBJECT_DM, &mlx5_ib_dm),
 	{}
 };
-
-static int populate_specs_root(struct mlx5_ib_dev *dev)
-{
-	struct uapi_definition *defs = dev->driver_defs;
-
-#if IS_ENABLED(CONFIG_INFINIBAND_USER_ACCESS)
-	if (MLX5_CAP_GEN_64(dev->mdev, general_obj_types) &
-	    MLX5_GENERAL_OBJ_TYPES_CAP_UCTX)
-		*defs++ = (struct uapi_definition)UAPI_DEF_CHAIN(
-			mlx5_ib_devx_defs);
-#endif
-
-	*defs++ = (struct uapi_definition)UAPI_DEF_CHAIN(mlx5_ib_defs);
-	*defs++ = (struct uapi_definition){};
-	WARN_ON(defs - dev->driver_defs >= ARRAY_SIZE(dev->driver_defs));
-
-	if (IS_ENABLED(CONFIG_INFINIBAND_USER_ACCESS))
-		dev->ib_dev.driver_def = dev->driver_defs;
-
-	return 0;
-}
 
 static int mlx5_ib_read_counters(struct ib_counters *counters,
 				 struct ib_counters_read_attr *read_attr,
@@ -5923,6 +5903,9 @@ int mlx5_ib_stage_caps_init(struct mlx5_ib_dev *dev)
 	dev->ib_dev.destroy_counters = mlx5_ib_destroy_counters;
 	dev->ib_dev.read_counters = mlx5_ib_read_counters;
 
+	if (IS_ENABLED(CONFIG_INFINIBAND_USER_ACCESS))
+		dev->ib_dev.driver_def = mlx5_ib_defs;
+
 	err = init_node_data(dev);
 	if (err)
 		return err;
@@ -6135,11 +6118,6 @@ void mlx5_ib_stage_bfrag_cleanup(struct mlx5_ib_dev *dev)
 	mlx5_free_bfreg(dev->mdev, &dev->bfreg);
 }
 
-static int mlx5_ib_stage_populate_specs(struct mlx5_ib_dev *dev)
-{
-	return populate_specs_root(dev);
-}
-
 int mlx5_ib_stage_ib_reg_init(struct mlx5_ib_dev *dev)
 {
 	const char *name;
@@ -6275,9 +6253,6 @@ static const struct mlx5_ib_profile pf_profile = {
 	STAGE_CREATE(MLX5_IB_STAGE_PRE_IB_REG_UMR,
 		     NULL,
 		     mlx5_ib_stage_pre_ib_reg_umr_cleanup),
-	STAGE_CREATE(MLX5_IB_STAGE_SPECS,
-		     mlx5_ib_stage_populate_specs,
-		     NULL),
 	STAGE_CREATE(MLX5_IB_STAGE_IB_REG,
 		     mlx5_ib_stage_ib_reg_init,
 		     mlx5_ib_stage_ib_reg_cleanup),
@@ -6320,9 +6295,6 @@ static const struct mlx5_ib_profile nic_rep_profile = {
 	STAGE_CREATE(MLX5_IB_STAGE_PRE_IB_REG_UMR,
 		     NULL,
 		     mlx5_ib_stage_pre_ib_reg_umr_cleanup),
-	STAGE_CREATE(MLX5_IB_STAGE_SPECS,
-		     mlx5_ib_stage_populate_specs,
-		     NULL),
 	STAGE_CREATE(MLX5_IB_STAGE_IB_REG,
 		     mlx5_ib_stage_ib_reg_init,
 		     mlx5_ib_stage_ib_reg_cleanup),
