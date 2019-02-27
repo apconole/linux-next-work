@@ -179,6 +179,7 @@ void uverbs_user_mmap_disassociate(struct ib_uverbs_file *ufile);
 
 extern const struct uapi_definition uverbs_def_obj_counters[];
 extern const struct uapi_definition uverbs_def_obj_cq[];
+extern const struct uapi_definition uverbs_def_obj_device[];
 extern const struct uapi_definition uverbs_def_obj_dm[];
 extern const struct uapi_definition uverbs_def_obj_flow_action[];
 extern const struct uapi_definition uverbs_def_obj_intf[];
@@ -204,5 +205,9 @@ uapi_get_method(const struct uverbs_api *uapi, u32 command)
 		return ERR_PTR(-EOPNOTSUPP);
 	return uapi->write_methods[cmd_idx];
 }
+
+void uverbs_fill_udata(struct uverbs_attr_bundle *bundle,
+		       struct ib_udata *udata, unsigned int attr_in,
+		       unsigned int attr_out);
 
 #endif /* RDMA_CORE_H */
