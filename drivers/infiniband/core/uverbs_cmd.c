@@ -77,9 +77,6 @@ static int ib_uverbs_get_context(struct uverbs_attr_bundle *attrs,
 	struct ib_device *ib_dev;
 	int ret;
 
-	if (out_len < sizeof resp)
-		return -ENOSPC;
-
 	if (copy_from_user(&cmd, buf, sizeof cmd))
 		return -EFAULT;
 
@@ -223,9 +220,6 @@ static int ib_uverbs_query_device(struct uverbs_attr_bundle *attrs,
 	if (IS_ERR(ucontext))
 		return PTR_ERR(ucontext);
 
-	if (out_len < sizeof resp)
-		return -ENOSPC;
-
 	if (copy_from_user(&cmd, buf, sizeof cmd))
 		return -EFAULT;
 
@@ -273,9 +267,6 @@ static int ib_uverbs_query_port(struct uverbs_attr_bundle *attrs,
 	if (IS_ERR(ucontext))
 		return PTR_ERR(ucontext);
 	ib_dev = ucontext->device;
-
-	if (out_len < sizeof resp)
-		return -ENOSPC;
 
 	if (copy_from_user(&cmd, buf, sizeof cmd))
 		return -EFAULT;
@@ -332,9 +323,6 @@ static int ib_uverbs_alloc_pd(struct uverbs_attr_bundle *attrs,
 	struct ib_pd                  *pd;
 	int                            ret;
 	struct ib_device *ib_dev;
-
-	if (out_len < sizeof resp)
-		return -ENOSPC;
 
 	if (copy_from_user(&cmd, buf, sizeof cmd))
 		return -EFAULT;
@@ -485,9 +473,6 @@ static int ib_uverbs_open_xrcd(struct uverbs_attr_bundle *attrs,
 	int				new_xrcd = 0;
 	struct ib_device *ib_dev;
 
-	if (out_len < sizeof resp)
-		return -ENOSPC;
-
 	if (copy_from_user(&cmd, buf, sizeof cmd))
 		return -EFAULT;
 
@@ -634,9 +619,6 @@ static int ib_uverbs_reg_mr(struct uverbs_attr_bundle *attrs,
 	int                          ret;
 	struct ib_device *ib_dev;
 
-	if (out_len < sizeof resp)
-		return -ENOSPC;
-
 	if (copy_from_user(&cmd, buf, sizeof cmd))
 		return -EFAULT;
 
@@ -718,9 +700,6 @@ static int ib_uverbs_rereg_mr(struct uverbs_attr_bundle *attrs,
 	struct ib_pd		    *old_pd;
 	int                          ret;
 	struct ib_uobject	    *uobj;
-
-	if (out_len < sizeof(resp))
-		return -ENOSPC;
 
 	if (copy_from_user(&cmd, buf, sizeof(cmd)))
 		return -EFAULT;
@@ -814,9 +793,6 @@ static int ib_uverbs_alloc_mw(struct uverbs_attr_bundle *attrs,
 	int                            ret;
 	struct ib_device *ib_dev;
 
-	if (out_len < sizeof(resp))
-		return -ENOSPC;
-
 	if (copy_from_user(&cmd, buf, sizeof(cmd)))
 		return -EFAULT;
 
@@ -884,9 +860,6 @@ static int ib_uverbs_create_comp_channel(struct uverbs_attr_bundle *attrs,
 	struct ib_uobject			  *uobj;
 	struct ib_uverbs_completion_event_file	  *ev_file;
 	struct ib_device *ib_dev;
-
-	if (out_len < sizeof resp)
-		return -ENOSPC;
 
 	if (copy_from_user(&cmd, buf, sizeof cmd))
 		return -EFAULT;
@@ -1022,9 +995,6 @@ static int ib_uverbs_create_cq(struct uverbs_attr_bundle *attrs,
 	struct ib_uverbs_create_cq_resp resp;
 	struct ib_udata                 ucore;
 	struct ib_ucq_object           *obj;
-
-	if (out_len < sizeof(resp))
-		return -ENOSPC;
 
 	if (copy_from_user(&cmd, buf, sizeof(cmd)))
 		return -EFAULT;
@@ -1545,9 +1515,6 @@ static int ib_uverbs_create_qp(struct uverbs_attr_bundle *attrs,
 	ssize_t resp_size = sizeof(struct ib_uverbs_create_qp_resp);
 	int				err;
 
-	if (out_len < resp_size)
-		return -ENOSPC;
-
 	if (copy_from_user(&cmd, buf, sizeof(cmd)))
 		return -EFAULT;
 
@@ -1636,9 +1603,6 @@ static int ib_uverbs_open_qp(struct uverbs_attr_bundle *attrs,
 	struct ib_qp_open_attr          attr;
 	int ret;
 	struct ib_device *ib_dev;
-
-	if (out_len < sizeof resp)
-		return -ENOSPC;
 
 	if (copy_from_user(&cmd, buf, sizeof cmd))
 		return -EFAULT;
@@ -2471,9 +2435,6 @@ static int ib_uverbs_create_ah(struct uverbs_attr_bundle *attrs,
 	struct rdma_ah_attr		attr = {};
 	int ret;
 	struct ib_device *ib_dev;
-
-	if (out_len < sizeof resp)
-		return -ENOSPC;
 
 	if (copy_from_user(&cmd, buf, sizeof cmd))
 		return -EFAULT;
@@ -3663,10 +3624,6 @@ static int ib_uverbs_create_srq(struct uverbs_attr_bundle *attrs,
 {
 	struct ib_uverbs_create_srq      cmd;
 	struct ib_uverbs_create_xsrq     xcmd;
-	struct ib_uverbs_create_srq_resp resp;
-
-	if (out_len < sizeof resp)
-		return -ENOSPC;
 
 	if (copy_from_user(&cmd, buf, sizeof cmd))
 		return -EFAULT;
@@ -3688,10 +3645,6 @@ static int ib_uverbs_create_xsrq(struct uverbs_attr_bundle *attrs,
 				 int out_len)
 {
 	struct ib_uverbs_create_xsrq     cmd;
-	struct ib_uverbs_create_srq_resp resp;
-
-	if (out_len < sizeof resp)
-		return -ENOSPC;
 
 	if (copy_from_user(&cmd, buf, sizeof cmd))
 		return -EFAULT;
@@ -3733,9 +3686,6 @@ static int ib_uverbs_query_srq(struct uverbs_attr_bundle *attrs,
 	struct ib_srq_attr              attr;
 	struct ib_srq                   *srq;
 	int                             ret;
-
-	if (out_len < sizeof resp)
-		return -ENOSPC;
 
 	if (copy_from_user(&cmd, buf, sizeof cmd))
 		return -EFAULT;
