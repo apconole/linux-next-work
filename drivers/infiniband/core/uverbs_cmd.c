@@ -883,13 +883,11 @@ static int ib_uverbs_create_comp_channel(struct uverbs_attr_bundle *attrs,
 }
 
 static struct ib_ucq_object *create_cq(struct uverbs_attr_bundle *attrs,
-				       struct ib_udata *ucore,
 				       struct ib_uverbs_ex_create_cq *cmd,
 				       size_t cmd_sz,
 				       int (*cb)(struct uverbs_attr_bundle *attrs,
 						 struct ib_ucq_object *obj,
 						 struct ib_uverbs_ex_create_cq_resp *resp,
-						 struct ib_udata *ucore,
 						 void *context),
 				       void *context)
 {
@@ -954,7 +952,7 @@ static struct ib_ucq_object *create_cq(struct uverbs_attr_bundle *attrs,
 	cq->res.type = RDMA_RESTRACK_CQ;
 	rdma_restrack_add(&cq->res);
 
-	ret = cb(attrs, obj, &resp, ucore, context);
+	ret = cb(attrs, obj, &resp, context);
 	if (ret)
 		goto err_cb;
 
@@ -979,9 +977,9 @@ err:
 static int ib_uverbs_create_cq_cb(struct uverbs_attr_bundle *attrs,
 				  struct ib_ucq_object *obj,
 				  struct ib_uverbs_ex_create_cq_resp *resp,
-				  struct ib_udata *ucore, void *context)
+				  void *context)
 {
-	if (ib_copy_to_udata(ucore, &resp->base, sizeof(resp->base)))
+	if (ib_copy_to_udata(&attrs->ucore, &resp->base, sizeof(resp->base)))
 		return -EFAULT;
 
 	return 0;
@@ -992,15 +990,10 @@ static int ib_uverbs_create_cq(struct uverbs_attr_bundle *attrs,
 {
 	struct ib_uverbs_create_cq      cmd;
 	struct ib_uverbs_ex_create_cq	cmd_ex;
-	struct ib_uverbs_create_cq_resp resp;
-	struct ib_udata                 ucore;
 	struct ib_ucq_object           *obj;
 
 	if (copy_from_user(&cmd, buf, sizeof(cmd)))
 		return -EFAULT;
-
-	ib_uverbs_init_udata(&ucore, buf, u64_to_user_ptr(cmd.response),
-			     sizeof(cmd), sizeof(resp));
 
 	memset(&cmd_ex, 0, sizeof(cmd_ex));
 	cmd_ex.user_handle = cmd.user_handle;
@@ -1008,7 +1001,7 @@ static int ib_uverbs_create_cq(struct uverbs_attr_bundle *attrs,
 	cmd_ex.comp_vector = cmd.comp_vector;
 	cmd_ex.comp_channel = cmd.comp_channel;
 
-	obj = create_cq(attrs, &ucore, &cmd_ex,
+	obj = create_cq(attrs, &cmd_ex,
 			offsetof(typeof(cmd_ex), comp_channel) +
 				sizeof(cmd.comp_channel),
 			ib_uverbs_create_cq_cb, NULL);
@@ -1022,9 +1015,9 @@ static int ib_uverbs_create_cq(struct uverbs_attr_bundle *attrs,
 static int ib_uverbs_ex_create_cq_cb(struct uverbs_attr_bundle *attrs,
 				     struct ib_ucq_object *obj,
 				     struct ib_uverbs_ex_create_cq_resp *resp,
-				     struct ib_udata *ucore, void *context)
+				     void *context)
 {
-	if (ib_copy_to_udata(ucore, resp, resp->response_length))
+	if (ib_copy_to_udata(&attrs->ucore, resp, resp->response_length))
 		return -EFAULT;
 
 	return 0;
@@ -1055,7 +1048,7 @@ static int ib_uverbs_ex_create_cq(struct uverbs_attr_bundle *attrs,
 			     sizeof(resp.response_length)))
 		return -ENOSPC;
 
-	obj = create_cq(attrs, ucore, &cmd, min(ucore->inlen, sizeof(cmd)),
+	obj = create_cq(attrs, &cmd, min(ucore->inlen, sizeof(cmd)),
 			ib_uverbs_ex_create_cq_cb, NULL);
 
 	return PTR_ERR_OR_ZERO(obj);
@@ -1140,7 +1133,7 @@ static int ib_uverbs_poll_cq(struct uverbs_attr_bundle *attrs,
 		return -EINVAL;
 
 	/* we copy a struct ib_uverbs_poll_cq_resp to user space */
-	header_ptr = u64_to_user_ptr(cmd.response);
+	header_ptr = attrs->ucore.outbuf;
 	data_ptr = header_ptr + sizeof resp;
 
 	memset(&resp, 0, sizeof resp);
@@ -1222,12 +1215,9 @@ static int ib_uverbs_destroy_cq(struct uverbs_attr_bundle *attrs,
 }
 
 static int create_qp(struct uverbs_attr_bundle *attrs,
-		     struct ib_udata *ucore,
-		     struct ib_uverbs_ex_create_qp *cmd,
-		     size_t cmd_sz,
+		     struct ib_uverbs_ex_create_qp *cmd, size_t cmd_sz,
 		     int (*cb)(struct uverbs_attr_bundle *attrs,
-			       struct ib_uverbs_ex_create_qp_resp *resp,
-			       struct ib_udata *udata),
+			       struct ib_uverbs_ex_create_qp_resp *resp),
 		     void *context)
 {
 	struct ib_uqp_object		*obj;
@@ -1272,7 +1262,7 @@ static int create_qp(struct uverbs_attr_bundle *attrs,
 	}
 
 	if (cmd_sz > sizeof(*cmd) &&
-	    !ib_is_udata_cleared(ucore, sizeof(*cmd),
+	    !ib_is_udata_cleared(&attrs->ucore, sizeof(*cmd),
 				 cmd_sz - sizeof(*cmd))) {
 		ret = -EOPNOTSUPP;
 		goto err_put;
@@ -1452,7 +1442,7 @@ static int create_qp(struct uverbs_attr_bundle *attrs,
 	resp.response_length = offsetof(typeof(resp), response_length) +
 			       sizeof(resp.response_length);
 
-	ret = cb(attrs, &resp, ucore);
+	ret = cb(attrs, &resp);
 	if (ret)
 		goto err_cb;
 
@@ -1497,10 +1487,9 @@ err_put:
 }
 
 static int ib_uverbs_create_qp_cb(struct uverbs_attr_bundle *attrs,
-				  struct ib_uverbs_ex_create_qp_resp *resp,
-				  struct ib_udata *ucore)
+				  struct ib_uverbs_ex_create_qp_resp *resp)
 {
-	if (ib_copy_to_udata(ucore, &resp->base, sizeof(resp->base)))
+	if (ib_copy_to_udata(&attrs->ucore, &resp->base, sizeof(resp->base)))
 		return -EFAULT;
 
 	return 0;
@@ -1511,15 +1500,10 @@ static int ib_uverbs_create_qp(struct uverbs_attr_bundle *attrs,
 {
 	struct ib_uverbs_create_qp      cmd;
 	struct ib_uverbs_ex_create_qp	cmd_ex;
-	struct ib_udata			ucore;
-	ssize_t resp_size = sizeof(struct ib_uverbs_create_qp_resp);
 	int				err;
 
 	if (copy_from_user(&cmd, buf, sizeof(cmd)))
 		return -EFAULT;
-
-	ib_uverbs_init_udata(&ucore, buf, u64_to_user_ptr(cmd.response),
-		   sizeof(cmd), resp_size);
 
 	memset(&cmd_ex, 0, sizeof(cmd_ex));
 	cmd_ex.user_handle = cmd.user_handle;
@@ -1536,7 +1520,7 @@ static int ib_uverbs_create_qp(struct uverbs_attr_bundle *attrs,
 	cmd_ex.qp_type = cmd.qp_type;
 	cmd_ex.is_srq = cmd.is_srq;
 
-	err = create_qp(attrs, &ucore, &cmd_ex,
+	err = create_qp(attrs, &cmd_ex,
 			offsetof(typeof(cmd_ex), is_srq) + sizeof(cmd.is_srq),
 			ib_uverbs_create_qp_cb, NULL);
 
@@ -1547,10 +1531,9 @@ static int ib_uverbs_create_qp(struct uverbs_attr_bundle *attrs,
 }
 
 static int ib_uverbs_ex_create_qp_cb(struct uverbs_attr_bundle *attrs,
-				     struct ib_uverbs_ex_create_qp_resp *resp,
-				     struct ib_udata *ucore)
+				     struct ib_uverbs_ex_create_qp_resp *resp)
 {
-	if (ib_copy_to_udata(ucore, resp, resp->response_length))
+	if (ib_copy_to_udata(&attrs->ucore, resp, resp->response_length))
 		return -EFAULT;
 
 	return 0;
@@ -1581,7 +1564,7 @@ static int ib_uverbs_ex_create_qp(struct uverbs_attr_bundle *attrs,
 			     sizeof(resp.response_length)))
 		return -ENOSPC;
 
-	err = create_qp(attrs, ucore, &cmd,
+	err = create_qp(attrs, &cmd,
 			min(ucore->inlen, sizeof(cmd)),
 			ib_uverbs_ex_create_qp_cb, NULL);
 
