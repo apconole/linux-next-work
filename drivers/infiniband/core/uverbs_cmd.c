@@ -1010,8 +1010,7 @@ static int ib_uverbs_create_comp_channel(struct uverbs_attr_bundle *attrs,
 }
 
 static struct ib_ucq_object *create_cq(struct uverbs_attr_bundle *attrs,
-				       struct ib_uverbs_ex_create_cq *cmd,
-				       size_t cmd_sz)
+				       struct ib_uverbs_ex_create_cq *cmd)
 {
 	struct ib_ucq_object           *obj;
 	struct ib_uverbs_completion_event_file    *ev_file = NULL;
@@ -1045,9 +1044,7 @@ static struct ib_ucq_object *create_cq(struct uverbs_attr_bundle *attrs,
 
 	attr.cqe = cmd->cqe;
 	attr.comp_vector = cmd->comp_vector;
-
-	if (cmd_sz > offsetof(typeof(*cmd), flags) + sizeof(cmd->flags))
-		attr.flags = cmd->flags;
+	attr.flags = cmd->flags;
 
 	cq = ib_dev->create_cq(ib_dev, &attr, obj->uobject.context,
 			       &attrs->driver_udata);
@@ -1112,9 +1109,7 @@ static int ib_uverbs_create_cq(struct uverbs_attr_bundle *attrs,
 	cmd_ex.comp_vector = cmd.comp_vector;
 	cmd_ex.comp_channel = cmd.comp_channel;
 
-	obj = create_cq(attrs, &cmd_ex,
-			offsetof(typeof(cmd_ex), comp_channel) +
-				sizeof(cmd.comp_channel));
+	obj = create_cq(attrs, &cmd_ex);
 	return PTR_ERR_OR_ZERO(obj);
 }
 
@@ -1135,7 +1130,7 @@ static int ib_uverbs_ex_create_cq(struct uverbs_attr_bundle *attrs,
 	if (cmd.reserved)
 		return -EINVAL;
 
-	obj = create_cq(attrs, &cmd, min(ucore->inlen, sizeof(cmd)));
+	obj = create_cq(attrs, &cmd);
 	return PTR_ERR_OR_ZERO(obj);
 }
 
@@ -1301,7 +1296,7 @@ static int ib_uverbs_destroy_cq(struct uverbs_attr_bundle *attrs,
 }
 
 static int create_qp(struct uverbs_attr_bundle *attrs,
-		     struct ib_uverbs_ex_create_qp *cmd, size_t cmd_sz)
+		     struct ib_uverbs_ex_create_qp *cmd)
 {
 	struct ib_uqp_object		*obj;
 	struct ib_device		*device;
@@ -1311,7 +1306,6 @@ static int create_qp(struct uverbs_attr_bundle *attrs,
 	struct ib_cq			*scq = NULL, *rcq = NULL;
 	struct ib_srq			*srq = NULL;
 	struct ib_qp			*qp;
-	char				*buf;
 	struct ib_qp_init_attr		attr = {};
 	struct ib_uverbs_ex_create_qp_resp resp;
 	int				ret;
@@ -1330,9 +1324,7 @@ static int create_qp(struct uverbs_attr_bundle *attrs,
 	obj->uevent.uobject.user_handle = cmd->user_handle;
 	mutex_init(&obj->mcast_lock);
 
-	if (cmd_sz >= offsetof(typeof(*cmd), rwq_ind_tbl_handle) +
-		      sizeof(cmd->rwq_ind_tbl_handle) &&
-		      (cmd->comp_mask & IB_UVERBS_CREATE_QP_MASK_IND_TABLE)) {
+	if (cmd->comp_mask & IB_UVERBS_CREATE_QP_MASK_IND_TABLE) {
 		ind_tbl = uobj_get_obj_read(rwq_ind_table,
 					    UVERBS_OBJECT_RWQ_IND_TBL,
 					    cmd->rwq_ind_tbl_handle, attrs);
@@ -1430,10 +1422,7 @@ static int create_qp(struct uverbs_attr_bundle *attrs,
 	INIT_LIST_HEAD(&obj->uevent.event_list);
 	INIT_LIST_HEAD(&obj->mcast_list);
 
-	if (cmd_sz >= offsetof(typeof(*cmd), create_flags) +
-		      sizeof(cmd->create_flags))
-		attr.create_flags = cmd->create_flags;
-
+	attr.create_flags = cmd->create_flags;
 	if (attr.create_flags & ~(IB_QP_CREATE_BLOCK_MULTICAST_LOOPBACK |
 				IB_QP_CREATE_CROSS_CHANNEL |
 				IB_QP_CREATE_MANAGED_SEND |
@@ -1454,14 +1443,6 @@ static int create_qp(struct uverbs_attr_bundle *attrs,
 
 		attr.source_qpn = cmd->source_qpn;
 	}
-
-	buf = (void *)cmd + sizeof(*cmd);
-	if (cmd_sz > sizeof(*cmd))
-		if (!(buf[0] == 0 && !memcmp(buf, buf + 1,
-					     cmd_sz - sizeof(*cmd) - 1))) {
-			ret = -EINVAL;
-			goto err_put;
-		}
 
 	if (cmd->qp_type == IB_QPT_XRC_TGT)
 		qp = ib_create_qp(pd, &attr);
@@ -1586,8 +1567,7 @@ static int ib_uverbs_create_qp(struct uverbs_attr_bundle *attrs,
 	cmd_ex.qp_type = cmd.qp_type;
 	cmd_ex.is_srq = cmd.is_srq;
 
-	return create_qp(attrs, &cmd_ex,
-			 offsetof(typeof(cmd_ex), is_srq) + sizeof(cmd.is_srq));
+	return create_qp(attrs, &cmd_ex);
 }
 
 static int ib_uverbs_ex_create_qp(struct uverbs_attr_bundle *attrs,
@@ -1606,7 +1586,7 @@ static int ib_uverbs_ex_create_qp(struct uverbs_attr_bundle *attrs,
 	if (cmd.reserved)
 		return -EINVAL;
 
-	return create_qp(attrs, &cmd, min(ucore->inlen, sizeof(cmd)));
+	return create_qp(attrs, &cmd);
 }
 
 static int ib_uverbs_open_qp(struct uverbs_attr_bundle *attrs,
