@@ -2492,7 +2492,7 @@ filename_mountpoint(int dfd, struct filename *s, struct path *path,
 	if (unlikely(error == -ESTALE))
 		error = path_mountpoint(dfd, s->name, path, flags | LOOKUP_REVAL);
 	if (likely(!error))
-		audit_inode(s, path->dentry, 0);
+		audit_inode(s, path->dentry, flags & LOOKUP_NO_EVAL);
 	putname(s);
 	return error;
 }
