@@ -548,7 +548,12 @@ struct mm_struct {
 #else
 	RH_KABI_RESERVE(7)
 #endif
+#ifdef CONFIG_ARCH_WANT_BATCHED_UNMAP_TLB_FLUSH
+	/* See flush_tlb_batched_pending() */
+	RH_KABI_USE(8, bool tlb_flush_batched)
+#else
 	RH_KABI_RESERVE(8)
+#endif
 };
 
 static inline void mm_init_cpumask(struct mm_struct *mm)
