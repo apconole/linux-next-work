@@ -668,6 +668,8 @@ static const struct net_device_ops qede_netdev_vf_ops = {
 	.ndo_fix_features = qede_fix_features,
 	.ndo_set_features = qede_set_features,
 	.ndo_get_stats64 = qede_get_stats64,
+	.extended.ndo_udp_tunnel_add = qede_udp_tunnel_add,
+	.extended.ndo_udp_tunnel_del = qede_udp_tunnel_del,
 	.ndo_features_check = qede_features_check,
 };
 
@@ -685,6 +687,8 @@ static const struct net_device_ops qede_netdev_vf_xdp_ops = {
 	.ndo_fix_features = qede_fix_features,
 	.ndo_set_features = qede_set_features,
 	.ndo_get_stats64 = qede_get_stats64,
+	.extended.ndo_udp_tunnel_add = qede_udp_tunnel_add,
+	.extended.ndo_udp_tunnel_del = qede_udp_tunnel_del,
 	.ndo_features_check = qede_features_check,
 	.extended.ndo_xdp = qede_xdp,
 };
