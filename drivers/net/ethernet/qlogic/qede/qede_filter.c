@@ -988,6 +988,9 @@ void qede_udp_tunnel_add(struct net_device *dev, struct udp_tunnel_info *ti)
 
 	switch (ti->type) {
 	case UDP_TUNNEL_TYPE_VXLAN:
+		if (!edev->dev_info.common.vxlan_enable)
+			return;
+
 		if (edev->vxlan_dst_port)
 			return;
 
@@ -1009,6 +1012,9 @@ void qede_udp_tunnel_add(struct net_device *dev, struct udp_tunnel_info *ti)
 
 		break;
 	case UDP_TUNNEL_TYPE_GENEVE:
+		if (!edev->dev_info.common.geneve_enable)
+			return;
+
 		if (edev->geneve_dst_port)
 			return;
 
