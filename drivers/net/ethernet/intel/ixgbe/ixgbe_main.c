@@ -2233,7 +2233,7 @@ static struct sk_buff *ixgbe_run_xdp(struct ixgbe_adapter *adapter,
 				     struct ixgbe_ring *rx_ring,
 				     struct xdp_buff *xdp)
 {
-	int result = IXGBE_XDP_PASS;
+	int err, result = IXGBE_XDP_PASS;
 	struct bpf_prog *xdp_prog;
 	u32 act;
 
@@ -2249,6 +2249,13 @@ static struct sk_buff *ixgbe_run_xdp(struct ixgbe_adapter *adapter,
 		break;
 	case XDP_TX:
 		result = ixgbe_xmit_xdp_ring(adapter, xdp);
+		break;
+	case XDP_REDIRECT:
+		err = xdp_do_redirect(adapter->netdev, xdp, xdp_prog);
+		if (!err)
+			result = IXGBE_XDP_TX;
+		else
+			result = IXGBE_XDP_CONSUMED;
 		break;
 	default:
 		bpf_warn_invalid_xdp_action(act);
@@ -9925,6 +9932,37 @@ static int ixgbe_xdp(struct net_device *dev, struct netdev_bpf *xdp)
 	}
 }
 
+static int ixgbe_xdp_xmit(struct net_device *dev, struct xdp_buff *xdp)
+{
+	struct ixgbe_adapter *adapter = netdev_priv(dev);
+	struct ixgbe_ring *ring;
+	int err;
+
+	if (unlikely(test_bit(__IXGBE_DOWN, &adapter->state)))
+		return -EINVAL;
+
+	/* During program transitions its possible adapter->xdp_prog is assigned
+	 * but ring has not been configured yet. In this case simply abort xmit.
+	 */
+	ring = adapter->xdp_prog ? adapter->xdp_ring[smp_processor_id()] : NULL;
+	if (unlikely(!ring))
+		return -EINVAL;
+
+	err = ixgbe_xmit_xdp_ring(adapter, xdp);
+	if (err != IXGBE_XDP_TX)
+		return -ENOMEM;
+
+	/* Force memory writes to complete before letting h/w know there
+	 * are new descriptors to fetch.
+	 */
+	wmb();
+
+	ring = adapter->xdp_ring[smp_processor_id()];
+	writel(ring->next_to_use, ring->tail);
+
+	return 0;
+}
+
 static const struct net_device_ops ixgbe_netdev_ops = {
 	.ndo_size		= sizeof(struct net_device_ops),
 	.ndo_open		= ixgbe_open,
@@ -9972,6 +10010,7 @@ static const struct net_device_ops ixgbe_netdev_ops = {
 	.extended.ndo_dfwd_add_station	= ixgbe_fwd_add,
 	.extended.ndo_dfwd_del_station	= ixgbe_fwd_del,
 	.extended.ndo_bpf	= ixgbe_xdp,
+	.extended.ndo_xdp_xmit	= ixgbe_xdp_xmit,
 };
 
 /**
