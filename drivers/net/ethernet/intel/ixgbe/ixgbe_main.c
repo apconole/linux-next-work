@@ -2249,7 +2249,7 @@ static struct sk_buff *ixgbe_build_skb(struct ixgbe_ring *rx_ring,
 #define IXGBE_XDP_TX 2
 
 static int ixgbe_xmit_xdp_ring(struct ixgbe_adapter *adapter,
-			       struct xdp_buff *xdp);
+			       struct xdp_frame *xdpf);
 
 static struct sk_buff *ixgbe_run_xdp(struct ixgbe_adapter *adapter,
 				     struct ixgbe_ring *rx_ring,
@@ -2257,6 +2257,7 @@ static struct sk_buff *ixgbe_run_xdp(struct ixgbe_adapter *adapter,
 {
 	int err, result = IXGBE_XDP_PASS;
 	struct bpf_prog *xdp_prog;
+	struct xdp_frame *xdpf;
 	u32 act;
 
 	rcu_read_lock();
@@ -2265,12 +2266,19 @@ static struct sk_buff *ixgbe_run_xdp(struct ixgbe_adapter *adapter,
 	if (!xdp_prog)
 		goto xdp_out;
 
+	prefetchw(xdp->data_hard_start); /* xdp_frame write */
+
 	act = bpf_prog_run_xdp(xdp_prog, xdp);
 	switch (act) {
 	case XDP_PASS:
 		break;
 	case XDP_TX:
-		result = ixgbe_xmit_xdp_ring(adapter, xdp);
+		xdpf = convert_to_xdp_frame(xdp);
+		if (unlikely(!xdpf)) {
+			result = IXGBE_XDP_CONSUMED;
+			break;
+		}
+		result = ixgbe_xmit_xdp_ring(adapter, xdpf);
 		break;
 	case XDP_REDIRECT:
 		err = xdp_do_redirect(adapter->netdev, xdp, xdp_prog);
@@ -2372,7 +2380,6 @@ static int ixgbe_clean_rx_irq(struct ixgbe_q_vector *q_vector,
 			xdp.data_hard_start = xdp.data -
 					      ixgbe_rx_offset(rx_ring);
 			xdp.data_end = xdp.data + size;
-			prefetchw(xdp.data_hard_start); /* xdp_frame write */
 
 			skb = ixgbe_run_xdp(adapter, rx_ring, &xdp);
 		}
@@ -8294,19 +8301,14 @@ static u16 ixgbe_select_queue(struct net_device *dev, struct sk_buff *skb,
 }
 
 static int ixgbe_xmit_xdp_ring(struct ixgbe_adapter *adapter,
-			       struct xdp_buff *xdp)
+			       struct xdp_frame *xdpf)
 {
 	struct ixgbe_ring *ring = adapter->xdp_ring[smp_processor_id()];
 	struct ixgbe_tx_buffer *tx_buffer;
 	union ixgbe_adv_tx_desc *tx_desc;
-	struct xdp_frame *xdpf;
 	u32 len, cmd_type;
 	dma_addr_t dma;
 	u16 i;
-
-	xdpf = convert_to_xdp_frame(xdp);
-	if (unlikely(!xdpf))
-		return -EOVERFLOW;
 
 	len = xdpf->len;
 
@@ -9948,6 +9950,7 @@ static int ixgbe_xdp_setup(struct net_device *dev, struct bpf_prog *prog)
 	return 0;
 }
 
+__attribute__ ((__unused__))
 static int ixgbe_xdp(struct net_device *dev, struct netdev_bpf *xdp)
 {
 	struct ixgbe_adapter *adapter = netdev_priv(dev);
@@ -9964,7 +9967,8 @@ static int ixgbe_xdp(struct net_device *dev, struct netdev_bpf *xdp)
 	}
 }
 
-static int ixgbe_xdp_xmit(struct net_device *dev, struct xdp_buff *xdp)
+__attribute__ ((__unused__))
+static int ixgbe_xdp_xmit(struct net_device *dev, struct xdp_frame *xdpf)
 {
 	struct ixgbe_adapter *adapter = netdev_priv(dev);
 	struct ixgbe_ring *ring;
@@ -9980,13 +9984,14 @@ static int ixgbe_xdp_xmit(struct net_device *dev, struct xdp_buff *xdp)
 	if (unlikely(!ring))
 		return -ENXIO;
 
-	err = ixgbe_xmit_xdp_ring(adapter, xdp);
+	err = ixgbe_xmit_xdp_ring(adapter, xdpf);
 	if (err != IXGBE_XDP_TX)
 		return -ENOSPC;
 
 	return 0;
 }
 
+__attribute__ ((__unused__))
 static void ixgbe_xdp_flush(struct net_device *dev)
 {
 	struct ixgbe_adapter *adapter = netdev_priv(dev);
@@ -10057,9 +10062,11 @@ static const struct net_device_ops ixgbe_netdev_ops = {
 	.ndo_features_check	= ixgbe_features_check,
 	.extended.ndo_dfwd_add_station	= ixgbe_fwd_add,
 	.extended.ndo_dfwd_del_station	= ixgbe_fwd_del,
+#if 0 /* XDP is stubbed out in RHEL7 */
 	.extended.ndo_bpf	= ixgbe_xdp,
 	.extended.ndo_xdp_xmit	= ixgbe_xdp_xmit,
 	.extended.ndo_xdp_flush	= ixgbe_xdp_flush,
+#endif
 };
 
 /**
