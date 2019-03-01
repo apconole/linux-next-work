@@ -140,6 +140,14 @@ static void nft_rbtree_activate(const struct nft_set *set,
 	nft_set_elem_change_active(set, &rbe->ext);
 }
 
+static bool nft_rbtree_deactivate_one(const struct nft_set *set, void *priv)
+{
+	struct nft_rbtree_elem *rbe = priv;
+
+	nft_set_elem_change_active(set, &rbe->ext);
+	return true;
+}
+
 static void *nft_rbtree_deactivate(const struct nft_set *set,
 				   const struct nft_set_elem *elem)
 {
@@ -163,7 +171,7 @@ static void *nft_rbtree_deactivate(const struct nft_set *set,
 				parent = parent->rb_left;
 				continue;
 			}
-			nft_set_elem_change_active(set, &rbe->ext);
+			nft_rbtree_deactivate_one(set, rbe);
 			return rbe;
 		}
 	}
