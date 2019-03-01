@@ -204,11 +204,15 @@ ext4_xattr_check_names(struct ext4_xattr_entry *entry, void *end,
 
 	/* Check the values */
 	while (!IS_LAST_ENTRY(entry)) {
+		u32 size = le32_to_cpu(entry->e_value_size);
 		if (entry->e_value_block != 0)
 			return -EFSCORRUPTED;
-		if (entry->e_value_size != 0) {
+
+		if (size > INT_MAX)
+			return -EFSCORRUPTED;
+
+		if (size != 0) {
 			u16 offs = le16_to_cpu(entry->e_value_offs);
-			u32 size = le32_to_cpu(entry->e_value_size);
 			void *value;
 
 			/*
