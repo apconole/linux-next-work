@@ -273,7 +273,8 @@ struct nft_expr;
  *	@lookup: look up an element within the set
  *	@insert: insert new element into set
  *	@activate: activate new element in the next generation
- *	@deactivate: deactivate element in the next generation
+ *	@deactivate: lookup for element and deactivate it in the next generation
+ *	@deactivate_one: deactivate element in the next generation
  *	@remove: remove element from set
  *	@walk: iterate over all set elemeennts
  *	@privsize: function to return size of set private data
@@ -303,6 +304,8 @@ struct nft_set_ops {
 						    const struct nft_set_elem *elem);
 	void *				(*deactivate)(const struct nft_set *set,
 						      const struct nft_set_elem *elem);
+	bool				(*deactivate_one)(const struct nft_set *set,
+							  void *priv);
 	void				(*remove)(const struct nft_set *set,
 						  const struct nft_set_elem *elem);
 	void				(*walk)(const struct nft_ctx *ctx,
