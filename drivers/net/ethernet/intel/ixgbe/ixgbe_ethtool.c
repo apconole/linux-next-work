@@ -13,6 +13,7 @@
 #include <linux/vmalloc.h>
 #include <linux/highmem.h>
 #include <linux/uaccess.h>
+#include <linux/overflow.h> /* until its included in slab.h */
 
 #include "ixgbe.h"
 #include "ixgbe_phy.h"
@@ -1063,7 +1064,7 @@ static int ixgbe_set_ringparam(struct net_device *netdev,
 	/* allocate temporary buffer to store rings in */
 	i = max_t(int, adapter->num_tx_queues + adapter->num_xdp_queues,
 		  adapter->num_rx_queues);
-	temp_ring = vmalloc(i * sizeof(struct ixgbe_ring));
+	temp_ring = vmalloc(array_size(i, sizeof(struct ixgbe_ring)));
 
 	if (!temp_ring) {
 		err = -ENOMEM;
