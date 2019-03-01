@@ -6678,8 +6678,18 @@ static int ixgbe_change_mtu(struct net_device *netdev, int new_mtu)
 	struct ixgbe_adapter *adapter = netdev_priv(netdev);
 
 	if (adapter->xdp_prog) {
-		e_warn(probe, "MTU cannot be changed while XDP program is loaded\n");
-		return -EPERM;
+		int new_frame_size = new_mtu + ETH_HLEN + ETH_FCS_LEN +
+				     VLAN_HLEN;
+		int i;
+
+		for (i = 0; i < adapter->num_rx_queues; i++) {
+			struct ixgbe_ring *ring = adapter->rx_ring[i];
+
+			if (new_frame_size > ixgbe_rx_bufsz(ring)) {
+				e_warn(probe, "Requested MTU size is not supported with XDP\n");
+				return -EINVAL;
+			}
+		}
 	}
 
 	/*
@@ -8995,6 +9005,15 @@ int ixgbe_setup_tc(struct net_device *dev, u8 tc)
 
 #ifdef CONFIG_IXGBE_DCB
 	if (tc) {
+		if (adapter->xdp_prog) {
+			e_warn(probe, "DCB is not supported with XDP\n");
+
+			ixgbe_init_interrupt_scheme(adapter);
+			if (netif_running(dev))
+				ixgbe_open(dev);
+			return -EINVAL;
+		}
+
 		netdev_set_num_tc(dev, tc);
 		ixgbe_set_prio_tc_map(adapter);
 
@@ -9930,6 +9949,11 @@ static void *ixgbe_fwd_add(struct net_device *pdev, struct net_device *vdev)
 	int tcs = adapter->hw_tcs ? : 1;
 	unsigned int limit;
 	int pool, err;
+
+	if (adapter->xdp_prog) {
+		e_warn(probe, "L2FW offload is not supported with XDP\n");
+		return ERR_PTR(-EINVAL);
+	}
 
 	/* Hardware has a limited number of available pools. Each VF, and the
 	 * PF require a pool. Check to ensure we don't attempt to use more
