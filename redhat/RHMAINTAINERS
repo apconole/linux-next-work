@@ -492,6 +492,7 @@ F:	drivers/pci/pci-hyperv.c
 F:	drivers/scsi/storvsc_drv.c
 F:	drivers/video/hyperv_fb.c
 F:	drivers/uio/uio_hv_generic.c
+F:	drivers/iommu/hyperv_iommu.c
 F:	include/linux/hyperv.h
 F:	tools/hv/
 
