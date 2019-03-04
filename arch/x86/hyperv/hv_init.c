@@ -88,6 +88,7 @@ u32 *hv_vp_index;
 EXPORT_SYMBOL_GPL(hv_vp_index);
 
 u32 hv_max_vp_index;
+EXPORT_SYMBOL_GPL(hv_max_vp_index);
 
 static void hv_cpu_init(void *arg)
 {
