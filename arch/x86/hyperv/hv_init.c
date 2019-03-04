@@ -133,6 +133,7 @@ void hyperv_init(void)
 {
 	u64 guest_id;
 	union hv_x64_msr_hypercall_contents hypercall_msr;
+	int  i;
 
 	if (x86_hyper != &x86_hyper_ms_hyperv)
 		return;
@@ -142,6 +143,9 @@ void hyperv_init(void)
 				    GFP_KERNEL);
 	if (!hv_vp_index)
 		return;
+
+	for (i = 0; i < num_possible_cpus(); i++)
+		hv_vp_index[i] = VP_INVAL;
 
 	cpu_notifier_register_begin();
 	on_each_cpu(hv_cpu_init, NULL, 1);
