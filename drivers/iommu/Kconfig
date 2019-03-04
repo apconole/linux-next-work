@@ -288,4 +288,13 @@ config SPAPR_TCE_IOMMU
 	  Enables bits of IOMMU API required by VFIO. The iommu_ops
 	  is not implemented as it is not necessary for VFIO.
 
+config HYPERV_IOMMU
+	bool "Hyper-V x2APIC IRQ Handling"
+	depends on HYPERV
+	select IOMMU_API
+	default HYPERV
+	help
+	  Stub IOMMU driver to handle IRQs as to allow Hyper-V Linux
+	  guests to run with x2APIC mode enabled.
+
 endif # IOMMU_SUPPORT
