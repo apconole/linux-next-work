@@ -2357,7 +2357,7 @@ static void shutdown_one_si(struct smi_info *smi_info)
 	 * handlers might have been running before we freed the
 	 * interrupt.
 	 */
-	synchronize_sched();
+	synchronize_rcu();
 
 	/*
 	 * Timeouts are stopped, now make sure the interrupts are off
