@@ -272,6 +272,12 @@ enum HV_GENERIC_SET_FORMAT {
 	HV_GENERIC_SET_ALL,
 };
 
+struct hv_vpset {
+       u64 format;
+       u64 valid_bank_mask;
+       u64 bank_contents[];
+};
+
 /* hypercall status code */
 #define HV_STATUS_SUCCESS			0
 #define HV_STATUS_INVALID_HYPERCALL_CODE	2
