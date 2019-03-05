@@ -179,7 +179,7 @@ static void *nft_rbtree_deactivate(const struct nft_set *set,
 }
 
 static void nft_rbtree_walk(const struct nft_ctx *ctx,
-			    const struct nft_set *set,
+			    struct nft_set *set,
 			    struct nft_set_iter *iter)
 {
 	const struct nft_rbtree *priv = nft_set_priv(set);
