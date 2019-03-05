@@ -1768,7 +1768,6 @@ static const struct snd_pcm_ops snd_usb_playback_ops = {
 	.trigger =	snd_usb_substream_playback_trigger,
 	.pointer =	snd_usb_pcm_pointer,
 	.page =		snd_pcm_lib_get_vmalloc_page,
-	.mmap =		snd_pcm_lib_mmap_vmalloc,
 };
 
 static const struct snd_pcm_ops snd_usb_capture_ops = {
@@ -1781,7 +1780,6 @@ static const struct snd_pcm_ops snd_usb_capture_ops = {
 	.trigger =	snd_usb_substream_capture_trigger,
 	.pointer =	snd_usb_pcm_pointer,
 	.page =		snd_pcm_lib_get_vmalloc_page,
-	.mmap =		snd_pcm_lib_mmap_vmalloc,
 };
 
 static const struct snd_pcm_ops snd_usb_playback_dev_ops = {
