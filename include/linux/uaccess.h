@@ -1,7 +1,6 @@
 #ifndef __LINUX_UACCESS_H__
 #define __LINUX_UACCESS_H__
 
-#include <linux/preempt.h>
 #ifndef __GENKSYMS__
 #include <linux/sched.h>
 #endif
@@ -22,17 +21,11 @@ static __always_inline void pagefault_disabled_dec(void)
  * These routines enable/disable the pagefault handler. If disabled, it will
  * not take any locks and go straight to the fixup table.
  *
- * We increase the preempt and the pagefault count, to be able to distinguish
- * whether we run in simple atomic context or in a real pagefault_disable()
- * context.
- *
- * For now, after pagefault_disabled() has been called, we run in atomic
- * context. User access methods will not sleep.
- *
+ * User access methods will not sleep when called from a pagefault_disabled()
+ * environment.
  */
 static inline void pagefault_disable(void)
 {
-	inc_preempt_count();
 	pagefault_disabled_inc();
 	/*
 	 * make sure to have issued the store before a pagefault
@@ -49,7 +42,6 @@ static inline void pagefault_enable(void)
 	 */
 	barrier();
 	pagefault_disabled_dec();
-	dec_preempt_count();
 	/*
 	 * make sure we do..
 	 */
