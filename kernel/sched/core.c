@@ -3756,6 +3756,16 @@ int default_wake_function(wait_queue_t *curr, unsigned mode, int wake_flags,
 }
 EXPORT_SYMBOL(default_wake_function);
 
+int bookmark_wake_function(wait_queue_t *wait, unsigned mode, int sync, void *key)
+{
+	/* should not ever be called */
+        WARN_ON(true);
+        return 0;
+}
+EXPORT_SYMBOL(bookmark_wake_function);
+
+#define BREAK_CNT 64
+
 /*
  * The core wakeup function. Non-exclusive wakeups (nr_exclusive == 0) just
  * wake everything up. If it's an exclusive wakeup (nr_exclusive == small +ve
@@ -3765,17 +3775,63 @@ EXPORT_SYMBOL(default_wake_function);
  * started to run but is not in state TASK_RUNNING. try_to_wake_up() returns
  * zero in this (rare) case, and we handle it by continuing to scan the queue.
  */
-static void __wake_up_common(wait_queue_head_t *q, unsigned int mode,
-			int nr_exclusive, int wake_flags, void *key)
+static int __wake_up_common(wait_queue_head_t *q, unsigned int mode,
+			int nr_exclusive, int wake_flags, void *key,
+			wait_queue_t *bookmark)
 {
 	wait_queue_t *curr, *next;
+	int cnt = 0;
 
-	list_for_each_entry_safe(curr, next, &q->task_list, task_list) {
+	if (bookmark && (bookmark->flags & WQ_FLAG_BOOKMARK)) {
+		curr = list_next_entry(bookmark, task_list);
+
+		list_del(&bookmark->task_list);
+		bookmark->flags = 0;
+	} else
+		curr = list_first_entry(&q->task_list, wait_queue_t, task_list);
+
+	if (&curr->task_list == &q->task_list)
+		return nr_exclusive;
+
+	list_for_each_entry_safe_from(curr, next, &q->task_list, task_list) {
 		unsigned flags = curr->flags;
+
+		if (curr->func == bookmark_wake_function)
+			continue;
 
 		if (curr->func(curr, mode, wake_flags, key) &&
 				(flags & WQ_FLAG_EXCLUSIVE) && !--nr_exclusive)
 			break;
+
+		if (bookmark && (++cnt > BREAK_CNT) &&
+				(&next->task_list != &q->task_list)) {
+			bookmark->flags = WQ_FLAG_BOOKMARK;
+			list_add_tail(&bookmark->task_list, &next->task_list);
+			break;
+		}
+	}
+	return nr_exclusive;
+}
+
+static void __wake_up_common_lock(wait_queue_head_t *q, unsigned int mode,
+			int nr_exclusive, int wake_flags, void *key)
+{
+	unsigned long flags;
+	wait_queue_t bookmark;
+
+	bookmark.flags = 0;
+	bookmark.private = NULL;
+	bookmark.func = bookmark_wake_function;
+	INIT_LIST_HEAD(&bookmark.task_list);
+
+	spin_lock_irqsave(&q->lock, flags);
+	nr_exclusive = __wake_up_common(q, mode, nr_exclusive, wake_flags, key, &bookmark);
+	spin_unlock_irqrestore(&q->lock, flags);
+
+	while (bookmark.flags & WQ_FLAG_BOOKMARK) {
+		spin_lock_irqsave(&q->lock, flags);
+		nr_exclusive = __wake_up_common(q, mode, nr_exclusive, wake_flags, key, &bookmark);
+		spin_unlock_irqrestore(&q->lock, flags);
 	}
 }
 
@@ -3792,11 +3848,7 @@ static void __wake_up_common(wait_queue_head_t *q, unsigned int mode,
 void __wake_up(wait_queue_head_t *q, unsigned int mode,
 			int nr_exclusive, void *key)
 {
-	unsigned long flags;
-
-	spin_lock_irqsave(&q->lock, flags);
-	__wake_up_common(q, mode, nr_exclusive, 0, key);
-	spin_unlock_irqrestore(&q->lock, flags);
+	__wake_up_common_lock(q, mode, nr_exclusive, 0, key);
 }
 EXPORT_SYMBOL(__wake_up);
 
@@ -3805,13 +3857,13 @@ EXPORT_SYMBOL(__wake_up);
  */
 void __wake_up_locked(wait_queue_head_t *q, unsigned int mode, int nr)
 {
-	__wake_up_common(q, mode, nr, 0, NULL);
+	__wake_up_common(q, mode, nr, 0, NULL, NULL);
 }
 EXPORT_SYMBOL_GPL(__wake_up_locked);
 
 void __wake_up_locked_key(wait_queue_head_t *q, unsigned int mode, void *key)
 {
-	__wake_up_common(q, mode, 1, 0, key);
+	__wake_up_common(q, mode, 1, 0, key, NULL);
 }
 EXPORT_SYMBOL_GPL(__wake_up_locked_key);
 
@@ -3835,7 +3887,6 @@ EXPORT_SYMBOL_GPL(__wake_up_locked_key);
 void __wake_up_sync_key(wait_queue_head_t *q, unsigned int mode,
 			int nr_exclusive, void *key)
 {
-	unsigned long flags;
 	int wake_flags = WF_SYNC;
 
 	if (unlikely(!q))
@@ -3844,9 +3895,7 @@ void __wake_up_sync_key(wait_queue_head_t *q, unsigned int mode,
 	if (unlikely(!nr_exclusive))
 		wake_flags = 0;
 
-	spin_lock_irqsave(&q->lock, flags);
-	__wake_up_common(q, mode, nr_exclusive, wake_flags, key);
-	spin_unlock_irqrestore(&q->lock, flags);
+	__wake_up_common_lock(q, mode, nr_exclusive, wake_flags, key);
 }
 EXPORT_SYMBOL_GPL(__wake_up_sync_key);
 
@@ -3877,7 +3926,7 @@ void complete(struct completion *x)
 
 	spin_lock_irqsave(&x->wait.lock, flags);
 	x->done++;
-	__wake_up_common(&x->wait, TASK_NORMAL, 1, 0, NULL);
+	__wake_up_common(&x->wait, TASK_NORMAL, 1, 0, NULL, NULL);
 	spin_unlock_irqrestore(&x->wait.lock, flags);
 }
 EXPORT_SYMBOL(complete);
@@ -3897,7 +3946,7 @@ void complete_all(struct completion *x)
 
 	spin_lock_irqsave(&x->wait.lock, flags);
 	x->done += UINT_MAX/2;
-	__wake_up_common(&x->wait, TASK_NORMAL, 0, 0, NULL);
+	__wake_up_common(&x->wait, TASK_NORMAL, 0, 0, NULL, NULL);
 	spin_unlock_irqrestore(&x->wait.lock, flags);
 }
 EXPORT_SYMBOL(complete_all);
