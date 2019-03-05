@@ -31,6 +31,7 @@
 #include <linux/stop_machine.h>
 #include <linux/zlib.h>
 #include <drm/drm_print.h>
+#include <linux/ascii85.h>
 
 #include "i915_drv.h"
 
