@@ -122,7 +122,6 @@ extern struct workqueue_struct *system_power_efficient_wq;
 #include <linux/rculist.h>
 
 #define cpu_relax_lowlatency() cpu_relax()
-#define pagefault_disabled()   in_atomic()
 
 static inline int arch_phys_wc_index(int handle)
 {

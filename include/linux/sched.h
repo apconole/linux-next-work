@@ -1832,7 +1832,7 @@ struct task_struct {
 #else
 	RH_KABI_RESERVE(7)
 #endif
-	RH_KABI_RESERVE(8)
+	RH_KABI_USE(8, int pagefault_disabled)
 #ifndef __GENKSYMS__
 #ifdef CONFIG_MEMCG
 	struct memcg_oom_info {
