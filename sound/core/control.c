@@ -25,6 +25,7 @@
 #include <linux/slab.h>
 #include <linux/vmalloc.h>
 #include <linux/time.h>
+#include <linux/mm.h>
 #include <sound/core.h>
 #include <sound/minors.h>
 #include <sound/info.h>
@@ -1116,7 +1117,7 @@ static int replace_user_tlv(struct snd_kcontrol *kctl, unsigned int __user *buf,
 	if (size > 1024 * 128)	/* sane value */
 		return -EINVAL;
 
-	container = memdup_user(buf, size);
+	container = vmemdup_user(buf, size);
 	if (IS_ERR(container))
 		return PTR_ERR(container);
 
@@ -1124,7 +1125,7 @@ static int replace_user_tlv(struct snd_kcontrol *kctl, unsigned int __user *buf,
 	if (!change)
 		change = memcmp(ue->tlv_data, container, size) != 0;
 	if (!change) {
-		kfree(container);
+		kvfree(container);
 		return 0;
 	}
 
@@ -1135,7 +1136,7 @@ static int replace_user_tlv(struct snd_kcontrol *kctl, unsigned int __user *buf,
 		mask = SNDRV_CTL_EVENT_MASK_INFO;
 	}
 
-	kfree(ue->tlv_data);
+	kvfree(ue->tlv_data);
 	ue->tlv_data = container;
 	ue->tlv_data_size = size;
 
@@ -1212,7 +1213,7 @@ static void snd_ctl_elem_user_free(struct snd_kcontrol *kcontrol)
 {
 	struct user_element *ue = kcontrol->private_data;
 
-	kfree(ue->tlv_data);
+	kvfree(ue->tlv_data);
 	kfree(ue->priv_data);
 	kfree(ue);
 }
