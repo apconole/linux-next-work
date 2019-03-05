@@ -527,7 +527,7 @@ static int snd_pcm_stream_proc_init(struct snd_pcm_str *pstr)
 					   pcm->card->proc_root);
 	if (!entry)
 		return -ENOMEM;
-	entry->mode = S_IFDIR | S_IRUGO | S_IXUGO;
+	entry->mode = S_IFDIR | 0555;
 	if (snd_info_register(entry) < 0) {
 		snd_info_free_entry(entry);
 		return -ENOMEM;
@@ -549,7 +549,7 @@ static int snd_pcm_stream_proc_init(struct snd_pcm_str *pstr)
 	if (entry) {
 		entry->c.text.read = snd_pcm_xrun_debug_read;
 		entry->c.text.write = snd_pcm_xrun_debug_write;
-		entry->mode |= S_IWUSR;
+		entry->mode |= 0200;
 		entry->private_data = pstr;
 		if (snd_info_register(entry) < 0) {
 			snd_info_free_entry(entry);
@@ -587,7 +587,7 @@ static int snd_pcm_substream_proc_init(struct snd_pcm_substream *substream)
 					   substream->pstr->proc_root);
 	if (!entry)
 		return -ENOMEM;
-	entry->mode = S_IFDIR | S_IRUGO | S_IXUGO;
+	entry->mode = S_IFDIR | 0555;
 	if (snd_info_register(entry) < 0) {
 		snd_info_free_entry(entry);
 		return -ENOMEM;
@@ -644,7 +644,7 @@ static int snd_pcm_substream_proc_init(struct snd_pcm_substream *substream)
 		entry->private_data = substream;
 		entry->c.text.read = NULL;
 		entry->c.text.write = snd_pcm_xrun_injection_write;
-		entry->mode = S_IFREG | S_IWUSR;
+		entry->mode = S_IFREG | 0200;
 		if (snd_info_register(entry) < 0) {
 			snd_info_free_entry(entry);
 			entry = NULL;
@@ -1084,7 +1084,7 @@ static ssize_t show_pcm_class(struct device *dev,
         return snprintf(buf, PAGE_SIZE, "%s\n", str);
 }
 
-static DEVICE_ATTR(pcm_class, S_IRUGO, show_pcm_class, NULL);
+static DEVICE_ATTR(pcm_class, 0444, show_pcm_class, NULL);
 static struct attribute *pcm_dev_attrs[] = {
 	&dev_attr_pcm_class.attr,
 	NULL
