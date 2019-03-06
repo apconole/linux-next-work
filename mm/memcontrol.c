@@ -3298,12 +3298,12 @@ void memcg_register_cache(struct kmem_cache *s)
 	 */
 	smp_wmb();
 
-	VM_BUG_ON(root->memcg_params->memcg_caches[id]);
 	/*
 	 * Initialize the pointer to this cache in its parent's memcg_params
 	 * before adding it to the memcg_slab_caches list, otherwise we can
 	 * fail to convert memcg_params_to_cache() while traversing the list.
 	 */
+	VM_BUG_ON(root->memcg_params->memcg_caches[id]);
 	root->memcg_params->memcg_caches[id] = s;
 
 	mutex_lock(&memcg->slab_caches_mutex);
@@ -3524,13 +3524,8 @@ static void memcg_create_cache_work_func(struct work_struct *w)
 	struct create_work *cw = container_of(w, struct create_work, work);
 	struct mem_cgroup *memcg = cw->memcg;
 	struct kmem_cache *cachep = cw->cachep;
-	struct kmem_cache *new;
 
-	new = kmem_cache_create_memcg(memcg, cachep->name,
-			cachep->object_size, cachep->align,
-			cachep->flags & ~SLAB_PANIC, cachep->ctor, cachep);
-	if (new)
-		new->allocflags |= __GFP_KMEMCG;
+	kmem_cache_create_memcg(memcg, cachep);
 	css_put(&memcg->css);
 	kfree(cw);
 }
