@@ -609,7 +609,6 @@ struct RxDesc {
 struct ring_info {
 	struct sk_buff	*skb;
 	u32		len;
-	u8		__pad[sizeof(void *) - sizeof(u32)];
 };
 
 struct rtl8169_counters {
