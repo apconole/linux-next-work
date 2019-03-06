@@ -2895,7 +2895,6 @@ static int enic_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 	 */
 
 	enic->port_mtu = enic->config.mtu;
-	(void)enic_change_mtu(netdev, enic->port_mtu);
 
 	err = enic_set_mac_addr(netdev, enic->mac_addr);
 	if (err) {
@@ -2985,6 +2984,7 @@ static int enic_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 	/* MTU range: 68 - 9000 */
 	netdev->extended->min_mtu = ENIC_MIN_MTU;
 	netdev->extended->max_mtu = ENIC_MAX_MTU;
+	netdev->mtu	= enic->port_mtu;
 
 	err = register_netdev(netdev);
 	if (err) {
