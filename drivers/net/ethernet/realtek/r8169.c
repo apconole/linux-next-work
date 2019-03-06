@@ -31,6 +31,12 @@
 #include <linux/ipv6.h>
 #include <net/ip6_checksum.h>
 
+/* RHEL7 START */
+/* 3c1bcc8614db: only update context in r8169, don't actually apply
+   the patch due to complexity.  Add a linkmode_copy stub. */
+#define linkmode_copy(a, b) ((a) = (b))
+/* RHEL7 END */
+
 #define MODULENAME "r8169"
 
 #define FIRMWARE_8168D_1	"rtl_nic/rtl8168d-1.fw"
@@ -6594,7 +6600,7 @@ static int r8169_phy_connect(struct rtl8169_private *tp)
 		phy_set_max_speed(phydev, SPEED_100);
 
 	/* Ensure to advertise everything, incl. pause */
-	phydev->advertising = phydev->supported;
+	linkmode_copy(phydev->advertising, phydev->supported);
 
 	phy_attached_info(phydev);
 
