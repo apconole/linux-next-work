@@ -123,7 +123,9 @@ static int mdio_bus_phy_resume(struct device *dev)
 	if (!mdio_bus_phy_may_suspend(phydev))
 		goto no_resume;
 
+	mutex_lock(&phydev->lock);
 	ret = phy_resume(phydev);
+	mutex_unlock(&phydev->lock);
 	if (ret < 0)
 		return ret;
 
@@ -790,7 +792,9 @@ int phy_attach_direct(struct net_device *dev, struct phy_device *phydev,
 	if (err)
 		phy_detach(phydev);
 
+	mutex_lock(&phydev->lock);
 	phy_resume(phydev);
+	mutex_unlock(&phydev->lock);
 
 	return err;
 
@@ -906,6 +910,8 @@ int phy_resume(struct phy_device *phydev)
 {
 	struct phy_driver *phydrv = to_phy_driver(phydev->mdio_dev.driver);
 	int ret = 0;
+
+	WARN_ON(!mutex_is_locked(&phydev->lock));
 
 	if (phydev->drv && phydrv->resume)
 		ret = phydrv->resume(phydev);
@@ -1383,12 +1389,8 @@ int genphy_resume(struct phy_device *phydev)
 {
 	int value;
 
-	mutex_lock(&phydev->lock);
-
 	value = phy_read(phydev, MII_BMCR);
 	phy_write(phydev, MII_BMCR, value & ~BMCR_PDOWN);
-
-	mutex_unlock(&phydev->lock);
 
 	return 0;
 }
