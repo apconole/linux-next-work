@@ -1034,9 +1034,8 @@ static int genphy_config_eee_advert(struct phy_device *phydev)
  */
 static int genphy_setup_forced(struct phy_device *phydev)
 {
-	int ctl = phy_read(phydev, MII_BMCR);
+	u16 ctl = 0;
 
-	ctl &= BMCR_LOOPBACK | BMCR_ISOLATE | BMCR_PDOWN;
 	phydev->pause = 0;
 	phydev->asym_pause = 0;
 
@@ -1048,7 +1047,8 @@ static int genphy_setup_forced(struct phy_device *phydev)
 	if (DUPLEX_FULL == phydev->duplex)
 		ctl |= BMCR_FULLDPLX;
 
-	return phy_write(phydev, MII_BMCR, ctl);
+	return phy_modify(phydev, MII_BMCR,
+			  BMCR_LOOPBACK | BMCR_ISOLATE | BMCR_PDOWN, ctl);
 }
 
 
@@ -1058,17 +1058,9 @@ static int genphy_setup_forced(struct phy_device *phydev)
  */
 int genphy_restart_aneg(struct phy_device *phydev)
 {
-	int ctl = phy_read(phydev, MII_BMCR);
-
-	if (ctl < 0)
-		return ctl;
-
-	ctl |= BMCR_ANENABLE | BMCR_ANRESTART;
-
 	/* Don't isolate the PHY if we're negotiating */
-	ctl &= ~BMCR_ISOLATE;
-
-	return phy_write(phydev, MII_BMCR, ctl);
+	return phy_modify(phydev, MII_BMCR, ~BMCR_ISOLATE,
+			  BMCR_ANENABLE | BMCR_ANRESTART);
 }
 EXPORT_SYMBOL(genphy_restart_aneg);
 
@@ -1367,16 +1359,7 @@ static int gen10g_config_init(struct phy_device *phydev)
 
 int genphy_suspend(struct phy_device *phydev)
 {
-	int value;
-
-	mutex_lock(&phydev->lock);
-
-	value = phy_read(phydev, MII_BMCR);
-	phy_write(phydev, MII_BMCR, value | BMCR_PDOWN);
-
-	mutex_unlock(&phydev->lock);
-
-	return 0;
+	return phy_modify(phydev, MII_BMCR, 0, BMCR_PDOWN);
 }
 EXPORT_SYMBOL(genphy_suspend);
 
@@ -1387,12 +1370,7 @@ static int gen10g_suspend(struct phy_device *phydev)
 
 int genphy_resume(struct phy_device *phydev)
 {
-	int value;
-
-	value = phy_read(phydev, MII_BMCR);
-	phy_write(phydev, MII_BMCR, value & ~BMCR_PDOWN);
-
-	return 0;
+	return phy_modify(phydev, MII_BMCR, ~BMCR_PDOWN, 0);
 }
 EXPORT_SYMBOL(genphy_resume);
 
