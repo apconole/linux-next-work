@@ -6835,8 +6835,7 @@ static void rtl8169_net_suspend(struct net_device *dev)
 
 static int rtl8169_suspend(struct device *device)
 {
-	struct pci_dev *pdev = to_pci_dev(device);
-	struct net_device *dev = pci_get_drvdata(pdev);
+	struct net_device *dev = dev_get_drvdata(device);
 	struct rtl8169_private *tp = netdev_priv(dev);
 
 	rtl8169_net_suspend(dev);
@@ -6866,8 +6865,7 @@ static void __rtl8169_resume(struct net_device *dev)
 
 static int rtl8169_resume(struct device *device)
 {
-	struct pci_dev *pdev = to_pci_dev(device);
-	struct net_device *dev = pci_get_drvdata(pdev);
+	struct net_device *dev = dev_get_drvdata(device);
 	struct rtl8169_private *tp = netdev_priv(dev);
 
 	clk_prepare_enable(tp->clk);
@@ -6880,8 +6878,7 @@ static int rtl8169_resume(struct device *device)
 
 static int rtl8169_runtime_suspend(struct device *device)
 {
-	struct pci_dev *pdev = to_pci_dev(device);
-	struct net_device *dev = pci_get_drvdata(pdev);
+	struct net_device *dev = dev_get_drvdata(device);
 	struct rtl8169_private *tp = netdev_priv(dev);
 
 	if (!tp->TxDescArray)
@@ -6902,8 +6899,7 @@ static int rtl8169_runtime_suspend(struct device *device)
 
 static int rtl8169_runtime_resume(struct device *device)
 {
-	struct pci_dev *pdev = to_pci_dev(device);
-	struct net_device *dev = pci_get_drvdata(pdev);
+	struct net_device *dev = dev_get_drvdata(device);
 	struct rtl8169_private *tp = netdev_priv(dev);
 	rtl_rar_set(tp, dev->dev_addr);
 
@@ -6921,8 +6917,7 @@ static int rtl8169_runtime_resume(struct device *device)
 
 static int rtl8169_runtime_idle(struct device *device)
 {
-	struct pci_dev *pdev = to_pci_dev(device);
-	struct net_device *dev = pci_get_drvdata(pdev);
+	struct net_device *dev = dev_get_drvdata(device);
 
 	if (!netif_running(dev) || !netif_carrier_ok(dev))
 		pm_schedule_suspend(device, 10000);
