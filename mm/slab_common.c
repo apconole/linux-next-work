@@ -228,7 +228,7 @@ kmem_cache_create_memcg(struct mem_cgroup *memcg, const char *name, size_t size,
 		 * succeed. Therefore if we get here and see the cache has
 		 * already been created, we silently return NULL.
 		 */
-		if (cache_from_memcg(parent_cache, memcg_cache_id(memcg)))
+		if (cache_from_memcg_idx(parent_cache, memcg_cache_id(memcg)))
 			goto out_locked;
 	}
 
