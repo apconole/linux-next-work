@@ -3148,11 +3148,6 @@ static int srpt_check_false(struct se_portal_group *se_tpg)
 	return 0;
 }
 
-static char *srpt_get_fabric_name(void)
-{
-	return "srpt";
-}
-
 static struct srpt_port *srpt_tpg_to_sport(struct se_portal_group *tpg)
 {
 	return tpg->se_tpg_wwn->priv;
@@ -3683,7 +3678,7 @@ static const struct target_core_fabric_ops srpt_template = {
 	.module				= THIS_MODULE,
 	.name				= "srpt",
 	.node_acl_size			= sizeof(struct srpt_node_acl),
-	.get_fabric_name		= srpt_get_fabric_name,
+	.fabric_name			= "srpt",
 	.tpg_get_wwn			= srpt_get_fabric_wwn,
 	.tpg_get_tag			= srpt_get_tag,
 	.tpg_check_demo_mode		= srpt_check_false,
