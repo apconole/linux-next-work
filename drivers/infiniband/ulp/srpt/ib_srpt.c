@@ -3676,7 +3676,6 @@ static struct configfs_attribute *srpt_wwn_attrs[] = {
 
 static const struct target_core_fabric_ops srpt_template = {
 	.module				= THIS_MODULE,
-	.name				= "srpt",
 	.node_acl_size			= sizeof(struct srpt_node_acl),
 	.fabric_name			= "srpt",
 	.tpg_get_wwn			= srpt_get_fabric_wwn,
