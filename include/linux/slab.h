@@ -107,7 +107,8 @@ struct kmem_cache *kmem_cache_create(const char *, size_t, size_t,
 			unsigned long,
 			void (*)(void *));
 #ifdef CONFIG_MEMCG_KMEM
-void kmem_cache_create_memcg(struct mem_cgroup *, struct kmem_cache *);
+struct kmem_cache *kmem_cache_create_memcg(struct mem_cgroup *,
+					   struct kmem_cache *);
 #endif
 void kmem_cache_destroy(struct kmem_cache *);
 int kmem_cache_shrink(struct kmem_cache *);
@@ -345,8 +346,6 @@ static __always_inline int kmalloc_size(int n)
  * @list: list_head for the list of all caches in this memcg
  * @root_cache: pointer to the global, root cache, this cache was derived from
  * @nr_pages: number of pages that belongs to this cache.
- * @destroy: worker to be called whenever we are ready, or believe we may be
- *           ready, to destroy this cache.
  */
 struct memcg_cache_params {
 	bool is_root_cache;
@@ -365,7 +364,7 @@ struct memcg_cache_params {
 			struct kmem_cache *root_cache;
 			RH_KABI_DEPRECATE(bool, dead)
 			atomic_t nr_pages;
-			struct work_struct destroy;
+			RH_KABI_DEPRECATE(struct work_struct, destroy)
 		};
 	};
 };
