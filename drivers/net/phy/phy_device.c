@@ -1064,7 +1064,7 @@ static int genphy_setup_forced(struct phy_device *phydev)
 int genphy_restart_aneg(struct phy_device *phydev)
 {
 	/* Don't isolate the PHY if we're negotiating */
-	return phy_modify(phydev, MII_BMCR, ~BMCR_ISOLATE,
+	return phy_modify(phydev, MII_BMCR, BMCR_ISOLATE,
 			  BMCR_ANENABLE | BMCR_ANRESTART);
 }
 EXPORT_SYMBOL(genphy_restart_aneg);
@@ -1375,7 +1375,7 @@ static int gen10g_suspend(struct phy_device *phydev)
 
 int genphy_resume(struct phy_device *phydev)
 {
-	return phy_modify(phydev, MII_BMCR, ~BMCR_PDOWN, 0);
+	return phy_modify(phydev, MII_BMCR, BMCR_PDOWN, 0);
 }
 EXPORT_SYMBOL(genphy_resume);
 
