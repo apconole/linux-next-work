@@ -335,7 +335,9 @@ static __always_inline int kmalloc_size(int n)
  *
  * Both the root cache and the child caches will have it. For the root cache,
  * this will hold a dynamically allocated array large enough to hold
- * information about the currently limited memcgs in the system.
+ * information about the currently limited memcgs in the system. To allow the
+ * array to be accessed without taking any locks, on relocation we free the old
+ * version only after a grace period.
  *
  * Child caches will hold extra metadata needed for its operation. Fields are:
  *
@@ -350,7 +352,14 @@ static __always_inline int kmalloc_size(int n)
 struct memcg_cache_params {
 	bool is_root_cache;
 	union {
+#ifdef __GENKSYMS__
 		struct kmem_cache *memcg_caches[0];
+#else
+		struct {
+			struct kmem_cache *memcg_caches[0];
+			struct rcu_head rcu_head;
+		};
+#endif
 		struct {
 			struct mem_cgroup *memcg;
 			struct list_head list;
