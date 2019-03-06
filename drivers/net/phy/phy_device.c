@@ -1053,7 +1053,7 @@ static int genphy_setup_forced(struct phy_device *phydev)
 		ctl |= BMCR_FULLDPLX;
 
 	return phy_modify(phydev, MII_BMCR,
-			  BMCR_LOOPBACK | BMCR_ISOLATE | BMCR_PDOWN, ctl);
+			  ~(BMCR_LOOPBACK | BMCR_ISOLATE | BMCR_PDOWN), ctl);
 }
 
 
