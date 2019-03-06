@@ -422,6 +422,7 @@ struct phy_device {
 	RH_KABI_EXTEND(u32 lp_advertising)
 	RH_KABI_EXTEND(u8 mdix)
 	RH_KABI_EXTEND(int mdio_flags)
+	RH_KABI_EXTEND(const struct dev_pm_ops *mdio_pm_ops)
 };
 #define to_phy_device(d) container_of(d, struct phy_device, mdio_dev)
 
