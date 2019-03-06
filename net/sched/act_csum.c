@@ -538,6 +538,9 @@ static int tcf_csum(struct sk_buff *skb, const struct tc_action *a,
 		    struct tcf_result *res)
 {
 	struct tcf_csum *p = to_tcf_csum(a);
+	bool orig_vlan_tag_present = false;
+	unsigned int vlan_hdr_count = 0;
+	__be16 protocol;
 	int action;
 	u32 update_flags;
 
@@ -551,7 +554,9 @@ static int tcf_csum(struct sk_buff *skb, const struct tc_action *a,
 	if (unlikely(action == TC_ACT_SHOT))
 		goto drop;
 
-	switch (tc_skb_protocol(skb)) {
+	protocol = tc_skb_protocol(skb);
+again:
+	switch (protocol) {
 	case cpu_to_be16(ETH_P_IP):
 		if (!tcf_csum_ipv4(skb, update_flags))
 			goto drop;
@@ -560,6 +565,27 @@ static int tcf_csum(struct sk_buff *skb, const struct tc_action *a,
 		if (!tcf_csum_ipv6(skb, update_flags))
 			goto drop;
 		break;
+	case cpu_to_be16(ETH_P_8021AD): /* fall through */
+	case cpu_to_be16(ETH_P_8021Q):
+		if (skb_vlan_tag_present(skb) && !orig_vlan_tag_present) {
+			protocol = skb->protocol;
+			orig_vlan_tag_present = true;
+		} else {
+			struct vlan_hdr *vlan = (struct vlan_hdr *)skb->data;
+
+			protocol = vlan->h_vlan_encapsulated_proto;
+			skb_pull(skb, VLAN_HLEN);
+			skb_reset_network_header(skb);
+			vlan_hdr_count++;
+		}
+		goto again;
+	}
+
+out:
+	/* Restore the skb for the pulled VLAN tags */
+	while (vlan_hdr_count--) {
+		skb_push(skb, VLAN_HLEN);
+		skb_reset_network_header(skb);
 	}
 
 	return action;
@@ -568,7 +594,8 @@ drop:
 	spin_lock(&p->tcf_lock);
 	p->tcf_qstats.drops++;
 	spin_unlock(&p->tcf_lock);
-	return TC_ACT_SHOT;
+	action = TC_ACT_SHOT;
+	goto out;
 }
 
 static int tcf_csum_dump(struct sk_buff *skb, struct tc_action *a, int bind,
