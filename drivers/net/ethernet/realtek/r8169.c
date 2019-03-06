@@ -1346,18 +1346,13 @@ static void rtl_irq_disable(struct rtl8169_private *tp)
 	mmiowb();
 }
 
-static void rtl_irq_enable(struct rtl8169_private *tp, u16 bits)
-{
-	RTL_W16(tp, IntrMask, bits);
-}
-
 #define RTL_EVENT_NAPI_RX	(RxOK | RxErr)
 #define RTL_EVENT_NAPI_TX	(TxOK | TxErr)
 #define RTL_EVENT_NAPI		(RTL_EVENT_NAPI_RX | RTL_EVENT_NAPI_TX)
 
-static void rtl_irq_enable_all(struct rtl8169_private *tp)
+static void rtl_irq_enable(struct rtl8169_private *tp)
 {
-	rtl_irq_enable(tp, RTL_EVENT_NAPI | tp->event_slow);
+	RTL_W16(tp, IntrMask, RTL_EVENT_NAPI | tp->event_slow);
 }
 
 static void rtl8169_irq_mask_and_ack(struct rtl8169_private *tp)
@@ -4650,7 +4645,7 @@ static void rtl_hw_start(struct  rtl8169_private *tp)
 	rtl_set_rx_mode(tp->dev);
 	/* no early-rx interrupts */
 	RTL_W16(tp, MultiIntr, RTL_R16(tp, MultiIntr) & 0xf000);
-	rtl_irq_enable_all(tp);
+	rtl_irq_enable(tp);
 }
 
 static void rtl_hw_start_8169(struct rtl8169_private *tp)
@@ -6549,7 +6544,7 @@ static int rtl8169_poll(struct napi_struct *napi, int budget)
 	if (work_done < budget) {
 		napi_complete_done(napi, work_done);
 
-		rtl_irq_enable_all(tp);
+		rtl_irq_enable(tp);
 		mmiowb();
 	}
 
