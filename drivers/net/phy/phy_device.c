@@ -123,9 +123,7 @@ static int mdio_bus_phy_resume(struct device *dev)
 	if (!mdio_bus_phy_may_suspend(phydev))
 		goto no_resume;
 
-	mutex_lock(&phydev->lock);
 	ret = phy_resume(phydev);
-	mutex_unlock(&phydev->lock);
 	if (ret < 0)
 		return ret;
 
@@ -789,9 +787,7 @@ int phy_attach_direct(struct net_device *dev, struct phy_device *phydev,
 	if (err)
 		phy_detach(phydev);
 
-	mutex_lock(&phydev->lock);
 	phy_resume(phydev);
-	mutex_unlock(&phydev->lock);
 
 	return err;
 
@@ -903,7 +899,7 @@ int phy_suspend(struct phy_device *phydev)
 }
 EXPORT_SYMBOL(phy_suspend);
 
-int phy_resume(struct phy_device *phydev)
+int __phy_resume(struct phy_device *phydev)
 {
 	struct phy_driver *phydrv = to_phy_driver(phydev->mdio_dev.driver);
 	int ret = 0;
@@ -917,6 +913,18 @@ int phy_resume(struct phy_device *phydev)
 		return ret;
 
 	phydev->suspended = false;
+
+	return ret;
+}
+EXPORT_SYMBOL(__phy_resume);
+
+int phy_resume(struct phy_device *phydev)
+{
+	int ret;
+
+	mutex_lock(&phydev->lock);
+	ret = __phy_resume(phydev);
+	mutex_unlock(&phydev->lock);
 
 	return ret;
 }
