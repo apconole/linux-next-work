@@ -2074,9 +2074,6 @@ static int enic_change_mtu(struct net_device *netdev, int new_mtu)
 {
 	struct enic *enic = netdev_priv(netdev);
 
-	if (new_mtu < ENIC_MIN_MTU || new_mtu > ENIC_MAX_MTU)
-		return -EINVAL;
-
 	if (enic_is_dynamic(enic) || enic_is_sriov_vf(enic))
 		return -EOPNOTSUPP;
 
@@ -2518,7 +2515,7 @@ static const struct net_device_ops enic_netdev_dynamic_ops = {
 	.ndo_validate_addr	= eth_validate_addr,
 	.ndo_set_rx_mode	= enic_set_rx_mode,
 	.ndo_set_mac_address	= enic_set_mac_address_dynamic,
-	.ndo_change_mtu_rh74	= enic_change_mtu,
+	.extended.ndo_change_mtu	= enic_change_mtu,
 	.ndo_vlan_rx_add_vid	= enic_vlan_rx_add_vid,
 	.ndo_vlan_rx_kill_vid	= enic_vlan_rx_kill_vid,
 	.ndo_tx_timeout		= enic_tx_timeout,
@@ -2545,7 +2542,7 @@ static const struct net_device_ops enic_netdev_ops = {
 	.ndo_validate_addr	= eth_validate_addr,
 	.ndo_set_mac_address	= enic_set_mac_address,
 	.ndo_set_rx_mode	= enic_set_rx_mode,
-	.ndo_change_mtu_rh74	= enic_change_mtu,
+	.extended.ndo_change_mtu	= enic_change_mtu,
 	.ndo_vlan_rx_add_vid	= enic_vlan_rx_add_vid,
 	.ndo_vlan_rx_kill_vid	= enic_vlan_rx_kill_vid,
 	.ndo_tx_timeout		= enic_tx_timeout,
@@ -2984,6 +2981,10 @@ static int enic_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 		netdev->features |= NETIF_F_HIGHDMA;
 
 	netdev->priv_flags |= IFF_UNICAST_FLT;
+
+	/* MTU range: 68 - 9000 */
+	netdev->extended->min_mtu = ENIC_MIN_MTU;
+	netdev->extended->max_mtu = ENIC_MAX_MTU;
 
 	err = register_netdev(netdev);
 	if (err) {
