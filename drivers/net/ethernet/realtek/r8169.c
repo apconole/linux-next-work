@@ -5755,10 +5755,6 @@ static int rtl8169_change_mtu(struct net_device *dev, int new_mtu)
 {
 	struct rtl8169_private *tp = netdev_priv(dev);
 
-	if (new_mtu < ETH_ZLEN ||
-	    new_mtu > rtl_chip_infos[tp->mac_version].jumbo_max)
-		return -EINVAL;
-
 	if (new_mtu > ETH_DATA_LEN)
 		rtl_hw_jumbo_enable(tp);
 	else
@@ -7460,6 +7456,10 @@ static int rtl_init_one(struct pci_dev *pdev, const struct pci_device_id *ent)
 
 	dev->hw_features |= NETIF_F_RXALL;
 	dev->hw_features |= NETIF_F_RXFCS;
+
+	/* MTU range: 60 - hw-specific max */
+	dev->extended->min_mtu = ETH_ZLEN;
+	dev->extended->max_mtu = rtl_chip_infos[chipset].jumbo_max;
 
 	tp->hw_start = cfg->hw_start;
 	tp->event_slow = cfg->event_slow;
