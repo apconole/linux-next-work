@@ -38,6 +38,7 @@
 #include <rdma/ib_verbs.h>
 #include "mlx5_core.h"
 #include <linux/mlx5/transobj.h>
+#include <linux/mlx5/qp.h>
 
 void mlx5_srq_event(struct mlx5_core_dev *dev, u32 srqn, int event_type)
 {
@@ -48,7 +49,7 @@ void mlx5_srq_event(struct mlx5_core_dev *dev, u32 srqn, int event_type)
 
 	srq = radix_tree_lookup(&table->tree, srqn);
 	if (srq)
-		atomic_inc(&srq->refcount);
+		atomic_inc(&srq->common.refcount);
 
 	spin_unlock(&table->lock);
 
@@ -59,8 +60,7 @@ void mlx5_srq_event(struct mlx5_core_dev *dev, u32 srqn, int event_type)
 
 	srq->event(srq, event_type);
 
-	if (atomic_dec_and_test(&srq->refcount))
-		complete(&srq->free);
+	mlx5_core_res_put(&srq->common);
 }
 
 static int get_pas_size(struct mlx5_srq_attr *in)
@@ -141,7 +141,7 @@ struct mlx5_core_srq *mlx5_core_get_srq(struct mlx5_core_dev *dev, u32 srqn)
 
 	srq = radix_tree_lookup(&table->tree, srqn);
 	if (srq)
-		atomic_inc(&srq->refcount);
+		atomic_inc(&srq->common.refcount);
 
 	spin_unlock(&table->lock);
 
@@ -619,8 +619,8 @@ int mlx5_core_create_srq(struct mlx5_core_dev *dev, struct mlx5_core_srq *srq,
 	if (err)
 		return err;
 
-	atomic_set(&srq->refcount, 1);
-	init_completion(&srq->free);
+	atomic_set(&srq->common.refcount, 1);
+	init_completion(&srq->common.free);
 
 	spin_lock_irq(&table->lock);
 	err = radix_tree_insert(&table->tree, srq->srqn, srq);
@@ -661,9 +661,8 @@ int mlx5_core_destroy_srq(struct mlx5_core_dev *dev, struct mlx5_core_srq *srq)
 	if (err)
 		return err;
 
-	if (atomic_dec_and_test(&srq->refcount))
-		complete(&srq->free);
-	wait_for_completion(&srq->free);
+	mlx5_core_res_put(&srq->common);
+	wait_for_completion(&srq->common.free);
 
 	return 0;
 }
