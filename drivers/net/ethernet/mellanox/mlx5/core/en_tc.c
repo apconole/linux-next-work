@@ -2179,6 +2179,7 @@ static bool csum_offload_supported(struct mlx5e_priv *priv,
 
 static bool modify_header_match_supported(struct mlx5_flow_spec *spec,
 					  struct tcf_exts *exts,
+					  u32 actions2,
 					  struct netlink_ext_ack *extack)
 {
 	const struct tc_action *a;
@@ -2189,7 +2190,11 @@ static bool modify_header_match_supported(struct mlx5_flow_spec *spec,
 	u16 ethertype;
 	int nkeys, i;
 
-	headers_v = MLX5_ADDR_OF(fte_match_param, spec->match_value, outer_headers);
+	if (actions2 & MLX5_FLOW_CONTEXT_ACTION_DECAP)
+		headers_v = MLX5_ADDR_OF(fte_match_param, spec->match_value, inner_headers);
+	else
+		headers_v = MLX5_ADDR_OF(fte_match_param, spec->match_value, outer_headers);
+
 	ethertype = MLX5_GET(fte_match_set_lyr_2_4, headers_v, ethertype);
 
 	/* for non-IP we only re-write MACs, so we're okay */
@@ -2245,7 +2250,7 @@ static bool actions_match_supported(struct mlx5e_priv *priv,
 
 	if (actions & MLX5_FLOW_CONTEXT_ACTION_MOD_HDR)
 		return modify_header_match_supported(&parse_attr->spec, exts,
-						     extack);
+						     actions, extack);
 
 	return true;
 }
