@@ -44,6 +44,7 @@
 #include "en_tc.h"
 #include "en/tc_tun.h"
 #include "fs_core.h"
+#include "lib/port_tun.h"
 
 #define MLX5E_REP_PARAMS_LOG_SQ_SIZE \
 	max(0x6, MLX5E_PARAMS_MINIMUM_LOG_SQ_SIZE)
@@ -955,14 +956,23 @@ static void mlx5e_rep_neigh_entry_destroy(struct mlx5e_priv *priv,
 int mlx5e_rep_encap_entry_attach(struct mlx5e_priv *priv,
 				 struct mlx5e_encap_entry *e)
 {
+	struct mlx5e_rep_priv *rpriv = priv->ppriv;
+	struct mlx5_rep_uplink_priv *uplink_priv = &rpriv->uplink_priv;
+	struct mlx5_tun_entropy *tun_entropy = &uplink_priv->tun_entropy;
 	struct mlx5e_neigh_hash_entry *nhe;
 	int err;
 
+	err = mlx5_tun_entropy_refcount_inc(tun_entropy, e->reformat_type);
+	if (err)
+		return err;
 	nhe = mlx5e_rep_neigh_entry_lookup(priv, &e->m_neigh);
 	if (!nhe) {
 		err = mlx5e_rep_neigh_entry_create(priv, e, &nhe);
-		if (err)
+		if (err) {
+			mlx5_tun_entropy_refcount_dec(tun_entropy,
+						      e->reformat_type);
 			return err;
+		}
 	}
 	list_add(&e->encap_list, &nhe->encap_list);
 	return 0;
@@ -971,6 +981,9 @@ int mlx5e_rep_encap_entry_attach(struct mlx5e_priv *priv,
 void mlx5e_rep_encap_entry_detach(struct mlx5e_priv *priv,
 				  struct mlx5e_encap_entry *e)
 {
+	struct mlx5e_rep_priv *rpriv = priv->ppriv;
+	struct mlx5_rep_uplink_priv *uplink_priv = &rpriv->uplink_priv;
+	struct mlx5_tun_entropy *tun_entropy = &uplink_priv->tun_entropy;
 	struct mlx5e_neigh_hash_entry *nhe;
 
 	list_del(&e->encap_list);
@@ -978,6 +991,7 @@ void mlx5e_rep_encap_entry_detach(struct mlx5e_priv *priv,
 
 	if (list_empty(&nhe->encap_list))
 		mlx5e_rep_neigh_entry_destroy(priv, nhe);
+	mlx5_tun_entropy_refcount_dec(tun_entropy, e->reformat_type);
 }
 
 static int mlx5e_rep_open(struct net_device *dev)
@@ -1454,6 +1468,8 @@ mlx5e_nic_rep_load(struct mlx5_core_dev *dev, struct mlx5_eswitch_rep *rep)
 	err = mlx5e_tc_esw_init(&uplink_priv->tc_ht);
 	if (err)
 		goto  err_neigh_cleanup;
+
+	mlx5_init_port_tun_entropy(&uplink_priv->tun_entropy, priv->mdev);
 
 	/* init indirect block notifications */
 	INIT_LIST_HEAD(&uplink_priv->tc_indr_block_priv_list);
