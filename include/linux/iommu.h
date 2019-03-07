@@ -527,4 +527,11 @@ static inline void iommu_device_unlink(struct device *dev, struct device *link)
 
 #endif /* CONFIG_IOMMU_API */
 
+#ifdef CONFIG_IOMMU_DEBUGFS
+extern	struct dentry *iommu_debugfs_dir;
+void iommu_debugfs_setup(void);
+#else
+static inline void iommu_debugfs_setup(void) {}
+#endif
+
 #endif /* __LINUX_IOMMU_H */
