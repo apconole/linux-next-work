@@ -4692,6 +4692,7 @@ int __init intel_iommu_init(void)
 	register_hotcpu_notifier(&intel_iommu_cpu_nb);
 
 	intel_iommu_enabled = 1;
+	intel_iommu_debugfs_init();
 
 	return 0;
 

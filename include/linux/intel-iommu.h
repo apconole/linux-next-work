@@ -25,6 +25,7 @@
 #include <linux/types.h>
 #include <linux/iova.h>
 #include <linux/io.h>
+#include <linux/iommu.h>
 #include <linux/dma_remapping.h>
 #include <asm/cacheflush.h>
 #include <asm/iommu.h>
@@ -448,6 +449,12 @@ extern void qi_flush_dev_iotlb(struct intel_iommu *iommu, u16 sid, u16 qdep,
 extern int qi_submit_sync(struct qi_desc *desc, struct intel_iommu *iommu);
 
 extern int dmar_ir_support(void);
+
+#ifdef CONFIG_INTEL_IOMMU_DEBUGFS
+void intel_iommu_debugfs_init(void);
+#else
+static inline void intel_iommu_debugfs_init(void) {}
+#endif /* CONFIG_INTEL_IOMMU_DEBUGFS */
 
 extern const struct attribute_group *intel_iommu_groups[];
 bool context_present(struct context_entry *context);
