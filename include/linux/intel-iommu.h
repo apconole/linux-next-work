@@ -58,6 +58,14 @@
 #define DMAR_IQA_REG	0x90	/* Invalidation queue addr register */
 #define DMAR_ICS_REG	0x9c	/* Invalidation complete status register */
 #define DMAR_IRTA_REG	0xb8    /* Interrupt remapping table addr register */
+#define DMAR_PQH_REG   0xc0    /* Page request queue head register */
+#define DMAR_PQT_REG   0xc8    /* Page request queue tail register */
+#define DMAR_PQA_REG   0xd0    /* Page request queue address register */
+#define DMAR_PRS_REG   0xdc    /* Page request status register */
+#define DMAR_PECTL_REG 0xe0    /* Page request event control register */
+#define        DMAR_PEDATA_REG 0xe4    /* Page request event interrupt data register */
+#define        DMAR_PEADDR_REG 0xe8    /* Page request event interrupt addr register */
+#define        DMAR_PEUADDR_REG 0xec   /* Page request event Upper address register */
 #define DMAR_MTRRCAP_REG 0x100	/* MTRR capability register */
 #define DMAR_MTRRDEF_REG 0x108	/* MTRR default type register */
 #define DMAR_MTRR_FIX64K_00000_REG 0x120 /* MTRR Fixed range registers */
