@@ -2647,15 +2647,14 @@ static int mem_cgroup_do_charge(struct mem_cgroup *memcg, gfp_t gfp_mask,
 	struct mem_cgroup *mem_over_limit;
 	struct page_counter *counter;
 	unsigned long flags = 0;
-	int ret;
+	int ret = -ENOMEM;
 
-	ret = page_counter_try_charge(&memcg->memory, nr_pages, &counter);
-
-	if (likely(!ret)) {
+	if (likely(page_counter_try_charge(&memcg->memory, nr_pages,
+					   &counter))) {
 		if (!do_swap_account)
 			return CHARGE_OK;
-		ret = page_counter_try_charge(&memcg->memsw, nr_pages, &counter);
-		if (likely(!ret))
+		if (likely(page_counter_try_charge(&memcg->memsw, nr_pages,
+						   &counter)))
 			return CHARGE_OK;
 
 		page_counter_uncharge(&memcg->memory, nr_pages);
@@ -3052,9 +3051,8 @@ static int memcg_charge_kmem(struct mem_cgroup *memcg, gfp_t gfp,
 	int ret = 0;
 	bool may_oom;
 
-	ret = page_counter_try_charge(&memcg->kmem, nr_pages, &counter);
-	if (ret < 0)
-		return ret;
+	if (!page_counter_try_charge(&memcg->kmem, nr_pages, &counter))
+		return -ENOMEM;
 
 	/*
 	 * Conditions under which we can wait for the oom_killer. Those are
@@ -6360,10 +6358,10 @@ static int mem_cgroup_do_precharge(unsigned long count)
 		 * are still under the same cgroup_mutex. So we can postpone
 		 * css_get().
 		 */
-		if (page_counter_try_charge(&memcg->memory, count, &dummy))
+		if (!page_counter_try_charge(&memcg->memory, count, &dummy))
 			goto one_by_one;
 		if (do_swap_account &&
-		    page_counter_try_charge(&memcg->memsw, count, &dummy)) {
+		    !page_counter_try_charge(&memcg->memsw, count, &dummy)) {
 			page_counter_uncharge(&memcg->memory, count);
 			goto one_by_one;
 		}
