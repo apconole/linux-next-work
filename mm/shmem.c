@@ -1186,7 +1186,7 @@ repeat:
 
 	if (swap.val) {
 		/* Look it up and read it in.. */
-		page = lookup_swap_cache(swap);
+		page = lookup_swap_cache(swap, NULL, 0);
 		if (!page) {
 			/* here we actually do the io */
 			if (fault_type)

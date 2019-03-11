@@ -2737,16 +2737,26 @@ static int do_swap_page(struct mm_struct *mm, struct vm_area_struct *vma,
 		unsigned int flags, pte_t orig_pte)
 {
 	spinlock_t *ptl;
-	struct page *page, *swapcache;
+	struct page *page = NULL, *swapcache;
 	swp_entry_t entry;
 	pte_t pte;
 	int locked;
 	struct mem_cgroup *ptr;
+	struct vma_swap_readahead swap_ra;
 	int exclusive = 0;
 	int ret = 0;
+	bool vma_readahead = swap_use_vma_readahead();
 
-	if (!pte_unmap_same(mm, pmd, page_table, orig_pte))
+	if (vma_readahead)
+		page = swap_readahead_detect(vma, &swap_ra,
+					     page_table, orig_pte, address);
+
+	if (!pte_unmap_same(mm, pmd, page_table, orig_pte)) {
+		if (page)
+			put_page(page);
+			// page_cache_release(page);
 		goto out;
+	}
 
 	entry = pte_to_swp_entry(orig_pte);
 	if (unlikely(non_swap_entry(entry))) {
@@ -2769,10 +2779,16 @@ static int do_swap_page(struct mm_struct *mm, struct vm_area_struct *vma,
 		goto out;
 	}
 	delayacct_set_flag(DELAYACCT_PF_SWAPIN);
-	page = lookup_swap_cache(entry);
+	if (!page)
+		page = lookup_swap_cache(entry, vma_readahead ? vma : NULL,
+					 address);
 	if (!page) {
-		page = swapin_readahead(entry,
-					GFP_HIGHUSER_MOVABLE, vma, address);
+		if (vma_readahead)
+			page = do_swap_page_readahead(entry,
+				GFP_HIGHUSER_MOVABLE, vma, address, &swap_ra);
+		else
+			page = swapin_readahead(entry,
+				GFP_HIGHUSER_MOVABLE, vma, address);
 		if (!page) {
 			/*
 			 * Back out if somebody else faulted in this pte
