@@ -178,6 +178,8 @@ source "drivers/nvdimm/Kconfig"
 
 source "drivers/dax/Kconfig"
 
+source "drivers/hwtracing/stm/Kconfig"
+
 source "drivers/thunderbolt/Kconfig"
 
 source "drivers/nvmem/Kconfig"
