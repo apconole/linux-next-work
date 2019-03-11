@@ -97,6 +97,7 @@ struct perf_stat_config {
 	unsigned int		 interval;
 	unsigned int		 timeout;
 	unsigned int		 initial_delay;
+	unsigned int		 unit_width;
 	int			 times;
 	struct runtime_stat	*stats;
 	int			 stats_num;
