@@ -65,7 +65,6 @@ struct stm_output {
 
 struct stm_file {
 	struct stm_device	*stm;
-	struct stp_policy_node	*policy_node;
 	struct stm_output	output;
 };
 
@@ -79,7 +78,6 @@ struct stm_source_device {
 	struct stm_device __rcu	*link;
 	struct list_head	link_entry;
 	/* one output per stm_source device */
-	struct stp_policy_node	*policy_node;
 	struct stm_output	output;
 };
 
