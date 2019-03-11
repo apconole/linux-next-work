@@ -518,6 +518,7 @@ struct page *swapin_readahead(swp_entry_t entry, gfp_t gfp_mask,
 	unsigned long mask;
 	struct swap_info_struct *si = swp_swap_info(entry);
 	struct blk_plug plug;
+	bool page_allocated;
 
 	mask = swapin_nr_pages(offset) - 1;
 	if (!mask)
@@ -534,13 +535,17 @@ struct page *swapin_readahead(swp_entry_t entry, gfp_t gfp_mask,
 	blk_start_plug(&plug);
 	for (offset = start_offset; offset <= end_offset ; offset++) {
 		/* Ok, do the async read-ahead now */
-		page = read_swap_cache_async(swp_entry(swp_type(entry), offset),
-						gfp_mask, vma, addr);
+		page = __read_swap_cache_async(
+			swp_entry(swp_type(entry), offset),
+			gfp_mask, vma, addr, &page_allocated);
 		if (!page)
 			continue;
-		if (offset != entry_offset) {
-			SetPageReadahead(page);
-			count_vm_event(SWAP_RA);
+		if (page_allocated) {
+			swap_readpage(page);
+			if (offset != entry_offset) {
+				SetPageReadahead(page);
+				count_vm_event(SWAP_RA);
+			}
 		}
 		page_cache_release(page);
 	}
