@@ -391,9 +391,22 @@ static void dentry_unlink_inode(struct dentry * dentry)
 static void dentry_lru_add(struct dentry *dentry)
 {
 	if (unlikely(!(dentry->d_flags & DCACHE_LRU_LIST))) {
+		bool negative = d_is_negative(dentry);
+
 		spin_lock(&dcache_lru_lock);
 		dentry->d_flags |= DCACHE_LRU_LIST;
-		list_add(&dentry->d_lru, &dentry->d_sb->s_dentry_lru);
+
+		/*
+		 * Negative dentries are added to the tail so that they
+		 * will be pruned first. For those negative dentries that
+		 * are referenced more than once, they will be put back
+		 * to the head in the pruning process.
+		 */
+		if (negative)
+			list_add_tail(&dentry->d_lru,
+				      &dentry->d_sb->s_dentry_lru);
+		else
+			list_add(&dentry->d_lru, &dentry->d_sb->s_dentry_lru);
 		dentry->d_sb->s_nr_dentry_unused++;
 		this_cpu_inc(nr_dentry_unused);
 		if (d_is_negative(dentry))
