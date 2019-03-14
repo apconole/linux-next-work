@@ -11,20 +11,32 @@
 #include <linux/vmalloc.h>
 #include <linux/init.h>
 #include <linux/mm.h>
+#include <linux/cpu.h>
+#include <linux/slab.h>
+
+#include <asm/pgtable.h>
+#include <asm/tlbflush.h>
 #include <asm/page.h>
 #include <asm/code-patching.h>
 #include <asm/uaccess.h>
+#include <asm/kprobes.h>
 
-
-int patch_instruction(unsigned int *addr, unsigned int instr)
+static int __patch_instruction(unsigned int *addr, unsigned int instr)
 {
 	int err;
 
 	__put_user_size(instr, addr, 4, err);
 	if (err)
 		return err;
-	asm ("dcbst 0, %0; sync; icbi 0,%0; sync; isync" : : "r" (addr));
+
+	asm ("dcbst 0, %0; sync; icbi 0,%0; sync; isync" :: "r" (addr));
+
 	return 0;
+}
+
+int __kprobes patch_instruction(unsigned int *addr, unsigned int instr)
+{
+	return __patch_instruction(addr, instr);
 }
 
 int patch_branch(unsigned int *addr, unsigned long target, int flags)
