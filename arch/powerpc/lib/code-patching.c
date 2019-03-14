@@ -36,7 +36,7 @@ static int __patch_instruction(unsigned int *exec_addr, unsigned int instr,
 	return 0;
 }
 
-static int raw_patch_instruction(unsigned int *addr, unsigned int instr)
+int raw_patch_instruction(unsigned int *addr, unsigned int instr)
 {
 	return __patch_instruction(addr, instr, addr);
 }
