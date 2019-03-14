@@ -70,6 +70,9 @@ EXPORT_SYMBOL(mem_cgroup_subsys);
 #define MEM_CGROUP_RECLAIM_RETRIES	5
 static struct mem_cgroup *root_mem_cgroup __read_mostly;
 
+/* Kernel memory accounting disabled? */
+static bool cgroup_memory_nokmem;
+
 #ifdef CONFIG_MEMCG_SWAP
 /* Turned on only when memory cgroup is enabled && really_do_swap_account = 1 */
 int do_swap_account __read_mostly;
@@ -3001,7 +3004,8 @@ static DEFINE_MUTEX(memcg_slab_mutex);
 
 static inline bool memcg_can_account_kmem(struct mem_cgroup *memcg)
 {
-	return !mem_cgroup_disabled() && !mem_cgroup_is_root(memcg) &&
+	return !cgroup_memory_nokmem && !mem_cgroup_disabled() &&
+		!mem_cgroup_is_root(memcg) &&
 		memcg_kmem_is_active(memcg);
 }
 
@@ -5057,6 +5061,15 @@ static int memcg_update_kmem_limit(struct cgroup *cont, unsigned long limit)
 	int ret = -EINVAL;
 #ifdef CONFIG_MEMCG_KMEM
 	struct mem_cgroup *memcg = mem_cgroup_from_cont(cont);
+
+	/*
+	 * When cgroup_memory_nokmem is set, kmem limit update is silently
+	 * ignored to not break existing applications that write to
+	 * kmem.limit_in_bytes.
+	 */
+	if (cgroup_memory_nokmem)
+		return 0;
+
 	/*
 	 * For simplicity, we won't allow this to be disabled.  It also can't
 	 * be changed if the cgroup has children already, or if tasks had
@@ -5112,7 +5125,8 @@ static int memcg_propagate_kmem(struct mem_cgroup *memcg)
 {
 	int ret = 0;
 	struct mem_cgroup *parent = parent_mem_cgroup(memcg);
-	if (!parent)
+
+	if (!parent || cgroup_memory_nokmem)
 		goto out;
 
 	memcg->kmem_account_flags = parent->kmem_account_flags;
@@ -6971,6 +6985,20 @@ static void __init enable_swap_cgroup(void)
 {
 }
 #endif
+
+static int __init cgroup_memory(char *s)
+{
+	char *token;
+
+	while ((token = strsep(&s, ",")) != NULL) {
+		if (!*token)
+			continue;
+		if (!strcmp(token, "nokmem"))
+			cgroup_memory_nokmem = true;
+	}
+	return 0;
+}
+__setup("cgroup.memory=", cgroup_memory);
 
 /*
  * subsys_initcall() for memory controller.
