@@ -315,13 +315,13 @@ static __always_inline void amd_set_ssb_virt_state(unsigned long tifn)
 	wrmsrl(MSR_AMD64_VIRT_SPEC_CTRL, ssbd_tif_to_spec_ctrl(tifn));
 }
 
-static __always_inline void intel_set_ssb_state(unsigned long tifn)
+static __always_inline void spec_ctrl_update_msr(unsigned long tifn)
 {
 	spec_ctrl_set_ssbd(ssbd_tif_to_spec_ctrl(tifn));
 	wrmsrl(MSR_IA32_SPEC_CTRL, this_cpu_read(spec_ctrl_pcp.entry64));
 }
 
-static __always_inline void __speculative_store_bypass_update(unsigned long tifn)
+static __always_inline void __speculation_ctrl_update(unsigned long tifn)
 {
 	if (!static_key_false(&ssbd_userset_key))
 		return;	/* Don't do anything if not user settable */
@@ -331,16 +331,16 @@ static __always_inline void __speculative_store_bypass_update(unsigned long tifn
 	else if (static_cpu_has(X86_FEATURE_LS_CFG_SSBD))
 		amd_set_core_ssb_state(tifn);
 	else
-		intel_set_ssb_state(tifn);
+		spec_ctrl_update_msr(tifn);
 }
 
-void speculative_store_bypass_update(unsigned long tif)
+void speculation_ctrl_update(unsigned long tif)
 {
 	preempt_disable();
-	__speculative_store_bypass_update(tif);
+	__speculation_ctrl_update(tif);
 	preempt_enable();
 }
-EXPORT_SYMBOL_GPL(speculative_store_bypass_update);
+EXPORT_SYMBOL_GPL(speculation_ctrl_update);
 
 static inline void switch_to_bitmap(struct tss_struct *tss,
 				    struct thread_struct *prev,
@@ -395,7 +395,7 @@ void __switch_to_xtra(struct task_struct *prev_p, struct task_struct *next_p,
 	}
 
 	if ((tifp ^ tifn) & _TIF_SSBD)
-		__speculative_store_bypass_update(tifn);
+		__speculation_ctrl_update(tifn);
 }
 
 /*
