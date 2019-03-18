@@ -822,8 +822,12 @@ struct page *vm_normal_page(struct vm_area_struct *vma, unsigned long addr,
 			goto check_pfn;
 		if (vma->vm_flags & (VM_PFNMAP | VM_MIXEDMAP))
 			return NULL;
-		if (!is_zero_pfn(pfn))
-			print_bad_pte(vma, addr, pte, NULL);
+		if (is_zero_pfn(pfn))
+			return NULL;
+		if (pte_devmap(pte))
+			return NULL;
+
+		print_bad_pte(vma, addr, pte, NULL);
 		return NULL;
 	}
 
