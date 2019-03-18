@@ -433,6 +433,7 @@ int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nvdimm,
 	const guid_t *guid;
 	int func, rc, i;
 
+	*cmd_rc = -EINVAL;
 	if (nvdimm) {
 		struct acpi_device *adev = nfit_mem->adev;
 
@@ -543,6 +544,7 @@ int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nvdimm,
 		 * If we return an error (like elsewhere) then caller wouldn't
 		 * be able to rely upon data returned to make calculation.
 		 */
+		*cmd_rc = 0;
 		return 0;
 	}
 
