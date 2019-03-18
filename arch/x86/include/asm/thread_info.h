@@ -334,5 +334,7 @@ static inline bool is_ia32_task(void)
 extern void arch_task_cache_init(void);
 extern int arch_dup_task_struct(struct task_struct *dst, struct task_struct *src);
 extern void arch_release_task_struct(struct task_struct *tsk);
+extern void arch_setup_new_exec(void);
+#define arch_setup_new_exec arch_setup_new_exec
 #endif
 #endif /* _ASM_X86_THREAD_INFO_H */

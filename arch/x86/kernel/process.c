@@ -29,6 +29,7 @@
 #include <asm/debugreg.h>
 #include <asm/nmi.h>
 #include <asm/mce.h>
+#include <asm/prctl.h>
 #include <asm/spec_ctrl.h>
 
 /*
@@ -388,6 +389,24 @@ void speculation_ctrl_update_current(void)
 	preempt_disable();
 	speculation_ctrl_update(speculation_ctrl_update_tif(current));
 	preempt_enable();
+}
+
+/*
+ * Called immediately after a successful exec.
+ */
+void arch_setup_new_exec(void)
+{
+	/*
+	 * Don't inherit TIF_SSBD across exec boundary when
+	 * PR_SPEC_DISABLE_NOEXEC is used.
+	 */
+	if (test_thread_flag(TIF_SSBD) &&
+	    task_spec_ssb_noexec(current)) {
+		clear_thread_flag(TIF_SSBD);
+		task_clear_spec_ssb_disable(current);
+		task_clear_spec_ssb_noexec(current);
+		speculation_ctrl_update(task_thread_info(current)->flags);
+	}
 }
 
 void __switch_to_xtra(struct task_struct *prev_p, struct task_struct *next_p,
