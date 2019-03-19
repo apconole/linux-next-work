@@ -53,8 +53,10 @@ enum {
  * every to-be-taken lock to all currently held lock's own dependency
  * table (if it's not there yet), and we check it for lock order
  * conflicts and deadlocks.
+ *
+ * RHEL7 specific: Increase lock dependency entries from 32k to 40k.
  */
-#define MAX_LOCKDEP_ENTRIES	32768UL
+#define MAX_LOCKDEP_ENTRIES	40960UL
 
 #define MAX_LOCKDEP_CHAINS_BITS	16
 #define MAX_LOCKDEP_CHAINS	(1UL << MAX_LOCKDEP_CHAINS_BITS)
