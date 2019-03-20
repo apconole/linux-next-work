@@ -962,7 +962,6 @@ int rtas_ibm_suspend_me(u64 handle)
 	}
 
 	cpu_hotplug_disable();
-	stop_topology_update();
 
 	/* Check if we raced with a CPU-Offline Operation */
 	if (unlikely(!cpumask_equal(cpu_present_mask, cpu_online_mask))) {
@@ -983,7 +982,6 @@ int rtas_ibm_suspend_me(u64 handle)
 	if (atomic_read(&data.error) != 0)
 		printk(KERN_ERR "Error doing global join\n");
 
-	start_topology_update();
 out_hotplug_enable:
 	cpu_hotplug_enable();
 
