@@ -385,7 +385,7 @@ __releases(fc->lock)
 			wake_up(&fc->blocked_waitq);
 
 		if (fc->num_background == fc->congestion_threshold &&
-		    fc->connected && fc->bdi_initialized) {
+		    fc->bdi_initialized) {
 			clear_bdi_congested(&fc->bdi, BLK_RW_SYNC);
 			clear_bdi_congested(&fc->bdi, BLK_RW_ASYNC);
 		}
