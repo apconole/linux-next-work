@@ -1842,6 +1842,13 @@ static void fuse_writepages_send(struct fuse_fill_wb_data *data)
 		end_page_writeback(data->orig_pages[i]);
 }
 
+/*
+ * First recheck under fi->lock if the offending offset is still under
+ * writeback.  If yes, then iterate write requests, to see if there's one
+ * already added for a page at this offset.  If there's none, then insert this
+ * new request onto the auxiliary list, otherwise reuse the existing one by
+ * copying the new page contents over to the old temporary page.
+ */
 static bool fuse_writepage_in_flight(struct fuse_req *new_req,
 				     struct page *page)
 {
@@ -1849,9 +1856,8 @@ static bool fuse_writepage_in_flight(struct fuse_req *new_req,
 	struct fuse_inode *fi = get_fuse_inode(new_req->inode);
 	struct fuse_req *tmp;
 	struct fuse_req *old_req;
-	pgoff_t curr_index;
 
-	BUG_ON(new_req->num_pages != 0);
+	WARN_ON(new_req->num_pages != 0);
 
 	spin_lock(&fc->lock);
 	list_del(&new_req->writepages_entry);
@@ -1864,33 +1870,35 @@ static bool fuse_writepage_in_flight(struct fuse_req *new_req,
 
 	new_req->num_pages = 1;
 	for (tmp = old_req; tmp != NULL; tmp = tmp->misc.write.next) {
-		BUG_ON(tmp->inode != new_req->inode);
+		pgoff_t curr_index;
+
+		WARN_ON(tmp->inode != new_req->inode);
 		curr_index = tmp->misc.write.in.offset >> PAGE_CACHE_SHIFT;
-		if (tmp->num_pages == 1 &&
-		    curr_index == page->index) {
-			old_req = tmp;
+		if (tmp->num_pages == 1 && curr_index == page->index &&
+		    (old_req->state == FUSE_REQ_INIT ||
+		     old_req->state == FUSE_REQ_PENDING)) {
+			copy_highpage(tmp->pages[0], page);
+			break;
 		}
 	}
 
-	if (old_req->num_pages == 1 && (old_req->state == FUSE_REQ_INIT ||
-					old_req->state == FUSE_REQ_PENDING)) {
-		struct backing_dev_info *bdi = page->mapping->backing_dev_info;
+	if (!tmp) {
+		new_req->misc.write.next = old_req->misc.write.next;
+		old_req->misc.write.next = new_req;
+	}
 
-		copy_highpage(old_req->pages[0], page);
-		spin_unlock(&fc->lock);
+	spin_unlock(&fc->lock);
+
+	if (tmp) {
+		struct backing_dev_info *bdi = page->mapping->backing_dev_info;
 
 		dec_bdi_stat(bdi, BDI_WRITEBACK);
 		dec_zone_page_state(new_req->pages[0], NR_WRITEBACK_TEMP);
 		bdi_writeout_inc(bdi);
 		fuse_writepage_free(fc, new_req);
 		fuse_request_free(new_req);
-		goto out;
-	} else {
-		new_req->misc.write.next = old_req->misc.write.next;
-		old_req->misc.write.next = new_req;
 	}
-	spin_unlock(&fc->lock);
-out:
+
 	return true;
 }
 
