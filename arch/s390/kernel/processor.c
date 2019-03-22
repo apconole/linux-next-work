@@ -51,7 +51,7 @@ static void show_facilities(struct seq_file *m)
 
 	facilities = (long *)&S390_lowcore.stfle_fac_list;
 	seq_puts(m, "facilities      :");
-	for_each_set_bit_left(bit, facilities, MAX_FACILITY_BIT)
+	for_each_set_bit_inv(bit, facilities, MAX_FACILITY_BIT)
 		seq_printf(m, " %d", bit);
 	seq_putc(m, '\n');
 }
