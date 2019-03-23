@@ -2484,14 +2484,16 @@ static int sctp_apply_peer_addr_params(struct sctp_paddrparams *params,
 	 * effect).
 	 */
 	if ((params->spp_flags & SPP_PMTUD_DISABLE) && params->spp_pathmtu) {
+		__u32 pmtu = min_t(__u32, params->spp_pathmtu, INT_MAX);
+
 		if (trans) {
-			trans->pathmtu = params->spp_pathmtu;
+			trans->pathmtu = pmtu;
 			sctp_assoc_sync_pmtu(asoc);
 		} else if (asoc) {
-			asoc->pathmtu = params->spp_pathmtu;
-			sctp_frag_point(asoc, params->spp_pathmtu);
+			asoc->pathmtu = pmtu;
+			sctp_frag_point(asoc, pmtu);
 		} else {
-			sp->pathmtu = params->spp_pathmtu;
+			sp->pathmtu = pmtu;
 		}
 	}
 
