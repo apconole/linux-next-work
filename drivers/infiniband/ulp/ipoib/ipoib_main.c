@@ -2034,7 +2034,7 @@ static const struct net_device_ops ipoib_netdev_ops_pf = {
 	.ndo_uninit		 = ipoib_ndo_uninit,
 	.ndo_open		 = ipoib_open,
 	.ndo_stop		 = ipoib_stop,
-	.ndo_change_mtu_rh74	 = ipoib_change_mtu,
+	.extended.ndo_change_mtu = ipoib_change_mtu,
 	.ndo_fix_features	 = ipoib_fix_features,
 	.ndo_start_xmit		 = ipoib_start_xmit,
 	.ndo_tx_timeout		 = ipoib_timeout,
@@ -2050,11 +2050,12 @@ static const struct net_device_ops ipoib_netdev_ops_pf = {
 };
 
 static const struct net_device_ops ipoib_netdev_ops_vf = {
+	.ndo_size		 = sizeof(struct net_device_ops),
 	.ndo_init		 = ipoib_ndo_init,
 	.ndo_uninit		 = ipoib_ndo_uninit,
 	.ndo_open		 = ipoib_open,
 	.ndo_stop		 = ipoib_stop,
-	.ndo_change_mtu_rh74	 = ipoib_change_mtu,
+	.extended.ndo_change_mtu = ipoib_change_mtu,
 	.ndo_fix_features	 = ipoib_fix_features,
 	.ndo_start_xmit	 	 = ipoib_start_xmit,
 	.ndo_tx_timeout		 = ipoib_timeout,
