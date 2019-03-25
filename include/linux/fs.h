@@ -1565,6 +1565,9 @@ struct super_block {
 
 	RH_KABI_EXTEND(unsigned long	s_iflags)
 	RH_KABI_EXTEND(struct user_namespace *s_user_ns)
+
+	/* Pending fsnotify inode refs */
+	RH_KABI_EXTEND(atomic_long_t s_fsnotify_inode_refs)
 };
 
 extern const unsigned super_block_wrapper_version;

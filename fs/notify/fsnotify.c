@@ -96,6 +96,9 @@ void fsnotify_unmount_inodes(struct super_block *sb)
 
 	if (iput_inode)
 		iput(iput_inode);
+	/* Wait for outstanding inode references from connectors */
+	wait_event(sb->s_writers.wait_unfrozen,
+		       !atomic_long_read(&sb->s_fsnotify_inode_refs));
 }
 
 /*
