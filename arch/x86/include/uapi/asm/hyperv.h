@@ -273,9 +273,9 @@ enum HV_GENERIC_SET_FORMAT {
 };
 
 struct hv_vpset {
-       u64 format;
-       u64 valid_bank_mask;
-       u64 bank_contents[];
+       __u64 format;
+       __u64 valid_bank_mask;
+       __u64 bank_contents[];
 };
 
 /* hypercall status code */
