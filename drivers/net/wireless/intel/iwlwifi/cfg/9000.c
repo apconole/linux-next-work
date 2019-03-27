@@ -73,21 +73,12 @@
 #define IWL9000_SMEM_OFFSET		0x400000
 #define IWL9000_SMEM_LEN		0x68000
 
-#define  IWL9000A_FW_PRE "iwlwifi-9000-pu-a0-jf-a0-"
-#define  IWL9000B_FW_PRE "iwlwifi-9000-pu-b0-jf-b0-"
-#define  IWL9000RFB_FW_PRE "iwlwifi-9000-pu-a0-jf-b0-"
-#define  IWL9260A_FW_PRE "iwlwifi-9260-th-a0-jf-a0-"
-#define  IWL9260B_FW_PRE "iwlwifi-9260-th-b0-jf-b0-"
-#define IWL9000A_MODULE_FIRMWARE(api) \
-	IWL9000A_FW_PRE __stringify(api) ".ucode"
-#define IWL9000B_MODULE_FIRMWARE(api) \
-	IWL9000B_FW_PRE __stringify(api) ".ucode"
-#define IWL9000RFB_MODULE_FIRMWARE(api) \
-	IWL9000RFB_FW_PRE __stringify(api) ".ucode"
-#define IWL9260A_MODULE_FIRMWARE(api) \
-	IWL9260A_FW_PRE __stringify(api) ".ucode"
-#define IWL9260B_MODULE_FIRMWARE(api) \
-	IWL9260B_FW_PRE __stringify(api) ".ucode"
+#define  IWL9000_FW_PRE "iwlwifi-9000-pu-b0-jf-b0-"
+#define  IWL9260_FW_PRE "iwlwifi-9260-th-b0-jf-b0-"
+#define IWL9000_MODULE_FIRMWARE(api) \
+	IWL9000_FW_PRE __stringify(api) ".ucode"
+#define IWL9260_MODULE_FIRMWARE(api) \
+	IWL9260_FW_PRE __stringify(api) ".ucode"
 
 #define NVM_HW_SECTION_NUM_FAMILY_9000		10
 
@@ -161,81 +152,67 @@ static const struct iwl_tt_params iwl9000_tt_params = {
 
 const struct iwl_cfg iwl9160_2ac_cfg = {
 	.name = "Intel(R) Dual Band Wireless AC 9160",
-	.fw_name_pre = IWL9260A_FW_PRE,
-	.fw_name_pre_b_or_c_step = IWL9260B_FW_PRE,
+	.fw_name_pre = IWL9260_FW_PRE,
 	IWL_DEVICE_9000,
 };
 
 const struct iwl_cfg iwl9260_2ac_cfg = {
 	.name = "Intel(R) Dual Band Wireless AC 9260",
-	.fw_name_pre = IWL9260A_FW_PRE,
-	.fw_name_pre_b_or_c_step = IWL9260B_FW_PRE,
+	.fw_name_pre = IWL9260_FW_PRE,
 	IWL_DEVICE_9000,
 };
 
 const struct iwl_cfg iwl9260_killer_2ac_cfg = {
 	.name = "Killer (R) Wireless-AC 1550 Wireless Network Adapter (9260NGW)",
-	.fw_name_pre = IWL9260A_FW_PRE,
-	.fw_name_pre_b_or_c_step = IWL9260B_FW_PRE,
+	.fw_name_pre = IWL9260_FW_PRE,
 	IWL_DEVICE_9000,
 };
 
 const struct iwl_cfg iwl9270_2ac_cfg = {
 	.name = "Intel(R) Dual Band Wireless AC 9270",
-	.fw_name_pre = IWL9260A_FW_PRE,
-	.fw_name_pre_b_or_c_step = IWL9260B_FW_PRE,
+	.fw_name_pre = IWL9260_FW_PRE,
 	IWL_DEVICE_9000,
 };
 
 const struct iwl_cfg iwl9460_2ac_cfg = {
 	.name = "Intel(R) Dual Band Wireless AC 9460",
-	.fw_name_pre = IWL9260A_FW_PRE,
-	.fw_name_pre_b_or_c_step = IWL9260B_FW_PRE,
+	.fw_name_pre = IWL9260_FW_PRE,
 	IWL_DEVICE_9000,
 };
 
 const struct iwl_cfg iwl9460_2ac_cfg_soc = {
 	.name = "Intel(R) Dual Band Wireless AC 9460",
-	.fw_name_pre = IWL9000A_FW_PRE,
-	.fw_name_pre_b_or_c_step = IWL9000B_FW_PRE,
-	.fw_name_pre_rf_next_step = IWL9000RFB_FW_PRE,
+	.fw_name_pre = IWL9000_FW_PRE,
 	IWL_DEVICE_9000,
 	.integrated = true,
 	.soc_latency = 5000,
 };
 
 const struct iwl_cfg iwl9461_2ac_cfg_soc = {
-		.name = "Intel(R) Dual Band Wireless AC 9461",
-		.fw_name_pre = IWL9000A_FW_PRE,
-		.fw_name_pre_b_or_c_step = IWL9000B_FW_PRE,
-		.fw_name_pre_rf_next_step = IWL9000RFB_FW_PRE,
-		IWL_DEVICE_9000,
-		.integrated = true,
-		.soc_latency = 5000,
+	.name = "Intel(R) Dual Band Wireless AC 9461",
+	.fw_name_pre = IWL9000_FW_PRE,
+	IWL_DEVICE_9000,
+	.integrated = true,
+	.soc_latency = 5000,
 };
 
 const struct iwl_cfg iwl9462_2ac_cfg_soc = {
-		.name = "Intel(R) Dual Band Wireless AC 9462",
-		.fw_name_pre = IWL9000A_FW_PRE,
-		.fw_name_pre_b_or_c_step = IWL9000B_FW_PRE,
-		.fw_name_pre_rf_next_step = IWL9000RFB_FW_PRE,
-		IWL_DEVICE_9000,
-		.integrated = true,
-		.soc_latency = 5000,
+	.name = "Intel(R) Dual Band Wireless AC 9462",
+	.fw_name_pre = IWL9000_FW_PRE,
+	IWL_DEVICE_9000,
+	.integrated = true,
+	.soc_latency = 5000,
 };
 
 const struct iwl_cfg iwl9560_2ac_cfg = {
 	.name = "Intel(R) Dual Band Wireless AC 9560",
-	.fw_name_pre = IWL9260A_FW_PRE,
-	.fw_name_pre_b_or_c_step = IWL9260B_FW_PRE,
+	.fw_name_pre = IWL9260_FW_PRE,
 	IWL_DEVICE_9000,
 };
 
 const struct iwl_cfg iwl9560_2ac_cfg_soc = {
 	.name = "Intel(R) Dual Band Wireless AC 9560",
-	.fw_name_pre = IWL9000A_FW_PRE,
-	.fw_name_pre_b_or_c_step = IWL9000B_FW_PRE,
-	.fw_name_pre_rf_next_step = IWL9000RFB_FW_PRE,
+	.fw_name_pre = IWL9000_FW_PRE,
 	IWL_DEVICE_9000,
 	.integrated = true,
 	.soc_latency = 5000,
@@ -243,9 +220,7 @@ const struct iwl_cfg iwl9560_2ac_cfg_soc = {
 
 const struct iwl_cfg iwl9560_killer_2ac_cfg_soc = {
 	.name = "Killer (R) Wireless-AC 1550i Wireless Network Adapter (9560NGW)",
-	.fw_name_pre = IWL9000A_FW_PRE,
-	.fw_name_pre_b_or_c_step = IWL9000B_FW_PRE,
-	.fw_name_pre_rf_next_step = IWL9000RFB_FW_PRE,
+	.fw_name_pre = IWL9000_FW_PRE,
 	IWL_DEVICE_9000,
 	.integrated = true,
 	.soc_latency = 5000,
@@ -253,9 +228,7 @@ const struct iwl_cfg iwl9560_killer_2ac_cfg_soc = {
 
 const struct iwl_cfg iwl9560_killer_s_2ac_cfg_soc = {
 	.name = "Killer (R) Wireless-AC 1550s Wireless Network Adapter (9560NGW)",
-	.fw_name_pre = IWL9000A_FW_PRE,
-	.fw_name_pre_b_or_c_step = IWL9000B_FW_PRE,
-	.fw_name_pre_rf_next_step = IWL9000RFB_FW_PRE,
+	.fw_name_pre = IWL9000_FW_PRE,
 	IWL_DEVICE_9000,
 	.integrated = true,
 	.soc_latency = 5000,
@@ -263,9 +236,7 @@ const struct iwl_cfg iwl9560_killer_s_2ac_cfg_soc = {
 
 const struct iwl_cfg iwl9460_2ac_cfg_shared_clk = {
 	.name = "Intel(R) Dual Band Wireless AC 9460",
-	.fw_name_pre = IWL9000A_FW_PRE,
-	.fw_name_pre_b_or_c_step = IWL9000B_FW_PRE,
-	.fw_name_pre_rf_next_step = IWL9000RFB_FW_PRE,
+	.fw_name_pre = IWL9000_FW_PRE,
 	IWL_DEVICE_9000,
 	.integrated = true,
 	.soc_latency = 5000,
@@ -274,9 +245,7 @@ const struct iwl_cfg iwl9460_2ac_cfg_shared_clk = {
 
 const struct iwl_cfg iwl9461_2ac_cfg_shared_clk = {
 	.name = "Intel(R) Dual Band Wireless AC 9461",
-	.fw_name_pre = IWL9000A_FW_PRE,
-	.fw_name_pre_b_or_c_step = IWL9000B_FW_PRE,
-	.fw_name_pre_rf_next_step = IWL9000RFB_FW_PRE,
+	.fw_name_pre = IWL9000_FW_PRE,
 	IWL_DEVICE_9000,
 	.integrated = true,
 	.soc_latency = 5000,
@@ -285,9 +254,7 @@ const struct iwl_cfg iwl9461_2ac_cfg_shared_clk = {
 
 const struct iwl_cfg iwl9462_2ac_cfg_shared_clk = {
 	.name = "Intel(R) Dual Band Wireless AC 9462",
-	.fw_name_pre = IWL9000A_FW_PRE,
-	.fw_name_pre_b_or_c_step = IWL9000B_FW_PRE,
-	.fw_name_pre_rf_next_step = IWL9000RFB_FW_PRE,
+	.fw_name_pre = IWL9000_FW_PRE,
 	IWL_DEVICE_9000,
 	.integrated = true,
 	.soc_latency = 5000,
@@ -296,9 +263,7 @@ const struct iwl_cfg iwl9462_2ac_cfg_shared_clk = {
 
 const struct iwl_cfg iwl9560_2ac_cfg_shared_clk = {
 	.name = "Intel(R) Dual Band Wireless AC 9560",
-	.fw_name_pre = IWL9000A_FW_PRE,
-	.fw_name_pre_b_or_c_step = IWL9000B_FW_PRE,
-	.fw_name_pre_rf_next_step = IWL9000RFB_FW_PRE,
+	.fw_name_pre = IWL9000_FW_PRE,
 	IWL_DEVICE_9000,
 	.integrated = true,
 	.soc_latency = 5000,
@@ -307,9 +272,7 @@ const struct iwl_cfg iwl9560_2ac_cfg_shared_clk = {
 
 const struct iwl_cfg iwl9560_killer_2ac_cfg_shared_clk = {
 	.name = "Killer (R) Wireless-AC 1550i Wireless Network Adapter (9560NGW)",
-	.fw_name_pre = IWL9000A_FW_PRE,
-	.fw_name_pre_b_or_c_step = IWL9000B_FW_PRE,
-	.fw_name_pre_rf_next_step = IWL9000RFB_FW_PRE,
+	.fw_name_pre = IWL9000_FW_PRE,
 	IWL_DEVICE_9000,
 	.integrated = true,
 	.soc_latency = 5000,
@@ -318,17 +281,12 @@ const struct iwl_cfg iwl9560_killer_2ac_cfg_shared_clk = {
 
 const struct iwl_cfg iwl9560_killer_s_2ac_cfg_shared_clk = {
 	.name = "Killer (R) Wireless-AC 1550s Wireless Network Adapter (9560NGW)",
-	.fw_name_pre = IWL9000A_FW_PRE,
-	.fw_name_pre_b_or_c_step = IWL9000B_FW_PRE,
-	.fw_name_pre_rf_next_step = IWL9000RFB_FW_PRE,
+	.fw_name_pre = IWL9000_FW_PRE,
 	IWL_DEVICE_9000,
 	.integrated = true,
 	.soc_latency = 5000,
 	.extra_phy_cfg_flags = FW_PHY_CFG_SHARED_CLK
 };
 
-MODULE_FIRMWARE(IWL9000A_MODULE_FIRMWARE(IWL9000_UCODE_API_MAX));
-MODULE_FIRMWARE(IWL9000B_MODULE_FIRMWARE(IWL9000_UCODE_API_MAX));
-MODULE_FIRMWARE(IWL9000RFB_MODULE_FIRMWARE(IWL9000_UCODE_API_MAX));
-MODULE_FIRMWARE(IWL9260A_MODULE_FIRMWARE(IWL9000_UCODE_API_MAX));
-MODULE_FIRMWARE(IWL9260B_MODULE_FIRMWARE(IWL9000_UCODE_API_MAX));
+MODULE_FIRMWARE(IWL9000_MODULE_FIRMWARE(IWL9000_UCODE_API_MAX));
+MODULE_FIRMWARE(IWL9260_MODULE_FIRMWARE(IWL9000_UCODE_API_MAX));
