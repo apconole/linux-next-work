@@ -1709,20 +1709,6 @@ static bool igc_clean_tx_irq(struct igc_q_vector *q_vector, int napi_budget)
 }
 
 /**
- * igc_ioctl - I/O control method
- * @netdev: network interface device structure
- * @ifreq: frequency
- * @cmd: command
- */
-static int igc_ioctl(struct net_device *netdev, struct ifreq *ifr, int cmd)
-{
-	switch (cmd) {
-	default:
-		return -EOPNOTSUPP;
-	}
-}
-
-/**
  * igc_up - Open the interface and prepare it to handle traffic
  * @adapter: board private structure
  */
@@ -3455,7 +3441,6 @@ static const struct net_device_ops igc_netdev_ops = {
 	.ndo_set_mac_address	= igc_set_mac,
 	.extended.ndo_change_mtu = igc_change_mtu,
 	.ndo_get_stats		= igc_get_stats,
-	.ndo_do_ioctl		= igc_ioctl,
 };
 
 /* PCIe configuration access */
