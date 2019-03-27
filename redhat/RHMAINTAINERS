@@ -392,6 +392,11 @@ M:	Stefan Assmann <sassmann@redhat.com>
 S:	Maintained
 F:	drivers/net/ethernet/intel/igb/
 
+INTEL IGC ETHERNET DRIVERS (igb)
+M:	David Arcari <darcari@redhat.com>
+S:	Maintained
+F:	drivers/net/ethernet/intel/igc/
+
 INTEL IGBVF ETHERNET DRIVERS (igbvf)
 M:	Corinna Vinschen <vinschen@redhat.com>
 M:	Stefan Assmann <sassmann@redhat.com>
