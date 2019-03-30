@@ -815,13 +815,15 @@ static void inet_child_forget(struct sock *sk, struct request_sock *req,
 	__reqsk_free(req);
 }
 
-void inet_csk_reqsk_queue_add(struct sock *sk, struct request_sock *req,
-			      struct sock *child)
+struct sock *inet_csk_reqsk_queue_add(struct sock *sk,
+				      struct request_sock *req,
+				      struct sock *child)
 {
 	struct request_sock_queue *queue = &inet_csk(sk)->icsk_accept_queue;
 
 	if (unlikely(sk->sk_state != TCP_LISTEN)) {
 		inet_child_forget(sk, req, child);
+		child = NULL;
 	} else {
 		req->sk = child;
 		req->dl_next = NULL;
@@ -832,6 +834,7 @@ void inet_csk_reqsk_queue_add(struct sock *sk, struct request_sock *req,
 		queue->rskq_accept_tail = req;
 		sk_acceptq_added(sk);
 	}
+	return child;
 }
 EXPORT_SYMBOL(inet_csk_reqsk_queue_add);
 
