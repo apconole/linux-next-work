@@ -812,7 +812,6 @@ static void inet_child_forget(struct sock *sk, struct request_sock *req,
 		sock_put(sk);
 	}
 	inet_csk_destroy_sock(child);
-	__reqsk_free(req);
 }
 
 struct sock *inet_csk_reqsk_queue_add(struct sock *sk,
@@ -875,6 +874,7 @@ void inet_csk_listen_stop(struct sock *sk)
 		sock_hold(child);
 
 		inet_child_forget(sk, req, child);
+		__reqsk_free(req);
 		bh_unlock_sock(child);
 		local_bh_enable();
 		sock_put(child);
