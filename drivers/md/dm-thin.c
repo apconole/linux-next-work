@@ -600,9 +600,7 @@ static int get_pool_io_error_code(struct pool *pool)
 
 static void cell_error(struct pool *pool, struct dm_bio_prison_cell *cell)
 {
-	int error = get_pool_io_error_code(pool);
-
-	cell_error_with_code(pool, cell, error);
+	cell_error_with_code(pool, cell, get_pool_io_error_code(pool));
 }
 
 static void cell_success(struct pool *pool, struct dm_bio_prison_cell *cell)
@@ -759,9 +757,7 @@ static void error_retry_list_with_code(struct pool *pool, int error)
 
 static void error_retry_list(struct pool *pool)
 {
-	int error = get_pool_io_error_code(pool);
-
-	error_retry_list_with_code(pool, error);
+	error_retry_list_with_code(pool, get_pool_io_error_code(pool));
 }
 
 /*
