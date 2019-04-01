@@ -143,7 +143,7 @@ S:	Maintained
 F:	drivers/net/ethernet/aquantia/
 
 AUDIT SUBSYSTEM
-M:	Paul Moore <pmoore@redhat.com>
+M:	Richard Guy Briggs <rbriggs@redhat.com>
 S:	Supported
 F:	include/linux/audit.h
 F:	include/uapi/linux/audit.h
@@ -660,7 +660,7 @@ X:	net/wimax/
 X:	net/wireless/
 
 NETWORKING [LABELED] (NetLabel, Labeled IPsec, SECMARK)
-M:	Paul Moore <pmoore@redhat.com>
+M:	Ondrej Mosnacek <omosnace@redhat.com>
 S:	Supported
 F:	Documentation/netlabel/
 F:	include/net/calipso.h
@@ -850,7 +850,7 @@ F:	include/linux/sctp.h
 F:	include/net/sctp/
 
 SELINUX SECURITY MODULE
-M:	Paul Moore <pmoore@redhat.com>
+M:	Ondrej Mosnacek <omosnace@redhat.com>
 S:	Supported
 F:	include/linux/selinux*
 F:	security/selinux/
