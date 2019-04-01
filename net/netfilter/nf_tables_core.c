@@ -253,7 +253,6 @@ int __init nf_tables_core_module_init(void)
 			goto err;
 	}
 
-	mark_tech_preview("nf_tables", THIS_MODULE);
 	return 0;
 
 err:
