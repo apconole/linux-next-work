@@ -2344,10 +2344,12 @@ static struct scsi_cmnd *scsi_reset_alloc_cmd(struct scsi_device *dev)
 		cmd->device = dev;
 		INIT_LIST_HEAD(&cmd->list);
 		INIT_DELAYED_WORK(&cmd->abort_work, scmd_eh_abort_handler);
-		spin_lock_irqsave(&dev->list_lock, flags);
-		list_add_tail(&cmd->list, &dev->cmd_list);
-		spin_unlock_irqrestore(&dev->list_lock, flags);
 		cmd->jiffies_at_alloc = jiffies;
+		if (shost->use_cmd_list) {
+			spin_lock_irqsave(&dev->list_lock, flags);
+			list_add_tail(&cmd->list, &dev->cmd_list);
+			spin_unlock_irqrestore(&dev->list_lock, flags);
+		}
 	}
 	cmd->request = rq;
 	cmd->cmnd = rq->cmd;
