@@ -272,7 +272,7 @@ struct ovl_fh *ovl_encode_fh(struct dentry *lower, bool is_upper)
 	int fh_type, fh_len, dwords;
 	void *buf;
 	int buflen = MAX_HANDLE_SZ;
-	uuid_be *uuid = (uuid_be *) &lower->d_sb->s_uuid;
+	uuid_t *uuid = (uuid_t *) &lower->d_sb->s_uuid;
 
 	buf = kmalloc(buflen, GFP_TEMPORARY);
 	if (!buf)

@@ -54,10 +54,8 @@ struct super_block *ovl_same_sb(struct super_block *sb)
 
 bool ovl_can_decode_fh(struct super_block *sb)
 {
-	uuid_be *uuid = (uuid_be *) &sb->s_uuid;
-
 	return (sb->s_export_op && sb->s_export_op->fh_to_dentry &&
-		uuid_be_cmp(*uuid, NULL_UUID_BE));
+		!uuid_is_null((uuid_t *) &sb->s_uuid));
 }
 
 struct dentry *ovl_indexdir(struct super_block *sb)

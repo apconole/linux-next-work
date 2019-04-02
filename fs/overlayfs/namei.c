@@ -154,7 +154,7 @@ static struct dentry *ovl_get_origin(struct dentry *dentry,
 	 * Make sure that the stored uuid matches the uuid of the lower
 	 * layer where file handle will be decoded.
 	 */
-	if (uuid_be_cmp(fh->uuid, *(uuid_be *) &mnt->mnt_sb->s_uuid))
+	if (!uuid_equal(&fh->uuid, (uuid_t *) &mnt->mnt_sb->s_uuid))
 		goto out;
 
 	bytes = (fh->len - offsetof(struct ovl_fh, fid));
