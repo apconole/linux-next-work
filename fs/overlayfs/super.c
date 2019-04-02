@@ -83,6 +83,9 @@ static struct dentry *ovl_d_real(struct dentry *dentry,
 	struct dentry *real;
 	int err;
 
+	if (flags & D_REAL_UPPER)
+		return ovl_dentry_upper(dentry);
+
 	if (!dentry->d_inode || !S_ISREG(dentry->d_inode->i_mode)) {
 		if (!inode || inode == d_inode(dentry))
 			return dentry;

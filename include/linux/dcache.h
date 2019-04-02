@@ -572,6 +572,9 @@ static inline struct dentry *d_backing_dentry(struct dentry *upper)
 	return upper;
 }
 
+/* d_real() flags */
+#define D_REAL_UPPER	0x2	/* return upper dentry or NULL if non-upper */
+
 struct name_snapshot {
 	const char *name;
 	char inline_name[DNAME_INLINE_LEN];
