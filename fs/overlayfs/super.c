@@ -502,12 +502,10 @@ static int ovl_parse_opt(char *opt, struct ovl_config *config)
 #define OVL_WORKDIR_NAME "work"
 #define OVL_INDEXDIR_NAME "index"
 
-static struct dentry *ovl_workdir_create(struct super_block *sb,
-					 struct ovl_fs *ufs,
-					 struct dentry *dentry,
+static struct dentry *ovl_workdir_create(struct ovl_fs *ufs,
 					 const char *name, bool persist)
 {
-	struct inode *dir = dentry->d_inode;
+	struct inode *dir =  ufs->workbasedir->d_inode;
 	struct vfsmount *mnt = ufs->upper_mnt;
 	struct dentry *work;
 	int err;
@@ -522,7 +520,7 @@ static struct dentry *ovl_workdir_create(struct super_block *sb,
 	locked = true;
 
 retry:
-	work = lookup_one_len(name, dentry, strlen(name));
+	work = lookup_one_len(name, ufs->workbasedir, strlen(name));
 
 	if (!IS_ERR(work)) {
 		struct iattr attr = {
@@ -593,7 +591,6 @@ out_dput:
 out_err:
 	pr_warn("overlayfs: failed to create directory %s/%s (errno: %i); mounting read-only\n",
 		ufs->config.workdir, name, -err);
-	sb->s_flags |= MS_RDONLY;
 	work = NULL;
 	goto out_unlock;
 }
@@ -967,14 +964,12 @@ static int ovl_get_upper(struct ovl_fs *ufs, struct path *upperpath)
 	return 0;
 }
 
-static int ovl_get_workdir(struct super_block *sb, struct ovl_fs *ufs,
-			   struct path *workpath)
+static int ovl_get_workdir(struct ovl_fs *ufs, struct path *workpath)
 {
 	struct dentry *temp;
 	int err;
 
-	ufs->workdir = ovl_workdir_create(sb, ufs, ufs->workbasedir,
-					  OVL_WORKDIR_NAME, false);
+	ufs->workdir = ovl_workdir_create(ufs, OVL_WORKDIR_NAME, false);
 	if (!ufs->workdir)
 		return 0;
 
@@ -1024,8 +1019,7 @@ static int ovl_get_workdir(struct super_block *sb, struct ovl_fs *ufs,
 	return 0;
 }
 
-static int ovl_get_indexdir(struct super_block *sb, struct ovl_fs *ufs,
-			    struct ovl_entry *oe,
+static int ovl_get_indexdir(struct ovl_fs *ufs, struct ovl_entry *oe,
 			    struct path *upperpath)
 {
 	int err;
@@ -1040,8 +1034,7 @@ static int ovl_get_indexdir(struct super_block *sb, struct ovl_fs *ufs,
 		goto out;
 	}
 
-	ufs->indexdir = ovl_workdir_create(sb, ufs, ufs->workbasedir,
-					   OVL_INDEXDIR_NAME, true);
+	ufs->indexdir = ovl_workdir_create(ufs, OVL_INDEXDIR_NAME, true);
 	if (ufs->indexdir) {
 		/* Verify upper root is index dir origin */
 		err = ovl_verify_origin(ufs->indexdir, ufs->upper_mnt,
@@ -1245,9 +1238,12 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
 		if (err)
 			goto out_err;
 
-		err = ovl_get_workdir(sb, ufs, &workpath);
+		err = ovl_get_workdir(ufs, &workpath);
 		if (err)
 			goto out_err;
+
+		if (!ufs->workdir)
+			sb->s_flags |= MS_RDONLY;
 
 		upper_stack_depth = get_s_stack_depth(ufs->upper_mnt->mnt_sb);
 		err = -EOPNOTSUPP;
@@ -1285,9 +1281,12 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
 	}
 
 	if (!(ovl_force_readonly(ufs)) && ufs->config.index) {
-		err = ovl_get_indexdir(sb, ufs, oe, &upperpath);
+		err = ovl_get_indexdir(ufs, oe, &upperpath);
 		if (err)
 			goto out_err;
+
+		if (!ufs->indexdir)
+			sb->s_flags |= MS_RDONLY;
 	}
 
 	/* Show index=off/on in /proc/mounts for any of the reasons above */
