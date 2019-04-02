@@ -162,14 +162,14 @@ struct dentry_operations {
 			int (*d_manage)(const struct path *, bool))
 } ____cacheline_aligned;
 
-typedef struct dentry* (*dop_real_t) (struct dentry *, const struct inode *, unsigned int);
+typedef struct dentry* (*dop_real_t) (struct dentry *, const struct inode *, unsigned int, unsigned int);
 
 struct dentry_operations_wrapper {
 	struct dentry_operations ops;
 	size_t size;
 
 	struct dentry *(*d_real)(struct dentry *, const struct inode *,
-				 unsigned int);
+				 unsigned int, unsigned int);
 } ____cacheline_aligned;
 
 /*

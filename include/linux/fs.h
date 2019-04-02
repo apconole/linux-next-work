@@ -2217,7 +2217,8 @@ static inline dop_real_t get_real_dop(struct dentry *dentry)
  * d_real - Return the real dentry
  * @dentry: the dentry to query
  * @inode: inode to select the dentry from multiple layers (can be NULL)
- * @flags: open flags to control copy-up behavior
+ * @open_flags: open flags to control copy-up behavior
+ * @flags: flags to control what is returned by this function
  *
  * If dentry is on an union/overlay, then return the underlying, real dentry.
  * Otherwise return the dentry itself.
@@ -2226,12 +2227,12 @@ static inline dop_real_t get_real_dop(struct dentry *dentry)
  */
 static inline struct dentry *d_real(struct dentry *dentry,
 				    const struct inode *inode,
-				    unsigned int flags)
+				    unsigned int open_flags, unsigned int flags)
 {
 	if (unlikely(dentry->d_flags & DCACHE_OP_REAL)) {
 		dop_real_t d_real_op = get_real_dop(dentry);
 
-		return d_real_op(dentry, inode, flags);
+		return d_real_op(dentry, inode, open_flags, flags);
 	} else {
 		return dentry;
 	}
@@ -2247,12 +2248,12 @@ static inline struct dentry *d_real(struct dentry *dentry,
 static inline struct inode *d_real_inode(const struct dentry *dentry)
 {
 	/* This usage of d_real() results in const dentry */
-	return d_real((struct dentry *) dentry, NULL, 0)->d_inode;
+	return d_real((struct dentry *) dentry, NULL, 0, 0)->d_inode;
 }
 
 static inline struct dentry *file_dentry(const struct file *file)
 {
-	return d_real(file->f_path.dentry, file_inode(file), 0);
+	return d_real(file->f_path.dentry, file_inode(file), 0, 0);
 }
 
 /*
