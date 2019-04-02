@@ -175,8 +175,11 @@ static inline int ovl_do_whiteout(struct inode *dir, struct dentry *dentry)
 
 static inline struct dentry *ovl_do_tmpfile(struct dentry *dentry, umode_t mode)
 {
-	/* No tmpfile in rhel7 yet */
-	return ERR_PTR(-EOPNOTSUPP);
+	struct dentry *ret = vfs_tmpfile(dentry, mode, 0);
+	int err = IS_ERR(ret) ? PTR_ERR(ret) : 0;
+
+	pr_debug("tmpfile(%pd2, 0%o) = %i\n", dentry, mode, err);
+	return ret;
 }
 
 /* util.c */
