@@ -937,7 +937,7 @@ static int ovl_get_workpath(struct ovl_fs *ufs, struct path *upperpath,
 		pr_warn("overlayfs: workdir is in-use by another mount, accessing files from both mounts will result in undefined behavior.\n");
 	}
 
-	ufs->workbasedir = workpath->dentry;
+	ufs->workbasedir = dget(workpath->dentry);
 	err = 0;
 out:
 	return err;
@@ -966,7 +966,7 @@ static int ovl_get_workdir(struct super_block *sb, struct ovl_fs *ufs,
 	struct dentry *temp;
 	int err;
 
-	ufs->workdir = ovl_workdir_create(sb, ufs, workpath->dentry,
+	ufs->workdir = ovl_workdir_create(sb, ufs, ufs->workbasedir,
 					  OVL_WORKDIR_NAME, false);
 	if (!ufs->workdir)
 		return 0;
@@ -1019,7 +1019,7 @@ static int ovl_get_workdir(struct super_block *sb, struct ovl_fs *ufs,
 
 static int ovl_get_indexdir(struct super_block *sb, struct ovl_fs *ufs,
 			    struct ovl_entry *oe,
-			    struct path *upperpath, struct path *workpath)
+			    struct path *upperpath)
 {
 	int err;
 
@@ -1033,7 +1033,7 @@ static int ovl_get_indexdir(struct super_block *sb, struct ovl_fs *ufs,
 		goto out;
 	}
 
-	ufs->indexdir = ovl_workdir_create(sb, ufs, workpath->dentry,
+	ufs->indexdir = ovl_workdir_create(sb, ufs, ufs->workbasedir,
 					   OVL_INDEXDIR_NAME, true);
 	if (ufs->indexdir) {
 		/* Verify upper root is index dir origin */
@@ -1277,7 +1277,7 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
 	}
 
 	if (!(ovl_force_readonly(ufs)) && ufs->config.index) {
-		err = ovl_get_indexdir(sb, ufs, oe, &upperpath, &workpath);
+		err = ovl_get_indexdir(sb, ufs, oe, &upperpath);
 		if (err)
 			goto out_put_indexdir;
 	}
@@ -1308,7 +1308,7 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
 	for (i = 0; i < numlower; i++)
 		mntput(stack[i].mnt);
 	kfree(stack);
-	mntput(workpath.mnt);
+	path_put(&workpath);
 
 	if (upperpath.dentry) {
 		oe->has_upper = true;
@@ -1348,7 +1348,8 @@ out_put_lowerpath:
 	kfree(stack);
 out_unlock_workdentry:
 	if (ufs->workdir_locked)
-		ovl_inuse_unlock(workpath.dentry);
+		ovl_inuse_unlock(ufs->workbasedir);
+	dput(ufs->workbasedir);
 	path_put(&workpath);
 out_unlock_upperdentry:
 	if (ufs->upperdir_locked)
