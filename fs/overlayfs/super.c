@@ -18,6 +18,7 @@
 #include <linux/magic.h>
 #include <linux/posix_acl_xattr.h>
 #include <linux/cred.h>
+#include <linux/exportfs.h>
 #include "overlayfs.h"
 
 MODULE_AUTHOR("Miklos Szeredi <miklos@szeredi.hu>");
@@ -709,6 +710,7 @@ static int ovl_check_namelen(struct path *path, struct ovl_fs *ofs,
 static int ovl_lower_dir(const char *name, struct path *path,
 			 struct ovl_fs *ofs, int *stack_depth, bool *remote)
 {
+	int fh_type;
 	int err;
 	const int *lower_stack_depth;
 
@@ -736,14 +738,18 @@ static int ovl_lower_dir(const char *name, struct path *path,
 	 * The inodes index feature and NFS export need to encode and decode
 	 * file handles, so they require that all layers support them.
 	 */
+	fh_type = ovl_can_decode_fh(path->dentry->d_sb);
 	if ((ofs->config.nfs_export ||
-	     (ofs->config.index && ofs->config.upperdir)) &&
-	    !ovl_can_decode_fh(path->dentry->d_sb)) {
+	     (ofs->config.index && ofs->config.upperdir)) && !fh_type) {
 		ofs->config.index = false;
 		ofs->config.nfs_export = false;
 		pr_warn("overlayfs: fs on '%s' does not support file handles, falling back to index=off,nfs_export=off.\n",
 			name);
 	}
+
+	/* Check if lower fs has 32bit inode numbers */
+	if (fh_type != FILEID_INO32_GEN)
+		ofs->xino_bits = 0;
 
 	return 0;
 
@@ -965,6 +971,7 @@ static int ovl_make_workdir(struct ovl_fs *ofs, struct path *workpath)
 {
 	struct vfsmount *mnt = ofs->upper_mnt;
 	struct dentry *temp;
+	int fh_type;
 	int err;
 
 	err = mnt_want_write(mnt);
@@ -1014,11 +1021,15 @@ static int ovl_make_workdir(struct ovl_fs *ofs, struct path *workpath)
 	}
 
 	/* Check if upper/work fs supports file handles */
-	if (ofs->config.index &&
-	    !ovl_can_decode_fh(ofs->workdir->d_sb)) {
+	fh_type = ovl_can_decode_fh(ofs->workdir->d_sb);
+	if (ofs->config.index && !fh_type) {
 		ofs->config.index = false;
 		pr_warn("overlayfs: upper fs does not support file handles, falling back to index=off.\n");
 	}
+
+	/* Check if upper fs has 32bit inode numbers */
+	if (fh_type != FILEID_INO32_GEN)
+		ofs->xino_bits = 0;
 
 	/* NFS export of r/w mount depends on index */
 	if (ofs->config.nfs_export && !ofs->config.index) {
@@ -1198,6 +1209,11 @@ static int ovl_get_lower_layers(struct ovl_fs *ofs, struct path *stack,
 		}
 		ofs->numlower++;
 	}
+
+	/* When all layers on same fs, overlay can use real inode numbers */
+	if (!ofs->numlowerfs || (ofs->numlowerfs == 1 && !ofs->upper_mnt))
+		ofs->xino_bits = 0;
+
 	err = 0;
 out:
 	return err;
@@ -1331,6 +1347,8 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
 	*overlay_stack_depth = 0;
 
 	sb->s_maxbytes = MAX_LFS_FILESIZE;
+	/* Assume underlaying fs uses 32bit inodes unless proven otherwise */
+	ofs->xino_bits = BITS_PER_LONG - 32;
 	if (ofs->config.upperdir) {
 		if (!ofs->config.workdir) {
 			pr_err("overlayfs: missing 'workdir'\n");
