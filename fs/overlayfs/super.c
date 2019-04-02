@@ -621,7 +621,7 @@ retry:
 
 		err = ovl_create_real(dir, work,
 				      &(struct cattr){.mode = S_IFDIR | 0},
-				      NULL, true);
+				      NULL);
 		if (err)
 			goto out_dput;
 
