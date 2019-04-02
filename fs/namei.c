@@ -3285,15 +3285,53 @@ stale_open:
 	goto retry_lookup;
 }
 
+struct dentry *vfs_tmpfile(struct dentry *dentry, umode_t mode, int open_flag)
+{
+	static const struct qstr name = QSTR_INIT("/", 1);
+	struct dentry *child = NULL;
+	iop_tmpfile_t tmpfile;
+	struct inode *dir = dentry->d_inode;
+	struct inode *inode;
+	int error;
+
+	/* we want directory to be writable */
+	error = inode_permission(dir, MAY_WRITE | MAY_EXEC);
+	if (error)
+		goto out_err;
+	error = -EOPNOTSUPP;
+	tmpfile = get_tmpfile_iop(dir);
+	if (!tmpfile)
+		goto out_err;
+	error = -ENOMEM;
+	child = d_alloc(dentry, &name);
+	if (unlikely(!child))
+		goto out_err;
+	error = tmpfile(dir, child, mode);
+	if (error)
+		goto out_err;
+	error = -ENOENT;
+	inode = child->d_inode;
+	if (unlikely(!inode))
+		goto out_err;
+	if (!(open_flag & O_EXCL)) {
+		spin_lock(&inode->i_lock);
+		inode->i_state |= I_LINKABLE;
+		spin_unlock(&inode->i_lock);
+	}
+	return child;
+
+out_err:
+	dput(child);
+	return ERR_PTR(error);
+}
+EXPORT_SYMBOL(vfs_tmpfile);
+
 static int do_tmpfile(int dfd, struct filename *pathname,
 		struct nameidata *nd, int flags,
 		const struct open_flags *op,
 		struct file *file, int *opened)
 {
-	static const struct qstr name = QSTR_INIT("/", 1);
-	struct dentry *dentry, *child;
-	struct inode *dir;
-	iop_tmpfile_t tmpfile;
+	struct dentry *child;
 	int error = path_lookupat(dfd, pathname->name,
 				  flags | LOOKUP_DIRECTORY, nd);
 	if (unlikely(error))
@@ -3301,31 +3339,14 @@ static int do_tmpfile(int dfd, struct filename *pathname,
 	error = mnt_want_write(nd->path.mnt);
 	if (unlikely(error))
 		goto out;
-	/* we want directory to be writable */
-	error = inode_permission(nd->inode, MAY_WRITE | MAY_EXEC);
-	if (error)
+	child = vfs_tmpfile(nd->path.dentry, op->mode, op->open_flag);
+	error = PTR_ERR(child);
+	if (unlikely(IS_ERR(child)))
 		goto out2;
-	dentry = nd->path.dentry;
-	dir = dentry->d_inode;
-
-	tmpfile = get_tmpfile_iop(dir);
-
-	if (!tmpfile) {
-		error = -EOPNOTSUPP;
-		goto out2;
-	}
-	child = d_alloc(dentry, &name);
-	if (unlikely(!child)) {
-		error = -ENOMEM;
-		goto out2;
-	}
 	nd->flags &= ~LOOKUP_DIRECTORY;
 	nd->flags |= op->intent;
 	dput(nd->path.dentry);
 	nd->path.dentry = child;
-	error = tmpfile(dir, nd->path.dentry, op->mode);
-	if (error)
-		goto out2;
 	audit_inode(pathname, nd->path.dentry, 0);
 	/* Don't check for other permissions, the inode was just created */
 	error = may_open(&nd->path, 0, op->open_flag);
@@ -3336,14 +3357,8 @@ static int do_tmpfile(int dfd, struct filename *pathname,
 	if (error)
 		goto out2;
 	error = open_check_o_direct(file);
-	if (error) {
+	if (error)
 		fput(file);
-	} else if (!(op->open_flag & O_EXCL)) {
-		struct inode *inode = file_inode(file);
-		spin_lock(&inode->i_lock);
-		inode->i_state |= I_LINKABLE;
-		spin_unlock(&inode->i_lock);
-	}
 out2:
 	mnt_drop_write(nd->path.mnt);
 out:
