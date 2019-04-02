@@ -192,7 +192,7 @@ static int ovl_create_upper(struct dentry *dentry, struct inode *inode,
 	if (!hardlink && !IS_POSIXACL(udir))
 		attr->mode &= ~current_umask();
 
-	mutex_lock_nested(&udir->i_mutex, I_MUTEX_PARENT);
+	inode_lock_nested(udir, I_MUTEX_PARENT);
 	newdentry = lookup_one_len(dentry->d_name.name, upperdir,
 				   dentry->d_name.len);
 	err = PTR_ERR(newdentry);
@@ -212,7 +212,7 @@ static int ovl_create_upper(struct dentry *dentry, struct inode *inode,
 out_dput:
 	dput(newdentry);
 out_unlock:
-	mutex_unlock(&udir->i_mutex);
+	inode_unlock(udir);
 	return err;
 }
 
@@ -266,9 +266,9 @@ static struct dentry *ovl_clear_empty(struct dentry *dentry,
 	if (err)
 		goto out_cleanup;
 
-	mutex_lock(&opaquedir->d_inode->i_mutex);
+	inode_lock(opaquedir->d_inode);
 	err = ovl_set_attr(opaquedir, &stat);
-	mutex_unlock(&opaquedir->d_inode->i_mutex);
+	inode_unlock(opaquedir->d_inode);
 	if (err)
 		goto out_cleanup;
 
@@ -453,9 +453,9 @@ static int ovl_create_over_whiteout(struct dentry *dentry, struct inode *inode,
 			.ia_valid = ATTR_MODE,
 			.ia_mode = cattr->mode,
 		};
-		mutex_lock(&newdentry->d_inode->i_mutex);
+		inode_lock(newdentry->d_inode);
 		err = notify_change(newdentry, &attr, NULL);
-		mutex_unlock(&newdentry->d_inode->i_mutex);
+		inode_unlock(newdentry->d_inode);
 		if (err)
 			goto out_cleanup;
 	}
