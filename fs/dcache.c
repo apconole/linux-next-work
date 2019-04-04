@@ -1439,7 +1439,7 @@ static void check_and_drop(void *_data)
 {
 	struct detach_data *data = _data;
 
-	if (!data->mountpoint && list_empty(&data->select.dispose))
+	if (!data->mountpoint && !data->select.found)
 		__d_drop(data->select.start);
 }
 
@@ -1481,10 +1481,8 @@ int d_invalidate(struct dentry *dentry)
 
 		d_walk(dentry, &data, detach_and_collect, check_and_drop);
 
-		if (!list_empty(&data.select.dispose))
+		if (data.select.found)
 			shrink_dentry_list(&data.select.dispose);
-		else if (!data.mountpoint)
-			return 0;
 
 		if (data.mountpoint) {
 			if (may_detach_mounts) {
@@ -1495,6 +1493,9 @@ int d_invalidate(struct dentry *dentry)
 				return -EBUSY;
 			}
 		}
+
+		if (!data.mountpoint && !data.select.found)
+			return 0;
 	}
 }
 EXPORT_SYMBOL(d_invalidate);
