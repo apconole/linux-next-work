@@ -1418,54 +1418,82 @@ void shrink_dcache_parent(struct dentry *parent)
 }
 EXPORT_SYMBOL(shrink_dcache_parent);
 
-static enum d_walk_ret find_submount(void *_data, struct dentry *dentry)
+struct detach_data {
+	struct select_data select;
+	struct dentry *mountpoint;
+};
+static enum d_walk_ret detach_and_collect(void *_data, struct dentry *dentry)
 {
-	struct dentry **victim = _data;
+	struct detach_data *data = _data;
 
 	if (d_mountpoint(dentry)) {
 		__dget_dlock(dentry);
-		*victim = dentry;
+		data->mountpoint = dentry;
 		return D_WALK_QUIT;
 	}
-	return D_WALK_CONTINUE;
+
+	return select_collect(&data->select, dentry);
+}
+
+static void check_and_drop(void *_data)
+{
+	struct detach_data *data = _data;
+
+	if (!data->mountpoint && list_empty(&data->select.dispose))
+		__d_drop(data->select.start);
 }
 
 /**
  * d_invalidate - detach submounts, prune dcache, and drop
  * @dentry: dentry to invalidate (aka detach, prune and drop)
+ *
+ * no dcache lock.
+ *
+ * The final d_drop is done as an atomic operation relative to
+ * rename_lock ensuring there are no races with d_set_mounted.  This
+ * ensures there are no unhashed dentries on the path to a mountpoint.
  */
 int d_invalidate(struct dentry *dentry)
 {
-	bool had_submounts = false;
+	/*
+	 * If it's already been dropped, return OK.
+	 */
 	spin_lock(&dentry->d_lock);
 	if (d_unhashed(dentry)) {
 		spin_unlock(&dentry->d_lock);
 		return 0;
 	}
-	__d_drop(dentry);
 	spin_unlock(&dentry->d_lock);
 
 	/* Negative dentries can be dropped without further checks */
-	if (!dentry->d_inode)
+	if (!dentry->d_inode) {
+		d_drop(dentry);
 		return 0;
+	}
 
-	shrink_dcache_parent(dentry);
 	for (;;) {
-		struct dentry *victim = NULL;
-		d_walk(dentry, &victim, find_submount, NULL);
-		if (!victim) {
-			if (had_submounts)
-				shrink_dcache_parent(dentry);
-			return 0;
-		}
+		struct detach_data data;
 
-		had_submounts = true;
-		if (may_detach_mounts) {
-			detach_mounts(victim);
-			dput(victim);
-		} else {
-			dput(victim);
-			return -EBUSY;
+		data.mountpoint = NULL;
+		INIT_LIST_HEAD(&data.select.dispose);
+		data.select.start = dentry;
+		data.select.found = 0;
+
+		d_walk(dentry, &data, detach_and_collect, check_and_drop);
+
+		if (!list_empty(&data.select.dispose))
+			shrink_dentry_list(&data.select.dispose);
+		else if (!data.mountpoint)
+			return 0;
+
+		if (data.mountpoint) {
+			if (may_detach_mounts) {
+				detach_mounts(data.mountpoint);
+				dput(data.mountpoint);
+			} else {
+				dput(data.mountpoint);
+				return -EBUSY;
+			}
 		}
 	}
 }
