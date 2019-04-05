@@ -1809,7 +1809,18 @@ int madvise_free_huge_pmd(struct mmu_gather *tlb, struct vm_area_struct *vma,
 		deactivate_page(page);
 
 	if (pmd_young(orig_pmd) || pmd_dirty(orig_pmd)) {
-		orig_pmd = pmdp_get_and_clear(tlb->mm, addr, pmd);
+		/*
+		 * In this implementation pmdp_invalidate() doesn't
+		 * yet atomically return the old value of the pmd
+		 * (before clearing the present bit), but the purpose
+		 * of returning the old value is not to lose the dirty
+		 * bit when it's set by the hardware. Here however
+		 * we're forcefully clearing the dirty bit. So there's
+		 * no need to change pmdp_invalidate just for this and
+		 * the result of a write to memory in parallel to
+		 * MADV_FREE is undefined by design.
+		 */
+		pmdp_invalidate(vma, addr, pmd);
 		orig_pmd = pmd_mkold(orig_pmd);
 		orig_pmd = pmd_mkclean(orig_pmd);
 
