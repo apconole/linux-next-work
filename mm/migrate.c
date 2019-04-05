@@ -1822,9 +1822,6 @@ int migrate_misplaced_transhuge_page(struct mm_struct *mm,
 		goto out_fail;
 	}
 
-	if (tlb_flush_pending(mm))
-		flush_tlb_range(vma, mmun_start, mmun_end);
-
 	/* Prepare a page as a migration target */
 	__set_page_locked(new_page);
 	SetPageSwapBacked(new_page);
