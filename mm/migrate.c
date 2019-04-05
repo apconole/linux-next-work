@@ -1886,7 +1886,6 @@ int migrate_misplaced_transhuge_page(struct mm_struct *mm,
 	page_add_anon_rmap(new_page, vma, mmun_start);
 	pmdp_clear_flush_notify(vma, mmun_start, pmd);
 	set_pmd_at(mm, mmun_start, pmd, entry);
-	flush_tlb_range(vma, mmun_start, mmun_end);
 	update_mmu_cache_pmd(vma, address, &entry);
 
 	page_ref_unfreeze(page, 2);
