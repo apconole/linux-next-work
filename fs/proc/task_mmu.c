@@ -44,8 +44,11 @@ void task_mem(struct seq_file *m, struct mm_struct *mm)
 		hiwater_rss = mm->hiwater_rss;
 
 	data = mm->total_vm - mm->shared_vm - mm->stack_vm;
-	text = (PAGE_ALIGN(mm->end_code) - (mm->start_code & PAGE_MASK)) >> 10;
-	lib = (mm->exec_vm << (PAGE_SHIFT-10)) - text;
+	/* split executable areas between text and lib */
+	text = PAGE_ALIGN(mm->end_code) - (mm->start_code & PAGE_MASK);
+	text = min(text, mm->exec_vm << PAGE_SHIFT);
+	lib = (mm->exec_vm << PAGE_SHIFT) - text;
+
 	swap = get_mm_counter(mm, MM_SWAPENTS);
 	seq_printf(m,
 		"VmPeak:\t%8lu kB\n"
@@ -73,7 +76,9 @@ void task_mem(struct seq_file *m, struct mm_struct *mm)
 		file << (PAGE_SHIFT-10),
 		shmem << (PAGE_SHIFT-10),
 		data << (PAGE_SHIFT-10),
-		mm->stack_vm << (PAGE_SHIFT-10), text, lib,
+		mm->stack_vm << (PAGE_SHIFT-10),
+		text >> 10,
+		lib >> 10,
 		(PTRS_PER_PTE * sizeof(pte_t) *
 		 atomic_long_read(&mm->nr_ptes)) >> 10,
 		swap << (PAGE_SHIFT-10));
