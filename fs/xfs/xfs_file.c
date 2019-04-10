@@ -1330,6 +1330,26 @@ xfs_file_mmap(
 	return 0;
 }
 
+/*
+ * RHEL7: XFS does not support copy_file_range() or clone_file_range() on RHEL7.
+ * Without either callback defined, vfs_copy_file_range() falls back to a
+ * splice-based copy mechanism that doesn't work properly on XFS. Define a
+ * callback that disables copy_file_range() completely on XFS on RHEL7. Note
+ * that we return -ENOTTY because the caller invokes the fallback on
+ * -EOPNOTSUPP.
+ */
+STATIC ssize_t
+xfs_file_copy_file_range(
+	struct file	*file_in,
+	loff_t		pos_in,
+	struct file	*file_out,
+	loff_t		pos_out,
+	size_t		len,
+	unsigned int	flags)
+{
+	return -ENOTTY;
+}
+
 const struct file_operations_extend xfs_file_operations = {
 	.kabi_fops = {
 		.llseek		= xfs_file_llseek,
@@ -1350,6 +1370,7 @@ const struct file_operations_extend xfs_file_operations = {
 		.get_unmapped_area = thp_get_unmapped_area,
 		.fallocate	= xfs_file_fallocate,
 	},
+	.copy_file_range = xfs_file_copy_file_range,
 	.mmap_supported_flags = MAP_SYNC,
 };
 
