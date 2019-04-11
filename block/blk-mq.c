@@ -549,7 +549,7 @@ static void blk_mq_stat_add(struct request *rq)
 	}
 }
 
-static void __blk_mq_complete_request(struct request *rq)
+static void __blk_mq_complete_request(struct request *rq, bool sync)
 {
 	struct request_queue *q = rq->q;
 
@@ -560,6 +560,8 @@ static void __blk_mq_complete_request(struct request *rq)
 
 	if (!q->softirq_done_fn)
 		blk_mq_end_request(rq, rq->errors);
+	else if (sync)
+		rq->q->softirq_done_fn(rq);
 	else
 		blk_mq_ipi_complete_request(rq);
 }
@@ -600,10 +602,19 @@ void blk_mq_complete_request(struct request *rq, int error)
 		return;
 	if (!blk_mark_rq_complete(rq)) {
 		rq->errors = error;
-		__blk_mq_complete_request(rq);
+		__blk_mq_complete_request(rq, false);
 	}
 }
 EXPORT_SYMBOL(blk_mq_complete_request);
+
+void blk_mq_complete_request_sync(struct request *rq, int error)
+{
+	if (!blk_mark_rq_complete(rq)) {
+		rq->errors = error;
+		__blk_mq_complete_request(rq, true);
+	}
+}
+EXPORT_SYMBOL_GPL(blk_mq_complete_request_sync);
 
 int blk_mq_request_started(struct request *rq)
 {
@@ -799,7 +810,7 @@ void blk_mq_rq_timed_out(struct request *req, bool reserved)
 
 	switch (ret) {
 	case BLK_EH_HANDLED:
-		__blk_mq_complete_request(req);
+		__blk_mq_complete_request(req, false);
 		break;
 	case BLK_EH_RESET_TIMER:
 		blk_add_timer(req);
