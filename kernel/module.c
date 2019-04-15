@@ -3458,8 +3458,7 @@ static int add_unformed_module(struct module *mod)
 again:
 	mutex_lock(&module_mutex);
 	if ((old = find_module_all(mod->name, true)) != NULL) {
-		if (old->state == MODULE_STATE_COMING
-		    || old->state == MODULE_STATE_UNFORMED) {
+		if (old->state != MODULE_STATE_LIVE) {
 			/* Wait in case it fails to load. */
 			mutex_unlock(&module_mutex);
 			err = wait_event_interruptible(module_wq,
