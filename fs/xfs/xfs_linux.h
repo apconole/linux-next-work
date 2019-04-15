@@ -72,7 +72,6 @@ typedef uuid_be			uuid_t;
 #include <linux/freezer.h>
 #include <linux/list_sort.h>
 #include <linux/ratelimit.h>
-#include <linux/rhashtable.h>
 
 #include <asm/page.h>
 #include <asm/div64.h>
