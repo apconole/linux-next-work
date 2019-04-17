@@ -2014,15 +2014,15 @@ inval_scmnd:
 	/* FW successfully aborted the request */
 	if (host_byte(cmnd->result) == DID_REQUEUE) {
 		csio_info(hw,
-			"Aborted SCSI command to (%d:%d) serial#:0x%lx\n",
+			"Aborted SCSI command to (%d:%d) tag %u\n",
 			cmnd->device->id, cmnd->device->lun,
-			cmnd->serial_number);
+			cmnd->request->tag);
 		return SUCCESS;
 	} else {
 		csio_info(hw,
-			"Failed to abort SCSI command, (%d:%d) serial#:0x%lx\n",
+			"Failed to abort SCSI command, (%d:%d) tag %u\n",
 			cmnd->device->id, cmnd->device->lun,
-			cmnd->serial_number);
+			cmnd->request->tag);
 		return FAILED;
 	}
 }
