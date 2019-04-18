@@ -1539,42 +1539,63 @@ err_free_package:
  * associated domains. Cooling devices are handled accordingly at
  * per-domain level.
  */
-static int rapl_cpu_callback(struct notifier_block *nfb,
-				unsigned long action, void *hcpu)
+static int rapl_cpu_online(unsigned int cpu)
 {
-	unsigned long cpu = (unsigned long)hcpu;
+	struct rapl_package *rp;
+	int phy_package_id;
+
+	phy_package_id = topology_physical_package_id(cpu);
+
+	rp = find_package_by_id(phy_package_id);
+	if (rp)
+		rp->nr_cpus++;
+	else
+		rapl_add_package(cpu);
+	return 0;
+}
+
+static int rapl_cpu_down_prep(unsigned int cpu)
+{
 	int phy_package_id;
 	struct rapl_package *rp;
 	int lead_cpu;
 
 	phy_package_id = topology_physical_package_id(cpu);
+	rp = find_package_by_id(phy_package_id);
+	if (!rp)
+		return 0;
+	if (--rp->nr_cpus == 0) {
+		rapl_remove_package(rp);
+	} else if (cpu == rp->lead_cpu) {
+		/* choose another active cpu in the package */
+		lead_cpu = cpumask_any_but(topology_core_cpumask(cpu), cpu);
+		if (lead_cpu < nr_cpu_ids) {
+			rp->lead_cpu = lead_cpu;
+		} else {
+			/* should never go here */
+			pr_err("no active cpu available for package %d\n",
+			       phy_package_id);
+		}
+	}
+	return 0;
+}
+
+static int rapl_cpu_callback(struct notifier_block *nfb,
+			     unsigned long action, void *hcpu)
+{
+	unsigned long cpu = (unsigned long)hcpu;
+
 	switch (action) {
 	case CPU_ONLINE:
 	case CPU_ONLINE_FROZEN:
 	case CPU_DOWN_FAILED:
 	case CPU_DOWN_FAILED_FROZEN:
-		rp = find_package_by_id(phy_package_id);
-		if (rp)
-			++rp->nr_cpus;
-		else
-			rapl_add_package(cpu);
+		rapl_cpu_online(cpu);
 		break;
 	case CPU_DOWN_PREPARE:
 	case CPU_DOWN_PREPARE_FROZEN:
-		rp = find_package_by_id(phy_package_id);
-		if (!rp)
-			break;
-		if (--rp->nr_cpus == 0)
-			rapl_remove_package(rp);
-		else if (cpu == rp->lead_cpu) {
-			/* choose another active cpu in the package */
-			lead_cpu = cpumask_any_but(topology_core_cpumask(cpu), cpu);
-			if (lead_cpu < nr_cpu_ids)
-				rp->lead_cpu = lead_cpu;
-			else /* should never go here */
-				pr_err("no active cpu available for package %d\n",
-					phy_package_id);
-		}
+		rapl_cpu_down_prep(cpu);
+		break;
 	}
 
 	return NOTIFY_OK;
