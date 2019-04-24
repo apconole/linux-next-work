@@ -10,6 +10,7 @@
 #include <linux/mutex.h>
 #include <linux/tty_flags.h>
 #include <uapi/linux/tty.h>
+#include <linux/rwsem.h>
 
 
 
@@ -244,9 +245,9 @@ struct tty_struct {
 
 	struct mutex atomic_write_lock;
 	struct mutex legacy_mutex;
-	struct mutex termios_mutex;
+	RH_KABI_DEPRECATE(struct mutex, termios_mutex)
 	spinlock_t ctrl_lock;
-	/* Termios values are protected by the termios mutex */
+	/* Termios values are protected by the termios rwsem */
 	struct ktermios termios, termios_locked;
 	struct termiox *termiox;	/* May be NULL for unsupported */
 	char name[64];
@@ -254,7 +255,7 @@ struct tty_struct {
 	struct pid *session;
 	unsigned long flags;
 	int count;
-	struct winsize winsize;		/* termios mutex */
+	struct winsize winsize;		/* termios rwsem */
 	unsigned char stopped:1, hw_stopped:1, flow_stopped:1, packet:1;
 	unsigned char ctrl_status;	/* ctrl_lock */
 	unsigned int receive_room;	/* Bytes free for queue */
@@ -281,6 +282,7 @@ struct tty_struct {
 	struct tty_port *port;
 
 	RH_KABI_EXTEND(struct ld_semaphore ldisc_sem)
+	RH_KABI_EXTEND(struct rw_semaphore termios_rwsem)
 };
 
 /* Each of a tty's open files has private_data pointing to tty_file_private */
