@@ -1526,10 +1526,14 @@ static void __receive_buf(struct tty_struct *tty, const unsigned char *cp,
 	 * canonical mode and don't have a newline yet!
 	 */
 	while (1) {
+		int throttled;
 		tty_set_flow_change(tty, TTY_THROTTLE_SAFE);
 		if (receive_room(tty) >= TTY_THRESHOLD_THROTTLE)
 			break;
-		if (!tty_throttle_safe(tty))
+		up_read(&tty->termios_rwsem);
+		throttled = tty_throttle_safe(tty);
+		down_read(&tty->termios_rwsem);
+		if (!throttled)
 			break;
 	}
 	__tty_set_flow_change(tty, 0);
@@ -1538,7 +1542,9 @@ static void __receive_buf(struct tty_struct *tty, const unsigned char *cp,
 static void n_tty_receive_buf(struct tty_struct *tty, const unsigned char *cp,
 			      char *fp, int count)
 {
+	down_read(&tty->termios_rwsem);
 	__receive_buf(tty, cp, fp, count);
+	up_read(&tty->termios_rwsem);
 }
 
 static int n_tty_receive_buf2(struct tty_struct *tty, const unsigned char *cp,
@@ -1547,12 +1553,16 @@ static int n_tty_receive_buf2(struct tty_struct *tty, const unsigned char *cp,
 	struct n_tty_data *ldata = tty->disc_data;
 	int room;
 
+	down_read(&tty->termios_rwsem);
+
 	tty->receive_room = room = receive_room(tty);
 	if (!room)
 		ldata->no_room = 1;
 	count = min(count, room);
 	if (count)
 		__receive_buf(tty, cp, fp, count);
+
+	up_read(&tty->termios_rwsem);
 
 	return count;
 }
@@ -1737,7 +1747,6 @@ static inline int input_available_p(struct tty_struct *tty, int amt)
 {
 	struct n_tty_data *ldata = tty->disc_data;
 
-	tty_flush_to_ldisc(tty);
 	if (ldata->icanon && !L_EXTPROC(tty)) {
 		if (ldata->canon_data)
 			return 1;
@@ -1974,6 +1983,8 @@ do_it_again:
 	if (c < 0)
 		return c;
 
+	down_read(&tty->termios_rwsem);
+
 	minimum = time = 0;
 	timeout = MAX_SCHEDULE_TIMEOUT;
 	if (!ldata->icanon) {
@@ -1995,11 +2006,15 @@ do_it_again:
 	 *	Internal serialization of reads.
 	 */
 	if (file->f_flags & O_NONBLOCK) {
-		if (!mutex_trylock(&ldata->atomic_read_lock))
+		if (!mutex_trylock(&ldata->atomic_read_lock)) {
+			up_read(&tty->termios_rwsem);
 			return -EAGAIN;
+		}
 	} else {
-		if (mutex_lock_interruptible(&ldata->atomic_read_lock))
+		if (mutex_lock_interruptible(&ldata->atomic_read_lock)) {
+			up_read(&tty->termios_rwsem);
 			return -ERESTARTSYS;
+		}
 	}
 	packet = tty->packet;
 
@@ -2022,6 +2037,11 @@ do_it_again:
 			nr--;
 			break;
 		}
+
+		up_read(&tty->termios_rwsem);
+		tty_flush_to_ldisc(tty);
+		down_read(&tty->termios_rwsem);
+
 		/* This statement must be first before checking for input
 		   so that any interrupt will set the state back to
 		   TASK_RUNNING. */
@@ -2049,7 +2069,11 @@ do_it_again:
 				break;
 			}
 			n_tty_set_room(tty);
+			up_read(&tty->termios_rwsem);
+
 			timeout = schedule_timeout(timeout);
+
+			down_read(&tty->termios_rwsem);
 			continue;
 		}
 		__set_current_state(TASK_RUNNING);
@@ -2090,13 +2114,17 @@ do_it_again:
 		 * we won't get any more characters.
 		 */
 		while (1) {
+			int unthrottled;
 			tty_set_flow_change(tty, TTY_UNTHROTTLE_SAFE);
 			if (chars_in_buffer(tty) > TTY_THRESHOLD_UNTHROTTLE)
 				break;
 			if (!tty->count)
 				break;
 			n_tty_set_room(tty);
-			if (!tty_unthrottle_safe(tty))
+			up_read(&tty->termios_rwsem);
+			unthrottled = tty_unthrottle_safe(tty);
+			down_read(&tty->termios_rwsem);
+			if (!unthrottled)
 				break;
 		}
 		__tty_set_flow_change(tty, 0);
@@ -2118,10 +2146,13 @@ do_it_again:
 		retval = size;
 		if (nr)
 			clear_bit(TTY_PUSH, &tty->flags);
-	} else if (test_and_clear_bit(TTY_PUSH, &tty->flags))
+	} else if (test_and_clear_bit(TTY_PUSH, &tty->flags)) {
+		up_read(&tty->termios_rwsem);
 		goto do_it_again;
+	}
 
 	n_tty_set_room(tty);
+	up_read(&tty->termios_rwsem);
 	return retval;
 }
 
@@ -2161,6 +2192,8 @@ static ssize_t n_tty_write(struct tty_struct *tty, struct file *file,
 		if (retval)
 			return retval;
 	}
+
+	down_read(&tty->termios_rwsem);
 
 	/* Write out any echoed characters that are still pending */
 	process_echoes(tty);
@@ -2219,13 +2252,18 @@ static ssize_t n_tty_write(struct tty_struct *tty, struct file *file,
 			retval = -EAGAIN;
 			break;
 		}
+		up_read(&tty->termios_rwsem);
+
 		schedule();
+
+		down_read(&tty->termios_rwsem);
 	}
 break_out:
 	__set_current_state(TASK_RUNNING);
 	remove_wait_queue(&tty->write_wait, &wait);
 	if (b - buf != nr && tty->fasync)
 		set_bit(TTY_DO_WRITE_WAKEUP, &tty->flags);
+	up_read(&tty->termios_rwsem);
 	return (b - buf) ? b - buf : retval;
 }
 
@@ -2251,6 +2289,7 @@ static unsigned int n_tty_poll(struct tty_struct *tty, struct file *file,
 
 	poll_wait(file, &tty->read_wait, wait);
 	poll_wait(file, &tty->write_wait, wait);
+	tty_flush_to_ldisc(tty);
 	if (input_available_p(tty, TIME_CHAR(tty) ? 0 : MIN_CHAR(tty)))
 		mask |= POLLIN | POLLRDNORM;
 	if (tty->packet && tty->link->ctrl_status)
