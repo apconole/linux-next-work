@@ -1085,7 +1085,7 @@ try_again:
 	down_write(&cinode->lock_sem);
 	if (!cinode->can_cache_brlcks) {
 		up_write(&cinode->lock_sem);
-		return rc;
+		return 1;
 	}
 
 	rc = posix_lock_file(file, flock, NULL);
@@ -1628,7 +1628,7 @@ cifs_setlk(struct file *file, struct file_lock *flock, __u32 type,
 		rc = server->ops->mand_unlock_range(cfile, flock, xid);
 
 out:
-	if (flock->fl_flags & FL_POSIX && !rc)
+	if (flock->fl_flags & FL_POSIX && (!rc || flock->fl_flags & FL_CLOSE))
 		rc = locks_lock_file_wait(file, flock);
 	return rc;
 }
