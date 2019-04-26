@@ -6341,7 +6341,7 @@ static int ixgbe_sw_init(struct ixgbe_adapter *adapter,
 
 	adapter->mac_table = kcalloc(hw->mac.num_rar_entries,
 				     sizeof(struct ixgbe_mac_addr),
-				     GFP_KERNEL);
+				     GFP_ATOMIC);
 	if (!adapter->mac_table)
 		return -ENOMEM;
 
