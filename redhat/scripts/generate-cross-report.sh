@@ -45,7 +45,8 @@ echo $1
 
 echo "==============================================================================="
 echo "For patch submissions this can optionally be included to show the changes"
-echo "that were compiled into the tree."
+echo "that were compiled into the tree. Cross-compiling the tools and perf code"
+echo "is not currently supported, due to missing userspace dependencies."
 echo "diffstat output (relative to $lasttag)"
 git diff $lasttag | diffstat
 
