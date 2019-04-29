@@ -6023,19 +6023,11 @@ void perf_output_sample(struct perf_output_handle *handle,
 		perf_output_read(handle, event);
 
 	if (sample_type & PERF_SAMPLE_CALLCHAIN) {
-		if (data->callchain) {
-			int size = 1;
+		int size = 1;
 
-			if (data->callchain)
-				size += data->callchain->nr;
-
-			size *= sizeof(u64);
-
-			__output_copy(handle, data->callchain, size);
-		} else {
-			u64 nr = 0;
-			perf_output_put(handle, nr);
-		}
+		size += data->callchain->nr;
+		size *= sizeof(u64);
+		__output_copy(handle, data->callchain, size);
 	}
 
 	if (sample_type & PERF_SAMPLE_RAW) {
@@ -6188,6 +6180,8 @@ static u64 perf_virt_to_phys(u64 virt)
 	return phys_addr;
 }
 
+static struct perf_callchain_entry __empty_callchain = { .nr = 0, };
+
 static struct perf_callchain_entry *
 perf_callchain(struct perf_event *event, struct pt_regs *regs)
 {
@@ -6195,12 +6189,14 @@ perf_callchain(struct perf_event *event, struct pt_regs *regs)
 	bool user   = !event->attr.exclude_callchain_user;
 	/* Disallow cross-task user callchains. */
 	bool crosstask = event->ctx->task && event->ctx->task != current;
+	struct perf_callchain_entry *callchain;
 
 	if (!kernel && !user)
-		return NULL;
+		return &__empty_callchain;
 
-	return get_perf_callchain(regs, 0, kernel, user,
-				  crosstask, true);
+	callchain = get_perf_callchain(regs, 0, kernel, user,
+				       crosstask, true);
+	return callchain ?: &__empty_callchain;
 }
 
 void perf_prepare_sample(struct perf_event_header *header,
@@ -6225,9 +6221,7 @@ void perf_prepare_sample(struct perf_event_header *header,
 		int size = 1;
 
 		data->callchain = perf_callchain(event, regs);
-
-		if (data->callchain)
-			size += data->callchain->nr;
+		size += data->callchain->nr;
 
 		header->size += size * sizeof(u64);
 	}
