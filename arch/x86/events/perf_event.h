@@ -85,7 +85,7 @@ struct amd_nb {
 
 /* The maximal number of PEBS events: */
 #define MAX_PEBS_EVENTS		8
-#define MAX_FIXED_PEBS_EVENTS	3
+#define MAX_FIXED_PEBS_EVENTS	4
 #define PEBS_COUNTER_MASK	((1ULL << MAX_PEBS_EVENTS) - 1)
 
 /*
@@ -983,6 +983,8 @@ extern struct event_constraint intel_hsw_pebs_event_constraints[];
 extern struct event_constraint intel_bdw_pebs_event_constraints[];
 
 extern struct event_constraint intel_skl_pebs_event_constraints[];
+
+extern struct event_constraint intel_icl_pebs_event_constraints[];
 
 struct event_constraint *intel_pebs_constraints(struct perf_event *event);
 
