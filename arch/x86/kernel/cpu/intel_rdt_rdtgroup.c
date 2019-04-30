@@ -2094,7 +2094,6 @@ out:
  */
 int __init rdtgroup_init(void)
 {
-	struct kobject *kobj;
 	int ret = 0;
 
 	seq_buf_init(&last_cmd_status, last_cmd_status_buf,
@@ -2104,8 +2103,8 @@ int __init rdtgroup_init(void)
 	if (ret)
 		return ret;
 
-	kobj = kobject_create_and_add("resctrl", fs_kobj);
-	if (!kobj)
+	ret = sysfs_create_mount_point(fs_kobj, "resctrl");
+	if (ret)
 		goto cleanup_root;
 
 	ret = register_filesystem(&rdt_fs_type);
@@ -2115,7 +2114,7 @@ int __init rdtgroup_init(void)
 	return 0;
 
 cleanup_mountpoint:
-	kobject_put(kobj);
+	sysfs_remove_mount_point(fs_kobj, "resctrl");
 cleanup_root:
 	kernfs_destroy_root(rdt_root);
 
