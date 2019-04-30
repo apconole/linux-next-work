@@ -1861,6 +1861,9 @@ static void pci_init_capabilities(struct pci_dev *dev)
 
 	pci_cleanup_aer_error_status_regs(dev);
 
+	if (pci_probe_reset_function(dev) == 0)
+		dev->reset_fn = 1;
+
 	pcie_report_downtraining(dev);
 }
 
