@@ -585,6 +585,14 @@ void bpf_jit_compile(struct sk_filter *fp)
 	int pass;
 	int flen = fp->len;
 
+	/*
+	 * RHEL7: Disable cBPF jit for Power. It's not supported in
+	 * upstream and nobody cares to maintain it, while it causes
+	 * problems:
+	 * https://bugzilla.redhat.com/show_bug.cgi?id=1700744
+	 */
+	return;
+
 	if (!bpf_jit_enable)
 		return;
 
