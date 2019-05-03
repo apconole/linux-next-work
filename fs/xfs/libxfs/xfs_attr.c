@@ -335,22 +335,16 @@ xfs_attr_set(
 		 * Prevent the leaf buffer from being unlocked so that a
 		 * concurrent AIL push cannot grab the half-baked leaf
 		 * buffer and run into problems with the write verifier.
+		 * Once we're done rolling the transaction we can release
+		 * the hold and add the attr to the leaf.
 		 */
 		xfs_trans_bhold(args.trans, leaf_bp);
 		error = xfs_defer_finish(&args.trans, args.dfops);
-		if (error)
-			goto out_defer_cancel;
-
-		/*
-		 * Commit the leaf transformation.  We'll need another (linked)
-		 * transaction to add the new attribute to the leaf, which
-		 * means that we have to hold & join the leaf buffer here too.
-		 */
-		error = xfs_trans_roll_inode(&args.trans, dp);
-		if (error)
+		xfs_trans_bhold_release(args.trans, leaf_bp);
+		if (error) {
+			xfs_trans_brelse(args.trans, leaf_bp);
 			goto out;
-		xfs_trans_bjoin(args.trans, leaf_bp);
-		leaf_bp = NULL;
+		}
 	}
 
 	if (xfs_bmap_one_block(dp, XFS_ATTR_FORK))
@@ -382,8 +376,6 @@ xfs_attr_set(
 out_defer_cancel:
 	xfs_defer_cancel(&dfops);
 out:
-	if (leaf_bp)
-		xfs_trans_brelse(args.trans, leaf_bp);
 	if (args.trans)
 		xfs_trans_cancel(args.trans);
 	xfs_iunlock(dp, XFS_ILOCK_EXCL);

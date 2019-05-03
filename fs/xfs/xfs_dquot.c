@@ -381,17 +381,14 @@ xfs_qm_dqalloc(
 	 * If everything succeeds, the caller of this function is returned a
 	 * buffer that is locked and joined to the transaction.  The caller
 	 * is responsible for unlocking any buffer passed back, either
-	 * manually or by committing the transaction.
+	 * manually or by committing the transaction.  On error, the buffer is
+	 * released and not passed back.
 	 */
 	xfs_trans_bhold(*tpp, bp);
+	error = xfs_defer_finish(tpp, &dfops);
 	if (error) {
 		xfs_trans_bhold_release(*tpp, bp);
 		xfs_trans_brelse(*tpp, bp);
-		goto error1;
-	}
-	error = xfs_defer_finish(tpp, &dfops);
-	if (error) {
-		xfs_buf_relse(bp);
 		goto error1;
 	}
 	xfs_trans_bhold_release(*tpp, bp);
