@@ -28,6 +28,7 @@
 #include "xfs_mount.h"
 #include "xfs_defer.h"
 #include "xfs_trans.h"
+#include "xfs_buf_item.h"
 #include "xfs_trace.h"
 
 /*
@@ -242,6 +243,11 @@ xfs_defer_trans_roll(
 	struct xfs_trans		**tp,
 	struct xfs_defer_ops		*dop)
 {
+	struct xfs_buf_log_item		*bli;
+	struct xfs_log_item		*lip;
+	struct xfs_log_item_desc	*lidp;
+	struct xfs_buf			*bplist[XFS_DEFER_OPS_NR_BUFS];
+	int				bpcount = 0;
 	int				i;
 	int				error;
 
@@ -249,9 +255,25 @@ xfs_defer_trans_roll(
 	for (i = 0; i < XFS_DEFER_OPS_NR_INODES && dop->dop_inodes[i]; i++)
 		xfs_trans_log_inode(*tp, dop->dop_inodes[i], XFS_ILOG_CORE);
 
-	/* Hold the (previously bjoin'd) buffer locked across the roll. */
-	for (i = 0; i < XFS_DEFER_OPS_NR_BUFS && dop->dop_bufs[i]; i++)
-		xfs_trans_dirty_buf(*tp, dop->dop_bufs[i]);
+	list_for_each_entry(lidp, &(*tp)->t_items, lid_trans) {
+		lip = lidp->lid_item;
+		switch (lip->li_type) {
+		case XFS_LI_BUF:
+			bli = container_of(lip, struct xfs_buf_log_item,
+					   bli_item);
+			if (bli->bli_flags & XFS_BLI_HOLD) {
+				if (bpcount >= XFS_DEFER_OPS_NR_BUFS) {
+					ASSERT(0);
+					return -EFSCORRUPTED;
+				}
+				xfs_trans_dirty_buf(*tp, bli->bli_buf);
+				bplist[bpcount++] = bli->bli_buf;
+			}
+			break;
+		default:
+			break;
+		}
+	}
 
 	trace_xfs_defer_trans_roll((*tp)->t_mountp, dop);
 
@@ -269,9 +291,9 @@ xfs_defer_trans_roll(
 		xfs_trans_ijoin(*tp, dop->dop_inodes[i], 0);
 
 	/* Rejoin the buffers and dirty them so the log moves forward. */
-	for (i = 0; i < XFS_DEFER_OPS_NR_BUFS && dop->dop_bufs[i]; i++) {
-		xfs_trans_bjoin(*tp, dop->dop_bufs[i]);
-		xfs_trans_bhold(*tp, dop->dop_bufs[i]);
+	for (i = 0; i < bpcount; i++) {
+		xfs_trans_bjoin(*tp, bplist[i]);
+		xfs_trans_bhold(*tp, bplist[i]);
 	}
 
 	return error;
@@ -310,30 +332,6 @@ xfs_defer_ijoin(
 }
 
 /*
- * Add this buffer to the deferred op.  Each joined buffer is relogged
- * each time we roll the transaction.
- */
-int
-xfs_defer_bjoin(
-	struct xfs_defer_ops		*dop,
-	struct xfs_buf			*bp)
-{
-	int				i;
-
-	for (i = 0; i < XFS_DEFER_OPS_NR_BUFS; i++) {
-		if (dop->dop_bufs[i] == bp)
-			return 0;
-		else if (dop->dop_bufs[i] == NULL) {
-			dop->dop_bufs[i] = bp;
-			return 0;
-		}
-	}
-
-	ASSERT(0);
-	return -EFSCORRUPTED;
-}
-
-/*
  * Reset an already used dfops after finish.
  */
 static void
@@ -343,7 +341,6 @@ xfs_defer_reset(
 	ASSERT(!xfs_defer_has_unfinished_work(dop));
 	dop->dop_low = false;
 	memset(dop->dop_inodes, 0, sizeof(dop->dop_inodes));
-	memset(dop->dop_bufs, 0, sizeof(dop->dop_bufs));
 }
 
 /*

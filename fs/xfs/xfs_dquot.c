@@ -384,7 +384,6 @@ xfs_qm_dqalloc(
 	 * manually or by committing the transaction.
 	 */
 	xfs_trans_bhold(*tpp, bp);
-	error = xfs_defer_bjoin(&dfops, bp);
 	if (error) {
 		xfs_trans_bhold_release(*tpp, bp);
 		xfs_trans_brelse(*tpp, bp);
