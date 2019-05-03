@@ -1042,7 +1042,6 @@ xfs_unmap_extent(
 	if (error)
 		goto out_bmap_cancel;
 
-	xfs_defer_ijoin(&dfops, ip);
 	error = xfs_defer_finish(&tp, &dfops);
 	if (error)
 		goto out_bmap_cancel;

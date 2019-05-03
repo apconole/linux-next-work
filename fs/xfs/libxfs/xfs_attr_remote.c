@@ -469,7 +469,6 @@ xfs_attr_rmtval_set(
 				  args->total, &map, &nmap, args->dfops);
 		if (error)
 			goto out_defer_cancel;
-		xfs_defer_ijoin(args->dfops, dp);
 		error = xfs_defer_finish(&args->trans, args->dfops);
 		if (error)
 			goto out_defer_cancel;
@@ -614,7 +613,6 @@ xfs_attr_rmtval_remove(
 				    args->dfops, &done);
 		if (error)
 			goto out_defer_cancel;
-		xfs_defer_ijoin(args->dfops, args->dp);
 		error = xfs_defer_finish(&args->trans, args->dfops);
 		if (error)
 			goto out_defer_cancel;
