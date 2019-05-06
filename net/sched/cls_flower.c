@@ -1252,7 +1252,7 @@ errout_mask:
 	fl_mask_put(head, fnew->mask, false);
 
 errout_idr:
-	if (fnew->handle)
+	if (!fold)
 		idr_remove_ext(&head->handle_idr, fnew->handle);
 errout:
 	tcf_exts_destroy(&fnew->exts);
