@@ -8410,6 +8410,7 @@ static int cpuset_cpu_inactive(struct notifier_block *nfb, unsigned long action,
 }
 
 struct static_key sched_smt_present = STATIC_KEY_INIT_FALSE;
+EXPORT_SYMBOL_GPL(sched_smt_present);
 
 void sched_cpu_activate(unsigned int cpu)
 {
