@@ -8409,6 +8409,30 @@ static int cpuset_cpu_inactive(struct notifier_block *nfb, unsigned long action,
 	return NOTIFY_OK;
 }
 
+struct static_key sched_smt_present = STATIC_KEY_INIT_FALSE;
+
+void sched_cpu_activate(unsigned int cpu)
+{
+#ifdef CONFIG_SCHED_SMT
+	/*
+	 * When going up, increment the number of cores with SMT present.
+	 */
+	if (cpumask_weight(cpu_smt_mask(cpu)) == 2)
+		static_key_slow_inc(&sched_smt_present);
+#endif
+}
+
+void sched_cpu_deactivate(unsigned int cpu)
+{
+#ifdef CONFIG_SCHED_SMT
+	/*
+	 * When going down, decrement the number of cores with SMT present.
+	 */
+	if (cpumask_weight(cpu_smt_mask(cpu)) == 2)
+		static_key_slow_dec(&sched_smt_present);
+#endif
+}
+
 void __init sched_init_smp(void)
 {
 	cpumask_var_t non_isolated_cpus;
