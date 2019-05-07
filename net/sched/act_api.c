@@ -761,8 +761,6 @@ int tcf_action_init(struct net *net, struct tcf_proto *tp, struct nlattr *nla,
 			goto err;
 		}
 		act->order = i;
-		if (ovr)
-			act->tcfa_refcnt++;
 		list_add_tail(&act->list, actions);
 	}
 

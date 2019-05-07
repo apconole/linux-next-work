@@ -343,12 +343,10 @@ static int tunnel_key_init(struct net *net, struct nlattr *nla,
 		}
 
 		ret = ACT_P_CREATED;
-	} else {
-		if (!ovr) {
-			NL_SET_ERR_MSG(extack, "TC IDR already exists");
-			ret = -EEXIST;
-			goto release_tun_meta;
-		}
+	} else if (!ovr) {
+		NL_SET_ERR_MSG(extack, "TC IDR already exists");
+		ret = -EEXIST;
+		goto release_tun_meta;
 	}
 
 	t = to_tunnel_key(*a);
