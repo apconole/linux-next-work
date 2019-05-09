@@ -1930,9 +1930,12 @@ static void kvm_mmu_free_page(struct kvm_mmu_page *sp)
 	kmem_cache_free(mmu_page_header_cache, sp);
 }
 
+#define GOLDEN_RATIO_64 0x61C8864680B583EBull
+
 static unsigned kvm_page_table_hashfn(gfn_t gfn)
 {
-	return gfn & ((1 << KVM_MMU_HASH_SHIFT) - 1);
+	u64 hash = gfn * GOLDEN_RATIO_64;
+	return (u32)(hash >> (64 - KVM_MMU_HASH_SHIFT));
 }
 
 static void mmu_page_add_parent_pte(struct kvm_vcpu *vcpu,
