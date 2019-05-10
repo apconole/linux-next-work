@@ -3191,6 +3191,7 @@ static netdev_features_t iavf_fix_features(struct net_device *netdev,
 }
 
 static const struct net_device_ops iavf_netdev_ops = {
+	.ndo_size		= sizeof(struct net_device_ops),
 	.ndo_open		= iavf_open,
 	.ndo_stop		= iavf_close,
 	.ndo_start_xmit		= iavf_xmit_frame,
