@@ -95,3 +95,22 @@ According to current knowledge additional mitigations inside the kernel
 itself are not required because the necessary gadgets to expose the leaked
 data cannot be controlled in a way which allows exploitation from malicious
 user space or VM guests.
+
+Mitigation points
+-----------------
+
+1. Return to user space
+^^^^^^^^^^^^^^^^^^^^^^^
+
+   When transitioning from kernel to user space the CPU buffers are flushed
+   on affected CPUs when the mitigation is not disabled on the kernel
+   command line. The migitation is enabled through the static key
+   mds_user_clear.
+
+   The mitigation macro MDS_USER_CLEAR_CPU_BUFFERS is invoked in the
+   assembly exit code path which covers almost all the possible kernel
+   to user space transitions. There is one corner case where the exit
+   code from NMI or other non-maskable exceptions may not reliably
+   detect kernel to user space transitions. It is when a NMI/exception
+   right after MDS_USER_CLEAR_CPU_BUFFERS, but before the swapgs
+   instruction in the system call return path.

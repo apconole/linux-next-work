@@ -35,6 +35,9 @@ extern void spec_ctrl_save_msr(void);
 
 static DEFINE_MUTEX(spec_ctrl_mutex);
 
+/* Control MDS CPU buffer clear before returning to user space */
+struct static_key mds_user_clear = STATIC_KEY_INIT_FALSE;
+
 void __init check_bugs(void)
 {
 	identify_boot_cpu();
