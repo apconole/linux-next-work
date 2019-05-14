@@ -155,7 +155,7 @@ enum spectre_v2_mitigation_cmd spectre_v2_cmd = SPECTRE_V2_CMD_AUTO;
 #define pr_fmt(fmt)	"MDS: " fmt
 
 /* Default mitigation for L1TF-affected CPUs */
-static enum mds_mitigations mds_mitigation = MDS_MITIGATION_FULL;
+enum mds_mitigations mds_mitigation = MDS_MITIGATION_FULL;
 
 static const char * const mds_strings[] = {
 	[MDS_MITIGATION_OFF]	= "Vulnerable",
@@ -175,6 +175,11 @@ static void __init mds_select_mitigation(void)
 			mds_mitigation = MDS_MITIGATION_VMWERV;
 		static_key_slow_inc(&mds_user_clear);
 	}
+	pr_info("%s\n", mds_strings[mds_mitigation]);
+}
+
+void mds_print_mitigation(void)
+{
 	pr_info("%s\n", mds_strings[mds_mitigation]);
 }
 

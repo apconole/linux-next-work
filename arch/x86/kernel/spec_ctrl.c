@@ -563,7 +563,7 @@ void spec_ctrl_init(void)
 void spec_ctrl_rescan_cpuid(void)
 {
 	enum spectre_v2_mitigation old_mode;
-	bool old_ibrs, old_ibpb, old_ssbd;
+	bool old_ibrs, old_ibpb, old_ssbd, old_mds;
 	bool ssbd_changed;
 	int cpu;
 
@@ -576,19 +576,25 @@ void spec_ctrl_rescan_cpuid(void)
 		old_ibrs = boot_cpu_has(X86_FEATURE_IBRS);
 		old_ibpb = boot_cpu_has(X86_FEATURE_IBPB);
 		old_ssbd = boot_cpu_has(X86_FEATURE_SSBD);
+		old_mds  = boot_cpu_has(X86_FEATURE_MD_CLEAR);
 		old_mode = spec_ctrl_get_mitigation();
 
 		/* detect spec ctrl related cpuid additions */
 		get_cpu_cap(&boot_cpu_data);
 
-		/* if there were no spec ctrl related changes, we're done */
+		/*
+		 * If there were no spec ctrl or MDS related changes,
+		 * we're done
+		 */
 		ssbd_changed = (old_ssbd != boot_cpu_has(X86_FEATURE_SSBD));
 		if (old_ibrs == boot_cpu_has(X86_FEATURE_IBRS) &&
-		    old_ibpb == boot_cpu_has(X86_FEATURE_IBPB) && !ssbd_changed)
+		    old_ibpb == boot_cpu_has(X86_FEATURE_IBPB) &&
+		    old_mds  == boot_cpu_has(X86_FEATURE_MD_CLEAR) &&
+		    !ssbd_changed)
 			goto done;
 
 		/*
-		 * The IBRS, IBPB & SSBD cpuid bits may have
+		 * The IBRS, IBPB, SSBD & MDS cpuid bits may have
 		 * just been set in the boot_cpu_data, transfer them
 		 * to the per-cpu data too.
 		 */
@@ -601,6 +607,10 @@ void spec_ctrl_rescan_cpuid(void)
 		if (boot_cpu_has(X86_FEATURE_SSBD))
 			for_each_online_cpu(cpu)
 				set_cpu_cap(&cpu_data(cpu), X86_FEATURE_SSBD);
+		if (boot_cpu_has(X86_FEATURE_MD_CLEAR))
+			for_each_online_cpu(cpu)
+				set_cpu_cap(&cpu_data(cpu),
+					    X86_FEATURE_MD_CLEAR);
 
 		/* update static key, print the changed IBRS/IBPB features */
 		spec_ctrl_init();
@@ -640,6 +650,23 @@ void spec_ctrl_rescan_cpuid(void)
 		/* print any mitigation changes */
 		if (old_mode != spec_ctrl_get_mitigation())
 			spectre_v2_print_mitigation();
+
+		/*
+		 * Look for X86_FEATURE_MD_CLEAR change for CPUs that are
+		 * vulnerable to MDS & reflect that in the mds vulnerabilities
+		 * file.
+		 */
+		if (boot_cpu_has_bug(X86_BUG_MDS) &&
+		   (mds_mitigation != MDS_MITIGATION_OFF)) {
+			enum mds_mitigations new;
+
+			new = boot_cpu_has(X86_FEATURE_MD_CLEAR)
+			    ? MDS_MITIGATION_FULL : MDS_MITIGATION_VMWERV;
+			if (new != mds_mitigation) {
+				mds_mitigation = new;
+				mds_print_mitigation();
+			}
+		}
 	}
 done:
 	mutex_unlock(&spec_ctrl_mutex);

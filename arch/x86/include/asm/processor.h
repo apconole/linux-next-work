@@ -1107,4 +1107,6 @@ enum mds_mitigations {
 	MDS_MITIGATION_VMWERV,
 };
 
+extern enum mds_mitigations mds_mitigation;
+
 #endif /* _ASM_X86_PROCESSOR_H */

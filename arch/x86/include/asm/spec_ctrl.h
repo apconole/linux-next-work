@@ -190,6 +190,7 @@ extern void spec_ctrl_init(void);
 extern void spec_ctrl_cpu_init(void);
 extern void ssb_select_mitigation(void);
 extern void ssb_print_mitigation(void);
+extern void mds_print_mitigation(void);
 
 bool spec_ctrl_force_enable_ibrs(void);
 bool spec_ctrl_cond_enable_ibrs(bool full_retpoline);
