@@ -32,6 +32,8 @@ void ssb_select_mitigation(void);
 static void __init l1tf_select_mitigation(void);
 extern void spec_ctrl_save_msr(void);
 
+static DEFINE_MUTEX(spec_ctrl_mutex);
+
 void __init check_bugs(void)
 {
 	identify_boot_cpu();
@@ -245,6 +247,46 @@ void spectre_v2_print_mitigation(void)
 {
 
 	pr_info("%s\n", spectre_v2_strings[spec_ctrl_get_mitigation()]);
+}
+
+static bool stibp_needed(void)
+{
+	if (spectre_v2_enabled == SPECTRE_V2_NONE)
+		return false;
+
+	if (!boot_cpu_has(X86_FEATURE_STIBP))
+		return false;
+
+	return true;
+}
+
+static void update_stibp_msr(void *info)
+{
+	wrmsrl(MSR_IA32_SPEC_CTRL, x86_spec_ctrl_base);
+}
+
+void arch_smt_update(void)
+{
+	u64 mask;
+
+	if (!stibp_needed())
+		return;
+
+	mutex_lock(&spec_ctrl_mutex);
+	mask = x86_spec_ctrl_base;
+	if (cpu_smt_control == CPU_SMT_ENABLED)
+		mask |= SPEC_CTRL_STIBP;
+	else
+		mask &= ~SPEC_CTRL_STIBP;
+
+	if (mask != x86_spec_ctrl_base) {
+		pr_info("Spectre v2 cross-process SMT mitigation: %s STIBP\n",
+				cpu_smt_control == CPU_SMT_ENABLED ?
+				"Enabling" : "Disabling");
+		x86_spec_ctrl_base = mask;
+		on_each_cpu(update_stibp_msr, NULL, 1);
+	}
+	mutex_unlock(&spec_ctrl_mutex);
 }
 
 static void __init spectre_v2_select_mitigation(void)
@@ -480,6 +522,9 @@ int arch_prctl_spec_ctrl_set(struct task_struct *task, unsigned long which,
 	default:
 		return -ENODEV;
 	}
+
+	/* Enable STIBP if appropriate */
+	arch_smt_update();
 }
 
 #ifdef CONFIG_SECCOMP
@@ -647,9 +692,10 @@ static ssize_t cpu_show_common(struct device *dev, struct device_attribute *attr
 		return sprintf(buf, "Mitigation: Load fences, __user pointer sanitization\n");
 
 	case X86_BUG_SPECTRE_V2:
-		return sprintf(buf, "%s%s\n",
+		return sprintf(buf, "%s%s%s\n",
 			       spectre_v2_strings[spectre_v2_enabled],
-			       boot_cpu_has(X86_FEATURE_USE_IBPB) ? ", IBPB" : "");
+			       boot_cpu_has(X86_FEATURE_USE_IBPB) ? ", IBPB" : "",
+			       (x86_spec_ctrl_base & SPEC_CTRL_STIBP) ? ", STIBP" : "");
 
 	case X86_BUG_SPEC_STORE_BYPASS:
 		return sprintf(buf, "%s\n", ssb_strings[ssb_mode]);
