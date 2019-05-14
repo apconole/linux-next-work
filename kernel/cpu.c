@@ -8,6 +8,7 @@
 #include <linux/init.h>
 #include <linux/notifier.h>
 #include <linux/sched.h>
+#include <linux/sched/smt.h>
 #include <linux/unistd.h>
 #include <linux/cpu.h>
 #include <linux/oom.h>
@@ -227,6 +228,12 @@ void cpu_hotplug_enable(void)
 static void cpu_hotplug_begin(void) {}
 static void cpu_hotplug_done(void) {}
 #endif	/* #else #if CONFIG_HOTPLUG_CPU */
+
+/*
+ * Architectures that need SMT-specific errata handling during SMT hotplug
+ * should override this.
+ */
+void __weak arch_smt_update(void) { }
 
 #ifdef CONFIG_HOTPLUG_SMT
 enum cpuhp_smt_control cpu_smt_control __read_mostly = CPU_SMT_ENABLED;
@@ -505,7 +512,7 @@ out_release:
 		cpu_notify_nofail(CPU_POST_DEAD | mod, hcpu);
 	else
 		sched_cpu_activate(cpu); /* Revert sched_cpu_deactivate() */
-
+	arch_smt_update();
 	return err;
 }
 
@@ -578,9 +585,9 @@ out_notify:
 		__cpu_notify(CPU_UP_CANCELED | mod, hcpu, nr_calls, NULL);
 out:
 	cpu_hotplug_done();
-
 	if (!ret)
 		sched_cpu_activate(cpu);
+	arch_smt_update();
 
 	return ret;
 }
@@ -800,12 +807,6 @@ static void cpuhp_online_cpu_device(unsigned int cpu)
 	/* Tell user space about the state change */
 	kobject_uevent(&dev->kobj, KOBJ_ONLINE);
 }
-
-/*
- * Architectures that need SMT-specific errata handling during SMT hotplug
- * should override this.
- */
-void __weak arch_smt_update(void) { };
 
 static int cpuhp_smt_disable(enum cpuhp_smt_control ctrlval)
 {
