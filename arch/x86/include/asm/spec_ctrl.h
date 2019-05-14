@@ -305,8 +305,7 @@ static inline bool retp_enabled_full(void)
 
 static inline bool ibpb_enabled(void)
 {
-	return (boot_cpu_has(X86_FEATURE_IBPB) &&
-		(ibrs_enabled_kernel() || retp_enabled()));
+	return static_cpu_has(X86_FEATURE_USE_IBPB);
 }
 
 /*

@@ -183,6 +183,12 @@ void __spectre_v2_select_mitigation(void)
 	const bool full_retpoline = IS_ENABLED(CONFIG_RETPOLINE) && retp_compiler();
 	enum spectre_v2_mitigation_cmd cmd = spectre_v2_cmd;
 
+	/* Initialize Indirect Branch Prediction Barrier if supported */
+	if (boot_cpu_has(X86_FEATURE_IBPB)) {
+		setup_force_cpu_cap(X86_FEATURE_USE_IBPB);
+		pr_info("Enabling Indirect Branch Prediction Barrier\n");
+	}
+
 	/*
 	 * If the CPU is not affected and the command line mode is NONE or AUTO
 	 * then nothing to do.
@@ -639,8 +645,9 @@ static ssize_t cpu_show_common(struct device *dev, struct device_attribute *attr
 		return sprintf(buf, "Mitigation: Load fences, __user pointer sanitization\n");
 
 	case X86_BUG_SPECTRE_V2:
-		return sprintf(buf, "%s\n",
-			       spectre_v2_strings[spec_ctrl_get_mitigation()]);
+		return sprintf(buf, "%s%s\n",
+			       spectre_v2_strings[spec_ctrl_get_mitigation()],
+			       boot_cpu_has(X86_FEATURE_USE_IBPB) ? ", IBPB" : "");
 
 	case X86_BUG_SPEC_STORE_BYPASS:
 		return sprintf(buf, "%s\n", ssb_strings[ssb_mode]);

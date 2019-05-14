@@ -208,6 +208,7 @@
 #define X86_FEATURE_SSBD	( 7*32+17) /* Speculative Store Bypass Disable */
 #define X86_FEATURE_MBA		( 7*32+18) /* Memory Bandwidth Allocation */
 #define X86_FEATURE_IBP_DISABLE ( 7*32+21) /* Old AMD Indirect Branch Predictor Disable */
+#define X86_FEATURE_USE_IBPB	( 7*32+22) /* "" Indirect Branch Prediction Barrier enabled */
 #define X86_FEATURE_SPEC_STORE_BYPASS_DISABLE	(7*32+23) /* "" Disable Speculative Store Bypass. */
 #define X86_FEATURE_LS_CFG_SSBD 	( 7*32+24) /* "" AMD SSBD implementation */
 #define X86_FEATURE_IBRS		( 7*32+25) /* Indirect Branch Restricted Speculation */
