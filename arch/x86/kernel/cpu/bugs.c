@@ -156,7 +156,7 @@ enum spectre_v2_mitigation_cmd spectre_v2_cmd = SPECTRE_V2_CMD_AUTO;
 #undef pr_fmt
 #define pr_fmt(fmt)	"MDS: " fmt
 
-/* Default mitigation for L1TF-affected CPUs */
+/* Default mitigation for MDS-affected CPUs */
 enum mds_mitigations mds_mitigation = MDS_MITIGATION_FULL;
 static bool mds_nosmt = false;
 
