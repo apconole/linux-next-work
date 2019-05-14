@@ -79,6 +79,8 @@ void __init check_bugs(void)
 
 	mds_select_mitigation();
 
+	arch_smt_update();
+
 #ifdef CONFIG_X86_32
 	/*
 	 * Check whether we are able to run this kernel safely on SMP.
@@ -630,9 +632,6 @@ int arch_prctl_spec_ctrl_set(struct task_struct *task, unsigned long which,
 	default:
 		return -ENODEV;
 	}
-
-	/* Enable STIBP if appropriate */
-	arch_smt_update();
 }
 
 #ifdef CONFIG_SECCOMP
