@@ -661,8 +661,8 @@ void spec_ctrl_set_ssbd(bool ssbd_on)
 		this_cpu_or(spec_ctrl_pcp.entry, SPEC_CTRL_SSBD);
 		this_cpu_or(spec_ctrl_pcp.exit,  SPEC_CTRL_SSBD);
 	} else {
-		this_cpu_and(spec_ctrl_pcp.entry, ~SPEC_CTRL_SSBD);
-		this_cpu_and(spec_ctrl_pcp.exit,  ~SPEC_CTRL_SSBD);
+		this_cpu_and(spec_ctrl_pcp.entry, ~(int)SPEC_CTRL_SSBD);
+		this_cpu_and(spec_ctrl_pcp.exit,  ~(int)SPEC_CTRL_SSBD);
 	}
 }
 
