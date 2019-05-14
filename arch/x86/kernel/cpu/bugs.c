@@ -156,6 +156,7 @@ enum spectre_v2_mitigation_cmd spectre_v2_cmd = SPECTRE_V2_CMD_AUTO;
 
 /* Default mitigation for L1TF-affected CPUs */
 enum mds_mitigations mds_mitigation = MDS_MITIGATION_FULL;
+static bool mds_nosmt = false;
 
 static const char * const mds_strings[] = {
 	[MDS_MITIGATION_OFF]	= "Vulnerable",
@@ -173,8 +174,13 @@ static void __init mds_select_mitigation(void)
 	if (mds_mitigation == MDS_MITIGATION_FULL) {
 		if (!boot_cpu_has(X86_FEATURE_MD_CLEAR))
 			mds_mitigation = MDS_MITIGATION_VMWERV;
+
 		static_key_slow_inc(&mds_user_clear);
+
+		if (mds_nosmt && !boot_cpu_has(X86_BUG_MSBDS_ONLY))
+			cpu_smt_disable(false);
 	}
+
 	pr_info("%s\n", mds_strings[mds_mitigation]);
 }
 
@@ -195,6 +201,10 @@ static int __init mds_cmdline(char *str)
 		mds_mitigation = MDS_MITIGATION_OFF;
 	else if (!strcmp(str, "full"))
 		mds_mitigation = MDS_MITIGATION_FULL;
+	else if (!strcmp(str, "full,nosmt")) {
+		mds_mitigation = MDS_MITIGATION_FULL;
+		mds_nosmt = true;
+	}
 
 	return 0;
 }
