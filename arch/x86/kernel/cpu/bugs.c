@@ -38,6 +38,9 @@ static DEFINE_MUTEX(spec_ctrl_mutex);
 /* Control MDS CPU buffer clear before returning to user space */
 struct static_key mds_user_clear = STATIC_KEY_INIT_FALSE;
 EXPORT_SYMBOL_GPL(mds_user_clear);
+/* Control MDS CPU buffer clear before idling (halt, mwait) */
+struct static_key mds_idle_clear = STATIC_KEY_INIT_FALSE;
+EXPORT_SYMBOL_GPL(mds_idle_clear);
 
 void __init check_bugs(void)
 {

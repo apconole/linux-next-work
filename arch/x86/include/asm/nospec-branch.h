@@ -249,6 +249,7 @@ static inline void fill_RSB(void)
 }
 
 extern struct static_key mds_user_clear;
+extern struct static_key mds_idle_clear;
 
 #include <asm/segment.h>
 
@@ -287,6 +288,17 @@ static inline void mds_clear_cpu_buffers(void)
 static inline void mds_user_clear_cpu_buffers(void)
 {
 	if (static_key_false(&mds_user_clear))
+		mds_clear_cpu_buffers();
+}
+
+/**
+ * mds_idle_clear_cpu_buffers - Mitigation for MDS vulnerability
+ *
+ * Clear CPU buffers if the corresponding static key is enabled
+ */
+static inline void mds_idle_clear_cpu_buffers(void)
+{
+	if (static_key_false(&mds_idle_clear))
 		mds_clear_cpu_buffers();
 }
 
