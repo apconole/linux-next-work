@@ -497,7 +497,8 @@ enum spectre_v2_mitigation spec_ctrl_get_mitigation(void)
 			mode = SPECTRE_V2_RETPOLINE;
 	}
 
-	return mode;
+	spectre_v2_enabled = mode;	/* Update spectre_v2_enabled */
+	return spectre_v2_enabled;
 }
 
 static void spec_ctrl_print_features(void)
@@ -768,6 +769,7 @@ static ssize_t ibrs_enabled_write(struct file *file,
 		set_spec_ctrl_pcp_ibrs_user();
 		set_spec_ctrl_retp(true);
 	}
+	spec_ctrl_get_mitigation();
 
 out_unlock:
 	mutex_unlock(&spec_ctrl_mutex);
@@ -842,6 +844,7 @@ static ssize_t retp_enabled_write(struct file *file,
 			set_spec_ctrl_pcp_ibrs_user();
 		}
 	}
+	spec_ctrl_get_mitigation();
 
 out_unlock:
 	mutex_unlock(&spec_ctrl_mutex);

@@ -179,6 +179,8 @@ enum spectre_v2_mitigation {
 	SPECTRE_V2_IBRS_ENHANCED,
 };
 
+extern enum spectre_v2_mitigation spectre_v2_enabled;
+
 void __spectre_v2_select_mitigation(void);
 void spectre_v2_print_mitigation(void);
 

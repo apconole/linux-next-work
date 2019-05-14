@@ -140,6 +140,8 @@ enum spectre_v2_mitigation_cmd spectre_v2_cmd = SPECTRE_V2_CMD_AUTO;
 #undef pr_fmt
 #define pr_fmt(fmt)     "Spectre V2 : " fmt
 
+enum spectre_v2_mitigation spectre_v2_enabled = SPECTRE_V2_NONE;
+
 static inline bool match_option(const char *arg, int arglen, const char *opt)
 {
 	int len = strlen(opt);
@@ -646,7 +648,7 @@ static ssize_t cpu_show_common(struct device *dev, struct device_attribute *attr
 
 	case X86_BUG_SPECTRE_V2:
 		return sprintf(buf, "%s%s\n",
-			       spectre_v2_strings[spec_ctrl_get_mitigation()],
+			       spectre_v2_strings[spectre_v2_enabled],
 			       boot_cpu_has(X86_FEATURE_USE_IBPB) ? ", IBPB" : "");
 
 	case X86_BUG_SPEC_STORE_BYPASS:
