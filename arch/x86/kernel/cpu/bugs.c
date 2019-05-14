@@ -359,9 +359,9 @@ static void update_mds_branch_idle(void)
 	if (!boot_cpu_has(X86_BUG_MSBDS_ONLY))
 		return;
 
-	if (sched_smt_active())
+	if (sched_smt_active() && !static_key_enabled(&mds_idle_clear))
 		static_key_slow_inc(&mds_idle_clear);
-	else
+	else if (!sched_smt_active() && static_key_enabled(&mds_idle_clear))
 		static_key_slow_dec(&mds_idle_clear);
 }
 
