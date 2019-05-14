@@ -9,6 +9,7 @@
 #include <linux/debugfs.h>
 #include <linux/uaccess.h>
 #include <linux/module.h>
+#include <linux/sched/smt.h>
 #include <asm/spec_ctrl.h>
 #include <asm/cpufeature.h>
 #include <asm/nospec-branch.h>
@@ -1019,6 +1020,19 @@ static const struct file_operations fops_ssbd_enabled = {
 	.llseek = default_llseek,
 };
 
+static ssize_t smt_present_read(struct file *file, char __user *user_buf,
+				 size_t count, loff_t *ppos)
+{
+	unsigned int present = atomic_read(&sched_smt_present.enabled);
+
+	return __enabled_read(file, user_buf, count, ppos, &present);
+}
+
+static const struct file_operations fops_smt_present = {
+	.read = smt_present_read,
+	.llseek = default_llseek,
+};
+
 static int __init debugfs_spec_ctrl(void)
 {
 	debugfs_create_file("ibrs_enabled", S_IRUSR | S_IWUSR,
@@ -1029,6 +1043,8 @@ static int __init debugfs_spec_ctrl(void)
 			    arch_debugfs_dir, NULL, &fops_retp_enabled);
 	debugfs_create_file("ssbd_enabled", S_IRUSR,
 			    arch_debugfs_dir, NULL, &fops_ssbd_enabled);
+	debugfs_create_file("smt_present", S_IRUSR,
+			    arch_debugfs_dir, NULL, &fops_smt_present);
 	return 0;
 }
 late_initcall(debugfs_spec_ctrl);
