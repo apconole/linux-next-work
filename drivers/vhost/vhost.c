@@ -28,6 +28,7 @@
 #include <linux/module.h>
 #include <linux/sort.h>
 #include <linux/interval_tree_generic.h>
+#include <linux/nospec.h>
 
 #include "vhost.h"
 
@@ -1342,6 +1343,7 @@ long vhost_vring_ioctl(struct vhost_dev *d, unsigned int ioctl, void __user *arg
 	if (idx >= d->nvqs)
 		return -ENOBUFS;
 
+	idx = array_index_nospec(idx, d->nvqs);
 	vq = d->vqs[idx];
 
 	mutex_lock(&vq->mutex);
