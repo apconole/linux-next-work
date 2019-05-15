@@ -971,7 +971,8 @@ static int vhost_net_open(struct inode *inode, struct file *f)
 		n->vqs[i].rx_array = NULL;
 		vhost_net_buf_init(&n->vqs[i].rxq);
 	}
-	r = vhost_dev_init(dev, vqs, VHOST_NET_VQ_MAX);
+	r = vhost_dev_init(dev, vqs, VHOST_NET_VQ_MAX,
+			   UIO_MAXIOV + VHOST_RX_BATCH);
 	if (r < 0) {
 		kfree(n);
 		kfree(vqs);

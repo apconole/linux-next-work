@@ -369,11 +369,11 @@ static long vhost_dev_alloc_iovecs(struct vhost_dev *dev)
 
 	for (i = 0; i < dev->nvqs; ++i) {
 		dev->vqs[i]->indirect = kmalloc(sizeof *dev->vqs[i]->indirect *
-					       UIO_MAXIOV, GFP_KERNEL);
-		dev->vqs[i]->log = kmalloc(sizeof *dev->vqs[i]->log * UIO_MAXIOV,
-					  GFP_KERNEL);
+					       dev->iov_limit, GFP_KERNEL);
+		dev->vqs[i]->log = kmalloc(sizeof *dev->vqs[i]->log *
+					   dev->iov_limit, GFP_KERNEL);
 		dev->vqs[i]->heads = kmalloc(sizeof *dev->vqs[i]->heads *
-					    UIO_MAXIOV, GFP_KERNEL);
+					    dev->iov_limit, GFP_KERNEL);
 		if (!dev->vqs[i]->indirect || !dev->vqs[i]->log ||
 			!dev->vqs[i]->heads)
 			goto err_nomem;
@@ -395,7 +395,7 @@ static void vhost_dev_free_iovecs(struct vhost_dev *dev)
 }
 
 long vhost_dev_init(struct vhost_dev *dev,
-		    struct vhost_virtqueue **vqs, int nvqs)
+		    struct vhost_virtqueue **vqs, int nvqs, int iov_limit)
 {
 	int i;
 
@@ -408,6 +408,7 @@ long vhost_dev_init(struct vhost_dev *dev,
 	dev->iotlb = NULL;
 	dev->mm = NULL;
 	dev->worker = NULL;
+	dev->iov_limit = iov_limit;
 	init_llist_head(&dev->work_list);
 	init_waitqueue_head(&dev->wait);
 	INIT_LIST_HEAD(&dev->read_list);
