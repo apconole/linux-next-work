@@ -234,6 +234,12 @@ void nf_nat_helper_put(struct nf_conntrack_helper *helper)
 }
 EXPORT_SYMBOL_GPL(nf_nat_helper_put);
 
+void nf_conntrack_helper_put(struct nf_conntrack_helper *helper)
+{
+	module_put(helper->me);
+}
+EXPORT_SYMBOL_GPL(nf_conntrack_helper_put);
+
 struct nf_conn_help *
 nf_ct_helper_ext_add(struct nf_conn *ct,
 		     struct nf_conntrack_helper *helper, gfp_t gfp)
