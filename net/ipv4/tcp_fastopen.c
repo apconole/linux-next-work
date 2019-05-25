@@ -216,6 +216,7 @@ static bool tcp_fastopen_create_child(struct sock *sk,
 		if (likely(skb2)) {
 			skb_dst_drop(skb2);
 			__skb_pull(skb2, tcp_hdrlen(skb));
+			sk_forced_mem_schedule(sk, skb->truesize);
 			skb_set_owner_r(skb2, child);
 			__skb_queue_tail(&child->sk_receive_queue, skb2);
 			tp->syn_data_acked = 1;
