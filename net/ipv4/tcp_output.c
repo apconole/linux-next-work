@@ -3139,6 +3139,11 @@ static int tcp_send_syn_data(struct sock *sk, struct sk_buff *syn)
 		NET_INC_STATS(sock_net(sk), LINUX_MIB_TCPORIGDATASENT);
 		goto done;
 	}
+
+	/* data was not sent, this is our new send_head */
+	sk->sk_send_head = data;
+	tp->packets_out -= tcp_skb_pcount(data);
+
 	syn_data = NULL;
 
 fallback:
@@ -3191,6 +3196,11 @@ int tcp_connect(struct sock *sk)
 	 */
 	tp->snd_nxt = tp->write_seq;
 	tp->pushed_seq = tp->write_seq;
+	buff = tcp_send_head(sk);
+	if (unlikely(buff)) {
+		tp->snd_nxt	= TCP_SKB_CB(buff)->seq;
+		tp->pushed_seq	= TCP_SKB_CB(buff)->seq;
+	}
 	TCP_INC_STATS(sock_net(sk), TCP_MIB_ACTIVEOPENS);
 
 	/* Timer for repeating the SYN until an answer. */
