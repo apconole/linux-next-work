@@ -52,7 +52,10 @@ static void tcf_action_goto_chain_exec(const struct tc_action *a,
 {
 	const struct tcf_chain *chain = a->goto_chain;
 
-	res->goto_tp = rcu_dereference_bh(chain->filter_chain);
+	if (chain)
+		res->goto_tp = rcu_dereference_bh(chain->filter_chain);
+	else
+		net_warn_ratelimited("TC action: can't go to NULL chain\n");
 }
 
 /* XXX: For standalone actions, we don't need a RCU grace period either, because
