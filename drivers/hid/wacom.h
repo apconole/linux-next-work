@@ -166,6 +166,7 @@ struct wacom {
 	struct delayed_work init_work;
 	struct wacom_remote *remote;
 	struct work_struct mode_change_work;
+	bool generic_has_leds;
 	struct wacom_leds {
 		struct wacom_group_leds *groups;
 		unsigned int count;
@@ -217,4 +218,5 @@ void wacom_wac_event(struct hid_device *hdev, struct hid_field *field,
 void wacom_wac_report(struct hid_device *hdev, struct hid_report *report);
 void wacom_battery_work(struct work_struct *work);
 int wacom_equivalent_usage(int usage);
+int wacom_initialize_leds(struct wacom *wacom);
 #endif
