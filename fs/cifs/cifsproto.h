@@ -228,6 +228,7 @@ extern void cifs_del_pending_open(struct cifs_pending_open *open);
 extern void cifs_put_tcp_session(struct TCP_Server_Info *server,
 				 int from_reconnect);
 extern void cifs_put_tcon(struct cifs_tcon *tcon);
+extern void cifs_put_smb_ses(struct cifs_ses *ses);
 
 #if IS_ENABLED(CONFIG_CIFS_DFS_UPCALL)
 extern void cifs_dfs_release_automount_timer(void);
