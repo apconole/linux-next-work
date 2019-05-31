@@ -229,37 +229,38 @@ static void gfs2_end_log_write(struct bio *bio, int error)
 }
 
 /**
- * gfs2_log_flush_bio - Submit any pending log bio
- * @sdp: The superblock
+ * gfs2_log_submit_bio - Submit any pending log bio
+ * @biop: Address of the bio pointer
  * @rw: The rw flags
  *
  * Submit any pending part-built or full bio to the block device. If
  * there is no pending bio, then this is a no-op.
  */
 
-void gfs2_log_flush_bio(struct gfs2_sbd *sdp, int rw)
+void gfs2_log_submit_bio(struct bio **biop, int rw)
 {
-	if (sdp->sd_log_bio) {
+	struct bio *bio = *biop;
+	if (bio) {
+		struct gfs2_sbd *sdp = bio->bi_private;
 		atomic_inc(&sdp->sd_log_in_flight);
-		submit_bio(rw, sdp->sd_log_bio);
-		sdp->sd_log_bio = NULL;
+		submit_bio(rw, bio);
+		*biop = NULL;
 	}
 }
 
 /**
- * gfs2_log_alloc_bio - Allocate a new bio for log writing
- * @sdp: The superblock
- * @blkno: The next device block number we want to write to
+ * gfs2_log_alloc_bio - Allocate a bio
+ * @sdp: The super block
+ * @blkno: The device block number we want to write to
+ * @end_io: The bi_end_io callback
  *
- * This should never be called when there is a cached bio in the
- * super block. When it returns, there will be a cached bio in the
- * super block which will have as many bio_vecs as the device is
- * happy to handle.
+ * Allocate a new bio, initialize it with the given parameters and return it.
  *
- * Returns: Newly allocated bio
+ * Returns: The newly allocated bio
  */
 
-static struct bio *gfs2_log_alloc_bio(struct gfs2_sbd *sdp, u64 blkno)
+static struct bio *gfs2_log_alloc_bio(struct gfs2_sbd *sdp, u64 blkno,
+				      bio_end_io_t *end_io)
 {
 	struct super_block *sb = sdp->sd_vfs;
 	unsigned nrvecs = bio_get_nr_vecs(sb->s_bdev);
@@ -276,41 +277,47 @@ static struct bio *gfs2_log_alloc_bio(struct gfs2_sbd *sdp, u64 blkno)
 
 	bio->bi_sector = blkno * (sb->s_blocksize >> 9);
 	bio->bi_bdev = sb->s_bdev;
-	bio->bi_end_io = gfs2_end_log_write;
+	bio->bi_end_io = end_io;
 	bio->bi_private = sdp;
-
-	sdp->sd_log_bio = bio;
 
 	return bio;
 }
 
 /**
  * gfs2_log_get_bio - Get cached log bio, or allocate a new one
- * @sdp: The superblock
+ * @sdp: The super block
  * @blkno: The device block number we want to write to
+ * @bio: The bio to get or allocate
+ * @rw: Read or Write operation
+ * @end_io: The bi_end_io callback
+ * @flush: Always flush the current bio and allocate a new one?
  *
  * If there is a cached bio, then if the next block number is sequential
  * with the previous one, return it, otherwise flush the bio to the
- * device. If there is not a cached bio, or we just flushed it, then
+ * device. If there is no cached bio, or we just flushed it, then
  * allocate a new one.
  *
  * Returns: The bio to use for log writes
  */
 
-static struct bio *gfs2_log_get_bio(struct gfs2_sbd *sdp, u64 blkno)
+static struct bio *gfs2_log_get_bio(struct gfs2_sbd *sdp, u64 blkno,
+				    struct bio **biop, int rw,
+				    bio_end_io_t *end_io, bool flush)
 {
-	struct bio *bio = sdp->sd_log_bio;
-	u64 nblk;
+	struct bio *bio = *biop;
 
 	if (bio) {
+		u64 nblk;
+
 		nblk = bio_end_sector(bio);
 		nblk >>= sdp->sd_fsb2bb_shift;
-		if (blkno == nblk)
+		if (blkno == nblk && !flush)
 			return bio;
-		gfs2_log_flush_bio(sdp, WRITE);
+		gfs2_log_submit_bio(biop, rw);
 	}
 
-	return gfs2_log_alloc_bio(sdp, blkno);
+	*biop = gfs2_log_alloc_bio(sdp, blkno, end_io);
+	return *biop;
 }
 
 
@@ -333,11 +340,12 @@ static void gfs2_log_write(struct gfs2_sbd *sdp, struct page *page,
 	struct bio *bio;
 	int ret;
 
-	bio = gfs2_log_get_bio(sdp, blkno);
+	bio = gfs2_log_get_bio(sdp, blkno, &sdp->sd_log_bio, WRITE,
+			       gfs2_end_log_write, false);
 	ret = bio_add_page(bio, page, size, offset);
 	if (ret == 0) {
-		gfs2_log_flush_bio(sdp, WRITE);
-		bio = gfs2_log_alloc_bio(sdp, blkno);
+		bio = gfs2_log_get_bio(sdp, blkno, &sdp->sd_log_bio,
+				       WRITE, gfs2_end_log_write, true);
 		ret = bio_add_page(bio, page, size, offset);
 		WARN_ON(ret == 0);
 	}

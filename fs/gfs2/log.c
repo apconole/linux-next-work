@@ -655,7 +655,7 @@ static void log_write_header(struct gfs2_sbd *sdp, u32 flags)
 
 	sdp->sd_log_idle = (tail == sdp->sd_log_flush_head);
 	gfs2_log_write_page(sdp, page);
-	gfs2_log_flush_bio(sdp, rw);
+	gfs2_log_submit_bio(&sdp->sd_log_bio, rw);
 	log_flush_wait(sdp);
 
 	if (sdp->sd_log_tail != tail)
@@ -699,7 +699,7 @@ void gfs2_log_flush(struct gfs2_sbd *sdp, struct gfs2_glock *gl)
 
 	gfs2_ordered_write(sdp);
 	lops_before_commit(sdp, tr);
-	gfs2_log_flush_bio(sdp, WRITE);
+	gfs2_log_submit_bio(&sdp->sd_log_bio, WRITE);
 
 	if (sdp->sd_log_head != sdp->sd_log_flush_head) {
 		log_flush_wait(sdp);
