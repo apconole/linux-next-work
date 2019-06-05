@@ -145,6 +145,20 @@ static int rtl8211f_config_init(struct phy_device *phydev)
 	return phy_modify_paged(phydev, 0xd08, 0x11, RTL8211F_TX_DELAY, val);
 }
 
+/* RHEL7 only START */
+static int genphy_read_mmd_unsupported(struct phy_device *phdev, int devad,
+				       u16 regnum)
+{
+	return -EOPNOTSUPP;
+}
+
+static int genphy_write_mmd_unsupported(struct phy_device *phdev, int devnum,
+					u16 regnum, u16 val)
+{
+	return -EOPNOTSUPP;
+}
+/* RHEL7 only END */
+
 static struct phy_driver realtek_drvs[] = {
 	{
 		.phy_id         = 0x00008201,
@@ -181,6 +195,8 @@ static struct phy_driver realtek_drvs[] = {
 		.ack_interrupt	= &rtl821x_ack_interrupt,
 		.config_intr	= &rtl8211b_config_intr,
 		.driver		= { .owner = THIS_MODULE,},
+		.read_mmd	= &genphy_read_mmd_unsupported,
+		.write_mmd	= &genphy_write_mmd_unsupported,
 	}, {
 		.phy_id		= 0x001cc914,
 		.name		= "RTL8211DN Gigabit Ethernet",
