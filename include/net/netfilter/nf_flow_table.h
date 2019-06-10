@@ -28,6 +28,9 @@ struct nf_flowtable {
 	struct list_head		list;
 	struct rhashtable		rhashtable;
 	u32				flags;
+#if CONFIG_NF_FLOW_TABLE_BPF_HOOKS
+	struct bpf_prog			*hook_prog;
+#endif
 	const struct nf_flowtable_type	*type;
 	struct delayed_work		gc_work;
 };

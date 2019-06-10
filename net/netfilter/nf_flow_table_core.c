@@ -19,6 +19,14 @@ struct flow_offload_entry {
 	struct rcu_head		rcu_head;
 };
 
+#define FLOW_TABLE_HOOK_CTX_OP_ADD 0
+#define FLOW_TABLE_HOOK_CTX_OP_DEL 1
+struct flow_table_hook_ctx {
+	struct flow_offload	flow;
+	int			op_id;
+};
+
+
 static DEFINE_MUTEX(flowtable_lock);
 static LIST_HEAD(flowtables);
 
@@ -183,7 +191,7 @@ static const struct rhashtable_params nf_flow_offload_rhash_params = {
 	.automatic_shrinking	= true,
 };
 
-int flow_offload_add(struct nf_flowtable *flow_table, struct flow_offload *flow)
+int __flow_offload_add(struct nf_flowtable *flow_table, struct flow_offload *flow)
 {
 	int err;
 
@@ -206,10 +214,30 @@ int flow_offload_add(struct nf_flowtable *flow_table, struct flow_offload *flow)
 	flow->timeout = (u32)jiffies;
 	return 0;
 }
+
+int flow_offload_add(struct nf_flowtable *flow_table, struct flow_offload *flow)
+{
+	int err;
+
+#if CONFIG_NF_FLOW_TABLE_BPF_HOOKS
+	if (flow_table->hook_prog) {
+		struct flow_table_hook_ctx ctx = {
+			.flow = *flow,
+			.op_id = FLOW_TABLE_HOOK_CTX_OP_ADD,
+		};
+
+		err = BPF_PROG_RUN(flow_table->hook_prog, &ctx);
+		if (err < 0)
+			return err;
+	}
+#endif
+	err = __flow_offload_add(flow_table, flow);
+	return err;
+}
 EXPORT_SYMBOL_GPL(flow_offload_add);
 
-static void flow_offload_del(struct nf_flowtable *flow_table,
-			     struct flow_offload *flow)
+static void __flow_offload_del(struct nf_flowtable *flow_table,
+			       struct flow_offload *flow)
 {
 	struct flow_offload_entry *e;
 
@@ -224,6 +252,29 @@ static void flow_offload_del(struct nf_flowtable *flow_table,
 	clear_bit(IPS_OFFLOAD_BIT, &e->ct->status);
 
 	flow_offload_free(flow);
+}
+
+static void flow_offload_del(struct nf_flowtable *flow_table,
+			     struct flow_offload *flow)
+{
+#if CONFIG_NF_FLOW_TABLE_BPF_HOOKS
+	if (flow_table->hook_prog) {
+		struct flow_table_hook_ctx ctx = {
+			.flow = *flow,
+			.op_id = FLOW_TABLE_HOOK_CTX_OP_DEL,
+		};
+		int filter_res;
+
+		/* cheat for now to 'poll' the flow table.  If this returns < 0, we
+		 * simply don't delete the flow entry.  Needs something to "update" the
+		 * timeout.  Also, we should make use of a SHARED flag for tables where
+		 * we want to disable timeouts completely? */
+		filter_res = BPF_PROG_RUN(flow_table->hook_prog, &ctx);
+		if (filter_res < 0)
+			return;
+	}
+#endif
+	__flow_offload_del(flow_table, flow);
 }
 
 void flow_offload_teardown(struct flow_offload *flow)
@@ -505,6 +556,11 @@ void nf_flow_table_free(struct nf_flowtable *flow_table)
 	nf_flow_table_iterate(flow_table, nf_flow_table_do_cleanup, NULL);
 	nf_flow_table_iterate(flow_table, nf_flow_offload_gc_step, flow_table);
 	rhashtable_destroy(&flow_table->rhashtable);
+
+#if CONFIG_NF_FLOW_TABLE_BPF_HOOKS
+	if (flow_table->hook_prog)
+		bpf_prog_put(flow_table->hook_prog);
+#endif
 }
 EXPORT_SYMBOL_GPL(nf_flow_table_free);
 
