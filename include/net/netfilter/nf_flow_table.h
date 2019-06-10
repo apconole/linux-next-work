@@ -20,9 +20,14 @@ struct nf_flowtable_type {
 	struct module			*owner;
 };
 
+enum nf_flowtable_flags {
+	NF_FLOW_TABLE_F_MASK		= 0x0,
+};
+
 struct nf_flowtable {
 	struct list_head		list;
 	struct rhashtable		rhashtable;
+	u32				flags;
 	const struct nf_flowtable_type	*type;
 	struct delayed_work		gc_work;
 };
