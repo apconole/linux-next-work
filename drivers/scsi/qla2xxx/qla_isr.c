@@ -3407,9 +3407,14 @@ qla24xx_enable_msix(struct qla_hw_data *ha, struct rsp_que *rsp)
 		min_vecs++;
 	}
 
-	ret = pci_alloc_irq_vectors_affinity(ha->pdev, min_vecs,
-			ha->msix_count, PCI_IRQ_MSIX | PCI_IRQ_AFFINITY,
-			&desc);
+	if (!shost_use_blk_mq(vha->host))
+		ret = pci_alloc_irq_vectors(ha->pdev, min_vecs,
+		    min((u16)ha->msix_count, (u16)num_online_cpus()),
+		    PCI_IRQ_MSIX);
+	else
+		ret = pci_alloc_irq_vectors_affinity(ha->pdev, min_vecs,
+		    ha->msix_count, PCI_IRQ_MSIX | PCI_IRQ_AFFINITY,
+		    &desc);
 
 	if (ret < 0) {
 		ql_log(ql_log_fatal, vha, 0x00c7,
