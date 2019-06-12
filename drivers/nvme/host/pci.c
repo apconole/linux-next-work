@@ -1634,7 +1634,6 @@ static int __nvme_alloc_host_mem(struct nvme_dev *dev, u64 preferred,
 		DEFINE_DMA_ATTRS(attrs);
 
 		dma_set_attr(DMA_ATTR_NO_KERNEL_MAPPING, &attrs);
-		dma_set_attr(DMA_ATTR_NO_WARN, &attrs);
 		len = min_t(u64, chunk_size, preferred - size);
 		bufs[i] = dma_alloc_attrs(dev->dev, len, &dma_addr, GFP_KERNEL,
 				&attrs);
