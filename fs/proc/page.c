@@ -137,8 +137,8 @@ u64 stable_page_flags(struct page *page)
 	if (PageBuddy(page))
 		u |= 1 << KPF_BUDDY;
 
-	if (PageBalloon(page))
-		u |= 1 << KPF_BALLOON;
+	if (PageOffline(page))
+		u |= 1 << KPF_OFFLINE;
 
 	if (page_is_idle(page))
 		u |= 1 << KPF_IDLE;

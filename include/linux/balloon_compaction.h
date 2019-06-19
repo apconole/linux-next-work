@@ -127,6 +127,7 @@ static inline void balloon_page_insert(struct balloon_dev_info *balloon,
 				       struct page *page)
 {
 	__SetPageBalloon(page);
+	__SetPageOffline(page);
 	SetPagePrivate(page);
 	set_page_private(page, (unsigned long)balloon);
 	list_add(&page->lru, &balloon->pages);
@@ -142,6 +143,7 @@ static inline void balloon_page_insert(struct balloon_dev_info *balloon,
  */
 static inline void balloon_page_delete(struct page *page)
 {
+	__ClearPageOffline(page);
 	__ClearPageBalloon(page);
 	set_page_private(page, 0);
 	if (PagePrivate(page)) {
@@ -169,13 +171,13 @@ static inline gfp_t balloon_mapping_gfp_mask(void)
 static inline void balloon_page_insert(struct balloon_dev_info *balloon,
 				       struct page *page)
 {
-	__SetPageBalloon(page);
+	__SetPageOffline(page);
 	list_add(&page->lru, &balloon->pages);
 }
 
 static inline void balloon_page_delete(struct page *page)
 {
-	__ClearPageBalloon(page);
+	__ClearPageOffline(page);
 	list_del(&page->lru);
 }
 

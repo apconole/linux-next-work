@@ -551,6 +551,7 @@ static inline int PageTransTail(struct page *page)
 /* Reserve		0x0000007f to catch underflows of page_mapcount */
 #define PG_buddy	0x00000080
 #define PG_balloon	0x00000100
+#define PG_offline	0x00000200
 
 #define PageType(page, flag)						\
 	((page->page_type & (PAGE_TYPE_BASE | flag)) == PAGE_TYPE_BASE)
@@ -582,6 +583,15 @@ PAGE_TYPE_OPS(Buddy, buddy)
  * (see mm/balloon_compaction.c).
  */
 PAGE_TYPE_OPS(Balloon, balloon)
+
+/*
+ * PageOffline() indicates that the page is logically offline although the
+ * containing section is online. (e.g. inflated in a balloon driver or
+ * not onlined when onlining the section).
+ * The content of these pages is effectively stale. Such pages should not
+ * be touched (read/write/dump/save) except by their owner.
+ */
+PAGE_TYPE_OPS(Offline, offline)
 
 /*
  * If network-based swap is enabled, sl*b must keep track of whether pages
