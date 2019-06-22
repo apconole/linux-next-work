@@ -7,6 +7,7 @@
 
 #include <linux/mm.h>
 #include <linux/sched.h>
+#include <linux/sched/mm.h>
 #include <linux/highmem.h>
 #include <linux/hugetlb.h>
 #include <linux/mmu_notifier.h>
@@ -2907,6 +2908,8 @@ static void collapse_huge_page(struct mm_struct *mm,
 	 * handled by the anon_vma lock + PG_lock.
 	 */
 	down_write(&mm->mmap_sem);
+	if (!mmget_still_valid(mm))
+		goto out;
 	if (unlikely(khugepaged_test_exit(mm)))
 		goto out;
 
