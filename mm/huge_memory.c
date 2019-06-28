@@ -689,8 +689,8 @@ static inline pmd_t mk_huge_pmd(struct page *page, struct vm_area_struct *vma)
 {
 	pmd_t entry;
 	entry = mk_pmd(page, vma->vm_page_prot);
-	entry = maybe_pmd_mkwrite(pmd_mkdirty(entry), vma);
 	entry = pmd_mkhuge(entry);
+	entry = maybe_pmd_mkwrite(pmd_mkdirty(entry), vma);
 	return entry;
 }
 
