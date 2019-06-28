@@ -2085,7 +2085,6 @@ void __generic_write_end(struct inode *inode, loff_t pos, unsigned copied,
 	}
 
 	unlock_page(page);
-	page_cache_release(page);
 
 	if (old_size < pos)
 		pagecache_isize_extended(inode, old_size, pos);
@@ -2141,6 +2140,7 @@ int generic_write_end(struct file *file, struct address_space *mapping,
 {
 	copied = block_write_end(file, mapping, pos, len, copied, page, fsdata);
 	__generic_write_end(mapping->host, pos, copied, page);
+	page_cache_release(page);
 	return copied;
 }
 EXPORT_SYMBOL(generic_write_end);
