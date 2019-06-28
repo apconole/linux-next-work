@@ -582,9 +582,7 @@ static int gfs2_create_inode(struct inode *dir, struct dentry *dentry,
 	inode = gfs2_dir_search(dir, &dentry->d_name, !S_ISREG(mode) || excl);
 	error = PTR_ERR(inode);
 	if (!IS_ERR(inode)) {
-		mutex_lock(&dir->i_mutex);
-		d = d_materialise_unique(dentry, inode);
-		mutex_unlock(&dir->i_mutex);
+		d = d_splice_alias(inode, dentry);
 		error = PTR_ERR(d);
 		if (IS_ERR(d)) {
 			inode = ERR_CAST(d);
@@ -802,7 +800,7 @@ static struct dentry *__gfs2_lookup(struct inode *dir, struct dentry *dentry,
 		return ERR_PTR(error);
 	}
 
-	d = d_materialise_unique(dentry, inode);
+	d = d_splice_alias(inode, dentry);
 	if (IS_ERR(d)) {
 		gfs2_glock_dq_uninit(&gh);
 		return d;
