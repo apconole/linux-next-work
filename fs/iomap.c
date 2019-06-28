@@ -191,8 +191,7 @@ iomap_write_end(struct inode *inode, loff_t pos, unsigned len,
 				copied, page, NULL);
 	}
 
-	ret = __generic_write_end(NULL, inode->i_mapping, pos, len, ret, page,
-			NULL);
+	__generic_write_end(inode, pos, ret, page);
 	if (iomap->page_done)
 		iomap->page_done(inode, pos, copied, page, iomap);
 
