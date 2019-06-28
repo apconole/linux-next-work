@@ -1781,7 +1781,7 @@ int madvise_free_huge_pmd(struct mmu_gather *tlb, struct vm_area_struct *vma,
 	int ret = 0;
 
 	if (!pmd_trans_huge_lock(pmd, vma, &ptl))
-		goto out_unlocked;
+		goto out;
 
 	orig_pmd = *pmd;
 	if (is_huge_zero_pmd(orig_pmd)) {
