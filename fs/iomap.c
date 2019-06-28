@@ -174,8 +174,6 @@ iomap_write_end_inline(struct inode *inode, struct page *page,
 	kunmap_atomic(addr);
 
 	mark_inode_dirty(inode);
-	__generic_write_end(NULL, inode->i_mapping, pos, len, copied, page,
-			NULL);
 	return copied;
 }
 
@@ -189,10 +187,12 @@ iomap_write_end(struct inode *inode, loff_t pos, unsigned len,
 		ret = iomap_write_end_inline(inode, page, iomap, pos, len,
 				copied);
 	} else {
-		ret = generic_write_end(NULL, inode->i_mapping, pos, len,
+		ret = block_write_end(NULL, inode->i_mapping, pos, len,
 				copied, page, NULL);
 	}
 
+	ret = __generic_write_end(NULL, inode->i_mapping, pos, len, ret, page,
+			NULL);
 	if (iomap->page_done)
 		iomap->page_done(inode, pos, copied, page, iomap);
 
