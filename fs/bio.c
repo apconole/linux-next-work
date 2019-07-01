@@ -1246,6 +1246,8 @@ struct bio *bio_copy_user_iov(struct request_queue *q,
 		ret = __bio_copy_iov(bio, bio->bi_io_vec, iov, iov_count, 0, 1, 0);
 		if (ret)
 			goto cleanup;
+	} else {
+		zero_fill_bio(bio);
 	}
 
 	bio_set_map_data(bmd, bio, iov, iov_count, map_data ? 0 : 1);
