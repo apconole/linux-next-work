@@ -4097,9 +4097,8 @@ static void nf_tables_abort_release(struct nft_trans *trans)
 	kfree(trans);
 }
 
-static int nf_tables_abort(struct sk_buff *skb)
+static int __nf_tables_abort(struct net *net)
 {
-	struct net *net = sock_net(skb->sk);
 	struct nft_trans *trans, *next;
 	struct nft_trans_elem *te;
 
@@ -4187,6 +4186,13 @@ static int nf_tables_abort(struct sk_buff *skb)
 	}
 
 	return 0;
+}
+
+static int nf_tables_abort(struct sk_buff *skb)
+{
+	struct net *net = sock_net(skb->sk);
+
+	return __nf_tables_abort(net);
 }
 
 static const struct nfnetlink_subsystem nf_tables_subsys = {
@@ -4683,14 +4689,6 @@ int nft_data_dump(struct sk_buff *skb, int attr, const struct nft_data *data,
 }
 EXPORT_SYMBOL_GPL(nft_data_dump);
 
-static int __net_init nf_tables_init_net(struct net *net)
-{
-	INIT_LIST_HEAD(&net->nft.af_info);
-	INIT_LIST_HEAD(&net->nft.commit_list);
-	net->nft.base_seq = 1;
-	return 0;
-}
-
 /* Called by nft_unregister_afinfo() from __net_exit path, nfnl_lock is held. */
 static void __nft_release_afinfo(struct net *net, struct nft_af_info *afi)
 {
@@ -4731,8 +4729,23 @@ static void __nft_release_afinfo(struct net *net, struct nft_af_info *afi)
 	}
 }
 
+static int __net_init nf_tables_init_net(struct net *net)
+{
+	INIT_LIST_HEAD(&net->nft.af_info);
+	INIT_LIST_HEAD(&net->nft.commit_list);
+	net->nft.base_seq = 1;
+	return 0;
+}
+
+static void __net_exit nf_tables_exit_net(struct net *net)
+{
+	if (!list_empty(&net->nft.commit_list))
+		__nf_tables_abort(net);
+}
+
 static struct pernet_operations nf_tables_net_ops = {
 	.init	= nf_tables_init_net,
+	.exit   = nf_tables_exit_net,
 };
 
 static int __init nf_tables_module_init(void)
@@ -4772,8 +4785,8 @@ err1:
 
 static void __exit nf_tables_module_exit(void)
 {
-	unregister_pernet_subsys(&nf_tables_net_ops);
 	nfnetlink_subsys_unregister(&nf_tables_subsys);
+	unregister_pernet_subsys(&nf_tables_net_ops);
 	rcu_barrier();
 	nf_tables_core_module_exit();
 	kfree(info);
