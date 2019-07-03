@@ -316,6 +316,12 @@ replay:
 		return kfree_skb(skb);
 	}
 
+	if (!try_module_get(ss->owner)) {
+		nfnl_unlock(subsys_id);
+		netlink_ack(oskb, nlh, -EOPNOTSUPP);
+		return kfree_skb(skb);
+	}
+
 	while (skb->len >= nlmsg_total_size(0)) {
 		int msglen, type;
 
@@ -427,6 +433,7 @@ done:
 		nfnl_err_reset(&err_list);
 		nfnl_unlock(subsys_id);
 		kfree_skb(skb);
+		module_put(ss->owner);
 		goto replay;
 	} else if (status == NFNL_BATCH_DONE) {
 		ss->commit(oskb);
@@ -437,6 +444,7 @@ done:
 	nfnl_err_deliver(&err_list, oskb);
 	nfnl_unlock(subsys_id);
 	kfree_skb(nskb);
+	module_put(ss->owner);
 }
 
 static void nfnetlink_rcv(struct sk_buff *skb)
