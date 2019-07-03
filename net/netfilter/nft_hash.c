@@ -294,7 +294,7 @@ schedule:
 			   nft_set_gc_interval(set));
 }
 
-static unsigned int nft_hash_privsize(const struct nlattr * const nla[])
+static u64 nft_hash_privsize(const struct nlattr * const nla[])
 {
 	return sizeof(struct nft_hash);
 }
