@@ -3405,7 +3405,7 @@ no_sleep:
  * sv.
  */
 int
-_xfs_log_force_lsn(
+xfs_log_force_lsn(
 	struct xfs_mount	*mp,
 	xfs_lsn_t		lsn,
 	uint			flags,
@@ -3418,6 +3418,7 @@ _xfs_log_force_lsn(
 	ASSERT(lsn != 0);
 
 	XFS_STATS_INC(mp, xs_log_force);
+	trace_xfs_log_force(mp, lsn, _RET_IP_);
 
 	lsn = xlog_cil_force_lsn(log, lsn);
 	if (lsn == NULLCOMMITLSN)
@@ -3512,21 +3513,6 @@ try_again:
 
 	spin_unlock(&log->l_icloglock);
 	return 0;
-}
-
-/*
- * Wrapper for _xfs_log_force_lsn(), to be used when caller doesn't care
- * about errors or whether the log was flushed or not. This is the normal
- * interface to use when trying to unpin items or move the log forward.
- */
-void
-xfs_log_force_lsn(
-	xfs_mount_t	*mp,
-	xfs_lsn_t	lsn,
-	uint		flags)
-{
-	trace_xfs_log_force(mp, lsn, _RET_IP_);
-	_xfs_log_force_lsn(mp, lsn, flags, NULL);
 }
 
 /*
