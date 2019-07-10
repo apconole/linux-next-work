@@ -725,8 +725,7 @@ EXPORT_SYMBOL_GPL(sk_unattached_filter_destroy);
  * occurs or there is insufficient memory for the filter a negative
  * errno code is returned. On success the return is zero.
  */
-int __sk_attach_filter(struct sock_fprog *fprog, struct sock *sk,
-		       bool locked)
+int sk_attach_filter(struct sock_fprog *fprog, struct sock *sk)
 {
 	struct sk_filter *fp, *old_fp;
 	unsigned int fsize = sizeof(struct sock_filter) * fprog->len;
@@ -756,20 +755,17 @@ int __sk_attach_filter(struct sock_fprog *fprog, struct sock *sk,
 		return err;
 	}
 
-	old_fp = rcu_dereference_protected(sk->sk_filter, locked);
+	old_fp = rcu_dereference_protected(sk->sk_filter,
+					   lockdep_sock_is_held(sk));
 	rcu_assign_pointer(sk->sk_filter, fp);
+
 	if (old_fp)
 		sk_filter_uncharge(sk, old_fp);
 	return 0;
 }
-EXPORT_SYMBOL_GPL(__sk_attach_filter);
+EXPORT_SYMBOL_GPL(sk_attach_filter);
 
-int sk_attach_filter(struct sock_fprog *fprog, struct sock *sk)
-{
-	return __sk_attach_filter(fprog, sk, sock_owned_by_user(sk));
-}
-
-int __sk_detach_filter(struct sock *sk, bool locked)
+int sk_detach_filter(struct sock *sk)
 {
 	int ret = -ENOENT;
 	struct sk_filter *filter;
@@ -777,7 +773,8 @@ int __sk_detach_filter(struct sock *sk, bool locked)
 	if (sock_flag(sk, SOCK_FILTER_LOCKED))
 		return -EPERM;
 
-	filter = rcu_dereference_protected(sk->sk_filter, locked);
+	filter = rcu_dereference_protected(sk->sk_filter,
+					   lockdep_sock_is_held(sk));
 	if (filter) {
 		RCU_INIT_POINTER(sk->sk_filter, NULL);
 		sk_filter_uncharge(sk, filter);
@@ -785,12 +782,7 @@ int __sk_detach_filter(struct sock *sk, bool locked)
 	}
 	return ret;
 }
-EXPORT_SYMBOL_GPL(__sk_detach_filter);
-
-int sk_detach_filter(struct sock *sk)
-{
-	return __sk_detach_filter(sk, sock_owned_by_user(sk));
-}
+EXPORT_SYMBOL_GPL(sk_detach_filter);
 
 void sk_decode_filter(struct sock_filter *filt, struct sock_filter *to)
 {
@@ -877,7 +869,7 @@ int sk_get_filter(struct sock *sk, struct sock_filter __user *ubuf, unsigned int
 
 	lock_sock(sk);
 	filter = rcu_dereference_protected(sk->sk_filter,
-			sock_owned_by_user(sk));
+					   lockdep_sock_is_held(sk));
 	ret = 0;
 	if (!filter)
 		goto out;
