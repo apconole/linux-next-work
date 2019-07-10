@@ -238,8 +238,6 @@ xfs_btree_check_sptr(
  * Check that a given (indexed) btree pointer at a certain level of a
  * btree is valid and doesn't point past where it should.
  */
-#ifdef DEBUG
-
 static int
 xfs_btree_check_ptr(
 	struct xfs_btree_cur	*cur,
@@ -260,6 +258,7 @@ xfs_btree_check_ptr(
 	return 0;
 }
 
+#ifdef DEBUG
 # define xfs_btree_debug_check_ptr	xfs_btree_check_ptr
 #else
 # define xfs_btree_debug_check_ptr(...)	(0)
@@ -924,22 +923,30 @@ xfs_btree_readahead(
 	return xfs_btree_readahead_sblock(cur, lr, block);
 }
 
-STATIC xfs_daddr_t
+STATIC int
 xfs_btree_ptr_to_daddr(
 	struct xfs_btree_cur	*cur,
-	union xfs_btree_ptr	*ptr)
+	union xfs_btree_ptr	*ptr,
+	xfs_daddr_t		*daddr)
 {
+	xfs_fsblock_t		fsbno;
+	xfs_agblock_t		agbno;
+	int			error;
+
+	error = xfs_btree_check_ptr(cur, ptr, 0, 1);
+	if (error)
+		return error;
+
 	if (cur->bc_flags & XFS_BTREE_LONG_PTRS) {
-		ASSERT(ptr->l != cpu_to_be64(NULLFSBLOCK));
-
-		return XFS_FSB_TO_DADDR(cur->bc_mp, be64_to_cpu(ptr->l));
+		fsbno = be64_to_cpu(ptr->l);
+		*daddr = XFS_FSB_TO_DADDR(cur->bc_mp, fsbno);
 	} else {
-		ASSERT(cur->bc_private.a.agno != NULLAGNUMBER);
-		ASSERT(ptr->s != cpu_to_be32(NULLAGBLOCK));
-
-		return XFS_AGB_TO_DADDR(cur->bc_mp, cur->bc_private.a.agno,
-					be32_to_cpu(ptr->s));
+		agbno = be32_to_cpu(ptr->s);
+		*daddr = XFS_AGB_TO_DADDR(cur->bc_mp, cur->bc_private.a.agno,
+				agbno);
 	}
+
+	return 0;
 }
 
 /*
@@ -954,8 +961,11 @@ xfs_btree_readahead_ptr(
 	union xfs_btree_ptr	*ptr,
 	xfs_extlen_t		count)
 {
-	xfs_buf_readahead(cur->bc_mp->m_ddev_targp,
-			  xfs_btree_ptr_to_daddr(cur, ptr),
+	xfs_daddr_t		daddr;
+
+	if (xfs_btree_ptr_to_daddr(cur, ptr, &daddr))
+		return;
+	xfs_buf_readahead(cur->bc_mp->m_ddev_targp, daddr,
 			  cur->bc_mp->m_bsize * count, cur->bc_ops->buf_ops);
 }
 
@@ -1212,11 +1222,14 @@ xfs_btree_get_buf_block(
 {
 	struct xfs_mount	*mp = cur->bc_mp;
 	xfs_daddr_t		d;
+	int			error;
 
 	/* need to sort out how callers deal with failures first */
 	ASSERT(!(flags & XBF_TRYLOCK));
 
-	d = xfs_btree_ptr_to_daddr(cur, ptr);
+	error = xfs_btree_ptr_to_daddr(cur, ptr, &d);
+	if (error)
+		return error;
 	*bpp = xfs_trans_get_buf(cur->bc_tp, mp->m_ddev_targp, d,
 				 mp->m_bsize, flags);
 
@@ -1247,7 +1260,9 @@ xfs_btree_read_buf_block(
 	/* need to sort out how callers deal with failures first */
 	ASSERT(!(flags & XBF_TRYLOCK));
 
-	d = xfs_btree_ptr_to_daddr(cur, ptr);
+	error = xfs_btree_ptr_to_daddr(cur, ptr, &d);
+	if (error)
+		return error;
 	error = xfs_trans_read_buf(mp, cur->bc_tp, mp->m_ddev_targp, d,
 				   mp->m_bsize, flags, bpp,
 				   cur->bc_ops->buf_ops);
@@ -1721,6 +1736,7 @@ xfs_btree_lookup_get_block(
 	struct xfs_btree_block	**blkp) /* return btree block */
 {
 	struct xfs_buf		*bp;	/* buffer pointer for btree block */
+	xfs_daddr_t		daddr;
 	int			error = 0;
 
 	/* special case the root block if in an inode */
@@ -1737,7 +1753,10 @@ xfs_btree_lookup_get_block(
 	 * Otherwise throw it away and get a new one.
 	 */
 	bp = cur->bc_bufs[level];
-	if (bp && XFS_BUF_ADDR(bp) == xfs_btree_ptr_to_daddr(cur, pp)) {
+	error = xfs_btree_ptr_to_daddr(cur, pp, &daddr);
+	if (error)
+		return error;
+	if (bp && XFS_BUF_ADDR(bp) == daddr) {
 		*blkp = XFS_BUF_TO_BLOCK(bp);
 		return 0;
 	}
