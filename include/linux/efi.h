@@ -1313,7 +1313,11 @@ extern void efi_call_virt_check_flags(unsigned long flags, const char *call);
 ({									\
 	efi_status_t __s;						\
 	unsigned long __flags;						\
+	unsigned long __flags_orig;					\
 	bool ibrs_on;							\
+									\
+	/* RHEL7-ONLY: Block local interrupts while using efi_pgt */	\
+	local_irq_save(__flags_orig);					\
 									\
 	ibrs_on = arch_efi_call_virt_setup();				\
 									\
@@ -1323,13 +1327,20 @@ extern void efi_call_virt_check_flags(unsigned long flags, const char *call);
 									\
 	arch_efi_call_virt_teardown(ibrs_on);				\
 									\
+	/* RHEL7-ONLY: Back to task pgt, so restore local interrupts */	\
+	local_irq_restore(__flags_orig);				\
+									\
 	__s;								\
 })
 
 #define __efi_call_virt_pointer(p, f, args...)				\
 ({									\
 	unsigned long __flags;						\
+	unsigned long __flags_orig;					\
 	bool ibrs_on;							\
+									\
+	/* RHEL7-ONLY: Block local interrupts while using efi_pgt */	\
+	local_irq_save(__flags_orig);					\
 									\
 	ibrs_on = arch_efi_call_virt_setup();				\
 									\
@@ -1338,6 +1349,10 @@ extern void efi_call_virt_check_flags(unsigned long flags, const char *call);
 	efi_call_virt_check_flags(__flags, __stringify(f));		\
 									\
 	arch_efi_call_virt_teardown(ibrs_on);				\
+									\
+	/* RHEL7-ONLY: Back to task pgt, so restore local interrupts */	\
+	local_irq_restore(__flags_orig);				\
+									\
 })
 
 /*
