@@ -329,7 +329,7 @@ xfs_btree_sblock_verify_crc(
 
 	if (xfs_sb_version_hascrc(&mp->m_sb)) {
 		if (!xfs_log_check_lsn(mp, be64_to_cpu(block->bb_u.s.bb_lsn)))
-			return false;
+			return __this_address;
 		return xfs_buf_verify_cksum(bp, XFS_BTREE_SBLOCK_CRC_OFF);
 	}
 
@@ -4248,7 +4248,7 @@ xfs_btree_change_owner(
  * @max_recs: pointer to the m_*_mxr max records field in the xfs mount
  * @pag_max_level: pointer to the per-ag max level field
  */
-bool
+xfs_failaddr_t
 xfs_btree_sblock_v5hdr_verify(
 	struct xfs_buf		*bp)
 {
@@ -4257,14 +4257,14 @@ xfs_btree_sblock_v5hdr_verify(
 	struct xfs_perag	*pag = bp->b_pag;
 
 	if (!xfs_sb_version_hascrc(&mp->m_sb))
-		return false;
+		return __this_address;
 	if (!uuid_equal(&block->bb_u.s.bb_uuid, &mp->m_sb.sb_meta_uuid))
-		return false;
+		return __this_address;
 	if (block->bb_u.s.bb_blkno != cpu_to_be64(bp->b_bn))
-		return false;
+		return __this_address;
 	if (pag && be32_to_cpu(block->bb_u.s.bb_owner) != pag->pag_agno)
-		return false;
-	return true;
+		return __this_address;
+	return NULL;
 }
 
 /**
@@ -4273,7 +4273,7 @@ xfs_btree_sblock_v5hdr_verify(
  * @bp: buffer containing the btree block
  * @max_recs: maximum records allowed in this btree node
  */
-bool
+xfs_failaddr_t
 xfs_btree_sblock_verify(
 	struct xfs_buf		*bp,
 	unsigned int		max_recs)
@@ -4283,19 +4283,19 @@ xfs_btree_sblock_verify(
 
 	/* numrecs verification */
 	if (be16_to_cpu(block->bb_numrecs) > max_recs)
-		return false;
+		return __this_address;
 
 	/* sibling pointer verification */
 	if (!block->bb_u.s.bb_leftsib ||
 	    (be32_to_cpu(block->bb_u.s.bb_leftsib) >= mp->m_sb.sb_agblocks &&
 	     block->bb_u.s.bb_leftsib != cpu_to_be32(NULLAGBLOCK)))
-		return false;
+		return __this_address;
 	if (!block->bb_u.s.bb_rightsib ||
 	    (be32_to_cpu(block->bb_u.s.bb_rightsib) >= mp->m_sb.sb_agblocks &&
 	     block->bb_u.s.bb_rightsib != cpu_to_be32(NULLAGBLOCK)))
-		return false;
+		return __this_address;
 
-	return true;
+	return NULL;
 }
 
 /*
