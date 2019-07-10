@@ -157,12 +157,25 @@ xfs_init_local_fork(
 	int			size)
 {
 	struct xfs_ifork	*ifp = XFS_IFORK_PTR(ip, whichfork);
-	int			real_size = 0;
+	int			mem_size = size, real_size = 0;
+	bool			zero_terminate;
+
+	/*
+	 * If we are using the local fork to store a symlink body we need to
+	 * zero-terminate it so that we can pass it back to the VFS directly.
+	 * Overallocate the in-memory fork by one for that and add a zero
+	 * to terminate it below.
+	 */
+	zero_terminate = S_ISLNK(VFS_I(ip)->i_mode);
+	if (zero_terminate)
+		mem_size++;
 
 	if (size) {
-		real_size = roundup(size, 4);
+		real_size = roundup(mem_size, 4);
 		ifp->if_u1.if_data = kmem_alloc(real_size, KM_SLEEP | KM_NOFS);
 		memcpy(ifp->if_u1.if_data, data, size);
+		if (zero_terminate)
+			ifp->if_u1.if_data[size] = '\0';
 	} else {
 		ifp->if_u1.if_data = NULL;
 	}
