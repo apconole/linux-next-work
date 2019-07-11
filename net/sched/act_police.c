@@ -166,8 +166,6 @@ static int tcf_act_police_init(struct net *net, struct nlattr *nla,
 		police->peak_present = false;
 	}
 
-	if (tb[TCA_POLICE_RESULT])
-		police->tcfp_result = nla_get_u32(tb[TCA_POLICE_RESULT]);
 	police->tcfp_burst = PSCHED_TICKS2NS(parm->burst);
 	police->tcfp_toks = police->tcfp_burst;
 	if (police->peak_present) {
@@ -179,6 +177,18 @@ static int tcf_act_police_init(struct net *net, struct nlattr *nla,
 
 	if (tb[TCA_POLICE_AVRATE])
 		police->tcfp_ewma_rate = nla_get_u32(tb[TCA_POLICE_AVRATE]);
+
+	if (tb[TCA_POLICE_RESULT]) {
+		int tcfp_result = nla_get_u32(tb[TCA_POLICE_RESULT]);
+		if (TC_ACT_EXT_CMP(tcfp_result, TC_ACT_GOTO_CHAIN)) {
+			NL_SET_ERR_MSG(extack,
+				       "goto chain not allowed on fallback");
+			err = -EINVAL;
+			spin_unlock_bh(&police->tcf_lock);
+			goto failure;
+		}
+		police->tcfp_result = tcfp_result;
+	}
 
 	spin_unlock_bh(&police->tcf_lock);
 	if (ret != ACT_P_CREATED)
