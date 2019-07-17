@@ -95,7 +95,7 @@ device_initcall(ipc_init);
  * @ids: ipc identifier set
  *
  * Set up the sequence range to use for the ipc identifier range (limited
- * below IPCMNI) then initialise the ids idr.
+ * below ipc_mni) then initialise the ids idr.
  */
 void ipc_init_ids(struct ipc_ids *ids)
 {
@@ -222,7 +222,7 @@ static inline int ipc_idr_alloc(struct ipc_ids *ids, struct kern_ipc_perm *new)
 				0, GFP_NOWAIT);
 	}
 	if (idx >= 0)
-		new->id = SEQ_MULTIPLIER * new->seq + idx;
+		new->id = (new->seq << IPCMNI_SEQ_SHIFT) + idx;
 	return idx;
 }
 
@@ -245,8 +245,8 @@ int ipc_addid(struct ipc_ids *ids, struct kern_ipc_perm *new, int limit)
 	kgid_t egid;
 	int idx;
 
-	if (limit > IPCMNI)
-		limit = IPCMNI;
+	if (limit > ipc_mni)
+		limit = ipc_mni;
 
 	if (ids->in_use >= limit)
 		return -ENOSPC;
@@ -774,7 +774,7 @@ static struct kern_ipc_perm *sysvipc_find_ipc(struct ipc_ids *ids, loff_t pos,
 	if (total >= ids->in_use)
 		return NULL;
 
-	for (; pos < IPCMNI; pos++) {
+	for (; pos < ipc_mni; pos++) {
 		ipc = idr_find(&ids->ipcs_idr, pos);
 		if (ipc != NULL) {
 			*new_pos = pos + 1;
