@@ -155,11 +155,6 @@ extern int store_msg(void __user *dest, struct msg_msg *msg, size_t len);
 
 extern void recompute_msgmni(struct ipc_namespace *);
 
-static inline int ipc_buildid(int id, int seq)
-{
-	return SEQ_MULTIPLIER * seq + id;
-}
-
 static inline int ipc_checkid(struct kern_ipc_perm *ipcp, int uid)
 {
 	return uid / SEQ_MULTIPLIER != ipcp->seq;

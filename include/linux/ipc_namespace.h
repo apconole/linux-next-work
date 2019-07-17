@@ -14,7 +14,9 @@ struct ipc_ids {
 	unsigned short seq;
 	struct rw_semaphore rwsem;
 	struct idr ipcs_idr;
+#ifdef CONFIG_CHECKPOINT_RESTORE
 	int next_id;
+#endif
 };
 
 struct ipc_namespace {
