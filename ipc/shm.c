@@ -873,7 +873,7 @@ static int shmctl_nolock(struct ipc_namespace *ns, int shmid,
 			return -EFAULT;
 
 		down_read(&shm_ids(ns).rwsem);
-		err = ipc_get_maxid(&shm_ids(ns));
+		err = ipc_get_maxidx(&shm_ids(ns));
 		up_read(&shm_ids(ns).rwsem);
 
 		if (err < 0)
@@ -891,7 +891,7 @@ static int shmctl_nolock(struct ipc_namespace *ns, int shmid,
 		shm_info.shm_tot = ns->shm_tot;
 		shm_info.swap_attempts = 0;
 		shm_info.swap_successes = 0;
-		err = ipc_get_maxid(&shm_ids(ns));
+		err = ipc_get_maxidx(&shm_ids(ns));
 		up_read(&shm_ids(ns).rwsem);
 		if (copy_to_user(buf, &shm_info, sizeof(shm_info))) {
 			err = -EFAULT;

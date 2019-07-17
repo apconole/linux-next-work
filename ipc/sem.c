@@ -1158,7 +1158,7 @@ static int semctl_nolock(struct ipc_namespace *ns, int semid,
 	case SEM_INFO:
 	{
 		struct seminfo seminfo;
-		int max_id;
+		int max_idx;
 
 		err = security_sem_semctl(NULL, cmd);
 		if (err)
@@ -1181,11 +1181,11 @@ static int semctl_nolock(struct ipc_namespace *ns, int semid,
 			seminfo.semusz = SEMUSZ;
 			seminfo.semaem = SEMAEM;
 		}
-		max_id = ipc_get_maxid(&sem_ids(ns));
+		max_idx = ipc_get_maxidx(&sem_ids(ns));
 		up_read(&sem_ids(ns).rwsem);
 		if (copy_to_user(p, &seminfo, sizeof(struct seminfo))) 
 			return -EFAULT;
-		return (max_id < 0) ? 0 : max_id;
+		return (max_idx < 0) ? 0 : max_idx;
 	}
 	case IPC_STAT:
 	case SEM_STAT:

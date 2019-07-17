@@ -446,7 +446,7 @@ static int msgctl_nolock(struct ipc_namespace *ns, int msqid,
 	case MSG_INFO:
 	{
 		struct msginfo msginfo;
-		int max_id;
+		int max_idx;
 
 		if (!buf)
 			return -EFAULT;
@@ -476,11 +476,11 @@ static int msgctl_nolock(struct ipc_namespace *ns, int msqid,
 			msginfo.msgpool = MSGPOOL;
 			msginfo.msgtql = MSGTQL;
 		}
-		max_id = ipc_get_maxid(&msg_ids(ns));
+		max_idx = ipc_get_maxidx(&msg_ids(ns));
 		up_read(&msg_ids(ns).rwsem);
 		if (copy_to_user(buf, &msginfo, sizeof(struct msginfo)))
 			return -EFAULT;
-		return (max_id < 0) ? 0 : max_id;
+		return (max_idx < 0) ? 0 : max_idx;
 	}
 
 	case MSG_STAT:
