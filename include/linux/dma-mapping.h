@@ -76,6 +76,7 @@ struct dma_map_ops {
 	RH_KABI_EXTEND(void (*unmap_resource)(struct device *dev, dma_addr_t dma_handle,
 			   size_t size, enum dma_data_direction dir,
 			   struct dma_attrs *attrs))
+	RH_KABI_EXTEND(size_t (*max_mapping_size)(struct device *dev))
 };
 
 extern struct dma_map_ops dma_noop_ops;
@@ -441,6 +442,16 @@ static inline void dma_free_attrs(struct device *dev, size_t size,
 
 	debug_dma_free_coherent(dev, size, cpu_addr, dma_handle);
 	ops->free(dev, size, cpu_addr, dma_handle, attrs);
+}
+
+static inline size_t dma_max_mapping_size(struct device *dev)
+{
+	struct dma_map_ops *ops = get_dma_ops(dev);
+
+	BUG_ON(!ops);
+	if (ops->max_mapping_size)
+		return ops->max_mapping_size(dev);
+	return 0;
 }
 
 static inline void *dma_alloc_coherent(struct device *dev, size_t size,
