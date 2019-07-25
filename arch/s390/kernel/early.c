@@ -28,6 +28,7 @@
 #include <asm/cpcmd.h>
 #include <asm/sclp.h>
 #include <asm/facility.h>
+#include <asm/uv.h>
 #include "entry.h"
 
 /*
@@ -497,12 +498,13 @@ void __init startup_init(void)
 	ipl_save_parameters();
 	rescue_initrd();
 	clear_bss_section();
+	setup_facility_list();
+	uv_query_info();
 	ptff_init();
 	init_kernel_storage_key();
 	lockdep_init();
 	lockdep_off();
 	setup_lowcore_early();
-	setup_facility_list();
 	detect_machine_type();
 	ipl_update_parameters();
 	setup_boot_command_line();
