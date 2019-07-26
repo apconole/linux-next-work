@@ -5449,7 +5449,7 @@ static unsigned long __meminit zone_spanned_pages_in_node(int nid,
 					unsigned long *zone_end_pfn,
 					unsigned long *ignored)
 {
-	/* When hotadd a new node, the node should be empty */
+	/* When hotadd a new node from cpu_up(), the node should be empty */
 	if (!node_start_pfn && !node_end_pfn)
 		return 0;
 
@@ -5517,7 +5517,7 @@ static unsigned long __meminit zone_absent_pages_in_node(int nid,
 	unsigned long zone_start_pfn, zone_end_pfn;
 	unsigned long nr_absent;
 
-	/* When hotadd a new node, the node should be empty */
+	/* When hotadd a new node from cpu_up(), the node should be empty */
 	if (!node_start_pfn && !node_end_pfn)
 		return 0;
 
