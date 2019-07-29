@@ -2455,13 +2455,13 @@ static inline void __update_group_entity_contrib(struct sched_entity *se)
 		se->avg.load_avg_contrib >>= NICE_0_SHIFT;
 	}
 }
-#else
+#else /* CONFIG_FAIR_GROUP_SCHED */
 static inline void __update_cfs_rq_tg_load_contrib(struct cfs_rq *cfs_rq,
 						 int force_update) {}
 static inline void __update_tg_runnable_avg(struct sched_avg *sa,
 						  struct cfs_rq *cfs_rq) {}
 static inline void __update_group_entity_contrib(struct sched_entity *se) {}
-#endif
+#endif /* CONFIG_FAIR_GROUP_SCHED */
 
 static inline void __update_task_entity_contrib(struct sched_entity *se)
 {
@@ -2651,6 +2651,8 @@ void idle_exit_fair(struct rq *this_rq)
 	update_rq_runnable_avg(this_rq, 0);
 }
 
+static int idle_balance(struct rq *this_rq);
+
 #else /* CONFIG_SMP */
 
 static inline void update_entity_load_avg(struct sched_entity *se,
@@ -2664,6 +2666,12 @@ static inline void dequeue_entity_load_avg(struct cfs_rq *cfs_rq,
 					   int sleep) {}
 static inline void update_cfs_rq_blocked_load(struct cfs_rq *cfs_rq,
 					      int force_update) {}
+
+static inline int idle_balance(struct rq *rq)
+{
+	return 0;
+}
+
 #endif /* CONFIG_SMP */
 
 static void enqueue_sleeper(struct cfs_rq *cfs_rq, struct sched_entity *se)
@@ -4900,7 +4908,7 @@ pick_next_task_fair(struct rq *rq, struct task_struct *prev)
 	struct sched_entity *se;
 	struct task_struct *p;
 
-again: __maybe_unused
+again:
 #ifdef CONFIG_FAIR_GROUP_SCHED
 	if (!cfs_rq->nr_running)
 		goto idle;
@@ -4998,18 +5006,8 @@ simple:
 	return p;
 
 idle:
-#ifdef CONFIG_SMP
-	idle_enter_fair(rq);
-	/*
-	 * We must set idle_stamp _before_ calling idle_balance(), such that we
-	 * measure the duration of idle_balance() as idle time.
-	 */
-	rq->idle_stamp = rq_clock(rq);
-	if (idle_balance(rq)) { /* drops rq->lock */
-		rq->idle_stamp = 0;
+	if (idle_balance(rq)) /* drops rq->lock */
 		goto again;
-	}
-#endif
 
 	return NULL;
 }
@@ -6971,7 +6969,7 @@ update_next_balance(struct sched_domain *sd, int cpu_busy, unsigned long *next_b
  * idle_balance is called by schedule() if this_cpu is about to become
  * idle. Attempts to pull tasks from other CPUs.
  */
-int idle_balance(struct rq *this_rq)
+static int idle_balance(struct rq *this_rq)
 {
 	unsigned long next_balance = jiffies + HZ;
 	struct sched_domain *sd;
@@ -6979,6 +6977,11 @@ int idle_balance(struct rq *this_rq)
 	u64 curr_cost = 0;
 	int this_cpu = this_rq->cpu;
 
+	idle_enter_fair(this_rq);
+	/*
+	 * We must set idle_stamp _before_ calling idle_balance(), such that we
+	 * measure the duration of idle_balance() as idle time.
+	 */
 	this_rq->idle_stamp = rq_clock(this_rq);
 
 	if (this_rq->avg_idle < sysctl_sched_migration_cost ||
@@ -7038,20 +7041,25 @@ int idle_balance(struct rq *this_rq)
 
 	raw_spin_lock(&this_rq->lock);
 
-out:
 	/*
 	 * While browsing the domains, we released the rq lock.
 	 * A task could have be enqueued in the meantime
 	 */
-	if (this_rq->nr_running && !pulled_task)
-		return 1;
+	if (this_rq->nr_running && !pulled_task) {
+		pulled_task = 1;
+		goto out;
+	}
 
+out:
 	/* Move the next balance forward */
 	if (time_after(this_rq->next_balance, next_balance))
 		this_rq->next_balance = next_balance;
 
 	if (curr_cost > this_rq->max_idle_balance_cost)
 		this_rq->max_idle_balance_cost = curr_cost;
+
+	if (pulled_task)
+		this_rq->idle_stamp = 0;
 
 	return pulled_task;
 }
