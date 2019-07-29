@@ -433,6 +433,7 @@ static inline int has_pushable_dl_tasks(struct rq *rq)
 }
 
 static int push_dl_task(struct rq *rq);
+static int pull_dl_task(struct rq *this_rq);
 
 static struct rq *find_lock_later_rq(struct task_struct *task, struct rq *rq);
 
@@ -1589,6 +1590,11 @@ struct task_struct *pick_next_task_dl(struct rq *rq, struct task_struct *prev)
 
 	dl_rq = &rq->dl;
 
+#ifdef CONFIG_SMP
+	if (dl_task(prev))
+		pull_dl_task(rq);
+#endif
+
 	if (unlikely(!dl_rq->dl_nr_running))
 		return NULL;
 
@@ -2035,13 +2041,6 @@ skip:
 	return ret;
 }
 
-static void pre_schedule_dl(struct rq *rq, struct task_struct *prev)
-{
-	/* Try to pull other tasks here */
-	if (dl_task(prev))
-		pull_dl_task(rq);
-}
-
 static void post_schedule_dl(struct rq *rq)
 {
 	push_dl_tasks(rq);
@@ -2290,7 +2289,6 @@ const struct sched_class dl_sched_class = {
 	.set_cpus_allowed       = set_cpus_allowed_dl,
 	.rq_online              = rq_online_dl,
 	.rq_offline             = rq_offline_dl,
-	.pre_schedule		= pre_schedule_dl,
 	.post_schedule		= post_schedule_dl,
 	.task_woken		= task_woken_dl,
 #endif
