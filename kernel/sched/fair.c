@@ -6851,7 +6851,7 @@ update_next_balance(struct sched_domain *sd, int cpu_busy, unsigned long *next_b
  * idle_balance is called by schedule() if this_cpu is about to become
  * idle. Attempts to pull tasks from other CPUs.
  */
-void idle_balance(struct rq *this_rq)
+int idle_balance(struct rq *this_rq)
 {
 	unsigned long next_balance = jiffies + HZ;
 	struct sched_domain *sd;
@@ -6911,10 +6911,8 @@ void idle_balance(struct rq *this_rq)
 		 * Stop searching for tasks to pull if there are
 		 * now runnable tasks on this rq.
 		 */
-		if (pulled_task || this_rq->nr_running > 0) {
-			this_rq->idle_stamp = 0;
+		if (pulled_task || this_rq->nr_running > 0)
 			break;
-		}
 	}
 	rcu_read_unlock();
 
@@ -6926,7 +6924,7 @@ out:
 	 * A task could have be enqueued in the meantime
 	 */
 	if (this_rq->nr_running && !pulled_task)
-		return;
+		return 1;
 
 	/* Move the next balance forward */
 	if (time_after(this_rq->next_balance, next_balance))
@@ -6934,6 +6932,8 @@ out:
 
 	if (curr_cost > this_rq->max_idle_balance_cost)
 		this_rq->max_idle_balance_cost = curr_cost;
+
+	return pulled_task;
 }
 
 /*
