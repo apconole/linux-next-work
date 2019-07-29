@@ -1341,6 +1341,11 @@ static inline void idle_enter_fair(struct rq *this_rq) {}
 static inline void idle_exit_fair(struct rq *this_rq) {}
 #endif
 
+#else
+
+static inline void idle_enter_fair(struct rq *rq) { }
+static inline void idle_exit_fair(struct rq *rq) { }
+
 #endif
 
 extern void sysrq_sched_debug_show(void);
