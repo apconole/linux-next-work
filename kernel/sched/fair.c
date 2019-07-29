@@ -6921,6 +6921,13 @@ void idle_balance(struct rq *this_rq)
 	raw_spin_lock(&this_rq->lock);
 
 out:
+	/*
+	 * While browsing the domains, we released the rq lock.
+	 * A task could have be enqueued in the meantime
+	 */
+	if (this_rq->nr_running && !pulled_task)
+		return;
+
 	/* Move the next balance forward */
 	if (time_after(this_rq->next_balance, next_balance))
 		this_rq->next_balance = next_balance;
