@@ -8,6 +8,7 @@ obj-$(CONFIG_ARCH_HAS_CPU_RELAX)        += poll_state.o
 
 obj-$(CONFIG_CPU_IDLE_CALXEDA) += cpuidle-calxeda.o
 obj-$(CONFIG_ARCH_KIRKWOOD) += cpuidle-kirkwood.o
+obj-$(CONFIG_HALTPOLL_CPUIDLE) += cpuidle-haltpoll.o
 
 ###############################################################################
 # POWERPC drivers
