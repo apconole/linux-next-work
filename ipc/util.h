@@ -146,7 +146,7 @@ int ipcperms(struct ipc_namespace *ns, struct kern_ipc_perm *ipcp, short flg);
  * both function can sleep
  */
 void *ipc_alloc(int size);
-void ipc_free(void *ptr, int size);
+void ipc_free(void *ptr);
 
 /**
  * ipc_get_maxidx - get the highest assigned index
