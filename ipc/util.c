@@ -445,29 +445,6 @@ void ipc_rmid(struct ipc_ids *ids, struct kern_ipc_perm *ipcp)
 }
 
 /**
- * ipc_alloc -	allocate ipc space
- * @size: size desired
- *
- * Allocate memory from the appropriate pools and return a pointer to it.
- * NULL is returned if the allocation fails
- */
-void *ipc_alloc(int size)
-{
-	return kvmalloc(size, GFP_KERNEL);
-}
-
-/**
- * ipc_free - free ipc space
- * @ptr: pointer returned by ipc_alloc
- *
- * Free a block created with ipc_alloc().
- */
-void ipc_free(void *ptr)
-{
-	kvfree(ptr);
-}
-
-/**
  * ipc_rcu_alloc - allocate ipc and rcu space
  * @size: size desired
  *
@@ -479,7 +456,7 @@ void *ipc_rcu_alloc(int size)
 	/*
 	 * We prepend the allocation with the rcu struct
 	 */
-	struct ipc_rcu *out = ipc_alloc(sizeof(struct ipc_rcu) + size);
+	struct ipc_rcu *out = kvmalloc(sizeof(struct ipc_rcu) + size, GFP_KERNEL);
 	if (unlikely(!out))
 		return NULL;
 	atomic_set(&out->refcount, 1);
