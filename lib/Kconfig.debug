@@ -1560,6 +1560,25 @@ config ATOMIC64_SELFTEST
 	help
 	  Enable this option to test the atomic64_t functions at boot.
 
+config TEST_LIVEPATCH
+	tristate "Test livepatching"
+	default n
+	depends on LIVEPATCH
+	depends on m
+	help
+	  Test kernel livepatching features for correctness.  The tests will
+	  load test modules that will be livepatched in various scenarios.
+
+	  To run all the livepatching tests:
+
+	  make -C tools/testing/selftests TARGETS=livepatch run_tests
+
+	  Alternatively, individual tests may be invoked:
+
+	  tools/testing/selftests/livepatch/test-callbacks.sh
+	  tools/testing/selftests/livepatch/test-livepatch.sh
+	  tools/testing/selftests/livepatch/test-shadow-vars.sh
+
 	  If unsure, say N.
 
 config ASYNC_RAID6_TEST
