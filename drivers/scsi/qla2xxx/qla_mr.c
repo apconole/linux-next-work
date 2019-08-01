@@ -1321,6 +1321,7 @@ qlafx00_configure_devices(scsi_qla_host_t *vha)
 {
 	int  rval;
 	unsigned long flags;
+
 	rval = QLA_SUCCESS;
 
 	flags = vha->dpc_flags;
@@ -3322,6 +3323,7 @@ qlafx00_fxdisc_iocb(srb_t *sp, struct fxdisc_entry_fx00 *pfxiocb)
 		fx_iocb.flags = fxio->u.fxiocb.flags;
 	} else {
 		struct scatterlist *sg;
+
 		bsg_job = sp->u.bsg_job;
 		piocb_rqst = (struct qla_mt_iocb_rqst_fx00 *)
 			&bsg_job->request->rqst_data.h_vendor.vendor_cmd[1];
