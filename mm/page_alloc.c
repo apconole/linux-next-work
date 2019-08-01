@@ -7312,6 +7312,7 @@ static int __alloc_contig_migrate_range(struct compact_control *cc,
  *			#MIGRATE_MOVABLE or #MIGRATE_CMA).  All pageblocks
  *			in range must have the same migratetype and it must
  *			be either of the two.
+ * @gfp_mask:	GFP mask to use during compaction
  *
  * The PFN range does not have to be pageblock or MAX_ORDER_NR_PAGES
  * aligned, however it's the caller's responsibility to guarantee that
@@ -7325,7 +7326,7 @@ static int __alloc_contig_migrate_range(struct compact_control *cc,
  * need to be freed with free_contig_range().
  */
 int alloc_contig_range(unsigned long start, unsigned long end,
-		       unsigned migratetype)
+		       unsigned migratetype, gfp_t gfp_mask)
 {
 	unsigned long outer_start, outer_end;
 	int ret = 0, order;
@@ -7336,6 +7337,7 @@ int alloc_contig_range(unsigned long start, unsigned long end,
 		.zone = page_zone(pfn_to_page(start)),
 		.sync = true,
 		.ignore_skip_hint = true,
+		.gfp_mask = memalloc_noio_flags(gfp_mask),
 	};
 	INIT_LIST_HEAD(&cc.migratepages);
 
