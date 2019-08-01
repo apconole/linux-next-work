@@ -49,6 +49,7 @@ static struct pcpu_chunk *pcpu_create_chunk(void)
 {
 	const int nr_pages = pcpu_group_sizes[0] >> PAGE_SHIFT;
 	struct pcpu_chunk *chunk;
+	unsigned long flags;
 	struct page *pages;
 	int i;
 
@@ -68,9 +69,9 @@ static struct pcpu_chunk *pcpu_create_chunk(void)
 	chunk->data = pages;
 	chunk->base_addr = page_address(pages) - pcpu_group_offsets[0];
 
-	spin_lock_irq(&pcpu_lock);
+	spin_lock_irqsave(&pcpu_lock, flags);
 	pcpu_chunk_populated(chunk, 0, nr_pages);
-	spin_unlock_irq(&pcpu_lock);
+	spin_unlock_irqrestore(&pcpu_lock, flags);
 
 	return chunk;
 }
