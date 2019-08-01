@@ -976,7 +976,7 @@ alloc_and_fill:
 			/* add new list to cmd iocb or last list */
 			*cur_dsd++ = cpu_to_le32(LSD(dsd_ptr->dsd_list_dma));
 			*cur_dsd++ = cpu_to_le32(MSD(dsd_ptr->dsd_list_dma));
-			*cur_dsd++ = dsd_list_len;
+			*cur_dsd++ = cpu_to_le32(dsd_list_len);
 			cur_dsd = (uint32_t *)next_dsd;
 		}
 		*cur_dsd++ = cpu_to_le32(LSD(sle_dma));
@@ -1079,7 +1079,7 @@ qla24xx_walk_and_build_sglist(struct qla_hw_data *ha, srb_t *sp, uint32_t *dsd,
 			/* add new list to cmd iocb or last list */
 			*cur_dsd++ = cpu_to_le32(LSD(dsd_ptr->dsd_list_dma));
 			*cur_dsd++ = cpu_to_le32(MSD(dsd_ptr->dsd_list_dma));
-			*cur_dsd++ = dsd_list_len;
+			*cur_dsd++ = cpu_to_le32(dsd_list_len);
 			cur_dsd = (uint32_t *)next_dsd;
 		}
 		sle_dma = sg_dma_address(sg);
@@ -1324,7 +1324,7 @@ qla24xx_walk_and_build_prot_sglist(struct qla_hw_data *ha, srb_t *sp,
 				    cpu_to_le32(LSD(dsd_ptr->dsd_list_dma));
 				*cur_dsd++ =
 				    cpu_to_le32(MSD(dsd_ptr->dsd_list_dma));
-				*cur_dsd++ = dsd_list_len;
+				*cur_dsd++ = cpu_to_le32(dsd_list_len);
 				cur_dsd = dsd_ptr->dsd_addr;
 			}
 			*cur_dsd++ = cpu_to_le32(LSD(dif_dsd->dsd_list_dma));
@@ -1385,7 +1385,7 @@ qla24xx_walk_and_build_prot_sglist(struct qla_hw_data *ha, srb_t *sp,
 				    cpu_to_le32(LSD(dsd_ptr->dsd_list_dma));
 				*cur_dsd++ =
 				    cpu_to_le32(MSD(dsd_ptr->dsd_list_dma));
-				*cur_dsd++ = dsd_list_len;
+				*cur_dsd++ = cpu_to_le32(dsd_list_len);
 				cur_dsd = dsd_ptr->dsd_addr;
 			}
 			sle_dma = sg_dma_address(sg);
