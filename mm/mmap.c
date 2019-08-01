@@ -871,9 +871,12 @@ int __vma_adjust(struct vm_area_struct *vma, unsigned long start,
 		 * shrinking vma had, to cover any anon pages imported.
 		 */
 		if (exporter && exporter->anon_vma && !importer->anon_vma) {
+			int error;
+
 			importer->anon_vma = exporter->anon_vma;
-			if (anon_vma_clone(importer, exporter))
-				return -ENOMEM;
+			error = anon_vma_clone(importer, exporter);
+			if (error)
+				return error;
 		}
 	}
 again:
@@ -2716,7 +2719,8 @@ int __split_vma(struct mm_struct *mm, struct vm_area_struct *vma,
 	if (err)
 		goto out_free_vma;
 
-	if (anon_vma_clone(new, vma))
+	err = anon_vma_clone(new, vma);
+	if (err)
 		goto out_free_mpol;
 
 	if (new->vm_file)
