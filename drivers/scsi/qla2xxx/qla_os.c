@@ -728,7 +728,7 @@ qla2x00_sp_free_dma(void *ptr)
 	}
 
 	if (!ctx)
-		goto end;
+		return;
 
 	if (sp->flags & SRB_CRC_CTX_DSD_VALID) {
 		/* List assured to be having elements */
@@ -753,12 +753,6 @@ qla2x00_sp_free_dma(void *ptr)
 		ha->gbl_dsd_avail += ctx1->dsd_use_cnt;
 		mempool_free(ctx1, ha->ctx_mempool);
 	}
-
-end:
-	if (sp->type != SRB_NVME_CMD && sp->type != SRB_NVME_LS) {
-		CMD_SP(cmd) = NULL;
-		qla2x00_rel_sp(sp);
-	}
 }
 
 void
@@ -766,6 +760,7 @@ qla2x00_sp_compl(void *ptr, int res)
 {
 	srb_t *sp = ptr;
 	struct scsi_cmnd *cmd = GET_CMD_SP(sp);
+	struct completion *comp = sp->comp;
 
 	if (atomic_read(&sp->ref_count) == 0) {
 		ql_dbg(ql_dbg_io, sp->vha, 0x3015,
@@ -775,12 +770,15 @@ qla2x00_sp_compl(void *ptr, int res)
 			WARN_ON(atomic_read(&sp->ref_count) == 0);
 		return;
 	}
-	if (!atomic_dec_and_test(&sp->ref_count))
-		return;
+
+	atomic_dec(&sp->ref_count);
 
 	sp->free(sp);
 	cmd->result = res;
 	cmd->scsi_done(cmd);
+	if (comp)
+		complete(comp);
+	qla2x00_rel_sp(sp);
 }
 
 void
@@ -803,7 +801,7 @@ qla2xxx_qpair_sp_free_dma(void *ptr)
 	}
 
 	if (!ctx)
-		goto end;
+		return;
 
 	if (sp->flags & SRB_CRC_CTX_DSD_VALID) {
 		/* List assured to be having elements */
@@ -865,10 +863,6 @@ qla2xxx_qpair_sp_free_dma(void *ptr)
 		dma_pool_free(ha->dl_dma_pool, ctx, ctx0->crc_ctx_dma);
 		sp->flags &= ~SRB_CRC_CTX_DMA_VALID;
 	}
-
-end:
-	CMD_SP(cmd) = NULL;
-	qla2xxx_rel_qpair_sp(sp->qpair, sp);
 }
 
 void
@@ -876,8 +870,7 @@ qla2xxx_qpair_sp_compl(void *ptr, int res)
 {
 	srb_t *sp = ptr;
 	struct scsi_cmnd *cmd = GET_CMD_SP(sp);
-
-	cmd->result = res;
+	struct completion *comp = sp->comp;
 
 	if (atomic_read(&sp->ref_count) == 0) {
 		ql_dbg(ql_dbg_io, sp->fcport->vha, 0x3079,
@@ -887,11 +880,16 @@ qla2xxx_qpair_sp_compl(void *ptr, int res)
 			WARN_ON(atomic_read(&sp->ref_count) == 0);
 		return;
 	}
-	if (!atomic_dec_and_test(&sp->ref_count))
-		return;
+
+	atomic_dec(&sp->ref_count);
 
 	sp->free(sp);
+	cmd->result = res;
+	CMD_SP(cmd) = NULL;
 	cmd->scsi_done(cmd);
+	if (comp)
+		complete(comp);
+	qla2xxx_rel_qpair_sp(sp->qpair, sp);
 }
 
 static int
@@ -1336,7 +1334,7 @@ qla2xxx_eh_abort(struct scsi_cmnd *cmd)
 	int ret;
 	unsigned int id, lun;
 	unsigned long flags;
-	int rval, wait = 0;
+	int rval;
 	struct qla_hw_data *ha = vha->hw;
 	struct qla_qpair *qpair;
 
@@ -1349,7 +1347,6 @@ qla2xxx_eh_abort(struct scsi_cmnd *cmd)
 	ret = fc_block_scsi_eh(cmd);
 	if (ret != 0)
 		return ret;
-	ret = SUCCESS;
 
 	sp = (srb_t *) CMD_SP(cmd);
 	if (!sp)
@@ -1360,7 +1357,7 @@ qla2xxx_eh_abort(struct scsi_cmnd *cmd)
 		return SUCCESS;
 
 	spin_lock_irqsave(qpair->qp_lock_ptr, flags);
-	if (!CMD_SP(cmd)) {
+	if (sp->type != SRB_SCSI_CMD || GET_CMD_SP(sp) != cmd) {
 		/* there's a chance an interrupt could clear
 		   the ptr as part of done & free */
 		spin_unlock_irqrestore(qpair->qp_lock_ptr, flags);
@@ -1381,58 +1378,31 @@ qla2xxx_eh_abort(struct scsi_cmnd *cmd)
 	    "Aborting from RISC nexus=%ld:%d:%u sp=%p cmd=%p handle=%x\n",
 	    vha->host_no, id, lun, sp, cmd, sp->handle);
 
-	/* Get a reference to the sp and drop the lock.*/
-
 	rval = ha->isp_ops->abort_command(sp);
-	if (rval) {
-		if (rval == QLA_FUNCTION_PARAMETER_ERROR)
-			ret = SUCCESS;
-		else
-			ret = FAILED;
+	ql_dbg(ql_dbg_taskm, vha, 0x8003,
+	       "Abort command mbx cmd=%p, rval=%x.\n", cmd, rval);
 
-		ql_dbg(ql_dbg_taskm, vha, 0x8003,
-		    "Abort command mbx failed cmd=%p, rval=%x.\n", cmd, rval);
-	} else {
-		ql_dbg(ql_dbg_taskm, vha, 0x8004,
-		    "Abort command mbx success cmd=%p.\n", cmd);
-		wait = 1;
-	}
-
-	spin_lock_irqsave(qpair->qp_lock_ptr, flags);
-	/*
-	 * Clear the slot in the oustanding_cmds array if we can't find the
-	 * command to reclaim the resources.
-	 */
-	if (rval == QLA_FUNCTION_PARAMETER_ERROR)
-		vha->req->outstanding_cmds[sp->handle] = NULL;
-
-	/*
-	 * sp->done will do ref_count--
-	 * sp_get() took an extra count above
-	 */
-	sp->done(sp, DID_RESET << 16);
-
-	/* Did the command return during mailbox execution? */
-	if (ret == FAILED && !CMD_SP(cmd))
+	switch (rval) {
+	case QLA_SUCCESS:
+		/*
+		 * The command has been aborted. That means that the firmware
+		 * won't report a completion.
+		 */
+		sp->done(sp, DID_ABORT << 16);
 		ret = SUCCESS;
-
-	if (!CMD_SP(cmd))
-		wait = 0;
-
-	spin_unlock_irqrestore(qpair->qp_lock_ptr, flags);
-
-	/* Wait for the command to be returned. */
-	if (wait) {
-		if (qla2x00_eh_wait_on_command(cmd) != QLA_SUCCESS) {
-			ql_log(ql_log_warn, vha, 0x8006,
-			    "Abort handler timed out cmd=%p.\n", cmd);
-			ret = FAILED;
-		}
+		break;
+	default:
+		/*
+		 * Either abort failed or abort and completion raced. Let
+		 * the SCSI core retry the abort in the former case.
+		 */
+		ret = FAILED;
+		break;
 	}
 
 	ql_log(ql_log_info, vha, 0x801c,
-	    "Abort command issued nexus=%ld:%d:%d --  %d %x.\n",
-	    vha->host_no, id, lun, wait, ret);
+	    "Abort command issued nexus=%ld:%d:%d -- %x.\n",
+	    vha->host_no, id, lun, ret);
 
 	return ret;
 }
@@ -1806,34 +1776,34 @@ static void qla2x00_abort_srb(struct qla_qpair *qp, srb_t *sp, const int res,
 	__releases(qp->qp_lock_ptr)
 	__acquires(qp->qp_lock_ptr)
 {
+	DECLARE_COMPLETION_ONSTACK(comp);
 	scsi_qla_host_t *vha = qp->vha;
 	struct qla_hw_data *ha = vha->hw;
+	int rval;
 
-	if (sp->type == SRB_NVME_CMD || sp->type == SRB_NVME_LS) {
-		if (!sp_get(sp)) {
-			/* got sp */
-			spin_unlock_irqrestore(qp->qp_lock_ptr, *flags);
-			qla_nvme_abort(ha, sp, res);
-			spin_lock_irqsave(qp->qp_lock_ptr, *flags);
+	if (sp_get(sp))
+		return;
+
+	if (sp->type == SRB_NVME_CMD || sp->type == SRB_NVME_LS ||
+	    (sp->type == SRB_SCSI_CMD && !ha->flags.eeh_busy &&
+	     !test_bit(ABORT_ISP_ACTIVE, &vha->dpc_flags) &&
+	     !qla2x00_isp_reg_stat(ha))) {
+		sp->comp = &comp;
+		rval = ha->isp_ops->abort_command(sp);
+		spin_unlock_irqrestore(qp->qp_lock_ptr, *flags);
+
+		switch (rval) {
+		case QLA_SUCCESS:
+			sp->done(sp, res);
+			break;
+		case QLA_FUNCTION_PARAMETER_ERROR:
+			wait_for_completion(&comp);
+			break;
 		}
-	} else if (GET_CMD_SP(sp) && !ha->flags.eeh_busy &&
-		   !test_bit(ABORT_ISP_ACTIVE, &vha->dpc_flags) &&
-		   !qla2x00_isp_reg_stat(ha) && sp->type == SRB_SCSI_CMD) {
-		/*
-		 * Don't abort commands in adapter during EEH recovery as it's
-		 * not accessible/responding.
-		 *
-		 * Get a reference to the sp and drop the lock. The reference
-		 * ensures this sp->done() call and not the call in
-		 * qla2xxx_eh_abort() ends the SCSI cmd (with result 'res').
-		 */
-		if (!sp_get(sp)) {
-			spin_unlock_irqrestore(qp->qp_lock_ptr, *flags);
-			qla2xxx_eh_abort(GET_CMD_SP(sp));
-			spin_lock_irqsave(qp->qp_lock_ptr, *flags);
-		}
+
+		spin_lock_irqsave(qp->qp_lock_ptr, *flags);
+		sp->comp = NULL;
 	}
-	sp->done(sp, res);
 }
 
 static void
