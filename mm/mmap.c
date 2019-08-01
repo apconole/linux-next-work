@@ -2399,7 +2399,8 @@ int expand_upwards(struct vm_area_struct *vma, unsigned long address)
 		return -ENOMEM;
 	}
 	next = vma->vm_next;
-	if (next && next->vm_start < gap_addr) {
+	if (next && next->vm_start < gap_addr &&
+			(next->vm_flags & (VM_WRITE|VM_READ|VM_EXEC))) {
 		if (!(next->vm_flags & VM_GROWSUP)) {
 			vma_unlock_anon_vma(vma);
 			return -ENOMEM;
@@ -2478,7 +2479,8 @@ int expand_downwards(struct vm_area_struct *vma,
 		return -ENOMEM;
 	
 	prev = vma->vm_prev;
-	if (prev && prev->vm_end > gap_addr) {
+	if (prev && prev->vm_end > gap_addr &&
+			(prev->vm_flags & (VM_WRITE|VM_READ|VM_EXEC))) {
 		if (!(prev->vm_flags & VM_GROWSDOWN)) 
 			return -ENOMEM;
 		/* Check that both stack segments have the same anon_vma? */
