@@ -1257,6 +1257,8 @@ __lpfc_sli_release_iocbq_s4(struct lpfc_hba *phba, struct lpfc_iocbq *iocbq)
 
 	lockdep_assert_held(&phba->hbalock);
 
+	lockdep_assert_held(&phba->hbalock);
+
 	if (iocbq->sli4_xritag == NO_XRI)
 		sglq = NULL;
 	else
@@ -9042,6 +9044,8 @@ __lpfc_sli_issue_iocb_s3(struct lpfc_hba *phba, uint32_t ring_number,
 
 	lockdep_assert_held(&phba->hbalock);
 
+	lockdep_assert_held(&phba->hbalock);
+
 	if (piocb->iocb_cmpl && (!piocb->vport) &&
 	   (piocb->iocb.ulpCommand != CMD_ABORT_XRI_CN) &&
 	   (piocb->iocb.ulpCommand != CMD_CLOSE_XRI_CN)) {
@@ -9886,6 +9890,8 @@ __lpfc_sli_issue_iocb_s4(struct lpfc_hba *phba, uint32_t ring_number,
 	 */
 
 	lockdep_assert_held(&pring->ring_lock);
+
+	lockdep_assert_held(&phba->hbalock);
 
 	if (piocb->sli4_xritag == NO_XRI) {
 		if (piocb->iocb.ulpCommand == CMD_ABORT_XRI_CN ||
@@ -11159,6 +11165,8 @@ lpfc_sli_abort_iotag_issue(struct lpfc_hba *phba, struct lpfc_sli_ring *pring,
 	int retval;
 	unsigned long iflags;
 	struct lpfc_nodelist *ndlp;
+
+	lockdep_assert_held(&phba->hbalock);
 
 	lockdep_assert_held(&phba->hbalock);
 
