@@ -364,7 +364,7 @@ lpfc_sli4_eq_get(struct lpfc_queue *q)
  * @q: The Event Queue to disable interrupts
  *
  **/
-inline void
+void
 lpfc_sli4_eq_clr_intr(struct lpfc_queue *q)
 {
 	struct lpfc_register doorbell;
@@ -383,7 +383,7 @@ lpfc_sli4_eq_clr_intr(struct lpfc_queue *q)
  * @q: The Event Queue to disable interrupts
  *
  **/
-inline void
+void
 lpfc_sli4_if6_eq_clr_intr(struct lpfc_queue *q)
 {
 	struct lpfc_register doorbell;
