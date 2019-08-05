@@ -4321,8 +4321,10 @@ lpfc_scsi_cmd_iocb_cmpl(struct lpfc_hba *phba, struct lpfc_iocbq *pIocbIn,
 	 * wake up the thread.
 	 */
 	spin_lock_irqsave(shost->host_lock, flags);
-	if (lpfc_cmd->waitq)
+	if (lpfc_cmd->waitq) {
 		wake_up(lpfc_cmd->waitq);
+		lpfc_cmd->waitq = NULL;
+	}
 	spin_unlock_irqrestore(shost->host_lock, flags);
 
 	lpfc_release_scsi_buf(phba, lpfc_cmd);
