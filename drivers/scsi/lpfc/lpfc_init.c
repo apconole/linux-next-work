@@ -4121,7 +4121,7 @@ finished:
 	return stat;
 }
 
-void lpfc_host_supported_speeds_set(struct Scsi_Host *shost)
+static void lpfc_host_supported_speeds_set(struct Scsi_Host *shost)
 {
 	struct lpfc_vport *vport = (struct lpfc_vport *)shost->hostdata;
 	struct lpfc_hba   *phba = vport->phba;
