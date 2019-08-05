@@ -14546,6 +14546,9 @@ lpfc_sli4_queue_free(struct lpfc_queue *queue)
 	if (!queue)
 		return;
 
+	if (!list_empty(&queue->wq_list))
+		list_del(&queue->wq_list);
+
 	while (!list_empty(&queue->page_list)) {
 		list_remove_head(&queue->page_list, dmabuf, struct lpfc_dmabuf,
 				 list);
