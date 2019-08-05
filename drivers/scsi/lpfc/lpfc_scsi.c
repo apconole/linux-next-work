@@ -4321,9 +4321,9 @@ lpfc_scsi_cmd_iocb_cmpl(struct lpfc_hba *phba, struct lpfc_iocbq *pIocbIn,
 	 * wake up the thread.
 	 */
 	spin_lock_irqsave(shost->host_lock, flags);
+	lpfc_cmd->cur_iocbq.iocb_flag &= ~LPFC_DRIVER_ABORTED;
 	if (lpfc_cmd->waitq) {
 		wake_up(lpfc_cmd->waitq);
-		lpfc_cmd->waitq = NULL;
 	}
 	spin_unlock_irqrestore(shost->host_lock, flags);
 
@@ -5166,6 +5166,7 @@ wait_for_cmpl:
 				 iocb->sli4_xritag, ret,
 				 cmnd->device->id, cmnd->device->lun);
 	}
+
 	goto out;
 
 out_unlock:
