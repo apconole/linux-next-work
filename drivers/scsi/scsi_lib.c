@@ -1941,8 +1941,12 @@ out_put_budget:
 			ret = BLK_MQ_RQ_QUEUE_DEV_BUSY;
 		break;
 	case BLK_MQ_RQ_QUEUE_ERROR:
+		if (unlikely(!scsi_device_online(sdev)))
+			cmd->result = DID_NO_CONNECT << 16;
+		else
+			cmd->result = DID_ERROR << 16;
 		/*
-		 * Make sure to release all allocated ressources when
+		 * Make sure to release all allocated resources when
 		 * we hit an error, as we will never see this command
 		 * again.
 		 */
