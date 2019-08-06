@@ -1078,7 +1078,6 @@ int memory_failure(unsigned long pfn, int trapno, int flags)
 	}
 
 	p = pfn_to_page(pfn);
-	arch_unmap_kpfn(pfn);
 
 	orig_head = hpage = compound_head(p);
 	if (TestSetPageHWPoison(p)) {
