@@ -239,6 +239,27 @@ static inline void *unlock_slot(struct address_space *mapping, void **slot)
 	return (void *)entry;
 }
 
+static void wait_entry_unlocked(struct address_space *mapping, pgoff_t index,
+		void *entry)
+{
+	struct wait_exceptional_entry_queue ewait;
+	wait_queue_head_t *wq;
+
+	init_wait(&ewait.wait);
+	ewait.wait.func = wake_exceptional_entry_func;
+
+	wq = dax_entry_waitqueue(mapping, index, entry, &ewait.key);
+	prepare_to_wait_exclusive(wq, &ewait.wait, TASK_UNINTERRUPTIBLE);
+	spin_unlock_irq(&mapping->tree_lock);
+	rcu_read_unlock();
+	schedule();
+	rcu_read_lock();
+	finish_wait(wq, &ewait.wait);
+
+	if (waitqueue_active(wq))
+		__wake_up(wq, TASK_NORMAL, 1, &ewait.key);
+}
+
 /*
  * Lookup entry in radix tree, wait for it to become unlocked if it is
  * exceptional entry and return it. The caller must call
@@ -415,19 +436,6 @@ static struct page *dax_busy_page(void *entry)
 	return NULL;
 }
 
-static bool entry_wait_revalidate(void)
-{
-	rcu_read_unlock();
-	schedule();
-	rcu_read_lock();
-
-	/*
-	 * Tell __get_unlocked_mapping_entry() to take a break, we need
-	 * to revalidate page->mapping after dropping locks
-	 */
-	return true;
-}
-
 bool dax_lock_mapping_entry(struct page *page)
 {
 	pgoff_t index;
@@ -463,8 +471,8 @@ bool dax_lock_mapping_entry(struct page *page)
 		}
 		index = page->index;
 
-		entry = __get_unlocked_mapping_entry(mapping, index, &slot,
-				entry_wait_revalidate);
+		entry = __radix_tree_lookup(&mapping->page_tree, index, NULL,
+					    &slot);
 		if (!entry) {
 			spin_unlock_irq(&mapping->tree_lock);
 			break;
@@ -472,6 +480,10 @@ bool dax_lock_mapping_entry(struct page *page)
 			put_unlocked_mapping_entry(mapping, index, entry);
 			spin_unlock_irq(&mapping->tree_lock);
 			WARN_ON_ONCE(PTR_ERR(entry) != -EAGAIN);
+			continue;
+		} else if (slot_locked(mapping, slot)) {
+			/* drops mapping->tree_lock */
+			wait_entry_unlocked(mapping, index, entry);
 			continue;
 		}
 		lock_slot(mapping, slot);
