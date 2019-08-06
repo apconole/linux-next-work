@@ -2756,9 +2756,6 @@ static void sd_read_block_characteristics(struct scsi_disk *sdkp)
 	if (rot == 1) {
 		queue_flag_set_unlocked(QUEUE_FLAG_NONROT, sdkp->disk->queue);
 		queue_flag_clear_unlocked(QUEUE_FLAG_ADD_RANDOM, sdkp->disk->queue);
-	} else {
-		queue_flag_clear_unlocked(QUEUE_FLAG_NONROT, sdkp->disk->queue);
-		queue_flag_set_unlocked(QUEUE_FLAG_ADD_RANDOM, sdkp->disk->queue);
 	}
 
  out:
@@ -2860,6 +2857,15 @@ static int sd_revalidate_disk(struct gendisk *disk)
 	 */
 	if (sdkp->media_present) {
 		sd_read_capacity(sdkp, buffer);
+
+		/*
+		 * set the default to rotational.  All non-rotational devices
+		 * support the block characteristics VPD page, which will
+		 * cause this to be updated correctly and any device which
+		 * doesn't support it should be treated as rotational.
+		 */
+		queue_flag_clear_unlocked(QUEUE_FLAG_NONROT, q);
+		queue_flag_set_unlocked(QUEUE_FLAG_ADD_RANDOM, q);
 
 		if (scsi_device_supports_vpd(sdp)) {
 			sd_read_block_provisioning(sdkp);
