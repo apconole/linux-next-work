@@ -192,6 +192,7 @@
  */
 
 #define X86_FEATURE_RING3MWAIT	(7*32+ 0) /* Ring 3 MONITOR/MWAIT */
+#define X86_FEATURE_FENCE_SWAPGS_USER	(7*32+ 1) /* "" LFENCE in user entry SWAPGS path */
 #define X86_FEATURE_CPB		(7*32+ 2) /* AMD Core Performance Boost */
 #define X86_FEATURE_EPB		(7*32+ 3) /* IA32_ENERGY_PERF_BIAS support */
 #define X86_FEATURE_CAT_L3	(7*32+ 4) /* Cache Allocation Technology L3 */
@@ -202,6 +203,7 @@
 #define X86_FEATURE_PROC_FEEDBACK (7*32+ 9) /* AMD ProcFeedbackInterface */
 #define X86_FEATURE_SME		( 7*32+10) /* AMD Secure Memory Encryption */
 #define X86_FEATURE_MSR_SPEC_CTRL ( 7*32+11) /* "" MSR SPEC_CTRL is implemented */
+#define X86_FEATURE_FENCE_SWAPGS_KERNEL	(7*32+12) /* "" LFENCE in kernel entry SWAPGS path */
 #define X86_FEATURE_RETPOLINE_AMD (7*32+13) /* AMD Retpoline mitigation for Spectre variant 2 */
 #define X86_FEATURE_INTEL_PPIN	( 7*32+14) /* Intel Processor Inventory Number */
 #define X86_FEATURE_INTEL_PT	( 7*32+15) /* Intel Processor Trace */
