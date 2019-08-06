@@ -25,7 +25,8 @@
 #include "fabrics.h"
 #include <linux/nvme-fc-driver.h>
 #include <linux/nvme-fc.h>
-
+#include <scsi/scsi_device.h>
+#include <scsi/scsi_transport_fc.h>
 
 /* *************************** Data Structures/Defines ****************** */
 
