@@ -3408,7 +3408,7 @@ static void mem_cgroup_destroy_all_caches(struct mem_cgroup *memcg)
 	mutex_lock(&memcg_slab_mutex);
 	list_for_each_entry_safe(params, tmp, &memcg->memcg_slab_caches, list) {
 		cachep = memcg_params_to_cache(params);
-		kmem_cache_shrink(cachep);
+		__kmemcg_cache_deactivate(cachep);
 		if (atomic_read(&cachep->memcg_params->nr_pages) == 0)
 			memcg_kmem_destroy_cache(cachep);
 	}

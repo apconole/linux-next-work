@@ -114,6 +114,7 @@ struct kmem_cache *kmem_cache_create(const char *, size_t, size_t,
 #ifdef CONFIG_MEMCG_KMEM
 struct kmem_cache *kmem_cache_create_memcg(struct mem_cgroup *,
 					   struct kmem_cache *);
+void __kmemcg_cache_deactivate(struct kmem_cache *s);
 #endif
 void kmem_cache_destroy(struct kmem_cache *);
 int kmem_cache_shrink(struct kmem_cache *);
