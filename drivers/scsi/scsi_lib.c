@@ -701,6 +701,16 @@ static int __scsi_error_from_host_byte(struct scsi_cmnd *cmd, int result)
 	int error = 0;
 
 	switch(host_byte(result)) {
+	case DID_OK:
+		/*
+		 * Also check the other bytes than the status byte in result
+		 * to handle the case when a SCSI LLD sets result to
+		 * DRIVER_SENSE << 24 without setting SAM_STAT_CHECK_CONDITION.
+		 */
+		if (scsi_status_is_good(result) && (result & ~0xff) == 0)
+			error = 0;
+		error = -EIO;
+		break;
 	case DID_TRANSPORT_FAILFAST:
 		error = -ENOLINK;
 		break;
