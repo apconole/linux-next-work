@@ -10,8 +10,6 @@
 #include <linux/pkeys.h>
 #include <asm/spec_ctrl.h>
 #ifndef CONFIG_PARAVIRT
-#include <asm-generic/mm_hooks.h>
-
 static inline void paravirt_activate_mm(struct mm_struct *prev,
 					struct mm_struct *next)
 {
@@ -219,6 +217,17 @@ static inline bool is_64bit_mm(struct mm_struct *mm)
 	return false;
 }
 #endif
+
+static inline void arch_dup_mmap(struct mm_struct *oldmm,
+				 struct mm_struct *mm)
+{
+	paravirt_arch_dup_mmap(oldmm, mm);
+}
+
+static inline void arch_exit_mmap(struct mm_struct *mm)
+{
+	paravirt_arch_exit_mmap(mm);
+}
 
 static inline void arch_bprm_mm_init(struct mm_struct *mm,
 		struct vm_area_struct *vma)
