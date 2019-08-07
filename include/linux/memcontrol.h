@@ -520,6 +520,8 @@ memcg_kmem_newpage_charge(gfp_t gfp, struct mem_cgroup **memcg, int order)
 {
 	if (!memcg_kmem_enabled())
 		return true;
+	if (!(gfp & __GFP_ACCOUNT))
+		return true;
 
 	/*
 	 * __GFP_NOFAIL allocations will move on even if charging is not
