@@ -80,6 +80,10 @@ static inline void load_cr3(pgd_t *pgdir)
 	__load_cr3(__sme_pa(pgdir));
 }
 
+/*
+ * Init a new mm.  Used on mm copies, like at fork()
+ * and on mm's that are brand-new, like at execve().
+ */
 static inline int init_new_context(struct task_struct *tsk,
 				       struct mm_struct *mm)
 {
@@ -218,9 +222,23 @@ static inline bool is_64bit_mm(struct mm_struct *mm)
 }
 #endif
 
+static inline void arch_dup_pkeys(struct mm_struct *oldmm,
+				  struct mm_struct *mm)
+{
+#ifdef CONFIG_X86_INTEL_MEMORY_PROTECTION_KEYS
+	if (!cpu_feature_enabled(X86_FEATURE_OSPKE))
+		return;
+
+	/* Duplicate the oldmm pkey state in mm: */
+	mm->pkey_allocation_map = oldmm->pkey_allocation_map;
+	mm->execute_only_pkey   = oldmm->execute_only_pkey;
+#endif
+}
+
 static inline void arch_dup_mmap(struct mm_struct *oldmm,
 				 struct mm_struct *mm)
 {
+	arch_dup_pkeys(oldmm, mm);
 	paravirt_arch_dup_mmap(oldmm, mm);
 }
 
