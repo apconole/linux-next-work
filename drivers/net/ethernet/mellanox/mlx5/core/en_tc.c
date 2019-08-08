@@ -2500,6 +2500,7 @@ static int add_vlan_rewrite_action(struct mlx5e_priv *priv,
 				   struct mlx5e_tc_flow_parse_attr *parse_attr,
 				   u32 *action, struct netlink_ext_ack *extack)
 {
+	u8 match_prio_mask, match_prio_val;
 	void *headers_c, *headers_v;
 	int err;
 	struct tcf_pedit_key_ex pedit_key_ex = {
@@ -2529,8 +2530,11 @@ static int add_vlan_rewrite_action(struct mlx5e_priv *priv,
 		return -EOPNOTSUPP;
 	}
 
-	if (tcf_vlan_push_prio(a)) {
-		NL_SET_ERR_MSG_MOD(extack, "Setting VLAN prio is not supported");
+	match_prio_mask = MLX5_GET(fte_match_set_lyr_2_4, headers_c, first_prio);
+	match_prio_val = MLX5_GET(fte_match_set_lyr_2_4, headers_v, first_prio);
+	if (tcf_vlan_push_prio(a) != (match_prio_val & match_prio_mask)) {
+		NL_SET_ERR_MSG_MOD(extack,
+				   "Changing VLAN prio is not supported");
 		return -EOPNOTSUPP;
 	}
 
