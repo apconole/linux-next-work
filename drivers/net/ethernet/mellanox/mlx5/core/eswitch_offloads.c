@@ -1622,8 +1622,6 @@ int esw_offloads_init(struct mlx5_eswitch *esw, int nvports)
 {
 	int err;
 
-	mutex_init(&esw->fdb_table.offloads.fdb_prio_lock);
-
 	err = esw_offloads_steering_init(esw, nvports);
 	if (err)
 		return err;
