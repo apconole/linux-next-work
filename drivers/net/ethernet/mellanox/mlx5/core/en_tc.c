@@ -2604,7 +2604,6 @@ static int add_vlan_rewrite_action(struct mlx5e_priv *priv,
 	err = parse_tc_pedit_action(priv, (const struct tc_action *)&pedit_act,
 				    MLX5_FLOW_NAMESPACE_FDB, parse_attr, action, NULL);
 	*action |= MLX5_FLOW_CONTEXT_ACTION_MOD_HDR;
-	attr->split_count = attr->out_count;
 	return err;
 }
 
@@ -2658,13 +2657,43 @@ static int parse_tc_vlan_action(struct mlx5e_priv *priv,
 			*action |= MLX5_FLOW_CONTEXT_ACTION_VLAN_PUSH;
 		}
 	} else { /* action is TCA_VLAN_ACT_MODIFY */
-		return add_vlan_rewrite_action(priv, a, attr, parse_attr,
-					       action, extack);
+		int err;
+
+		err = add_vlan_rewrite_action(priv, a, attr, parse_attr,
+					      action, extack);
+		if (err)
+			return err;
+
+		attr->split_count = attr->out_count;
+		return err;
 	}
 
 	attr->total_vlan = vlan_idx + 1;
 
 	return 0;
+}
+
+static int
+add_vlan_prio_tag_rewrite_action(struct mlx5e_priv *priv,
+				 struct mlx5e_tc_flow_parse_attr *parse_attr,
+				 struct mlx5_esw_flow_attr * attr,
+				 u32 *action, struct netlink_ext_ack *extack)
+{
+	struct tcf_vlan vlan = {
+		.tcfv_push_vid = 0,
+		.tcfv_push_prio =
+			MLX5_GET(fte_match_set_lyr_2_4,
+				 get_match_headers_value(*action,
+							 &parse_attr->spec),
+				 first_prio) &
+			MLX5_GET(fte_match_set_lyr_2_4,
+				 get_match_headers_criteria(*action,
+							    &parse_attr->spec),
+				 first_prio),
+	};
+
+	return add_vlan_rewrite_action(priv, (struct tc_action *)&vlan,
+				       attr, parse_attr, action, extack);
 }
 
 static int parse_tc_fdb_actions(struct mlx5e_priv *priv, struct tcf_exts *exts,
@@ -2832,6 +2861,18 @@ static int parse_tc_fdb_actions(struct mlx5e_priv *priv, struct tcf_exts *exts,
 		}
 
 		return -EINVAL;
+	}
+
+	if (MLX5_CAP_GEN(esw->dev, prio_tag_required) &&
+	    action & MLX5_FLOW_CONTEXT_ACTION_VLAN_POP) {
+		/* For prio tag mode, replace vlan pop with rewrite vlan prio
+		 * tag rewrite.
+		 */
+		action &= ~MLX5_FLOW_CONTEXT_ACTION_VLAN_POP;
+		err = add_vlan_prio_tag_rewrite_action(priv, parse_attr, attr,
+						       &action, extack);
+		if (err)
+			return err;
 	}
 
 	/* in case all pedit actions are skipped, remove the MOD_HDR
