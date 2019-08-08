@@ -41,11 +41,6 @@
 #include "fs_core.h"
 #include "lib/devcom.h"
 
-enum {
-	FDB_FAST_PATH = 0,
-	FDB_SLOW_PATH
-};
-
 #define fdb_prio_table(esw, chain, prio, level) \
 	(esw)->fdb_table.offloads.fdb_prio[(chain)][(prio)][(level)]
 
