@@ -357,7 +357,10 @@ struct mlx5_ifc_flow_table_prop_layout_bits {
 	u8	   reformat_l3_tunnel_to_l2[0x1];
 	u8	   reformat_l2_to_l3_tunnel[0x1];
 	u8	   reformat_and_modify_action[0x1];
-	u8         reserved_at_15[0xb];
+	u8         reserved_at_15[0x3];
+	u8         termination_table[0x1];
+	u8         reserved_at_19[0x7];
+
 	u8         reserved_at_20[0x2];
 	u8         log_max_ft_size[0x6];
 	u8         log_max_modify_header_context[0x8];
@@ -7067,7 +7070,8 @@ struct mlx5_ifc_create_flow_table_out_bits {
 struct mlx5_ifc_flow_table_context_bits {
 	u8         reformat_en[0x1];
 	u8         decap_en[0x1];
-	u8         reserved_at_2[0x2];
+	u8         reserved_at_2[0x1];
+	u8         termination_table[0x1];
 	u8         table_miss_action[0x4];
 	u8         level[0x8];
 	u8         reserved_at_10[0x8];
