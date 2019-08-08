@@ -4348,11 +4348,35 @@ static int mlx5e_xdp(struct net_device *dev, struct netdev_xdp *xdp)
 	}
 }
 
+static int mlx5e_pf_get_phys_port_name(struct net_device *dev,
+					char *buf, size_t len)
+{
+	struct mlx5e_priv *priv = netdev_priv(dev);
+	struct mlx5_eswitch *esw;
+	unsigned int fn;
+	int ret;
+
+	esw = priv->mdev->priv.eswitch;
+	if (!esw || esw->mode != SRIOV_OFFLOADS)
+		return -EOPNOTSUPP;
+
+	fn = PCI_FUNC(priv->mdev->pdev->devfn);
+	if (fn >= MLX5_MAX_PORTS)
+		return -EOPNOTSUPP;
+
+	ret = snprintf(buf, len, "p%d", fn);
+	if (ret >= len)
+		return -EOPNOTSUPP;
+
+	return 0;
+}
+
 const struct net_device_ops mlx5e_netdev_ops = {
 	.ndo_size                = sizeof(struct net_device_ops),
 	.ndo_open                = mlx5e_open,
 	.ndo_stop                = mlx5e_close,
 	.ndo_start_xmit          = mlx5e_xmit,
+	.extended.ndo_get_phys_port_name  = mlx5e_pf_get_phys_port_name,
 	.extended.ndo_setup_tc_rh = mlx5e_setup_tc,
 	.ndo_select_queue        = mlx5e_select_queue,
 	.ndo_get_stats64         = mlx5e_get_stats,
