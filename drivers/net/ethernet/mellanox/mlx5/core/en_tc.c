@@ -2500,6 +2500,7 @@ static int add_vlan_rewrite_action(struct mlx5e_priv *priv,
 				   struct mlx5e_tc_flow_parse_attr *parse_attr,
 				   u32 *action, struct netlink_ext_ack *extack)
 {
+	void *headers_c, *headers_v;
 	int err;
 	struct tcf_pedit_key_ex pedit_key_ex = {
 		.htype = TCA_PEDIT_KEY_EX_HDR_TYPE_ETH,
@@ -2517,6 +2518,16 @@ static int add_vlan_rewrite_action(struct mlx5e_priv *priv,
 		.tcfp_keys = &pedit_key,
 		.tcfp_keys_ex = &pedit_key_ex,
 	};
+
+	headers_c = get_match_headers_criteria(*action, &parse_attr->spec);
+	headers_v = get_match_headers_value(*action, &parse_attr->spec);
+
+	if (!(MLX5_GET(fte_match_set_lyr_2_4, headers_c, cvlan_tag) &&
+	      MLX5_GET(fte_match_set_lyr_2_4, headers_v, cvlan_tag))) {
+		NL_SET_ERR_MSG_MOD(extack,
+				   "VLAN rewrite action must have VLAN protocol match");
+		return -EOPNOTSUPP;
+	}
 
 	if (tcf_vlan_push_prio(a)) {
 		NL_SET_ERR_MSG_MOD(extack, "Setting VLAN prio is not supported");
