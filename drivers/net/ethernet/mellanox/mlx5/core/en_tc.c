@@ -2270,6 +2270,55 @@ static bool csum_offload_supported(struct mlx5e_priv *priv,
 	return true;
 }
 
+struct ip_ttl_word {
+	__u8	ttl;
+	__u8	protocol;
+	__sum16	check;
+};
+
+struct ipv6_hoplimit_word {
+	__be16	payload_len;
+	__u8	nexthdr;
+	__u8	hop_limit;
+};
+
+static bool is_action_keys_supported(const struct tc_action *a, int nkeys)
+{
+	u32 mask, offset;
+	u8 htype;
+	int k;
+
+	for (k = 0; k < nkeys; k++) {
+		mask = ~tcf_pedit_mask(a, k);
+		offset = tcf_pedit_offset(a, k);
+		htype = tcf_pedit_htype(a, k);
+		/* For IPv4 & IPv6 header check 4 byte word,
+		 * to determine that modified fields
+		 * are NOT ttl & hop_limit only.
+		 */
+		if (htype == TCA_PEDIT_KEY_EX_HDR_TYPE_IP4) {
+			struct ip_ttl_word *ttl_word =
+				(struct ip_ttl_word *)&mask;
+
+			if (offset != offsetof(struct iphdr, ttl) ||
+			    ttl_word->protocol ||
+			    ttl_word->check) {
+				return true;
+			}
+		} else if (htype == TCA_PEDIT_KEY_EX_HDR_TYPE_IP6) {
+			struct ipv6_hoplimit_word *hoplimit_word =
+				(struct ipv6_hoplimit_word *)&mask;
+
+			if (offset != offsetof(struct ipv6hdr, payload_len) ||
+			    hoplimit_word->payload_len ||
+			    hoplimit_word->nexthdr) {
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
 static bool modify_header_match_supported(struct mlx5_flow_spec *spec,
 					  struct tcf_exts *exts,
 					  u32 actions2,
@@ -2278,10 +2327,9 @@ static bool modify_header_match_supported(struct mlx5_flow_spec *spec,
 	const struct tc_action *a;
 	bool modify_ip_header;
 	LIST_HEAD(actions);
-	u8 htype, ip_proto;
 	void *headers_v;
 	u16 ethertype;
-	int nkeys, i;
+	u8 ip_proto;
 
 	headers_v = get_match_headers_value(actions2, spec);
 	ethertype = MLX5_GET(fte_match_set_lyr_2_4, headers_v, ethertype);
@@ -2296,15 +2344,7 @@ static bool modify_header_match_supported(struct mlx5_flow_spec *spec,
 		if (!is_tcf_pedit(a))
 			continue;
 
-		nkeys = tcf_pedit_nkeys(a);
-		for (i = 0; i < nkeys; i++) {
-			htype = tcf_pedit_htype(a, i);
-			if (htype == TCA_PEDIT_KEY_EX_HDR_TYPE_IP4 ||
-			    htype == TCA_PEDIT_KEY_EX_HDR_TYPE_IP6) {
-				modify_ip_header = true;
-				break;
-			}
-		}
+		modify_ip_header = is_action_keys_supported(a, tcf_pedit_nkeys(a));
 	}
 
 	ip_proto = MLX5_GET(fte_match_set_lyr_2_4, headers_v, ip_protocol);
