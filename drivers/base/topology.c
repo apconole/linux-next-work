@@ -112,12 +112,18 @@ define_one_ro(core_id);
 define_siblings_show_func(sibling_cpumask);
 define_one_ro_named(thread_siblings, show_sibling_cpumask);
 define_one_ro_named(thread_siblings_list, show_sibling_cpumask_list);
+define_one_ro_named(core_cpus, show_sibling_cpumask);
+define_one_ro_named(core_cpus_list, show_sibling_cpumask_list);
 
 define_siblings_show_func(core_cpumask);
 define_one_ro_named(core_siblings, show_core_cpumask);
 define_one_ro_named(core_siblings_list, show_core_cpumask_list);
 define_one_ro_named(package_cpus, show_core_cpumask);
 define_one_ro_named(package_cpus_list, show_core_cpumask_list);
+
+define_siblings_show_func(die_cpumask);
+define_one_ro_named(die_cpus, show_die_cpumask);
+define_one_ro_named(die_cpus_list, show_die_cpumask_list);
 
 #ifdef CONFIG_SCHED_BOOK
 define_id_show_func(book_id);
@@ -141,8 +147,12 @@ static struct attribute *default_attrs[] = {
 	&dev_attr_core_id.attr,
 	&dev_attr_thread_siblings.attr,
 	&dev_attr_thread_siblings_list.attr,
+	&dev_attr_core_cpus.attr,
+	&dev_attr_core_cpus_list.attr,
 	&dev_attr_core_siblings.attr,
 	&dev_attr_core_siblings_list.attr,
+	&dev_attr_die_cpus.attr,
+	&dev_attr_die_cpus_list.attr,
 	&dev_attr_package_cpus.attr,
 	&dev_attr_package_cpus_list.attr,
 #ifdef CONFIG_SCHED_BOOK

@@ -125,6 +125,7 @@ extern const struct cpumask *cpu_coregroup_mask(int cpu);
 #define topology_logical_die_id(cpu)		(rh_cpu_data(cpu).logical_die_id
 #define topology_die_id(cpu)			(rh_cpu_data(cpu).cpu_die_id)
 #define topology_core_id(cpu)			(cpu_data(cpu).cpu_core_id)
+#define topology_die_cpumask(cpu)		(per_cpu(cpu_die_map, cpu))
 #define topology_core_cpumask(cpu)		(per_cpu(cpu_core_map, cpu))
 #define topology_sibling_cpumask(cpu)		(per_cpu(cpu_sibling_map, cpu))
 
