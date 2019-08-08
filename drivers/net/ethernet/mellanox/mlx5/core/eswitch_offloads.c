@@ -1622,6 +1622,12 @@ int esw_offloads_init(struct mlx5_eswitch *esw, int nvports)
 {
 	int err;
 
+	if (MLX5_CAP_ESW_FLOWTABLE_FDB(esw->dev, reformat) &&
+	    MLX5_CAP_ESW_FLOWTABLE_FDB(esw->dev, decap))
+		esw->offloads.encap = DEVLINK_ESWITCH_ENCAP_MODE_BASIC;
+	else
+		esw->offloads.encap = DEVLINK_ESWITCH_ENCAP_MODE_NONE;
+
 	err = esw_offloads_steering_init(esw, nvports);
 	if (err)
 		return err;
@@ -1665,6 +1671,7 @@ void esw_offloads_cleanup(struct mlx5_eswitch *esw, int nvports)
 	esw_offloads_devcom_cleanup(esw);
 	esw_offloads_unload_reps(esw, nvports);
 	esw_offloads_steering_cleanup(esw);
+	esw->offloads.encap = DEVLINK_ESWITCH_ENCAP_MODE_NONE;
 }
 
 static int esw_mode_from_devlink(u16 mode, u16 *mlx5_mode)
