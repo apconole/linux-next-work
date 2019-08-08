@@ -84,7 +84,6 @@ struct rh_cpuinfo_x86 {
 	/* Logical processor id: */
 	u16			logical_proc_id;
 	unsigned		initialized : 1;
-	u16			x86_max_dies;
 	u16			cpu_die_id;
 };
 
