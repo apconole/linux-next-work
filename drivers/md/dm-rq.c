@@ -243,7 +243,7 @@ static void free_rq_clone(struct request *clone)
 	 */
 	if (clone->q && clone->q->mq_ops)
 		/* stacked on blk-mq queue(s) */
-		tio->ti->type->release_clone_rq(clone);
+		tio->ti->type->release_clone_rq(clone, NULL);
 	else if (!md->queue->mq_ops)
 		/* request_fn queue stacked on request_fn queue(s) */
 		free_old_clone_request(md, clone);
@@ -652,7 +652,7 @@ static int map_request(struct dm_rq_target_io *tio)
 		if (r == DM_MAPIO_REMAPPED &&
 		    setup_clone(clone, rq, tio, GFP_ATOMIC)) {
 			/* -ENOMEM */
-			ti->type->release_clone_rq(clone);
+			ti->type->release_clone_rq(clone, &tio->info);
 			return DM_MAPIO_REQUEUE;
 		}
 	}
@@ -668,7 +668,7 @@ check_again:
 		ret = dm_dispatch_clone_request(clone, rq);
 		if (ret == BLK_MQ_RQ_QUEUE_BUSY) {
 			blk_rq_unprep_clone(clone);
-			tio->ti->type->release_clone_rq(clone);
+			tio->ti->type->release_clone_rq(clone, &tio->info);
 			tio->clone = NULL;
 			if (!rq->q->mq_ops)
 				r = DM_MAPIO_DELAY_REQUEUE;
