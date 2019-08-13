@@ -7069,7 +7069,8 @@ out:
 
 	/* Is there a task of a high priority class? */
 	if (this_rq->nr_running != this_rq->cfs.h_nr_running &&
-	    (this_rq->dl.dl_nr_running ||
+	    ((this_rq->stop && this_rq->stop->on_rq) ||
+	     this_rq->dl.dl_nr_running ||
 	     (this_rq->rt.rt_nr_running && !rt_rq_throttled(&this_rq->rt))))
 		pulled_task = -1;
 
