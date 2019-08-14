@@ -573,6 +573,21 @@ get_server_iovec(struct TCP_Server_Info *server, unsigned int nr_segs)
 	return new_iov;
 }
 
+static inline bool
+zero_credits(struct TCP_Server_Info *server)
+{
+	int val;
+
+	spin_lock(&server->req_lock);
+	val = server->credits + server->echo_credits + server->oplock_credits;
+	if (server->in_flight == 0 && val == 0) {
+		spin_unlock(&server->req_lock);
+		return true;
+	}
+	spin_unlock(&server->req_lock);
+	return false;
+}
+
 int
 cifs_readv_from_socket(struct TCP_Server_Info *server, struct kvec *iov_orig,
 		       unsigned int nr_segs, unsigned int to_read)
@@ -592,6 +607,12 @@ cifs_readv_from_socket(struct TCP_Server_Info *server, struct kvec *iov_orig,
 
 	for (total_read = 0; to_read; total_read += length, to_read -= length) {
 		try_to_freeze();
+
+		/* reconnect if no credits and no requests in flight */
+		if (zero_credits(server)) {
+			cifs_reconnect(server);
+			return -ECONNABORTED;
+		}
 
 		if (server_unresponsive(server)) {
 			total_read = -ECONNABORTED;
