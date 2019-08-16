@@ -919,15 +919,15 @@ static int gve_init_priv(struct gve_priv *priv, bool skip_describe_device)
 			"Could not get device information: err=%d\n", err);
 		goto err;
 	}
-	if (priv->dev->max_mtu > PAGE_SIZE) {
-		priv->dev->max_mtu = PAGE_SIZE;
+	if (priv->dev->extended->max_mtu > PAGE_SIZE) {
+		priv->dev->extended->max_mtu = PAGE_SIZE;
 		err = gve_adminq_set_mtu(priv, priv->dev->mtu);
 		if (err) {
 			netif_err(priv, drv, priv->dev, "Could not set mtu");
 			goto err;
 		}
 	}
-	priv->dev->mtu = priv->dev->max_mtu;
+	priv->dev->mtu = priv->dev->extended->max_mtu;
 	num_ntfy = pci_msix_vec_count(priv->pdev);
 	if (num_ntfy <= 0) {
 		dev_err(&priv->pdev->dev,
@@ -1137,7 +1137,7 @@ static int gve_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 	dev->hw_features |= NETIF_F_RXHASH;
 	dev->features = dev->hw_features;
 	dev->watchdog_timeo = 5 * HZ;
-	dev->min_mtu = ETH_MIN_MTU;
+	dev->extended->min_mtu = ETH_MIN_MTU;
 	netif_carrier_off(dev);
 
 	priv = netdev_priv(dev);

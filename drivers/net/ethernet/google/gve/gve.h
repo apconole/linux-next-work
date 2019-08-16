@@ -422,7 +422,7 @@ static inline bool gve_can_recycle_pages(struct net_device *dev)
 	/* We can't recycle the pages if we can't fit a packet into half a
 	 * page.
 	 */
-	return dev->max_mtu <= PAGE_SIZE / 2;
+	return dev->extended->max_mtu <= PAGE_SIZE / 2;
 }
 
 /* buffers */

@@ -307,7 +307,7 @@ int gve_adminq_describe_device(struct gve_priv *priv)
 		err = -EINVAL;
 		goto free_device_descriptor;
 	}
-	priv->dev->max_mtu = mtu;
+	priv->dev->extended->max_mtu = mtu;
 	priv->num_event_counters = be16_to_cpu(descriptor->counters);
 	ether_addr_copy(priv->dev->dev_addr, descriptor->mac);
 	mac = descriptor->mac;
