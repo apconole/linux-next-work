@@ -7,7 +7,7 @@
 #ifndef _GVE_ADMINQ_H
 #define _GVE_ADMINQ_H
 
-#include <linux/build_bug.h>
+#include "gve_size_assert.h"
 
 /* Admin queue opcodes */
 enum gve_adminq_opcodes {
@@ -47,7 +47,7 @@ enum gve_adminq_statuses {
 
 #define GVE_ADMINQ_DEVICE_DESCRIPTOR_VERSION 1
 
-/* All AdminQ command structs should be naturally packed. The static_assert
+/* All AdminQ command structs should be naturally packed. The GVE_ASSERT_SIZE
  * calls make sure this is the case at compile time.
  */
 
@@ -57,7 +57,7 @@ struct gve_adminq_describe_device {
 	__be32 available_length;
 };
 
-static_assert(sizeof(struct gve_adminq_describe_device) == 16);
+GVE_ASSERT_SIZE(struct, gve_adminq_describe_device, 16);
 
 struct gve_device_descriptor {
 	__be64 max_registered_pages;
@@ -75,14 +75,14 @@ struct gve_device_descriptor {
 	u8  reserved2[6];
 };
 
-static_assert(sizeof(struct gve_device_descriptor) == 40);
+GVE_ASSERT_SIZE(struct, gve_device_descriptor, 40);
 
 struct device_option {
 	__be32 option_id;
 	__be32 option_length;
 };
 
-static_assert(sizeof(struct device_option) == 8);
+GVE_ASSERT_SIZE(struct, device_option, 8);
 
 struct gve_adminq_configure_device_resources {
 	__be64 counter_array;
@@ -93,7 +93,7 @@ struct gve_adminq_configure_device_resources {
 	__be32 ntfy_blk_msix_base_idx;
 };
 
-static_assert(sizeof(struct gve_adminq_configure_device_resources) == 32);
+GVE_ASSERT_SIZE(struct, gve_adminq_configure_device_resources, 32);
 
 struct gve_adminq_register_page_list {
 	__be32 page_list_id;
@@ -101,13 +101,13 @@ struct gve_adminq_register_page_list {
 	__be64 page_address_list_addr;
 };
 
-static_assert(sizeof(struct gve_adminq_register_page_list) == 16);
+GVE_ASSERT_SIZE(struct, gve_adminq_register_page_list, 16);
 
 struct gve_adminq_unregister_page_list {
 	__be32 page_list_id;
 };
 
-static_assert(sizeof(struct gve_adminq_unregister_page_list) == 4);
+GVE_ASSERT_SIZE(struct, gve_adminq_unregister_page_list, 4);
 
 struct gve_adminq_create_tx_queue {
 	__be32 queue_id;
@@ -118,7 +118,7 @@ struct gve_adminq_create_tx_queue {
 	__be32 ntfy_id;
 };
 
-static_assert(sizeof(struct gve_adminq_create_tx_queue) == 32);
+GVE_ASSERT_SIZE(struct, gve_adminq_create_tx_queue, 32);
 
 struct gve_adminq_create_rx_queue {
 	__be32 queue_id;
@@ -132,7 +132,7 @@ struct gve_adminq_create_rx_queue {
 	u8 padding[4];
 };
 
-static_assert(sizeof(struct gve_adminq_create_rx_queue) == 48);
+GVE_ASSERT_SIZE(struct, gve_adminq_create_rx_queue, 48);
 
 /* Queue resources that are shared with the device */
 struct gve_queue_resources {
@@ -145,19 +145,19 @@ struct gve_queue_resources {
 	};
 };
 
-static_assert(sizeof(struct gve_queue_resources) == 64);
+GVE_ASSERT_SIZE(struct, gve_queue_resources, 64);
 
 struct gve_adminq_destroy_tx_queue {
 	__be32 queue_id;
 };
 
-static_assert(sizeof(struct gve_adminq_destroy_tx_queue) == 4);
+GVE_ASSERT_SIZE(struct, gve_adminq_destroy_tx_queue, 4);
 
 struct gve_adminq_destroy_rx_queue {
 	__be32 queue_id;
 };
 
-static_assert(sizeof(struct gve_adminq_destroy_rx_queue) == 4);
+GVE_ASSERT_SIZE(struct, gve_adminq_destroy_rx_queue, 4);
 
 /* GVE Set Driver Parameter Types */
 enum gve_set_driver_param_types {
@@ -170,7 +170,7 @@ struct gve_adminq_set_driver_parameter {
 	__be64 parameter_value;
 };
 
-static_assert(sizeof(struct gve_adminq_set_driver_parameter) == 16);
+GVE_ASSERT_SIZE(struct, gve_adminq_set_driver_parameter, 16);
 
 union gve_adminq_command {
 	struct {
@@ -192,7 +192,7 @@ union gve_adminq_command {
 	u8 reserved[64];
 };
 
-static_assert(sizeof(union gve_adminq_command) == 64);
+GVE_ASSERT_SIZE(union, gve_adminq_command, 64);
 
 int gve_adminq_alloc(struct device *dev, struct gve_priv *priv);
 void gve_adminq_free(struct device *dev, struct gve_priv *priv);
