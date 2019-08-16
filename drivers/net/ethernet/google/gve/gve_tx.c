@@ -481,7 +481,7 @@ netdev_tx_t gve_tx(struct sk_buff *skb, struct net_device *dev)
 	/* give packets to NIC */
 	tx->req += nsegs;
 
-	if (!netif_xmit_stopped(tx->netdev_txq) && netdev_xmit_more())
+	if (!netif_xmit_stopped(tx->netdev_txq) && skb->xmit_more)
 		return NETDEV_TX_OK;
 
 	/* Ensure tx descs are visible before ringing doorbell */
