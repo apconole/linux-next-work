@@ -607,15 +607,6 @@ void blk_mq_complete_request(struct request *rq, int error)
 }
 EXPORT_SYMBOL(blk_mq_complete_request);
 
-void blk_mq_complete_request_sync(struct request *rq, int error)
-{
-	if (!blk_mark_rq_complete(rq)) {
-		rq->errors = error;
-		__blk_mq_complete_request(rq, true);
-	}
-}
-EXPORT_SYMBOL_GPL(blk_mq_complete_request_sync);
-
 int blk_mq_request_started(struct request *rq)
 {
 	return test_bit(REQ_ATOM_STARTED, &rq->atomic_flags);
