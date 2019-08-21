@@ -153,7 +153,7 @@ void __init efi_call_phys_epilog(pgd_t *save_pgd)
 	early_code_mapping_set_exec(0);
 }
 
-static pgd_t *efi_pgd;
+EXPORT_SYMBOL_GPL(efi_mm);
 
 /*
  * We need our own copy of the higher levels of the page tables
@@ -163,7 +163,7 @@ static pgd_t *efi_pgd;
  */
 int __init efi_alloc_page_tables(void)
 {
-	pgd_t *pgd;
+	pgd_t *pgd, *efi_pgd;
 	pud_t *pud;
 	gfp_t gfp_mask;
 
@@ -185,6 +185,7 @@ int __init efi_alloc_page_tables(void)
 
 	pgd_populate(NULL, pgd, pud);
 
+	efi_mm.pgd = efi_pgd;
 	mm_init_cpumask(&efi_mm);
 	init_new_context(NULL, &efi_mm);
 
@@ -199,6 +200,7 @@ void efi_sync_low_kernel_mappings(void)
 	unsigned num_entries;
 	pgd_t *pgd_k, *pgd_efi;
 	pud_t *pud_k, *pud_efi;
+	pgd_t *efi_pgd = efi_mm.pgd;
 
 	if (efi_enabled(EFI_OLD_MEMMAP))
 		return;
@@ -249,7 +251,7 @@ int __init efi_setup_page_tables(unsigned long pa_memmap, unsigned num_pages)
 	unsigned long pfn, text, pf;
 	unsigned npages;
 	struct page *page;
-	pgd_t *pgd;
+	pgd_t *pgd = efi_mm.pgd;
 
 	if (efi_enabled(EFI_OLD_MEMMAP))
 		return 0;
@@ -259,8 +261,7 @@ int __init efi_setup_page_tables(unsigned long pa_memmap, unsigned num_pages)
 	 * this value is loaded into cr3 the PGD will be decrypted during
 	 * the pagetable walk.
 	 */
-	efi_scratch.efi_pgt = (pgd_t *)__sme_pa(efi_pgd);
-	pgd = efi_pgd;
+	efi_scratch.efi_pgt = (pgd_t *)__sme_pa(pgd);
 
 	/*
 	 * It can happen that the physical address of new_memmap lands in memory
@@ -309,7 +310,7 @@ static void __init __map_region(efi_memory_desc_t *md, u64 va)
 {
 	unsigned long flags = _PAGE_RW;
 	unsigned long pfn;
-	pgd_t *pgd = efi_pgd;
+	pgd_t *pgd = efi_mm.pgd;
 
 	if (!(md->attribute & EFI_MEMORY_WB))
 		flags |= _PAGE_PCD;
