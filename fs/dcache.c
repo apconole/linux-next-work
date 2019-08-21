@@ -501,6 +501,27 @@ void __d_drop(struct dentry *dentry)
 }
 EXPORT_SYMBOL(__d_drop);
 
+static void __d_hash_move(struct dentry *dentry, struct hlist_bl_head *new)
+{
+	if (!d_unhashed(dentry)) {
+		struct hlist_bl_head *b;
+
+		if (unlikely(IS_ROOT(dentry)))
+			b = &dentry->d_sb->s_anon;
+		else
+			b = d_hash(dentry->d_parent, dentry->d_name.hash);
+
+		hlist_bl_lock(b);
+		__hlist_bl_del(&dentry->d_hash);
+		hlist_bl_unlock(b);
+		dentry_rcuwalk_invalidate(dentry);
+	}
+	hlist_bl_lock(new);
+	hlist_bl_add_head_rcu(&dentry->d_hash, new);
+	hlist_bl_unlock(new);
+}
+
+
 void d_drop(struct dentry *dentry)
 {
 	spin_lock(&dentry->d_lock);
@@ -2602,17 +2623,17 @@ static void __d_move(struct dentry *dentry, struct dentry *target,
 	 * Move the dentry to the target hash queue. Don't bother checking
 	 * for the same hash queue because of how unlikely it is.
 	 */
-	__d_drop(dentry);
-	__d_rehash(dentry, d_hash(target->d_parent, target->d_name.hash));
+	__d_hash_move(dentry, d_hash(target->d_parent, target->d_name.hash));
 
 	/*
 	 * Unhash the target (d_delete() is not usable here).  If exchanging
 	 * the two dentries, then rehash onto the other's hash queue.
 	 */
-	__d_drop(target);
 	if (exchange) {
-		__d_rehash(target,
+		__d_hash_move(target,
 			   d_hash(dentry->d_parent, dentry->d_name.hash));
+	} else {
+		__d_drop(target);
 	}
 
 	list_del(&dentry->d_u.d_child);
