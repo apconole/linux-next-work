@@ -185,6 +185,9 @@ int __init efi_alloc_page_tables(void)
 
 	pgd_populate(NULL, pgd, pud);
 
+	mm_init_cpumask(&efi_mm);
+	init_new_context(NULL, &efi_mm);
+
 	return 0;
 }
 

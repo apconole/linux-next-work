@@ -872,6 +872,8 @@ extern struct efi {
 	RH_KABI_EXTEND(efi_query_variable_info_t *query_variable_info_nonblocking)
 } efi;
 
+extern struct mm_struct efi_mm;
+
 static inline int
 efi_guidcmp (efi_guid_t left, efi_guid_t right)
 {
