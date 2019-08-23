@@ -1887,6 +1887,10 @@ int cxgb4_dcb_enabled(const struct net_device *dev);
 int cxgb4_thermal_init(struct adapter *adap);
 int cxgb4_thermal_remove(struct adapter *adap);
 
+int cxgb4_change_mac(struct port_info *pi, unsigned int viid,
+		     int *tcam_idx, const u8 *addr,
+		     bool persistent, u8 *smt_idx);
+
 int cxgb4_init_mps_ref_entries(struct adapter *adap);
 void cxgb4_free_mps_ref_entries(struct adapter *adap);
 int cxgb4_alloc_encap_mac_filt(struct adapter *adap, unsigned int viid,
@@ -1911,5 +1915,8 @@ int cxgb4_alloc_raw_mac_filt(struct adapter *adap,
 			     u8 lookup_type,
 			     u8 port_id,
 			     bool sleep_ok);
+int cxgb4_update_mac_filt(struct port_info *pi, unsigned int viid,
+			  int *tcam_idx, const u8 *addr,
+			  bool persistent, u8 *smt_idx);
 
 #endif /* __CXGB4_H__ */
