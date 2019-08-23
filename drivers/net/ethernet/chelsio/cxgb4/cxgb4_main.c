@@ -3180,8 +3180,6 @@ static void cxgb_del_udp_tunnel(struct net_device *netdev,
 				    i);
 			return;
 		}
-		atomic_dec(&adapter->mps_encap[adapter->rawf_start +
-			   pi->port_id].refcnt);
 	}
 }
 
@@ -3270,7 +3268,6 @@ static void cxgb_add_udp_tunnel(struct net_device *netdev,
 			cxgb_del_udp_tunnel(netdev, ti);
 			return;
 		}
-		atomic_inc(&adapter->mps_encap[ret].refcnt);
 	}
 }
 
@@ -5290,7 +5287,6 @@ static void free_some_resources(struct adapter *adapter)
 {
 	unsigned int i;
 
-	kvfree(adapter->mps_encap);
 	kvfree(adapter->smt);
 	kvfree(adapter->l2t);
 	kvfree(adapter->srq);
@@ -5815,12 +5811,6 @@ static int init_one(struct pci_dev *pdev, const struct pci_device_id *ent)
 		adapter->params.offload = 0;
 	}
 
-	adapter->mps_encap = kvzalloc(sizeof(struct mps_encap_entry) *
-					  adapter->params.arch.mps_tcam_size,
-				      GFP_KERNEL);
-	if (!adapter->mps_encap)
-		dev_warn(&pdev->dev, "could not allocate MPS Encap entries, continuing\n");
-
 #if IS_ENABLED(CONFIG_IPV6)
 	if (chip_ver <= CHELSIO_T5 &&
 	    (!(t4_read_reg(adapter, LE_DB_CONFIG_A) & ASLIPCOMPEN_F))) {
@@ -5895,6 +5885,8 @@ static int init_one(struct pci_dev *pdev, const struct pci_device_id *ent)
 
 	/* check for PCI Express bandwidth capabiltites */
 	pcie_print_link_status(pdev);
+
+	cxgb4_init_mps_ref_entries(adapter);
 
 	err = init_rss(adapter);
 	if (err)
@@ -6016,6 +6008,8 @@ static void remove_one(struct pci_dev *pdev)
 		adap_free_hma_mem(adapter);
 
 		disable_interrupts(adapter);
+
+		cxgb4_free_mps_ref_entries(adapter);
 
 		for_each_port(adapter, i)
 			if (adapter->port[i]->reg_state == NETREG_REGISTERED)
