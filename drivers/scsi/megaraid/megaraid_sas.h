@@ -2394,7 +2394,9 @@ struct megasas_instance {
 #endif
 	u8 enable_fw_dev_list;
 	bool atomic_desc_support;
+	bool support_seqnum_jbod_fp;
 };
+
 struct MR_LD_VF_MAP {
 	u32 size;
 	union MR_LD_REF ref;
