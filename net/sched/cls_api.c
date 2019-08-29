@@ -962,29 +962,6 @@ void tcf_block_cb_unregister(struct tcf_block *block,
 }
 EXPORT_SYMBOL(tcf_block_cb_unregister);
 
-static int tcf_block_cb_call(struct tcf_block *block, enum tc_setup_type type,
-			     void *type_data, bool err_stop)
-{
-	struct tcf_block_cb *block_cb;
-	int ok_count = 0;
-	int err;
-
-	/* Make sure all netdevs sharing this block are offload-capable. */
-	if (block->nooffloaddevcnt && err_stop)
-		return -EOPNOTSUPP;
-
-	list_for_each_entry(block_cb, &block->cb_list, list) {
-		err = block_cb->cb(type, type_data, block_cb->cb_priv);
-		if (err) {
-			if (err_stop)
-				return err;
-		} else {
-			ok_count++;
-		}
-	}
-	return ok_count;
-}
-
 /* Main classifier routine: scans classifier chain attached
  * to this qdisc, (optionally) tests for protocol and asks
  * specific classifiers.
@@ -1744,10 +1721,12 @@ int tcf_exts_dump_stats(struct sk_buff *skb, struct tcf_exts *exts)
 }
 EXPORT_SYMBOL(tcf_exts_dump_stats);
 
-int tc_setup_cb_call(struct tcf_block *block, struct tcf_exts *exts,
-		     enum tc_setup_type type, void *type_data, bool err_stop)
+int tc_setup_cb_call(struct tcf_block *block, enum tc_setup_type type,
+		     void *type_data, bool err_stop)
 {
-	int ret;
+	struct tcf_block_cb *block_cb;
+	int ok_count = 0;
+	int err;
 
 	/*
 	 * RHEL: Older drivers compiled against RHEL 7.4 and older don't
@@ -1763,14 +1742,27 @@ int tc_setup_cb_call(struct tcf_block *block, struct tcf_exts *exts,
 	 * qdisc.
 	 */
 	if (!tcf_block_shared(block)) {
-		ret = __rh_call_ndo_setup_tc(tcf_block_dev(block),
+		err = __rh_call_ndo_setup_tc(tcf_block_dev(block),
 					     tcf_block_q(block)->handle, type,
 					     type_data);
-		if (ret < 0 && err_stop)
-			return ret;
+		if (err < 0 && err_stop)
+			return err;
 	}
 
-	return tcf_block_cb_call(block, type, type_data, err_stop);
+	/* Make sure all netdevs sharing this block are offload-capable. */
+	if (block->nooffloaddevcnt && err_stop)
+		return -EOPNOTSUPP;
+
+	list_for_each_entry(block_cb, &block->cb_list, list) {
+		err = block_cb->cb(type, type_data, block_cb->cb_priv);
+		if (err) {
+			if (err_stop)
+				return err;
+		} else {
+			ok_count++;
+		}
+	}
+	return ok_count;
 }
 EXPORT_SYMBOL(tc_setup_cb_call);
 
