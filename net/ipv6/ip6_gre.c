@@ -844,7 +844,7 @@ static void ip6gre_tnl_link_config(struct ip6_tnl *t, int set_mtu)
 			return;
 
 		if (rt->dst.dev) {
-			dev->hard_header_len = rt->dst.dev->hard_header_len +
+			dev->needed_headroom = rt->dst.dev->hard_header_len +
 					       t_hlen;
 
 			if (set_mtu) {
@@ -1125,7 +1125,7 @@ static int ip6gre_tunnel_init_common(struct net_device *dev)
 
 	t_hlen = tunnel->hlen + sizeof(struct ipv6hdr);
 
-	dev->hard_header_len = LL_MAX_HEADER + t_hlen;
+	dev->needed_headroom = LL_MAX_HEADER + t_hlen;
 	dev->mtu = ETH_DATA_LEN - t_hlen;
 	if (dev->type == ARPHRD_ETHER)
 		dev->mtu -= ETH_HLEN;
