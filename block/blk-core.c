@@ -624,9 +624,7 @@ void blk_cleanup_queue(struct request_queue *q)
 	 * cgroup controller.
 	 */
 	if (q->elevator) {
-		spin_lock_irq(q->queue_lock);
 		ioc_clear_queue(q);
-		spin_unlock_irq(q->queue_lock);
 
 		elevator_exit(q, q->elevator);
 		q->elevator = NULL;
