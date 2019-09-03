@@ -1701,7 +1701,6 @@ struct wireless_dev *ieee80211_vif_to_wdev(struct ieee80211_vif *vif);
  * @IEEE80211_KEY_FLAG_PUT_MIC_SPACE: This flag should be set by the driver for
  *	a TKIP key if it only requires MIC space. Do not set together with
  *	@IEEE80211_KEY_FLAG_GENERATE_MMIC on the same key.
- * @IEEE80211_KEY_FLAG_NO_AUTO_TX: Key needs explicit Tx activation.
  */
 enum ieee80211_key_flags {
 	IEEE80211_KEY_FLAG_GENERATE_IV_MGMT	= BIT(0),
@@ -1713,7 +1712,6 @@ enum ieee80211_key_flags {
 	IEEE80211_KEY_FLAG_RX_MGMT		= BIT(6),
 	IEEE80211_KEY_FLAG_RESERVE_TAILROOM	= BIT(7),
 	IEEE80211_KEY_FLAG_PUT_MIC_SPACE	= BIT(8),
-	IEEE80211_KEY_FLAG_NO_AUTO_TX		= BIT(9),
 };
 
 /**
@@ -2268,12 +2266,6 @@ struct ieee80211_txq {
  * @IEEE80211_HW_SUPPORTS_ONLY_HE_MULTI_BSSID: Hardware supports multi BSSID
  *	only for HE APs. Applies if @IEEE80211_HW_SUPPORTS_MULTI_BSSID is set.
  *
- * @IEEE80211_HW_EXT_KEY_ID_NATIVE: Driver and hardware are supporting Extended
- *	Key ID and can handle two unicast keys per station for Rx and Tx.
- *
- * @IEEE80211_HW_NO_AMPDU_KEYBORDER_SUPPORT: The card/driver can't handle
- *	active Tx A-MPDU sessions with Extended Key IDs during rekey.
- *
  * @NUM_IEEE80211_HW_FLAGS: number of hardware flags, used for sizing arrays
  */
 enum ieee80211_hw_flags {
@@ -2325,8 +2317,6 @@ enum ieee80211_hw_flags {
 	IEEE80211_HW_TX_STATUS_NO_AMPDU_LEN,
 	IEEE80211_HW_SUPPORTS_MULTI_BSSID,
 	IEEE80211_HW_SUPPORTS_ONLY_HE_MULTI_BSSID,
-	IEEE80211_HW_EXT_KEY_ID_NATIVE,
-	IEEE80211_HW_NO_AMPDU_KEYBORDER_SUPPORT,
 
 	/* keep last, obviously */
 	NUM_IEEE80211_HW_FLAGS
