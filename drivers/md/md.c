@@ -66,6 +66,7 @@
 #include <linux/slab.h>
 #include <linux/percpu-refcount.h>
 
+#include <trace/events/block.h>
 #include "md.h"
 #include "md-bitmap.h"
 
@@ -2531,6 +2532,8 @@ repeat:
 	pr_debug("md: updating %s RAID superblock on device (in sync %d)\n",
 		 mdname(mddev), mddev->in_sync);
 
+	if (mddev->queue)
+		blk_add_trace_msg(mddev->queue, "md md_update_sb");
 rewrite:
 	bitmap_update_sb(mddev->bitmap);
 	rdev_for_each(rdev, mddev) {
