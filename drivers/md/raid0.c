@@ -21,6 +21,7 @@
 #include <linux/seq_file.h>
 #include <linux/module.h>
 #include <linux/slab.h>
+#include <trace/events/block.h>
 #include "md.h"
 #include "raid0.h"
 #include "raid5.h"
@@ -733,6 +734,10 @@ static bool raid0_make_request(struct mddev *mddev, struct bio *bio)
 		tmp_dev->data_offset;
 
 	mddev_check_writesame(mddev, bio);
+	if (mddev->gendisk)
+		trace_block_bio_remap(bdev_get_queue(bio->bi_bdev),
+				      bio, disk_devt(mddev->gendisk),
+				      bio->bi_sector);
 	generic_make_request(bio);
 	return true;
 
