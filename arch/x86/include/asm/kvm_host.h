@@ -524,6 +524,7 @@ struct kvm_vcpu_arch {
 	u64 ia32_misc_enable_msr;
 	u64 smbase;
 	bool tpr_access_reporting;
+	u64 arch_capabilities;
 
 	/*
 	 * Paging state of the vcpu
