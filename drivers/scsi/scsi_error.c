@@ -248,6 +248,9 @@ int scsi_eh_scmd_add(struct scsi_cmnd *scmd, int eh_flag)
 	scmd->eh_eflags |= eh_flag;
 	list_add_tail(&scmd->eh_entry, &shost->eh_cmd_q);
 	shost->host_failed++;
+
+	mb();
+
 	scsi_eh_wakeup(shost);
  out_unlock:
 	spin_unlock_irqrestore(shost->host_lock, flags);
