@@ -987,7 +987,9 @@ struct mlx5_ifc_cmd_hca_cap_bits {
 	u8         cc_modify_allowed[0x1];
 	u8         start_pad[0x1];
 	u8         cache_line_128byte[0x1];
-	u8         reserved_at_165[0xa];
+	u8         reserved_at_165[0x7];
+	u8         vnic_env_int_rq_oob[0x1];
+	u8         reserved_at_16d[0x2];
 	u8         qcam_reg[0x1];
 	u8         gid_table_size[0x10];
 
@@ -2595,7 +2597,11 @@ struct mlx5_ifc_vnic_diagnostic_statistics_bits {
 
 	u8         transmit_discard_vport_down[0x40];
 
-	u8         reserved_at_140[0xec0];
+	u8         reserved_at_140[0xa0];
+
+	u8         internal_rq_out_of_buffer[0x20];
+
+	u8         reserved_at_200[0xe00];
 };
 
 struct mlx5_ifc_traffic_counter_bits {
