@@ -196,6 +196,9 @@ struct nvme_ctrl {
 	u16 maxcmd;
 	int nr_reconnects;
 	struct nvmf_ctrl_options *opts;
+
+	/* NVMe loop only */
+	u64 segment_boundary;
 };
 
 struct nvme_subsystem {
