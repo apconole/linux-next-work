@@ -4204,6 +4204,7 @@ out_rm_features:
 }
 
 static const struct net_device_ops ice_netdev_ops = {
+	.ndo_size = sizeof(struct net_device_ops),
 	.ndo_open = ice_open,
 	.ndo_stop = ice_stop,
 	.ndo_start_xmit = ice_start_xmit,
