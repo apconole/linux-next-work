@@ -815,8 +815,11 @@ void blk_mq_rq_timed_out(struct request *req, bool reserved)
 	if (!test_bit(REQ_ATOM_STARTED, &req->atomic_flags))
 		return;
 
-	if (ops->timeout)
+	if (ops->timeout) {
+		req->cmd_flags |= REQ_TIMEOUT;
 		ret = ops->timeout(req, reserved);
+		req->cmd_flags &= ~REQ_TIMEOUT;
+	}
 
 	switch (ret) {
 	case BLK_EH_HANDLED:

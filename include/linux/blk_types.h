@@ -211,6 +211,7 @@ enum rq_flag_bits {
 	__REQ_NO_TIMEOUT,	/* requests may never expire */
 #else
 	__REQ_STATS,
+	__REQ_TIMEOUT = __REQ_END, /* request is timed out, transisent state */
 #endif
 	__REQ_NR_BITS,		/* stops here */
 };
@@ -267,6 +268,9 @@ enum rq_flag_bits {
 #define REQ_MQ_INFLIGHT		(1ULL << __REQ_MQ_INFLIGHT)
 /* IO stats tracking on */
 #define REQ_STATS		(1ULL << __REQ_STATS)
+
+/* set when this request is timed out */
+#define REQ_TIMEOUT		(1ULL << __REQ_TIMEOUT)
 
 enum req_op {
 	REQ_OP_READ,
