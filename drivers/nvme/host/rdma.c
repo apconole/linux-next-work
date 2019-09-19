@@ -1699,7 +1699,7 @@ nvme_rdma_timeout(struct request *rq, bool reserved)
 		flush_work(&ctrl->err_work);
 		nvme_rdma_teardown_io_queues(ctrl, false);
 		nvme_rdma_teardown_admin_queue(ctrl, false);
-		return BLK_EH_HANDLED;
+		return BLK_EH_NOT_HANDLED;
 	}
 
 	dev_warn(ctrl->ctrl.device, "starting error recovery\n");

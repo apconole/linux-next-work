@@ -1009,14 +1009,14 @@ static enum blk_eh_timer_return nvme_timeout(struct request *req, bool reserved)
 		nvme_warn_reset(dev, csts);
 		nvme_dev_disable(dev, false);
 		nvme_reset_ctrl(&dev->ctrl);
-		return BLK_EH_HANDLED;
+		return BLK_EH_NOT_HANDLED;
 	}
 
 	/*
 	 * Shutdown immediately if controller times out while starting. The
 	 * reset work will see the pci device disabled when it gets the forced
 	 * cancellation error. All outstanding requests are completed on
-	 * shutdown, so we return BLK_EH_HANDLED.
+	 * shutdown, so we return BLK_EH_NOT_HANDLED.
 	 */
 	switch (dev->ctrl.state) {
 	case NVME_CTRL_CONNECTING:
@@ -1026,7 +1026,7 @@ static enum blk_eh_timer_return nvme_timeout(struct request *req, bool reserved)
 			 req->tag, nvmeq->qid);
 		nvme_dev_disable(dev, false);
 		nvme_req(req)->flags |= NVME_REQ_CANCELLED;
-		return BLK_EH_HANDLED;
+		return BLK_EH_NOT_HANDLED;
 	default:
 		break;
 	}
@@ -1048,7 +1048,7 @@ static enum blk_eh_timer_return nvme_timeout(struct request *req, bool reserved)
 		 * forces all outstanding requests to complete.
 		 */
 		nvme_req(req)->flags |= NVME_REQ_CANCELLED;
-		return BLK_EH_HANDLED;
+		return BLK_EH_NOT_HANDLED;
 	}
 
 	if (atomic_dec_return(&dev->ctrl.abort_limit) < 0) {

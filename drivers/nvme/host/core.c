@@ -259,6 +259,20 @@ void nvme_cancel_request(struct request *req, void *data, bool reserved)
 	dev_dbg_ratelimited(((struct nvme_ctrl *) data)->device,
 				"Cancelling I/O %d", req->tag);
 
+	/*
+	 * RHEL7 only.
+	 *
+	 * Don't handle timed out request specially
+	 *
+	 * It is safe to clear the compelte flag since hardware
+	 * has been shutdown now.
+	 *
+	 * This way may let us keep aligned with upstream kernel
+	 * wrt. timeout handling.
+	 */
+	if (req->cmd_flags & REQ_TIMEOUT)
+		blk_mq_clear_rq_complete(req);
+
 	/* don't abort one completed request */
 	if (blk_mq_request_completed(req))
 		return;
