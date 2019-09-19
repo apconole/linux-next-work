@@ -617,6 +617,21 @@ int blk_mq_request_completed(struct request *rq)
 }
 EXPORT_SYMBOL_GPL(blk_mq_request_completed);
 
+
+/*
+ * This API is for implementing same timeout handling for drivers compared
+ * with upstream kernel without backporting big & kabi-breaking blk-mq
+ * & dirver timeout handling re-work.
+ *
+ * Driver can call this API to mark the timed-out request as not-completed,
+ * then handle it same with other in-flight requests.
+ */
+void blk_mq_clear_rq_complete(struct request *rq)
+{
+	blk_clear_rq_complete(rq);
+}
+EXPORT_SYMBOL_GPL(blk_mq_clear_rq_complete);
+
 void blk_mq_start_request(struct request *rq)
 {
 	struct request_queue *q = rq->q;

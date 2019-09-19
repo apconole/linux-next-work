@@ -325,6 +325,7 @@ static inline u16 blk_mq_unique_tag_to_tag(u32 unique_tag)
 
 struct blk_mq_hw_ctx *blk_mq_alloc_single_hw_queue(struct blk_mq_tag_set *, unsigned int, int);
 
+void blk_mq_clear_rq_complete(struct request *rq);
 int blk_mq_request_started(struct request *rq);
 int blk_mq_request_completed(struct request *rq);
 void blk_mq_start_request(struct request *rq);
