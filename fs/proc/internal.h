@@ -77,7 +77,7 @@ struct proc_inode {
 	struct proc_dir_entry *pde;
 	struct ctl_table_header *sysctl;
 	struct ctl_table *sysctl_entry;
-	struct list_head sysctl_inodes;
+	struct hlist_node sysctl_inodes;
 	struct proc_ns ns;
 	struct inode vfs_inode;
 };
