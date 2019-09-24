@@ -3479,11 +3479,11 @@ pick_next_task(struct rq *rq, struct task_struct *prev)
 	if (likely(prev->sched_class == class &&
 		   rq->nr_running == rq->cfs.h_nr_running)) {
 		p = fair_sched_class.pick_next_task(rq, prev);
-		if (likely(p && p != RETRY_TASK))
-			return p;
+		if (unlikely(p == RETRY_TASK))
+			goto again;
 
 		/* assumes fair_sched_class->next == idle_sched_class */
-		else
+		if (unlikely(!p))
 			p = idle_sched_class.pick_next_task(rq, prev);
 
 		return p;
