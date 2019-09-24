@@ -3914,6 +3914,7 @@ struct if6_iter_state {
 	struct seq_net_private p;
 	int bucket;
 	int offset;
+	loff_t prev_pos;
 };
 
 static struct inet6_ifaddr *if6_get_first(struct seq_file *seq, loff_t pos)
@@ -3928,6 +3929,9 @@ static struct inet6_ifaddr *if6_get_first(struct seq_file *seq, loff_t pos)
 		state->bucket = 0;
 		state->offset = 0;
 	}
+
+	if (state->prev_pos && pos == state->prev_pos + 1 && state->offset)
+		state->offset--;
 
 	for (; state->bucket < IN6_ADDR_HSIZE; ++state->bucket) {
 		hlist_for_each_entry_rcu_bh(ifa, &inet6_addr_lst[state->bucket],
@@ -3986,7 +3990,10 @@ static void *if6_seq_start(struct seq_file *seq, loff_t *pos)
 
 static void *if6_seq_next(struct seq_file *seq, void *v, loff_t *pos)
 {
+	struct if6_iter_state *state = seq->private;
 	struct inet6_ifaddr *ifa;
+
+	state->prev_pos = *pos;
 
 	ifa = if6_get_next(seq, v);
 	++*pos;
