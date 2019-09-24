@@ -45,10 +45,11 @@ static void proc_evict_inode(struct inode *inode)
 	de = PROC_I(inode)->pde;
 	if (de)
 		pde_put(de);
+
 	head = PROC_I(inode)->sysctl;
 	if (head) {
 		rcu_assign_pointer(PROC_I(inode)->sysctl, NULL);
-		sysctl_head_put(head);
+		proc_sys_evict_inode(inode, head);
 	}
 	/* Release any associated namespace */
 	ns_ops = PROC_I(inode)->ns.ns_ops;
