@@ -1559,6 +1559,10 @@ __init void prefill_possible_map(void)
 	pr_info("Allowing %d CPUs, %d hotplug CPUs\n",
 		possible, max_t(int, possible - num_processors, 0));
 
+	if (rh_invalid_cpus)
+		pr_info("Ignoring %d unusable CPUs in ACPI table\n",
+			rh_invalid_cpus);
+
 	reset_cpu_possible_mask();
 
 	for (i = 0; i < possible; i++)

@@ -181,6 +181,7 @@ static inline int wbinvd_on_all_cpus(void)
 #endif /* CONFIG_SMP */
 
 extern unsigned disabled_cpus;
+extern unsigned rh_invalid_cpus;
 
 #ifdef CONFIG_X86_32_SMP
 /*
