@@ -557,6 +557,7 @@ static void __tun_detach(struct tun_file *tfile, bool clean)
 				unregister_netdevice(tun->dev);
 		}
 
+		skb_array_cleanup(&tfile->tx_array);
 		BUG_ON(!test_bit(SOCK_EXTERNALLY_ALLOCATED,
 				 &tfile->socket.flags));
 		sk_release_kernel(&tfile->sk);
@@ -2666,7 +2667,6 @@ static int tun_chr_close(struct inode *inode, struct file *file)
 
 	tun_detach(tfile, true);
 	put_net(net);
-	skb_array_cleanup(&tfile->tx_array);
 
 	return 0;
 }
