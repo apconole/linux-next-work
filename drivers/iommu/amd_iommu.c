@@ -2112,8 +2112,7 @@ static void set_dte_entry(u16 devid, struct protection_domain *domain, bool ats)
 		flags    |= tmp;
 	}
 
-
-	flags &= ~(DTE_FLAG_SA | DEV_DOMID_MASK);
+	flags &= ~(DEV_DOMID_MASK);
 	flags |= domain->id;
 
 	amd_iommu_dev_table[devid].data[1]  = flags;
