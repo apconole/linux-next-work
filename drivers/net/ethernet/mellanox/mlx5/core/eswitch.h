@@ -210,8 +210,9 @@ struct mlx5_eswitch {
 	int                     nvports;
 };
 
-void esw_offloads_cleanup(struct mlx5_eswitch *esw, int nvports);
-int esw_offloads_init(struct mlx5_eswitch *esw, int nvports);
+void esw_offloads_cleanup(struct mlx5_eswitch *esw);
+int esw_offloads_init(struct mlx5_eswitch *esw, int vf_nvports,
+		      int total_nvports);
 void esw_offloads_cleanup_reps(struct mlx5_eswitch *esw);
 int esw_offloads_init_reps(struct mlx5_eswitch *esw);
 void esw_vport_cleanup_ingress_rules(struct mlx5_eswitch *esw,
