@@ -1615,7 +1615,6 @@ GLOBAL_EXTERN struct list_head		cifs_tcp_ses_list;
  * structure order is cifs_socket-->cifs_ses-->cifs_tcon-->cifs_file
  */
 GLOBAL_EXTERN spinlock_t		cifs_tcp_ses_lock;
-GLOBAL_EXTERN spinlock_t		cifs_list_lock;
 
 #ifdef CONFIG_CIFS_DNOTIFY_EXPERIMENTAL /* unused temporarily */
 /* Outstanding dir notify requests */

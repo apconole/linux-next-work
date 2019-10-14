@@ -299,9 +299,7 @@ cifs_new_fileinfo(struct cifs_fid *fid, struct file *file,
 	fdlocks->cfile = cfile;
 	cfile->llist = fdlocks;
 	down_write(&cinode->lock_sem);
-	spin_lock(&cifs_list_lock);
 	list_add(&fdlocks->llist, &cinode->llist);
-	spin_unlock(&cifs_list_lock);
 	up_write(&cinode->lock_sem);
 
 	cfile->count = 1;
@@ -334,17 +332,13 @@ cifs_new_fileinfo(struct cifs_fid *fid, struct file *file,
 	fid->purge_cache = false;
 	server->ops->set_fid(cfile, fid, oplock);
 
-	spin_lock(&cifs_list_lock);
 	list_add(&cfile->tlist, &tcon->openFileList);
-	spin_unlock(&cifs_list_lock);
 
 	/* if readable file instance put first in list*/
-	spin_lock(&cifs_list_lock);
 	if (file->f_mode & FMODE_READ)
 		list_add(&cfile->flist, &cinode->openFileList);
 	else
 		list_add_tail(&cfile->flist, &cinode->openFileList);
-	spin_unlock(&cifs_list_lock);
 	spin_unlock(&tcon->open_file_lock);
 
 	if (fid->purge_cache)
@@ -416,10 +410,8 @@ void _cifsFileInfo_put(struct cifsFileInfo *cifs_file, bool wait_oplock_handler)
 	cifs_add_pending_open_locked(&fid, cifs_file->tlink, &open);
 
 	/* remove it from the lists */
-	spin_lock(&cifs_list_lock);
 	list_del(&cifs_file->flist);
 	list_del(&cifs_file->tlist);
-	spin_unlock(&cifs_list_lock);
 
 	if (list_empty(&cifsi->openFileList)) {
 		cifs_dbg(FYI, "closing last open instance for inode %p\n",
@@ -1455,10 +1447,8 @@ void
 cifs_move_llist(struct list_head *source, struct list_head *dest)
 {
 	struct list_head *li, *tmp;
-	spin_lock(&cifs_list_lock);
 	list_for_each_safe(li, tmp, source)
 		list_move(li, dest);
-	spin_unlock(&cifs_list_lock);
 }
 
 void
@@ -1924,10 +1914,8 @@ refind_writable:
 			return inv_file;
 		else {
 			spin_lock(&tcon->open_file_lock);
-			spin_lock(&cifs_list_lock);
 			list_move_tail(&inv_file->flist,
 					&cifs_inode->openFileList);
-			spin_unlock(&cifs_list_lock);
 			spin_unlock(&tcon->open_file_lock);
 			cifsFileInfo_put(inv_file);
 			++refind;
