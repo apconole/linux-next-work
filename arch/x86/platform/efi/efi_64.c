@@ -55,6 +55,14 @@ static u64 efi_va = EFI_VA_START;
 
 struct efi_scratch efi_scratch;
 
+/*
+ * RHEL7 Only
+ * Saved value of CR3 value corresponding to efi_mm.pgd
+ * Used in __load_cr3() for special case handling when the processor has
+ * the PCID feature without INVPCID_SINGLE.
+ */
+unsigned long efi_pgd_cr3;
+
 static void __init early_code_mapping_set_exec(int executable)
 {
 	efi_memory_desc_t *md;
@@ -254,6 +262,13 @@ int __init efi_setup_page_tables(unsigned long pa_memmap, unsigned num_pages)
 
 	if (efi_enabled(EFI_OLD_MEMMAP))
 		return 0;
+
+	/*
+	 * RHEL7 Only
+	 * Used in __load_cr3() for special case handling when the processor has
+	 * the PCID feature without INVPCID_SINGLE.
+	 */
+	efi_pgd_cr3 = __sme_pa(pgd);
 
 	/*
 	 * It can happen that the physical address of new_memmap lands in memory
