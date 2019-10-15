@@ -51,7 +51,7 @@ static int __init haltpoll_init(void)
 	int ret;
 
 	if (!kvm_para_available())
-		return 0;
+		return -ENODEV;
 
 	ret = cpuidle_register(&haltpoll_driver, NULL);
 	if (ret == 0)
