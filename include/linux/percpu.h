@@ -189,6 +189,8 @@ extern phys_addr_t per_cpu_ptr_to_phys(void *addr);
 	(typeof(type) __percpu *)__alloc_percpu(sizeof(type),		\
 						__alignof__(type))
 
+extern unsigned long pcpu_nr_pages(void);
+
 /*
  * Branching function to split up a function into a set of functions that
  * are called for different scalar sizes of the objects handled.
