@@ -143,6 +143,7 @@ extern int invalidate_inodes(struct super_block *, bool);
  */
 extern struct dentry *__d_alloc(struct super_block *, const struct qstr *);
 extern int d_set_mounted(struct dentry *dentry);
+extern struct dentry *d_alloc_cursor(struct dentry *);
 
 /*
  * read_write.c
