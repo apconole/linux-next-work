@@ -116,10 +116,8 @@ loff_t dcache_dir_lseek(struct file *file, loff_t offset, int whence)
 			while (n && p != &dentry->d_subdirs) {
 				struct dentry *next;
 				next = list_entry(p, struct dentry, d_u.d_child);
-				spin_lock_nested(&next->d_lock, DENTRY_D_LOCK_NESTED);
 				if (simple_positive(next))
 					n--;
-				spin_unlock(&next->d_lock);
 				p = p->next;
 			}
 			list_add_tail(&cursor->d_u.d_child, p);
@@ -174,13 +172,9 @@ int dcache_readdir(struct file * filp, void * dirent, filldir_t filldir)
 			for (p=q->next; p != &dentry->d_subdirs; p=p->next) {
 				struct dentry *next;
 				next = list_entry(p, struct dentry, d_u.d_child);
-				spin_lock_nested(&next->d_lock, DENTRY_D_LOCK_NESTED);
-				if (!simple_positive(next)) {
-					spin_unlock(&next->d_lock);
+				if (!simple_positive(next))
 					continue;
-				}
 
-				spin_unlock(&next->d_lock);
 				spin_unlock(&dentry->d_lock);
 				if (filldir(dirent, next->d_name.name, 
 					    next->d_name.len, filp->f_pos, 
@@ -188,10 +182,8 @@ int dcache_readdir(struct file * filp, void * dirent, filldir_t filldir)
 					    dt_type(next->d_inode)) < 0)
 					return 0;
 				spin_lock(&dentry->d_lock);
-				spin_lock_nested(&next->d_lock, DENTRY_D_LOCK_NESTED);
 				/* next is still alive */
 				list_move(q, p);
-				spin_unlock(&next->d_lock);
 				p = q;
 				filp->f_pos++;
 			}
