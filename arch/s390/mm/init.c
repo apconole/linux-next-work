@@ -259,6 +259,15 @@ static struct dma_map_ops s390_pv_dma_ops = {
 	.max_mapping_size = swiotlb_max_mapping_size,
 };
 
+void swiotlb_set_mem_attributes(void *vaddr, unsigned long size)
+{
+	WARN(PAGE_ALIGN(size) != size,
+	     "size is not page-aligned (%#lx)\n", size);
+
+	/* Make the SWIOTLB buffer area decrypted */
+	set_memory_decrypted((unsigned long)vaddr, size >> PAGE_SHIFT);
+}
+
 /* protected virtualization */
 static void pv_init(void)
 {
