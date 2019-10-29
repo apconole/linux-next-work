@@ -395,6 +395,9 @@ __create_hw_context(struct drm_i915_private *dev_priv,
 	ctx->desc_template =
 		default_desc_template(dev_priv, dev_priv->mm.aliasing_ppgtt);
 
+	ctx->jump_whitelist = NULL;
+	ctx->jump_whitelist_cmds = 0;
+
 	return ctx;
 
 err_pid:
