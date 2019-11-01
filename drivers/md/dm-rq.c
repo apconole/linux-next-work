@@ -482,7 +482,8 @@ static int dm_dispatch_clone_request(struct request *clone, struct request *rq)
 
 	clone->start_time = jiffies;
 	r = blk_insert_cloned_request(clone->q, clone);
-	if (r != BLK_MQ_RQ_QUEUE_OK && r != BLK_MQ_RQ_QUEUE_BUSY)
+	if (r != BLK_MQ_RQ_QUEUE_OK && r != BLK_MQ_RQ_QUEUE_BUSY &&
+			r != BLK_MQ_RQ_QUEUE_DEV_BUSY)
 		/* must complete clone in terms of original request */
 		dm_complete_request(rq, r);
 	return r;
@@ -666,7 +667,7 @@ check_again:
 		trace_block_rq_remap(clone->q, clone, disk_devt(dm_disk(md)),
 				     blk_rq_pos(rq));
 		ret = dm_dispatch_clone_request(clone, rq);
-		if (ret == BLK_MQ_RQ_QUEUE_BUSY) {
+		if (ret == BLK_MQ_RQ_QUEUE_BUSY || r == BLK_MQ_RQ_QUEUE_DEV_BUSY) {
 			blk_rq_unprep_clone(clone);
 			tio->ti->type->release_clone_rq(clone, &tio->info);
 			tio->clone = NULL;
