@@ -24,6 +24,7 @@
 #include <inttypes.h>
 #include <ctype.h>
 #include <libelf.h>
+#include <gelf.h>
 #include <fcntl.h>
 #include <stdio.h>
 #include <string.h>
@@ -47,6 +48,8 @@
 #include "stack.h"
 #include "hash.h"
 #include "objects.h"
+#include "list.h"
+#include "record.h"
 
 #define	EMPTY_NAME	"(NULL)"
 #define PROCESSED_SIZE 1024
@@ -84,11 +87,17 @@ struct cu_ctx {
 	Dwarf_Die *cu_die;
 	stack_t *stack; /* Current stack of symbol we're parsing */
 	struct set *processed; /* Set of processed types for this CU */
+	unsigned char dw_version : 6;
+	unsigned char elf_endian : 2;
+
+	struct hash *cu_db;
 };
 
 struct file_ctx {
 	generate_config_t *conf;
 	struct ksymtab *ksymtab; /* ksymtab of the current kernel module */
+	unsigned char dw_version : 6;
+	unsigned char elf_endian : 2;
 };
 
 struct dwarf_type {
@@ -104,85 +113,30 @@ struct dwarf_type {
 	{ 0, NULL }
 };
 
-
-/*
- * Structure of the database record:
- *
- * key: record key, usually includes path the file, where the type is
- *      defined (may include pseudo path, like <declaration>);
- *
- * version: type's version, used when we need to add another type of the same
- *	    name. It may happend, for example, when because of defines the same
- *          structure has changed for different compilation units.
- *
- *          It is not for the case, when the same structure defined in
- *	    different files -- it will have different keys, since it includes
- *	    the path;
- *
- * ref_count: reference counter, needed since the ownership is shared with the
- *            internal database;
- *
- * base_file: base part of the key (without version), used to generate the
- *            unique key for the new version;
- *
- * cu: compilation unit, where the type for the record defined;
- *
- * origin: "File <file>:<line>" string, describing the source, where the type
- *         for the record defined;
- *
- * stack: stack of types to reach this one.
- *         Ex.: on the toplevel
- *              struct A {
- *                        struct B fieldA;
- *              }
- *         in another file:
- *              struct B {
- *                        basetype fieldB;
- *              }
- *         the "struct B" description will contain key of the "struct A"
- *         description record in the stack;
- *
- * obj: pointer to the abstract type object, representing the toplevel type of
- *      the record.
- *
- * link: name of weak link alisas for the weak aliases.
- *
- * free: type specific function to free the record
- *       (there are normal, weak and assembly records).
- *
- * dump: type specific function for record output.
- */
-struct record {
-	char *key;
-	int version;
-	int ref_count;
-	char *base_file;
-	char *cu;
-	char *origin;
-	stack_t *stack;
-	obj_t *obj;
-	char *link;
-	void (*free)(struct record *);
-	void (*dump)(struct record *, FILE *);
-};
-
-/* List of types built-in the compiler */
-static const char *builtin_types[] = {
-	"__va_list_tag",
-	"__builtin_va_list",
-	"__builtin_strlen",
-	"__builtin_strcpy",
-	NULL
-};
-
-static const bool is_builtin(const char *name)
+static void record_redirect_dependents(struct record *rec_dst,
+				       struct record *rec_src)
 {
-	const char **p;
+	struct list_node *iter;
 
-	for (p = builtin_types; *p != NULL; p++) {
-		if (strcmp(*p, name) == 0)
-			return true;
+	LIST_FOR_EACH(&rec_src->dependents, iter) {
+		obj_t *obj = list_node_data(iter);
+
+		obj->ref_record = rec_dst;
 	}
+}
+
+static const bool is_builtin(Dwarf_Die *die)
+{
+	char *fname;
+	const char *path = dwarf_decl_file(die);
+
+	if (path == NULL)
+		return true;
+
+	fname = basename(path);
+	assert (fname != NULL);
+	if (strcmp(fname, "<built-in>") == 0)
+		return true;
 
 	return false;
 }
@@ -206,6 +160,8 @@ static bool is_declaration(Dwarf_Die *die)
 	if (!dwarf_hasattr(die, DW_AT_declaration))
 		return false;
 	(void) dwarf_attr(die, DW_AT_declaration, &attr);
+	if (dwarf_hasform(&attr, DW_FORM_flag))
+		return attr.valp != NULL;
 	if (!dwarf_hasform(&attr, DW_FORM_flag_present))
 		return false;
 	return true;
@@ -215,23 +171,10 @@ static char *get_file_replace_path;
 
 static char *_get_file(Dwarf_Die *cu_die, Dwarf_Die *die)
 {
-	Dwarf_Files *files;
-	size_t nfiles;
-	Dwarf_Attribute attr;
-	Dwarf_Word file;
 	const char *filename;
 	char *ret;
 
-	if (dwarf_attr(die, DW_AT_decl_file, &attr) == NULL) {
-		fail("DIE missing file information: %s\n",
-		     dwarf_diename(die));
-	}
-	dwarf_formudata(&attr, &file);
-
-	if (dwarf_getsrcfiles(cu_die, &files, &nfiles) != 0)
-		fail("cannot get files for CU %s\n", dwarf_diename(cu_die));
-
-	filename = dwarf_filesrc(files, file, NULL, NULL);
+	filename = dwarf_decl_file(die);
 
 	if (get_file_replace_path) {
 		int len = strlen(get_file_replace_path);
@@ -259,7 +202,7 @@ static char *get_file(Dwarf_Die *cu_die, Dwarf_Die *die)
 	 * Handle types built-in in C compiler. These are for example the
 	 * variable argument list which is defined as * struct __va_list_tag.
 	 */
-	if (is_builtin(get_die_name(die)))
+	if (is_builtin(die))
 		return safe_strdup(BUILTIN_PATH);
 
 	if (dwarf_hasattr(die, DW_AT_decl_file))
@@ -280,7 +223,7 @@ static long get_line(Dwarf_Die *cu_die, Dwarf_Die *die)
 	Dwarf_Word line;
 	Dwarf_Die spec_die;
 
-	if (is_builtin(get_die_name(die)))
+	if (is_builtin(die))
 		return 0;
 
 	if (dwarf_attr(die, DW_AT_decl_line, &attr) != NULL) {
@@ -336,17 +279,6 @@ static char *get_symbol_file(Dwarf_Die *die, Dwarf_Die *cu_die)
 	}
 
 	/*
-	 * DW_AT_declaration don't have DW_AT_decl_file.
-	 * Pretend like it's in other, non existent file.
-	 */
-	if (is_declaration(die)) {
-		safe_asprintf(&file_name, DECLARATION_PATH "/%s%s.txt",
-		    file_prefix, name);
-
-		return file_name;
-	}
-
-	/*
 	 * Following types can be anonymous, eg. used directly as variable type
 	 * in the declaration. We don't create new file for them if that's
 	 * the case, embed them directly in the current file.
@@ -365,7 +297,7 @@ static char *get_symbol_file(Dwarf_Die *die, Dwarf_Die *cu_die)
 	/* We don't expect our name to be empty now */
 	assert(name != NULL);
 
-	safe_asprintf(&file_name, "%s%s.txt", file_prefix, name);
+	safe_asprintf(&file_name, "%s%s", file_prefix, name);
 
 	return file_name;
 }
@@ -383,6 +315,8 @@ static int is_external(Dwarf_Die *die)
 
 	if (dwarf_hasattr(die, DW_AT_external)) {
 		dwarf_attr(die, DW_AT_external, &attr);
+		if (dwarf_hasform(&attr, DW_FORM_flag))
+			return attr.valp != NULL;
 		if (!dwarf_hasform(&attr, DW_FORM_flag_present))
 			return false;
 		return true;
@@ -397,17 +331,204 @@ static int is_external(Dwarf_Die *die)
 	return is_external(&spec_die);
 }
 
+static uint8_t die_attr_eval_op(Dwarf_Attribute *attr, Dwarf_Word *value)
+{
+	size_t op_idx, op_cnt;
+	uint8_t loc_expr_type = 0;
+	Dwarf_Op *loc_expr_oper;
+
+	dwarf_getlocation(attr, &loc_expr_oper, &op_cnt);
+
+	if (op_cnt == 0)
+		loc_expr_type = -1;
+
+	for (op_idx = 0; op_idx < op_cnt; ++op_idx) {
+		loc_expr_type = loc_expr_oper[op_idx].atom;
+		switch (loc_expr_oper[op_idx].atom) {
+
+		/* supported 0-ary operations */
+		case DW_OP_const1u: /* unsigned 1-byte constant */
+		case DW_OP_const1s: /* signed   1-byte constant */
+		case DW_OP_const2u: /* unsigned 2-byte constant */
+		case DW_OP_const2s: /* signed   2-byte constant */
+		case DW_OP_skip:    /* signed   2-byte constant */
+		case DW_OP_const4u: /* unsigned 4-byte constant */
+		case DW_OP_const4s: /* signed   4-byte constant */
+		case DW_OP_const8u: /* unsigned 8-byte constant */
+		case DW_OP_const8s: /* signed   8-byte constant */
+		case DW_OP_constu:  /* unsigned LEB128 constant */
+		case DW_OP_consts:  /* signed   LEB128 constant */
+		case DW_OP_plus_uconst: /* unsigned LEB128 addend */
+			*value = loc_expr_oper[op_idx].number;
+			break;
+
+		/* supported 1-ary operations */
+		case DW_OP_abs:
+			*value = abs(loc_expr_oper[op_idx].number);
+			break;
+		case DW_OP_neg:
+		case DW_OP_not:
+			*value = !loc_expr_oper[op_idx].number;
+			break;
+
+		/* supported 2-ary operations */
+		case DW_OP_and:
+			*value = loc_expr_oper[op_idx].number;
+			*value &= loc_expr_oper[op_idx].number2;
+			break;
+		case DW_OP_or:
+			*value = loc_expr_oper[op_idx].number;
+			*value |= loc_expr_oper[op_idx].number2;
+			break;
+		case DW_OP_xor:
+			*value = loc_expr_oper[op_idx].number;
+			*value ^= loc_expr_oper[op_idx].number2;
+			break;
+		case DW_OP_plus:
+			*value = loc_expr_oper[op_idx].number;
+			*value += loc_expr_oper[op_idx].number2;
+			break;
+		case DW_OP_minus:
+			*value = loc_expr_oper[op_idx].number;
+			*value -= loc_expr_oper[op_idx].number2;
+			break;
+		case DW_OP_mul:
+			*value = loc_expr_oper[op_idx].number;
+			*value *= loc_expr_oper[op_idx].number2;
+			break;
+		case DW_OP_div:
+			*value = loc_expr_oper[op_idx].number;
+			*value /= loc_expr_oper[op_idx].number2;
+			break;
+		case DW_OP_mod:
+			*value = loc_expr_oper[op_idx].number;
+			*value %= loc_expr_oper[op_idx].number2;
+			break;
+
+		/* sink */
+		default:
+			printf("Unsupported Dwarf operation %x.\n",
+			       loc_expr_oper[op_idx].atom);
+			break;
+		}
+	}
+
+	return loc_expr_type;
+}
+
+static Dwarf_Word die_get_attr(Dwarf_Die *die, Dwarf_Half ar_attr)
+{
+	int attr_form;
+	Dwarf_Word value = 0;
+	Dwarf_Attribute attr;
+
+	if (!dwarf_hasattr(die, ar_attr))
+		return value;
+
+	if (dwarf_attr(die, ar_attr, &attr) == NULL)
+		return value;
+
+	attr_form = dwarf_whatform(&attr);
+
+	switch (attr_form) {
+	case DW_FORM_data1:
+	case DW_FORM_data2:
+	case DW_FORM_data4:
+	case DW_FORM_data8:
+	case DW_FORM_sec_offset:
+	case DW_FORM_sdata:
+	case DW_FORM_udata:
+	case DW_FORM_rnglistx:
+	case DW_FORM_loclistx:
+	case DW_FORM_implicit_const:
+	case DW_FORM_GNU_addr_index:
+	case DW_FORM_addrx:
+	case DW_FORM_addrx1:
+	case DW_FORM_addrx2:
+	case DW_FORM_addrx3:
+	case DW_FORM_addrx4:
+		if (dwarf_formudata(&attr, &value) == -1)
+			fail("Unable to get DWARF data for %s:0x%x:0x%x\n",
+			     dwarf_diename(die), attr_form, ar_attr);
+		break;
+	case DW_FORM_block:
+	case DW_FORM_block1:
+	case DW_FORM_block2:
+	case DW_FORM_block4:
+		die_attr_eval_op(&attr, &value);
+		break;
+	default:
+		fail("Unsupported DWARF form 0x%x for DIE %s, type 0x%x\n",
+		     attr_form, dwarf_diename(die), ar_attr);
+		break;
+	}
+
+	return value;
+}
+
+static unsigned int die_get_byte_size(Dwarf_Die *die, obj_t *obj)
+{
+	unsigned int byte_sz_1;
+	unsigned int byte_sz_2;
+
+	/**
+	 * Make sure that this function will not be used on bitfields.
+	 * This is not supported as space requirements in such a case are
+	 * likely not to be divisible by CHAR_BIT and thus not applicable.
+	 */
+	assert(obj->is_bitfield == 0);
+
+	if (obj->byte_size > 0)
+		return obj->byte_size;
+
+	/*
+	 * Since any subset of {DW_AT_byte_size, DW_AT_bit_size} may be
+	 * specified in DWARF for any given DIE, we need to check both to
+	 * get byte size.
+	 */
+	byte_sz_1 = die_get_attr(die, DW_AT_byte_size);
+	byte_sz_2 = die_get_attr(die, DW_AT_bit_size);
+
+	assert(byte_sz_2 % CHAR_BIT == 0);
+
+	byte_sz_2 /= CHAR_BIT;
+
+	if (byte_sz_1 > 0 && byte_sz_2 > 0 && byte_sz_1 != byte_sz_2)
+		fail("DIE %s: DW_AT_byte_size and DW_AT_bit_size differ\n",
+		     dwarf_diename(die));
+
+	if (byte_sz_1 > 0)
+		return byte_sz_1;
+
+	return byte_sz_2;
+}
+
+static obj_t *die_read_byte_size(Dwarf_Die *die, obj_t *obj)
+{
+	obj_t *ptr = obj;
+	unsigned int coeff = 1;
+	unsigned int byte_size = 0;
+
+	while (ptr != NULL) {
+		byte_size = die_get_byte_size(die, ptr);
+
+		if (ptr->index && dwarf_tag(die) == DW_TAG_array_type)
+			coeff *= ptr->index;
+
+		if (byte_size > 0) {
+			obj->byte_size = byte_size * coeff;
+			break;
+		}
+
+		ptr = ptr->ptr;
+	}
+
+	return obj;
+}
+
 static obj_t *die_read_alignment(Dwarf_Die *die, obj_t *obj)
 {
-	Dwarf_Attribute attr;
-	Dwarf_Word value;
-
-	if (dwarf_attr(die, DW_AT_alignment, &attr) == NULL)
-		goto out;
-
-	dwarf_formudata(&attr, &value);
-	obj->alignment = value;
-out:
+	obj->alignment = die_get_attr(die, DW_AT_alignment);
 	return obj;
 }
 
@@ -447,6 +568,25 @@ static void set_free(struct set *set)
 	hash_free(h);
 }
 
+bool record_same_declarations(struct record *r1, struct record *r2,
+			      struct set *processed)
+{
+	if (r1 == r2)
+		return true;
+
+	if (record_is_declaration(r1) || record_is_declaration(r2))
+		/* since they are not same, only one is a declaration */
+		return false;
+
+	if (set_contains(processed, r1->key))
+		/* skipping already processed record */
+		return true;
+
+	set_add(processed, r1->key);
+
+	return obj_same_declarations(r1->obj, r2->obj, processed);
+}
+
 static struct record *record_alloc(void)
 {
 	struct record *rec;
@@ -458,15 +598,21 @@ static struct record *record_alloc(void)
 static void record_free_regular(struct record *rec)
 {
 	void *data;
+	struct list_node *iter;
 
-	free(rec->base_file);
-	free(rec->origin);
 	if (rec->cu)
 		free(rec->cu);
 
 	while ((data = stack_pop(rec->stack)) != NULL)
 		free(data);
 	stack_destroy(rec->stack);
+
+	LIST_FOR_EACH(&rec->dependents, iter) {
+		obj_t *o = list_node_data(iter);
+
+		o->depend_rec_node = NULL;
+	}
+	list_clear(&rec->dependents);
 
 	obj_free(rec->obj);
 }
@@ -478,8 +624,6 @@ static void record_free_weak(struct record *rec)
 
 static void record_free(struct record *rec)
 {
-	free(rec->key);
-
 	if (rec->free)
 		rec->free(rec);
 	free(rec);
@@ -505,10 +649,11 @@ static struct record *record_new_regular(const char *key)
 	struct record *rec;
 
 	rec = record_alloc();
-	rec->key = safe_strdup(key);
+	rec->key = global_string_get_copy(key);
 	rec->stack = stack_init();
 	rec->free = record_free_regular;
 	rec->dump = record_dump_regular;
+	list_init(&rec->dependents, NULL);
 	record_get(rec);
 	return rec;
 }
@@ -520,7 +665,7 @@ static struct record *record_new_assembly(const char *key)
 	struct record *rec;
 
 	rec = record_alloc();
-	rec->key = safe_strdup(key);
+	rec->key = global_string_get_copy(key);
 
 	/*
 	 * The symbol not necessary belongs to an assembly function,
@@ -543,7 +688,7 @@ static struct record *record_new_weak(const char *key, const char *link)
 	struct record *rec;
 
 	rec = record_alloc();
-	rec->key = safe_strdup(key);
+	rec->key = global_string_get_copy(key);
 	rec->link = safe_strdup(link);
 
 	rec->free = record_free_weak;
@@ -557,6 +702,18 @@ static struct record *record_new_weak(const char *key, const char *link)
 static obj_t *record_obj(struct record *rec)
 {
 	return rec->obj;
+}
+
+static struct record *record_copy(struct record *src)
+{
+	struct record *res = record_new_regular("");
+	obj_t *o1 = record_obj(src);
+
+	res->obj = obj_merge(o1, o1, MERGE_FLAG_DECL_MERGE);
+	obj_fill_parent(res->obj);
+	res->origin = src->origin;
+
+	return res;
 }
 
 static obj_t *record_obj_exchange(struct record *rec, obj_t *o)
@@ -605,11 +762,14 @@ static void record_add_origin(struct record *rec,
 {
 	char *dec_file;
 	long dec_line;
+	char *origin;
 
 	dec_file = get_file(cu_die, die);
 	dec_line = get_line(cu_die, die);
 
-	safe_asprintf(&rec->origin, "File: %s:%lu\n", dec_file, dec_line);
+	safe_asprintf(&origin, "File: %s:%lu\n", dec_file, dec_line);
+	rec->origin = global_string_get_move(origin);
+
 	free(dec_file);
 }
 
@@ -656,21 +816,9 @@ done:
 	return rec;
 }
 
-static void record_inc_version(struct record *rec)
+static void record_set_version(struct record *rec, int version)
 {
-	char *base_file = rec->base_file;
-	char *key = NULL;
-
-	if (rec->version == 0) {
-		base_file = safe_strdup(rec->key);
-		/* Remove .txt ending */
-		base_file[strlen(base_file) - 4] = '\0';
-		rec->base_file = base_file;
-	}
-	rec->version++;
-	safe_asprintf(&key, "%s-%i.txt", base_file, rec->version);
-	free(rec->key);
-	rec->key = key;
+	rec->version = version;
 }
 
 static void record_close(struct record *rec, obj_t *obj)
@@ -710,6 +858,8 @@ static void record_dump_regular(struct record *rec, FILE *f)
 	record_stack_dump_and_clear(rec, f);
 
 	fprintf(f, "Symbol:\n");
+	if (rec->obj->byte_size != 0)
+		fprintf(f, "Byte size %u\n", rec->obj->byte_size);
 	if (rec->obj->alignment != 0)
 		fprintf(f, "Alignment %u\n", rec->obj->alignment);
 
@@ -745,7 +895,13 @@ static void record_dump(struct record *rec, const char *dir)
 	FILE *f;
 	char *slash;
 
-	snprintf(path, sizeof(path), "%s/%s", dir, rec->key);
+	if (rec->version == 0) {
+		snprintf(path, sizeof(path),
+			 "%s/%s.txt", dir, rec->key);
+	} else {
+		snprintf(path, sizeof(path),
+			 "%s/%s-%i.txt", dir, rec->key, rec->version);
+	}
 
 	slash = strrchr(path, '/');
 	assert(slash != NULL);
@@ -762,33 +918,19 @@ static void record_dump(struct record *rec, const char *dir)
 	fclose(f);
 }
 
-static struct record *record_db_lookup(struct record_db *_db, char *key)
+static void list_record_free(void *value)
 {
-	struct record *rec;
-	struct hash *db = (struct hash *)_db;
+	struct record *rec = value;
 
-	rec = hash_find(db, key);
-	if (rec != NULL)
-		record_get(rec);
-
-	return rec;
+	record_put(rec);
 }
-
-static void record_db_push(struct record_db *_db, struct record *rec)
-{
-	int rc;
-	struct hash *db = (struct hash *)_db;
-
-	rc = hash_add_unique(db, rec->key, rec);
-	assert(rc == 0);
-	record_get(rec);
-}
-
 
 /*
  * merge rec_src to the record rec_dst
  */
-static bool record_merge(struct record *rec_dst, struct record *rec_src)
+static bool record_merge(struct record *rec_dst,
+			 struct record *rec_src,
+			 unsigned int flags)
 {
 	const char *s1;
 	const char *s2;
@@ -799,13 +941,13 @@ static bool record_merge(struct record *rec_dst, struct record *rec_src)
 	s1 = record_origin(rec_dst);
 	s2 = record_origin(rec_src);
 
-	if (!safe_streq(s1, s2))
+	if (s1 != s2)
 		return false;
 
 	o1 = record_obj(rec_dst);
 	o2 = record_obj(rec_src);
 
-	o = obj_merge(o1, o2);
+	o = obj_merge(o1, o2, flags);
 	if (o == NULL)
 		return false;
 
@@ -816,64 +958,422 @@ static bool record_merge(struct record *rec_dst, struct record *rec_src)
 	return true;
 }
 
-static char *record_db_add(struct record_db *db, struct record *rec)
+struct record_list {
+	struct record *decl_dummy;
+	/*
+	 * Nodes with data members set to NULL are unavailable,
+	 * due to their data being moved.
+	 */
+	struct list *records;
+	struct list *postponed;
+};
+
+static struct record_list *record_list_new(const char *key)
 {
-	struct record *tmp_rec;
-	char *key;
+	struct record_list *rec_list = safe_zmalloc(sizeof(*rec_list));
+	char *declaration_key;
 
-	for (;;) {
+	safe_asprintf(&declaration_key, "%s/%s", DECLARATION_PATH, key);
+	rec_list->decl_dummy = record_new_regular(declaration_key);
+	rec_list->decl_dummy->version = RECORD_VERSION_DECLARATION;
+	free(declaration_key);
 
-		/*
-		 * Now we need to put the new type record we've just generated
-		 * to the db.
-		 *
-		 * Often the only difference between these records are some
-		 * fields which are fully defined in one file (because the
-		 * respective header file has been included for the CU
-		 * compilation) while these are mere declarations in the other
-		 * (because the header file was not used). We detect this case
-		 * and if this is the only difference we just merge these two
-		 * records into one using the full definitions where available.
-		 *
-		 * But of course two types (eg. structures) of the same name
-		 * might be completely different types. In such case we try to
-		 * store them under different names using increasing number as
-		 * a suffix.
-		 */
+	rec_list->records = list_new(list_record_free);
+	rec_list->postponed = list_new(NULL);
 
-		tmp_rec = record_db_lookup(db, rec->key);
-		if (tmp_rec == NULL) {
-			record_db_push(db, rec);
-			key = safe_strdup(rec->key);
-			break;
-		}
-
-		if (record_merge(tmp_rec, rec)) {
-			key = safe_strdup(tmp_rec->key);
-			record_put(tmp_rec);
-			break;
-		}
-
-		record_put(tmp_rec);
-		/* Two different types detected, bump the name version */
-		record_inc_version(rec);
-	}
-
-	return key;
+	return rec_list;
 }
 
-static void hash_record_free(void *value)
+static void record_list_free(struct record_list *rec_list)
 {
-	struct record *rec = value;
+	assert(list_len(rec_list->postponed) == 0);
 
-	record_put(rec);
+	record_free(rec_list->decl_dummy);
+	list_free(rec_list->records);
+	list_free(rec_list->postponed);
+	free(rec_list);
+}
+
+static inline void record_list_node_make_unavailable(struct list_node *node)
+{
+	node->data = NULL;
+}
+
+static inline bool record_list_node_is_available(struct list_node *node)
+{
+	return node->data != NULL;
+}
+
+static inline struct list *record_list_records(struct record_list *rec_list)
+{
+	return rec_list->records;
+}
+
+static inline struct record *record_list_decl_dummy(struct record_list *rec_list)
+{
+	return rec_list->decl_dummy;
+}
+
+static void record_list_restore_postponed(struct record_list *rec_list)
+{
+	list_concat(rec_list->records, rec_list->postponed);
+}
+
+static struct record_list *record_db_lookup_or_init(struct record_db *db,
+					       const char *key)
+{
+	struct record_list *rec_list;
+	struct hash *hash = (struct hash *)db;
+
+	rec_list = hash_find(hash, key);
+	if (rec_list == NULL) {
+		rec_list = record_list_new(key);
+
+		hash_add(hash, global_string_get_copy(key), rec_list);
+	}
+
+	return rec_list;
+}
+
+struct merging_ctx {
+	/*
+	 * records found since recursion entry;
+	 * used for infinite loop detection
+	 */
+	struct set *current_records;
+	/*
+	 * records found since manual reset;
+	 * newly found records are merged with records in the hash
+	 */
+	struct hash *accumulated_records;
+
+
+	unsigned int flags;
+
+	bool use_copies; /* use copies of records instead of actual record */
+	bool merged;
+};
+
+static int record_merge_walk_record(struct record *followed,
+				    struct merging_ctx *ctx);
+static int record_merge_walk_object(obj_t *obj, void *arg)
+{
+	if (obj->type != __type_reffile)
+		return CB_CONT;
+
+	return record_merge_walk_record(obj->ref_record, arg);
+}
+
+static int record_merge_walk_record(struct record *followed,
+				    struct merging_ctx *ctx)
+{
+	struct record *record_dst;
+	bool clean_up = false;
+
+	if (record_is_declaration(followed))
+		return CB_CONT;
+
+	if (set_contains(ctx->current_records, followed->key))
+		return CB_CONT;
+	set_add(ctx->current_records, followed->key);
+
+	record_dst = hash_find(ctx->accumulated_records, followed->key);
+
+	if (record_dst == NULL) {
+		/* first of this key found */
+		if (ctx->use_copies)
+			record_dst = record_copy(followed);
+		else
+			record_dst = followed;
+		hash_add(ctx->accumulated_records, followed->key, record_dst);
+	} else {
+		if (record_dst == followed)
+			return CB_CONT;
+
+		if (!record_merge(record_dst, followed, ctx->flags))
+			return CB_FAIL;
+
+		ctx->merged = true;
+		if (!ctx->use_copies) {
+			record_redirect_dependents(record_dst, followed);
+			list_concat(&record_dst->dependents,
+				    &followed->dependents);
+
+			record_list_node_make_unavailable(followed->list_node);
+			clean_up = true;
+		}
+	}
+
+	int status = obj_walk_tree(followed->obj,
+				   record_merge_walk_object, ctx);
+
+	if (clean_up)
+		record_put(followed);
+
+	return status;
+}
+
+static int record_merge_walk(struct record *starting_rec,
+			     struct merging_ctx *ctx)
+{
+	int result;
+
+	ctx->current_records = set_init(PROCESSED_SIZE);
+	result = record_merge_walk_record(starting_rec, ctx);
+	set_free(ctx->current_records);
+
+	return result != CB_FAIL;
+}
+
+static bool record_merge_many_sub(struct list *list,
+				  unsigned int flags, bool use_copies)
+{
+	void (*free_fun)(void *);
+	struct merging_ctx ctx;
+	struct list_node *iter;
+	bool result = false;
+
+	if (use_copies)
+		free_fun = (void (*)(void *))record_free;
+	else
+		free_fun = NULL;
+
+	ctx.flags = flags;
+	ctx.current_records = NULL;
+	ctx.merged = false;
+
+	/* first, check if the list can be merged into one record */
+	ctx.use_copies = use_copies;
+	ctx.accumulated_records = hash_new(PROCESSED_SIZE, free_fun);
+
+	LIST_FOR_EACH(list, iter) {
+		result = record_merge_walk(list_node_data(iter), &ctx);
+
+		if (result == false && use_copies)
+			break;
+	}
+	hash_free(ctx.accumulated_records);
+
+	return result && ctx.merged;
+}
+
+static bool record_merge_many(struct list *list, unsigned int flags)
+{
+	bool result;
+
+	/* first, check if the list can be merged into one record */
+	result = record_merge_many_sub(list, flags, true);
+
+	if (result == false)
+		return false;
+
+	/* if it can be, then merge it */
+	result = record_merge_many_sub(list, flags, false);
+
+	return result;
+}
+
+static void record_list_clean_up(struct record_list *rec_list)
+{
+	const unsigned int FAILED_LIMIT = 10;
+	struct list_node *next = rec_list->records->first;
+
+	while (next != NULL) {
+		struct list_node *temp;
+		struct record *rec;
+
+		temp = next;
+		rec = list_node_data(temp);
+		next = next->next;
+
+		if (!rec) {
+			/* record was merged */
+			list_del(temp);
+		} else if (rec->failed > FAILED_LIMIT) {
+			list_del(temp);
+			rec->list_node = list_add(rec_list->postponed, rec);
+		}
+	}
+}
+
+static bool record_merge_pair(struct record *record_dst,
+			      struct record *record_src)
+{
+	bool merged;
+	struct set *processed;
+	struct list to_merge;
+
+	if (record_dst == NULL)
+		return false;
+
+	processed = set_init(PROCESSED_SIZE);
+	merged = record_same_declarations(record_dst, record_src, processed);
+	set_free(processed);
+	if (!merged) {
+		record_dst->failed++;
+		return false;
+	}
+
+	list_init(&to_merge, NULL);
+	list_add(&to_merge, record_dst);
+	list_add(&to_merge, record_src);
+
+	merged = record_merge_many(&to_merge,
+				    MERGE_FLAG_VER_IGNORE |
+				    MERGE_FLAG_DECL_EQ);
+	list_clear(&to_merge);
+
+	if (merged) {
+		/* continue with next unmerged */
+		record_dst->failed = 0;
+		return true;
+	}
+
+	record_dst->failed++;
+	list_clear(&to_merge);
+
+	return false;
+}
+
+static char *record_db_add(struct record_db *db, struct record *rec)
+{
+	/*
+	 * Now we need to put the new type record we've just generated
+	 * to the db.
+	 *
+	 * The problem stopping us from merging every record possible is that
+	 * multiple records can't be merged if it is not possible to create
+	 * groups in which they should be merged. This is not a problem if all
+	 * the records are able to be merged together, but when there is one or
+	 * more incompatible merging then merging them aggressively could group
+	 * them in the wrong way. And because the right way to group them can't
+	 * be decided, it is better not to group and subsequently merge them at
+	 * all.
+	 *
+	 * Meaning that at this stage, when we don't know all the records, we
+	 * can't decide if all records can be merged into one, and so the only
+	 * records we can merge are those that are completely same.
+	 *
+	 * In case they aren't same we store them as another node of the list.
+	 * We also change the name of the new record, so that two reffile obj_t
+	 * referencing records that we couldn't merge wouldn't get merged.
+	 */
+
+	struct record *tmp_rec;
+	struct record_list *rec_list;
+	struct list_node *iter;
+	int records_amount;
+
+	rec_list = record_db_lookup_or_init(db, rec->key);
+
+	LIST_FOR_EACH(record_list_records(rec_list), iter) {
+		tmp_rec = list_node_data(iter);
+
+		if (record_merge(tmp_rec, rec, MERGE_DEFAULT)) {
+			record_redirect_dependents(tmp_rec, rec);
+			list_concat(&tmp_rec->dependents, &rec->dependents);
+			return safe_strdup(tmp_rec->key);
+		}
+	}
+
+	records_amount = list_len(record_list_records(rec_list));
+
+	record_get(rec);
+	record_set_version(rec, records_amount);
+	record_redirect_dependents(rec, rec);
+	rec->list_node = list_add(record_list_records(rec_list), rec);
+
+	return safe_strdup(rec->key);
+}
+
+static void record_db_add_cu(struct record_db *db, struct hash *cu_db)
+{
+	struct list unmerged_list;
+	struct hash_iter iter;
+	const void *val;
+	bool merged;
+	struct list_node *unmerged_iter;
+	struct list_node *merger_iter;
+
+	/*
+	 * Use list instead of hash map,
+	 * since nodes are going to be gradually removed.
+	 */
+	list_init(&unmerged_list, NULL);
+	hash_iter_init((struct hash *)cu_db, &iter);
+	while (hash_iter_next(&iter, NULL, &val)) {
+		struct record *rec = (struct record *)val;
+
+		rec->list_node = list_add(&unmerged_list, rec);
+	}
+
+	/* try to merge, as long as at least one record was merged */
+	do {
+		merged = false;
+
+		LIST_FOR_EACH(&unmerged_list, unmerged_iter) {
+			struct record *unmerged_record
+				= list_node_data(unmerged_iter);
+			struct record_list *rec_list;
+			struct list *records;
+			const char *key;
+
+			if (!record_list_node_is_available(unmerged_iter)) {
+				/* already merged */
+				continue;
+			}
+
+			key = unmerged_record->key;
+			rec_list = record_db_lookup_or_init(db, key);
+			records = record_list_records(rec_list);
+
+			LIST_FOR_EACH(records, merger_iter) {
+				struct record *merger
+					= list_node_data(merger_iter);
+
+				if (record_merge_pair(merger,
+						      unmerged_record)) {
+					merged = true;
+					break;
+				}
+			}
+
+			record_list_clean_up(rec_list);
+		}
+	} while (merged);
+
+	/* add the rest that was not merged */
+	LIST_FOR_EACH(&unmerged_list, unmerged_iter) {
+		struct record *unmerged_record = list_node_data(unmerged_iter);
+		struct record_list *rec_list;
+		struct list *records;
+
+		if (!record_list_node_is_available(unmerged_iter)) {
+			/* already merged */
+			continue;
+		}
+
+		rec_list = record_db_lookup_or_init(db, unmerged_record->key);
+		records = record_list_records(rec_list);
+
+		unmerged_record->list_node
+			= list_add(records, unmerged_record);
+	}
+	list_clear(&unmerged_list);
+}
+
+static void hash_list_free(void *value)
+{
+	struct record_list *rec_list = value;
+
+	record_list_free(rec_list);
 }
 
 static struct record_db *record_db_init(void)
 {
 	struct hash *db;
 
-	db = hash_new(DB_SIZE, hash_record_free);
+	db = hash_new(DB_SIZE, hash_list_free);
 	if (db == NULL)
 		fail("Could not create db (hash)\n");
 
@@ -886,9 +1386,31 @@ static void record_db_dump(struct record_db *_db, char *dir)
 	const void *v;
 	struct hash *db = (struct hash *)_db;
 
+	/* set correct versions */
 	hash_iter_init(db, &iter);
-	while (hash_iter_next(&iter, NULL, &v))
-		record_dump((struct record *)v, dir);
+	while (hash_iter_next(&iter, NULL, &v)) {
+		struct list_node *iter;
+		struct record_list *rec_list = (struct record_list *)v;
+		int ver = 0;
+
+		LIST_FOR_EACH(record_list_records(rec_list), iter) {
+			struct record *record = list_node_data(iter);
+
+			record_set_version(record, ver++);
+		}
+	}
+
+	hash_iter_init(db, &iter);
+	while (hash_iter_next(&iter, NULL, &v)) {
+		struct record_list *rec_list = (struct record_list *)v;
+		struct list_node *iter;
+
+		LIST_FOR_EACH(record_list_records(rec_list), iter) {
+			struct record *rec = list_node_data(iter);
+
+			record_dump(rec, dir);
+		}
+	}
 }
 
 static void record_db_free(struct record_db *_db)
@@ -913,6 +1435,10 @@ static obj_t *print_die_type(struct cu_ctx *ctx,
 		fail("dwarf_formref_die() failed for %s\n",
 		    dwarf_diename(die));
 
+	if (dwarf_hasattr(&type_die, DW_AT_endianity))
+		fail("DIE %s has non-standard endianity\n",
+		     dwarf_diename(&type_die))
+
 	/* Print the type of the die */
 	return print_die(ctx, rec, &type_die);
 }
@@ -922,39 +1448,62 @@ static obj_t *print_die_struct_member(struct cu_ctx *ctx,
 				      Dwarf_Die *die,
 				      const char *name)
 {
-	Dwarf_Attribute attr;
-	Dwarf_Word value;
 	obj_t *type;
 	obj_t *obj;
-
-	if (dwarf_attr(die, DW_AT_data_member_location, &attr) == NULL)
-		fail("Offset of member %s missing!\n", name);
-
-	(void) dwarf_formudata(&attr, &value);
+	Dwarf_Half dw_attr_bit_offset;
+	unsigned int bit_offset = 0;
 
 	type = print_die_type(ctx, rec, die);
 	obj = obj_struct_member_new_add(safe_strdup(name), type);
-	obj->offset = value;
-
-	if (dwarf_hasattr(die, DW_AT_bit_offset)) {
-		Dwarf_Word offset, size;
-
-		if (!dwarf_hasattr(die, DW_AT_bit_size))
-			fail("Missing expected bit size attribute in %s!\n",
-			    name);
-
-		if (dwarf_attr(die, DW_AT_bit_offset, &attr) == NULL)
-			fail("Bit offset of member %s missing!\n", name);
-		(void) dwarf_formudata(&attr, &offset);
-		if (dwarf_attr(die, DW_AT_bit_size, &attr) == NULL)
-			fail("Bit size of member %s missing!\n", name);
-		(void) dwarf_formudata(&attr, &size);
-
-		obj->is_bitfield = 1;
-		obj->first_bit = offset;
-		obj->last_bit = offset + size - 1;
-	}
 	die_read_alignment(die, obj);
+
+	/*
+	 * DWARF attribute specifying offset varies depending on DWARF version.
+	 * DW_AT_data_member_location is not guaranteed to be emitted; a fall-
+	 * back attribute DW_AT_data_bit_offset (present in DWARF v4 and later)
+	 * is used when not encountered.
+	 */
+	if (dwarf_hasattr(die, DW_AT_data_member_location))
+		obj->offset = die_get_attr(die, DW_AT_data_member_location);
+	else if (dwarf_hasattr(die, DW_AT_data_bit_offset))
+		obj->offset = die_get_attr(die, DW_AT_data_bit_offset)/CHAR_BIT;
+
+	/*
+	 * DWARF attribute specifying bit-offset. Note that DW_AT_bit_offset
+	 * is endian-sensitive, whereas DW_AT_data_bit_offset is not.
+	 * Presence of this attribute indicates that we're dealing with
+	 * bit-field.
+	 */
+	if (dwarf_hasattr(die, DW_AT_bit_offset))
+		dw_attr_bit_offset = DW_AT_bit_offset;
+	else if (dwarf_hasattr(die, DW_AT_data_bit_offset))
+		dw_attr_bit_offset = DW_AT_data_bit_offset;
+	else
+		goto out;
+
+	/*
+	 * Bit-field section; offset, first and last bits are converted to
+	 * DWARF5-compliant (endian-oblivious) format.
+	 */
+	obj->is_bitfield = 1;
+
+	if (dwarf_hasattr(die, DW_AT_data_bit_offset)) {
+		bit_offset = die_get_attr(die, dw_attr_bit_offset);
+	} else if (ctx->elf_endian == ELFDATA2MSB) {
+		bit_offset = die_get_attr(die, dw_attr_bit_offset) \
+			   + obj->offset*CHAR_BIT;
+	} else {
+		bit_offset = die_get_attr(die, DW_AT_byte_size) * CHAR_BIT \
+			   + obj->offset * CHAR_BIT \
+			   - die_get_attr(die, DW_AT_bit_offset) \
+			   - die_get_attr(die, DW_AT_bit_size);
+	}
+
+	obj->offset = bit_offset / CHAR_BIT;
+	obj->first_bit = bit_offset % CHAR_BIT;
+	obj->last_bit  = die_get_attr(die, DW_AT_bit_size) + obj->first_bit;
+
+out:
 	return obj;
 }
 
@@ -1260,12 +1809,12 @@ static obj_t *print_die_tag(struct cu_ctx *ctx,
 	case DW_TAG_volatile_type:
 		obj = print_die_type(ctx, rec, die);
 		obj = obj_qualifier_new_add(obj);
-		obj->base_type = safe_strdup("volatile");
+		obj->base_type = global_string_get_copy("volatile");
 		break;
 	case DW_TAG_const_type:
 		obj = print_die_type(ctx, rec, die);
 		obj = obj_qualifier_new_add(obj);
-		obj->base_type = safe_strdup("const");
+		obj->base_type = global_string_get_copy("const");
 		break;
 	case DW_TAG_array_type:
 		obj = print_die_array_type(ctx, rec, die);
@@ -1279,6 +1828,10 @@ static obj_t *print_die_tag(struct cu_ctx *ctx,
 		break;
 	}
 	}
+
+	if (tag != DW_TAG_subprogram && tag != DW_TAG_subroutine_type)
+		obj = die_read_byte_size(die, obj);
+
 	obj = die_read_alignment(die, obj);
 	return obj;
 }
@@ -1289,10 +1842,10 @@ static obj_t *print_die(struct cu_ctx *ctx,
 {
 	char *file;
 	struct record *rec;
-	char *old_file;
 	obj_t *obj;
 	obj_t *ref_obj;
 	generate_config_t *conf = ctx->conf;
+	struct hash *cu_db = (struct hash *)ctx->cu_db;
 
 	/*
 	 * Sigh. The type of some fields (eg. struct member as a pointer to
@@ -1311,11 +1864,29 @@ static obj_t *print_die(struct cu_ctx *ctx,
 		return obj;
 	}
 
+	ref_obj = obj_reffile_new();
+
 	/* else handle new record */
 	rec = record_start(ctx, die, file);
-	if (rec == NULL)
+	if (rec == NULL) {
 		/* declaration or already processed */
+		struct record_list *rec_list
+			= record_db_lookup_or_init(conf->db, file);
+
+		if (is_declaration(die)) {
+			ref_obj->ref_record = record_list_decl_dummy(rec_list);
+		} else {
+			struct record *processed = hash_find(cu_db, file);
+
+			ref_obj->depend_rec_node
+				= list_add(&processed->dependents, ref_obj);
+			ref_obj->ref_record = processed;
+		}
+
 		goto out;
+	}
+
+	hash_add(cu_db, rec->key, rec);
 
 	if (conf->gen_extra)
 		stack_push(ctx->stack, safe_strdup(file));
@@ -1325,16 +1896,12 @@ static obj_t *print_die(struct cu_ctx *ctx,
 
 	record_close(rec, obj);
 
-	old_file = file;
-	/* if it creates new version, key/file name can change */
-	file = record_db_add(conf->db, rec);
-	record_put(rec);
-	/* record_db_add() returns allocated string */
-	free(old_file);
+	ref_obj->depend_rec_node = list_add(&rec->dependents, ref_obj);
+	ref_obj->ref_record = rec;
 
 out:
-	ref_obj = obj_reffile_new();
-	ref_obj->base_type = file;
+	free(file);
+
 	return ref_obj;
 }
 
@@ -1447,6 +2014,8 @@ static void process_cu_die(Dwarf_Die *cu_die, struct file_ctx *fctx)
 			cu_printed = true;
 		}
 
+		ctx.dw_version = fctx->dw_version;
+		ctx.elf_endian = fctx->elf_endian;
 		ctx.conf = conf;
 		ctx.cu_die = cu_die;
 
@@ -1455,8 +2024,12 @@ static void process_cu_die(Dwarf_Die *cu_die, struct file_ctx *fctx)
 		/* And a set of all processed symbols */
 		ctx.processed = set_init(PROCESSED_SIZE);
 
+		ctx.cu_db = hash_new(PROCESSED_SIZE, NULL);
+
 		/* Print both the CU DIE and symbol DIE */
 		ref = print_die(&ctx, NULL, &child_die);
+		record_db_add_cu(conf->db, ctx.cu_db);
+
 		obj_free(ref);
 
 		/* And clear the stack again */
@@ -1465,6 +2038,8 @@ static void process_cu_die(Dwarf_Die *cu_die, struct file_ctx *fctx)
 
 		stack_destroy(ctx.stack);
 		set_free(ctx.processed);
+
+		hash_free((struct hash *)ctx.cu_db);
 	} while (dwarf_siblingof(&child_die, &child_die) == 0);
 }
 
@@ -1490,7 +2065,9 @@ static int dwflmod_generate_cb(Dwfl_Module *dwflmod, void **userdata,
 
 	while (dwarf_next_unit(dbg, off, &off, &hsize, &version, &abbrev,
 	    &addresssize, &offsetsize, NULL, &type_offset) == 0) {
-		if (version < 2 || version > 4)
+		fctx->dw_version = version;
+
+		if (version < 2 || version > 5)
 			fail("Unsupported dwarf version: %d\n", version);
 
 		/* CU is followed by a single DIE */
@@ -1541,7 +2118,7 @@ static void generate_assembly_record(generate_config_t *conf, const char *key)
 	if (conf->verbose)
 		printf("Generating assembly record for %s\n", key);
 
-	safe_asprintf(&name, "asm--%s.txt", key);
+	safe_asprintf(&name, "asm--%s", key);
 
 	rec = record_new_assembly(name);
 	new_key = record_db_add(conf->db, rec);
@@ -1565,7 +2142,7 @@ static bool try_generate_alias(generate_config_t *conf, struct ksym *ksym)
 		printf("Generating weak record %s -> %s\n",
 		       key, link);
 
-	safe_asprintf(&name, "weak--%s.txt", key);
+	safe_asprintf(&name, "weak--%s", key);
 
 	rec = record_new_weak(name, link);
 	new_key = record_db_add(conf->db, rec);
@@ -1644,6 +2221,8 @@ static void merge_aliases(struct ksymtab *ksymtab,
 
 static walk_rv_t process_symbol_file(char *path, void *arg)
 {
+	unsigned int endianness;
+	struct elf_data *elf;
 	struct file_ctx fctx;
 	generate_config_t *conf = (generate_config_t *)arg;
 	struct ksymtab *ksymtab;
@@ -1652,8 +2231,16 @@ static walk_rv_t process_symbol_file(char *path, void *arg)
 
 	/* We want to process only .ko kernel modules and vmlinux itself */
 	if (!safe_strendswith(path, ".ko") &&
-	    !safe_strendswith(path, "/vmlinux"))
-		return ret;
+	    !safe_strendswith(path, "/vmlinux")) {
+		if (conf->kernel_dir) {
+			if (conf->verbose)
+				printf("Skip non-object file %s\n", path);
+			return ret;
+		} else {
+			if (conf->verbose)
+				printf("Force processing file %s\n", path);
+		}
+	}
 
 	/*
 	 * Don't look into RHEL build cache directories.
@@ -1663,18 +2250,31 @@ static walk_rv_t process_symbol_file(char *path, void *arg)
 			return WALK_SKIP;
 	}
 
-	ksymtab = ksymtab_read(path, &aliases);
+	elf = elf_open(path);
+	if (elf == NULL) {
+		if (conf->verbose)
+			printf("Skip %s (unable to process ELF file)\n",
+			       path);
+		goto out;
+	}
+
+	if (elf_get_endianness(elf, &endianness) > 0)
+		goto clean_elf;
+
+	if (elf_get_exported(elf, &ksymtab, &aliases) > 0)
+		goto clean_elf;
 
 	if (ksymtab_len(ksymtab) == 0) {
 		if (conf->verbose)
 			printf("Skip %s (no exported symbols)\n", path);
-		goto out;
+		goto clean_ksymtab;
 	}
 
 	merge_aliases(ksymtab, conf->symbols, aliases);
 
 	fctx.conf = conf;
 	fctx.ksymtab = ksymtab;
+	fctx.elf_endian = endianness;
 
 	if (conf->verbose)
 		printf("Processing %s\n", path);
@@ -1684,9 +2284,14 @@ static walk_rv_t process_symbol_file(char *path, void *arg)
 
 	if (is_all_done(conf))
 		ret = WALK_STOP;
-out:
+clean_ksymtab:
 	ksymtab_free(aliases);
 	ksymtab_free(ksymtab);
+clean_elf:
+	elf_close(elf);
+	free(elf->ehdr);
+	free(elf);
+out:
 	return ret;
 }
 
@@ -1697,6 +2302,238 @@ static void print_not_found(struct ksym *ksym, void *ctx)
 	if (ksymtab_ksym_is_marked(ksym))
 		return;
 	printf("%s not found!\n", s);
+}
+
+ /*
+  * Creates a string describing given record.
+  * The burden of freeing the string falls on the caller.
+  */
+static char *record_get_digest(struct record *rec)
+{
+
+	/*
+	 * TODO: this approach is far from perfect, there could be more
+	 * information about members as part of the key, but for now this works
+	 * good enough.
+	 */
+	char *key;
+	obj_t *obj = rec->obj;
+	const char *origin = rec->origin ? rec->origin : "";
+	int member_count = 0;
+
+	if (!obj)
+		return safe_strdup(origin);
+
+	if (obj->member_list) {
+		for (obj_list_t *member = obj->member_list->first;
+		     member != NULL;
+		     member = member->next) {
+			member_count++;
+		}
+	}
+
+	safe_asprintf(&key,
+		      "%s.%zu.%zu.%zu.%zu.%zu.%i",
+		      origin,
+		      obj->alignment, obj->is_bitfield,
+		      obj->first_bit, obj->last_bit,
+		      obj->offset,
+		      member_count
+		);
+
+	return key;
+}
+
+struct digest_equivalence_list {
+	char *key;
+	struct list *records;
+};
+
+static void digest_equivalence_list_free(struct digest_equivalence_list *arg)
+{
+	free(arg->key);
+	list_free(arg->records);
+	free(arg);
+}
+
+static struct hash *split_record_list(struct list *input)
+{
+	struct hash *result
+		= hash_new(16, (void (*)(void *))digest_equivalence_list_free);
+	void *temp;
+	struct list_node *iter;
+
+	LIST_FOR_EACH(input, iter) {
+		struct record *rec = list_node_data(iter);
+		char *key;
+		struct digest_equivalence_list *eq_list;
+
+		if (!record_list_node_is_available(iter))
+			continue;
+
+		key = record_get_digest(rec);
+		eq_list = hash_find(result, key);
+		if (eq_list == NULL) {
+			eq_list = malloc(sizeof(*eq_list));
+			eq_list->key = key;
+			eq_list->records = list_new(NULL);
+
+			hash_add(result, eq_list->key, eq_list);
+		} else {
+			free(key);
+		}
+
+		rec->list_node = list_add(eq_list->records, rec);
+	}
+
+	/* clear the input list but do not free the data */
+	temp = input->free;
+	input->free = NULL;
+	list_clear(input);
+	input->free = temp;
+
+	return result;
+}
+
+static bool record_list_split_and_merge(struct record_list *rec_list)
+{
+	struct list *list = rec_list->records;
+	struct hash *split = split_record_list(list);
+	const void *val;
+	bool merged = false;
+	struct hash_iter split_iter;
+
+
+	/* try to merge digest_equivalence_lists */
+	hash_iter_init(split, &split_iter);
+	while (hash_iter_next(&split_iter, NULL, &val)) {
+		struct digest_equivalence_list *eq_list
+			= (struct digest_equivalence_list *)val;
+
+		if (list_len(eq_list->records) < 2) {
+			/* skipping lists with nothing to merge */
+			continue;
+		}
+
+		if (record_merge_many(eq_list->records,
+				      MERGE_FLAG_VER_IGNORE |
+				      MERGE_FLAG_DECL_MERGE)) {
+			merged = true;
+		}
+	}
+
+
+	/* concat back together */
+	hash_iter_init(split, &split_iter);
+	while (hash_iter_next(&split_iter, NULL, &val)) {
+		struct digest_equivalence_list *eq_list
+			= (struct digest_equivalence_list *)val;
+
+		list_concat(list, eq_list->records);
+	}
+
+	hash_free(split);
+
+	return merged;
+}
+
+bool record_db_merge_pairs(struct hash *hash)
+{
+	struct hash_iter iter;
+	const void *val;
+	bool merged = false;
+
+	/*
+	 * Try to merge as pairs.
+	 *
+	 * Since not every combination was tried while loading CUs, we
+	 * can try to merge them now, after merging some of them as
+	 * groups and decreasing their count.
+	 *
+	 * Should only be trying to merge them once, since trying more times
+	 * would be useless.
+	 */
+	hash_iter_init(hash, &iter);
+	while (hash_iter_next(&iter, NULL, &val)) {
+		struct record_list *rec_list
+			= (struct record_list *)val;
+		struct list_node *unsuc_iter;
+		struct list *con_list = record_list_records(rec_list);
+
+		LIST_FOR_EACH(con_list, unsuc_iter) {
+			struct record *unsuc = unsuc_iter->data;
+			struct list_node *con_iter;
+
+			if (unsuc == NULL)
+				continue;
+
+			for (con_iter = unsuc_iter->next;
+			     con_iter != NULL;
+			     con_iter = con_iter->next) {
+				struct record *con_rec = con_iter->data;
+
+				if (!record_list_node_is_available(con_iter))
+					continue;
+
+				if (record_merge_pair(unsuc, con_rec))
+					merged = true;
+			}
+		}
+	}
+
+	return merged;
+}
+
+void record_db_merge(struct record_db *db)
+{
+	bool first = true;
+
+	struct hash *hash = (struct hash *)db;
+	bool merged;
+	struct hash_iter iter;
+	const void *val;
+
+	hash_iter_init(hash, &iter);
+	while (hash_iter_next(&iter, NULL, &val)) {
+		struct record_list *rec_list = (struct record_list *)val;
+
+		record_list_restore_postponed(rec_list);
+	}
+
+	do {
+		/* merge as groups */
+		merged = false;
+
+		hash_iter_init(hash, &iter);
+		while (hash_iter_next(&iter, NULL, &val)) {
+			struct record_list *rec_list
+				= (struct record_list *)val;
+
+			if (rec_list == NULL)
+				continue;
+
+			if (record_list_split_and_merge(rec_list))
+				merged = true;
+		}
+
+
+		/* merge as pairs, once */
+		if (!first)
+			continue;
+		first = false;
+
+		if (record_db_merge_pairs(hash))
+			merged = true;
+
+	} while (merged);
+
+	hash_iter_init(hash, &iter);
+	while (hash_iter_next(&iter, NULL, &val)) {
+		struct record_list *rec_list = (struct record_list *)val;
+
+		record_list_clean_up(rec_list);
+		record_list_restore_postponed(rec_list);
+	}
 }
 
 /*
@@ -1712,7 +2549,7 @@ static void generate_symbol_defs(generate_config_t *conf)
 		    strerror(errno));
 
 	/* Lets walk the normal modules */
-	printf("Generating symbol defs from %s...\n", conf->kernel_dir);
+	printf("Generating symbol defs from %s\n", conf->kernel_dir);
 
 	conf->db = record_db_init();
 
@@ -1720,13 +2557,15 @@ static void generate_symbol_defs(generate_config_t *conf)
 		walk_dir(conf->kernel_dir, false, process_symbol_file, conf);
 	} else if (S_ISREG(st.st_mode)) {
 		char *path = conf->kernel_dir;
-		conf->kernel_dir = "";
+		conf->kernel_dir = NULL;
 		process_symbol_file(path, conf);
 	} else {
 		fail("Not a file or directory: %s\n", conf->kernel_dir);
 	}
 
 	ksymtab_for_each(conf->symbols, print_not_found, NULL);
+
+	record_db_merge(conf->db);
 
 	record_db_dump(conf->db, conf->kabi_dir);
 	record_db_free(conf->db);

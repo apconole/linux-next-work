@@ -99,10 +99,11 @@ static void print_node_list(const char *s, const char *prefix,
  * the case, but a referred symbol has changed, we return
  * CMP_REFFILE; If that's not the case, but the offset has
  * changed, we return CMP_OFFSET. So the current order is
- * CMP_DIFF > CMP_REFFILE > CMP_OFFSET > CMP_ALIGNMENT"
+ * CMP_DIFF > CMP_REFFILE > CMP_OFFSET > CMP_ALIGNMENT > CMP_BYTE_SIZE
  * In case of alignment, if the structure alignment has changed,
  * only that is reported. If not, then the fields are checked and
  * the all the different fields are reported.
+ * The same is true of byte size changes.
  */
 
 typedef enum {
@@ -111,9 +112,11 @@ typedef enum {
 	CMP_DIFF,	/* Nodes are differents */
 	CMP_REFFILE,	/* A refered symbol has changed */
 	CMP_ALIGNMENT,  /* An alignment has changed */
+	CMP_BYTE_SIZE,  /* Byte size has changed */
 } cmp_ret_t;
 
-static int compare_two_files(char *filename, char *newfile, bool follow);
+static int compare_two_files(const char *filename, const char *newfile,
+			     bool follow);
 
 static int cmp_node_reffile(obj_t *o1, obj_t *o2)
 {
@@ -183,6 +186,9 @@ static int _cmp_nodes(obj_t *o1, obj_t *o2, bool search)
 
 	if (o1->alignment != o2->alignment)
 		return CMP_ALIGNMENT;
+
+	if (o1->byte_size != o2->byte_size)
+		return CMP_BYTE_SIZE;
 
 	return CMP_SAME;
 }
@@ -336,6 +342,14 @@ static void message_alignment_value(unsigned v, FILE *stream)
 		fprintf(stream, "%u", v);
 }
 
+static void message_byte_size_value(unsigned int v, FILE *stream)
+{
+	if (v == 0)
+		fprintf(stream, "<undefined>");
+	else
+		fprintf(stream, "%u", v);
+}
+
 static void message_alignment(obj_t *o1, obj_t *o2, FILE *stream)
 {
 	char *part_str;
@@ -352,6 +366,17 @@ static void message_alignment(obj_t *o1, obj_t *o2, FILE *stream)
 	message_alignment_value(o1->alignment, stream);
 	fprintf(stream, " to ");
 	message_alignment_value(o2->alignment, stream);
+	fprintf(stream, "\n");
+}
+
+static void message_byte_size(obj_t *o1, obj_t *o2, FILE *stream)
+{
+	fprintf(stream, "The byte size of symbol '%s' has changed from ",
+		o1->name);
+
+	message_byte_size_value(o1->byte_size, stream);
+	fprintf(stream, " to ");
+	message_byte_size_value(o2->byte_size, stream);
 	fprintf(stream, "\n");
 }
 
@@ -374,6 +399,9 @@ static int _compare_tree(obj_t *o1, obj_t *o2, FILE *stream)
 			ret = COMP_CONT;
 		} else if (tmp == CMP_ALIGNMENT) {
 			message_alignment(o1, o2, stream);
+			ret = COMP_CONT;
+		} else if (tmp == CMP_BYTE_SIZE) {
+			message_byte_size(o1, o2, stream);
 			ret = COMP_CONT;
 		}
 
@@ -463,7 +491,7 @@ static int compare_tree(obj_t *o1, obj_t *o2, FILE *stream)
 	return _compare_tree(o1, o2, stream);
 }
 
-static bool push_file(char *filename)
+static bool push_file(const char *filename)
 {
 	int i, sz = compare_config.flistsz;
 	int cnt = compare_config.flistcnt;
@@ -545,12 +573,14 @@ static void compare_usage()
  *           don't print anything and exit immediately if follow
  *           option isn't set.
  */
-static int compare_two_files(char *filename, char *newfile, bool follow)
+static int compare_two_files(const char *filename, const char *newfile,
+			     bool follow)
 {
 	obj_t *root1, *root2;
 	char *old_dir = compare_config.old_dir;
 	char *new_dir = compare_config.new_dir;
-	char *path1, *path2, *s = NULL, *filename2;
+	char *path1, *path2, *s = NULL;
+	const char *filename2;
 	FILE *file1, *file2, *stream;
 	struct stat fstat;
 	size_t sz;

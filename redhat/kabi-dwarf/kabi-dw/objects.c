@@ -38,6 +38,7 @@
 #include "objects.h"
 #include "utils.h"
 #include "main.h"
+#include "record.h"
 
 /* Indentation offset for c-style and tree debug outputs */
 #define C_INDENT_OFFSET   8
@@ -51,7 +52,7 @@ obj_list_t *obj_list_new(obj_t *obj)
 	return list;
 }
 
-static void list_init(obj_list_head_t *head, obj_t *obj)
+static void obj_list_init(obj_list_head_t *head, obj_t *obj)
 {
 	obj_list_t *list = obj_list_new(obj);
 	head->first = head->last = list;
@@ -61,12 +62,12 @@ obj_list_head_t *obj_list_head_new(obj_t *obj)
 {
 	obj_list_head_t *h = safe_zmalloc(sizeof(obj_list_head_t));
 
-	list_init(h, obj);
+	obj_list_init(h, obj);
 
 	return h;
 }
 
-static bool list_empty(obj_list_head_t *head)
+static bool obj_list_empty(obj_list_head_t *head)
 {
 	return head->first == NULL;
 }
@@ -75,8 +76,8 @@ void obj_list_add(obj_list_head_t *head, obj_t *obj)
 {
 	obj_list_t *list;
 
-	if (list_empty(head)) {
-		list_init(head, obj);
+	if (obj_list_empty(head)) {
+		obj_list_init(head, obj);
 		return;
 	}
 	list = obj_list_new(obj);
@@ -93,7 +94,7 @@ obj_t *obj_new(obj_types type, char *name)
 	obj_t *new = safe_zmalloc(sizeof(obj_t));
 
 	new->type = type;
-	new->name = name;
+	new->name = global_string_get_move(name);
 
 	return new;
 }
@@ -131,10 +132,11 @@ static void _obj_free(obj_t *o, obj_t *skip)
 {
 	if (!o || (o == skip))
 		return;
-	if (o->name)
-		free(o->name);
-	if (o->base_type)
-		free(o->base_type);
+
+	if (o->type == __type_reffile && o->depend_rec_node) {
+		list_del(o->depend_rec_node);
+		o->depend_rec_node = NULL;
+	}
 
 	_obj_list_free(o->member_list, skip);
 
@@ -203,7 +205,7 @@ obj_t *obj_basetype_new(char *base_type)
 {
 	obj_t *new = obj_new(__type_base, NULL);
 
-	new->base_type = base_type;
+	new->base_type = global_string_get_move(base_type);
 
 	return new;
 }
@@ -360,11 +362,12 @@ static char *prefix_str_free(char **s, char *p)
 	return _prefix_str(s, p, false, true);
 }
 
-static char *prefix_str_space(char **s, char *p)
+static char *prefix_str_space(char **s, const char *p)
 {
 	if (!p)
 		return *s;
-	return _prefix_str(s, p, true, false);
+	/* freep is false so we can pass const char * */
+	return _prefix_str(s, (char *)p, true, false);
 }
 
 /*
@@ -397,11 +400,13 @@ static char *_postfix_str(char **s, char *p, bool space, bool freep)
 	return *s;
 }
 
-static char *postfix_str(char **s, char *p)
+static char *postfix_str(char **s, const char *p)
 {
 	if (!p)
 		return *s;
-	return _postfix_str(s, p, false, false);
+
+	/* freep is false so we can pass const char * */
+	return _postfix_str(s, (char *)p, false, false);
 }
 
 static char *postfix_str_free(char **s, char *p)
@@ -476,7 +481,8 @@ static pp_t print_func(obj_t *o, int depth, const char *prefix)
 	pp_t ret = {NULL, NULL}, return_type;
 	obj_list_t *list = NULL;
 	obj_t *next = o->ptr;
-	char *s, *name, *margin;
+	char *s, *margin;
+	const char *name;
 
 	return_type = _print_tree(next, depth, false, prefix);
 	ret.prefix = return_type.prefix;
@@ -546,7 +552,7 @@ static pp_t print_varlike(obj_t *o, int depth, const char *prefix)
 		safe_asprintf(&s, "%s:%i",
 			      o->name, o->last_bit - o->first_bit + 1);
 	else
-		s = o->name;
+		s = (char *)o->name;
 
 	ret = _print_tree(o->ptr, depth, false, prefix);
 
@@ -910,14 +916,13 @@ static int hide_kabi_cb(obj_t *o, void *args)
 		if (!strncmp(o->name, "rh_reserved_", 12) &&
 		    strncmp(o->name, "rh_reserved_ptrs", 16)) {
 			char *tmp = strdup(o->name+12);
-			free(o->name);
-			o->name = tmp;
+			o->name = global_string_get_move(tmp);
 		}
 	}
 
 	/* Hide RH_KABI_REPLACE */
 	if ((o->type != __type_union) || o->name ||
-	    !(lh = o->member_list) || list_empty(lh) ||
+	    !(lh = o->member_list) || obj_list_empty(lh) ||
 	    !(l = lh->first) || !(new = l->member) ||
 	    !(l = l->next) || !(kabi_struct = l->member) ||
 	    (kabi_struct->type != __type_var) ||
@@ -926,7 +931,7 @@ static int hide_kabi_cb(obj_t *o, void *args)
 		return CB_CONT;
 
 	if (!kabi_struct->ptr || kabi_struct->ptr->type != __type_struct ||
-	    !(lh = kabi_struct->ptr->member_list) || list_empty(lh) ||
+	    !(lh = kabi_struct->ptr->member_list) || obj_list_empty(lh) ||
 	    !(l = lh->first) || !(old = l->member))
 		fail("Unexpeted rh_kabi_hide struct format\n");
 
@@ -991,13 +996,10 @@ int obj_hide_kabi(obj_t *root, bool show_new_field)
 
 static bool obj_is_declaration(obj_t *obj)
 {
-	size_t len;
-
-	if (obj->base_type == NULL)
+	if (obj->type != __type_reffile || obj->ref_record == NULL)
 		return false;
 
-	len = strlen(DECLARATION_PATH);
-	return strncmp(obj->base_type, DECLARATION_PATH, len) == 0;
+	return record_is_declaration(obj->ref_record);
 }
 
 static bool obj_is_kabi_hide(obj_t *obj)
@@ -1008,16 +1010,28 @@ static bool obj_is_kabi_hide(obj_t *obj)
 	return strncmp(obj->name, RH_KABI_HIDE, RH_KABI_HIDE_LEN) == 0;
 }
 
-static bool obj_eq(obj_t *o1, obj_t *o2)
+bool obj_eq(obj_t *o1, obj_t *o2, bool ignore_versions)
 {
+	if (o1->type != o2->type)
+		return false;
+
+	if (o1->type == __type_reffile) {
+		if (ignore_versions) {
+			return record_get_key(o1->ref_record) ==
+				record_get_key(o2->ref_record);
+		}
+
+		return o1->ref_record == o2->ref_record;
+	}
+
 	/* borrow parts from cmp_nodes */
-	if ((o1->type != o2->type) ||
-	    !safe_streq(o1->name, o2->name) ||
+	if ((o1->name != o2->name) ||
 	    ((o1->ptr == NULL) != (o2->ptr == NULL)) ||
 	    (has_constant(o1) && (o1->constant != o2->constant)) ||
 	    (has_index(o1) && (o1->index != o2->index)) ||
 	    (is_bitfield(o1) != is_bitfield(o2)) ||
-	    (o1->alignment != o2->alignment))
+	    (o1->alignment != o2->alignment) ||
+	    (o1->byte_size != o2->byte_size))
 		return false;
 
 	/* just compare bitfields */
@@ -1030,7 +1044,7 @@ static bool obj_eq(obj_t *o1, obj_t *o2)
 	    (o2->member_list == NULL))
 		return false;
 
-	if (!safe_streq(o1->base_type, o2->base_type))
+	if (o1->base_type != o2->base_type)
 		return false;
 
 	return true;
@@ -1043,20 +1057,20 @@ static obj_t *obj_copy(obj_t *o1)
 	o = safe_zmalloc(sizeof(*o));
 	*o = *o1;
 
-	o->type = o1->type;
-	o->name = safe_strdup_or_null(o1->name);
-	o->base_type = safe_strdup_or_null(o1->base_type);
-
 	o->ptr = NULL;
 	o->member_list = NULL;
+
+	if (o1->type == __type_reffile && o1->depend_rec_node)
+		o->depend_rec_node = list_node_add(o1->depend_rec_node, o);
 
 	return o;
 }
 
-obj_t *obj_merge(obj_t *o1, obj_t *o2);
+obj_t *obj_merge(obj_t *o1, obj_t *o2, unsigned int flags);
 
 static obj_list_head_t *obj_members_merge(obj_list_head_t *list1,
-		obj_list_head_t *list2)
+					  obj_list_head_t *list2,
+					  unsigned int flags)
 {
 	obj_list_head_t *res = NULL;
 	obj_list_t *l1;
@@ -1070,7 +1084,7 @@ static obj_list_head_t *obj_members_merge(obj_list_head_t *list1,
 	l2 = list2->first;
 
 	while (l1 && l2) {
-		o = obj_merge(l1->member, l2->member);
+		o = obj_merge(l1->member, l2->member, flags);
 		if (o == NULL)
 			goto cleanup;
 
@@ -1093,7 +1107,39 @@ cleanup:
 	return NULL;
 }
 
-obj_t *obj_merge(obj_t *o1, obj_t *o2)
+static inline bool obj_can_merge_two_lines(obj_t *o1, obj_t *o2,
+					   unsigned int flags)
+{
+	/*
+	 * We cannot merge two lines if:
+	 *  - their states of being declarations are not equivalent,
+	 *    and we require them to be
+	 */
+	if (flags & MERGE_FLAG_DECL_EQ &&
+	    (obj_is_declaration(o1) != obj_is_declaration(o2)))
+		return false;
+
+	/*
+	 * We can merge the two lines if:
+	 *  - they are the same, or
+	 *  - they are both RH_KABI_HIDE, or
+	 *  - at least one of them is a declaration,
+	 *    and we can merge declarations
+	 */
+	if (obj_eq(o1, o2, flags & MERGE_FLAG_VER_IGNORE))
+		return true;
+
+	if (obj_is_kabi_hide(o1) && obj_is_kabi_hide(o2))
+		return true;
+
+	if (flags & MERGE_FLAG_DECL_MERGE &&
+	    (obj_is_declaration(o1) || obj_is_declaration(o2)))
+		return true;
+
+	return false;
+}
+
+obj_t *obj_merge(obj_t *o1, obj_t *o2, unsigned int flags)
 {
 	obj_t *merged_ptr;
 	obj_list_head_t *merged_members;
@@ -1102,23 +1148,16 @@ obj_t *obj_merge(obj_t *o1, obj_t *o2)
 	if (o1 == NULL || o2 == NULL)
 		return NULL;
 
-	/*
-	 * We can merge the two lines if:
-	 *  - they are the same, or
-	 *  - they are both RH_KABI_HIDE, or
-	 *  - at least one of them is a declaration
-	 */
-	if ((!obj_eq(o1, o2)) &&
-	    (!obj_is_kabi_hide(o1) || !obj_is_kabi_hide(o2)) &&
-	    !obj_is_declaration(o1) && !obj_is_declaration(o2))
+	if (!obj_can_merge_two_lines(o1, o2, flags))
 		goto no_merge;
 
-	merged_ptr = obj_merge(o1->ptr, o2->ptr);
+	merged_ptr = obj_merge(o1->ptr, o2->ptr, flags);
 	if (o1->ptr && !merged_ptr)
 		goto no_merge_ptr;
 
 	merged_members = obj_members_merge(o1->member_list,
-					   o2->member_list);
+					   o2->member_list,
+					   flags);
 	if (o1->member_list && !merged_members)
 		goto no_merge_members;
 
@@ -1145,7 +1184,12 @@ no_merge:
 
 static void dump_reffile(obj_t *o, FILE *f)
 {
-	fprintf(f, "@\"%s\"\n", o->base_type);
+	int version = record_get_version(o->ref_record);
+
+	fprintf(f, "@\"%s", record_get_key(o->ref_record));
+	if (version > 0)
+		fprintf(f, "-%i", version);
+	fprintf(f, ".txt\"\n");
 }
 
 static void _dump_members(obj_t *o, FILE *f, void (*dumper)(obj_t *, FILE *))
@@ -1254,7 +1298,7 @@ static void dump_qualifier(obj_t *o, FILE *f)
 
 static void dump_base(obj_t *o, FILE *f)
 {
-	char *type = o->base_type;
+	const char *type = o->base_type;
 
 	/* variable args (...) is a special base case */
 	if (type[0] == '.')
@@ -1304,4 +1348,61 @@ void obj_dump(obj_t *o, FILE *f)
 		fail("Wrong object type %d", o->type);
 
 	dumpers[o->type].dumper(o, f);
+}
+
+bool obj_same_declarations(obj_t *o1, obj_t *o2,
+			   struct set *processed)
+{
+	const int ignore_versions = true;
+	obj_list_t *list1;
+	obj_list_t *list2;
+
+	if (o1 == o2)
+		return true;
+
+	if (!obj_eq(o1, o2, ignore_versions))
+		return false;
+
+	if (o1->type != o2->type ||
+	    (o1->ptr == NULL) != (o2->ptr == NULL) ||
+	    (o1->member_list == NULL) != (o2->member_list == NULL)) {
+		return false;
+	}
+
+
+	if (o1->type == __type_reffile &&
+	    !record_same_declarations(o1->ref_record, o2->ref_record,
+				      processed)) {
+		return false;
+	}
+
+	if (o1->ptr &&
+	    !obj_same_declarations(o1->ptr, o2->ptr, processed)) {
+		return false;
+	}
+
+	if (o1->member_list) {
+		list1 = o1->member_list->first;
+		list2 = o2->member_list->first;
+
+		while (list1) {
+			if (list2 == NULL)
+				return false;
+
+			if (!obj_same_declarations(list1->member,
+						   list2->member,
+						   processed))
+				return false;
+
+			list1 = list1->next;
+			list2 = list2->next;
+		}
+
+		if (list1 != list2) {
+			/* different member_list lengths */
+			return false;
+		}
+	}
+
+	return true;
 }

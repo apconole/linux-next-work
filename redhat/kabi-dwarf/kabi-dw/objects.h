@@ -25,11 +25,23 @@
 #include <stdbool.h>
 #include <stdio.h>
 
+#include "list.h"
+#include "utils.h"
+
 #ifdef DEBUG
 #define debug(args...) do { printf(args); } while (0)
 #else
 #define debug(args...)
 #endif
+
+struct set;
+
+enum merge_flag {
+	MERGE_DEFAULT = 0,
+	MERGE_FLAG_DECL_MERGE = 1 << 0,
+	MERGE_FLAG_VER_IGNORE = 1 << 1,
+	MERGE_FLAG_DECL_EQ = 1 << 2,
+};
 
 typedef enum {
 	__type_reffile,
@@ -66,7 +78,11 @@ typedef struct obj_list_head {
  *
  * type:	type of the symbol (such as struct, function, pointer, base
  *		type...)
+ * is_bitfield:	(var) It's a bitfield
+ * first_bit, last_bit:	(var) bit range within the offset.
  * name:	name of the symbol
+ * ref_record:	(reffile) pointer to the referenced record (only while
+ *              generating records, otherwise base_type with string is used)
  * base_type:	(base type) the type of the symbol,
  *		(qualifier) the type qualifier (const or volatile)
  *		(reffile) path to the file
@@ -78,30 +94,33 @@ typedef struct obj_list_head {
  *		(function) return type
  *		(var) type
  * constant:	(constant) constant value of an enumeration
- * index:	index of array
- * link:	weak alias link
+ * index:	(array) index of array
+ * link:	(weak) weak alias link
  * offset:	(var) offset of a struct member
- * is_bitfield: (var) It's a bitfield
- * first_bit, last_bit: (var) bit range within the offset.
+ * depend_rec_node:	(reffile) node from dependents field of record where
+ *			this obj references.
  *
  * Note the dual parent/child relationship with the n-ary member_list and the
  * the unary ptr. Only functions uses both.
  */
 typedef struct obj {
 	obj_types type;
-	char *name;
-	char *base_type;
+	unsigned char is_bitfield, first_bit, last_bit;
+	union {
+		const char *name;
+		struct record *ref_record;
+	};
+	const char *base_type;
 	unsigned alignment;
+	unsigned int byte_size;
 	obj_list_head_t *member_list;
 	struct obj *ptr, *parent;
 	union {
 		unsigned long constant;
 		unsigned long index;
 		char *link;
-		struct {
-			unsigned long offset;
-			unsigned char is_bitfield, first_bit, last_bit;
-		};
+		unsigned long offset;
+		struct list_node *depend_rec_node;
 	};
 } obj_t;
 
@@ -222,7 +241,11 @@ int obj_walk_tree3(obj_t *o, cb_t cb_pre, cb_t cb_in, cb_t cb_post,
 int obj_hide_kabi(obj_t *root, bool show_new_field);
 
 obj_t *obj_parse(FILE *file, char *fn);
-obj_t *obj_merge(obj_t *o1, obj_t *o2);
+obj_t *obj_merge(obj_t *o1, obj_t *o2, unsigned int flags);
 void obj_dump(obj_t *o, FILE *f);
+
+bool obj_eq(obj_t *o1, obj_t *o2, bool ignore_versions);
+
+bool obj_same_declarations(obj_t *o1, obj_t *o2, struct set *processed);
 
 #endif
