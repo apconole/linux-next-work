@@ -138,6 +138,12 @@ struct bio {
 #define BIO_SNAP_STABLE	12	/* bio data must be snapshotted during write */
 
 /*
+ * Cover all integrity related flags, such there is only
+ * BIO_FS_INTEGRITY & BIO_MAPPED_INTEGRITY
+ */
+#define BIP_FLAGS_MASK  ((1 << BIO_FS_INTEGRITY) | (1 << BIO_MAPPED_INTEGRITY))
+
+/*
  * Flags starting here get preserved by bio_reset() - this includes
  * BIO_POOL_IDX()
  */
