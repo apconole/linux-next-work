@@ -1213,7 +1213,6 @@ ieee80211_crypto_aes_gmac_decrypt(struct ieee80211_rx_data *rx)
 				       mic) < 0 ||
 		    crypto_memneq(mic, mmie->mic, sizeof(mmie->mic))) {
 			key->u.aes_gmac.icverrors++;
-			kfree(mic);
 			return RX_DROP_UNUSABLE;
 		}
 	}
