@@ -32,7 +32,6 @@ obj-$(CONFIG_EDAC_I5400)		+= i5400_edac.o
 obj-$(CONFIG_EDAC_I7300)		+= i7300_edac.o
 obj-$(CONFIG_EDAC_I7CORE)		+= i7core_edac.o
 obj-$(CONFIG_EDAC_SBRIDGE)		+= sb_edac.o
-obj-$(CONFIG_EDAC_SKX)			+= skx_edac.o
 obj-$(CONFIG_EDAC_PND2)			+= pnd2_edac.o
 obj-$(CONFIG_EDAC_E7XXX)		+= e7xxx_edac.o
 obj-$(CONFIG_EDAC_E752X)		+= e752x_edac.o
@@ -49,6 +48,9 @@ obj-$(CONFIG_EDAC_R82600)		+= r82600_edac.o
 amd64_edac_mod-y := amd64_edac.o
 amd64_edac_mod-$(CONFIG_EDAC_DEBUG) += amd64_edac_dbg.o
 amd64_edac_mod-$(CONFIG_EDAC_AMD64_ERROR_INJECTION) += amd64_edac_inj.o
+
+skx_edac-y				:= skx_common.o skx_base.o
+obj-$(CONFIG_EDAC_SKX)			+= skx_edac.o
 
 obj-$(CONFIG_EDAC_AMD64)		+= amd64_edac_mod.o
 
