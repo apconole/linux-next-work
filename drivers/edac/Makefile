@@ -52,6 +52,9 @@ amd64_edac_mod-$(CONFIG_EDAC_AMD64_ERROR_INJECTION) += amd64_edac_inj.o
 skx_edac-y				:= skx_common.o skx_base.o
 obj-$(CONFIG_EDAC_SKX)			+= skx_edac.o
 
+i10nm_edac-y				:= skx_common.o i10nm_base.o
+obj-$(CONFIG_EDAC_I10NM)		+= i10nm_edac.o
+
 obj-$(CONFIG_EDAC_AMD64)		+= amd64_edac_mod.o
 
 obj-$(CONFIG_EDAC_PASEMI)		+= pasemi_edac.o
