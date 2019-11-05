@@ -1608,10 +1608,9 @@ static bool raid10_make_request(struct mddev *mddev, struct bio * bio)
 	int chunk_sects = chunk_mask + 1;
 	int sectors;
 
-	if (unlikely(bio->bi_rw & REQ_FLUSH)) {
-		md_flush_request(mddev, bio);
+	if (unlikely(bio->bi_rw & REQ_FLUSH)
+	    && md_flush_request(mddev, bio))
 		return true;
-	}
 
 	/* If this request crosses a chunk boundary, we need to
 	 * split it.  This will only happen for 1 PAGE (or less) requests.

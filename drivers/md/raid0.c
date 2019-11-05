@@ -703,10 +703,9 @@ static bool raid0_make_request(struct mddev *mddev, struct bio *bio)
 	struct strip_zone *zone;
 	struct md_rdev *tmp_dev;
 
-	if (unlikely(bio->bi_rw & REQ_FLUSH)) {
-		md_flush_request(mddev, bio);
+	if (unlikely(bio->bi_rw & REQ_FLUSH)
+	    && md_flush_request(mddev, bio))
 		return true;
-	}
 
 	if (unlikely((bio_op(bio) == REQ_OP_DISCARD))) {
 		raid0_handle_discard(mddev, bio);

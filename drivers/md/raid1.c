@@ -1554,10 +1554,9 @@ static bool raid1_make_request(struct mddev *mddev, struct bio *bio)
 	struct r1bio *r1_bio;
 	bool ret;
 
-	if (unlikely(bio->bi_rw & REQ_FLUSH)) {
-		md_flush_request(mddev, bio);
+	if (unlikely(bio->bi_rw & REQ_FLUSH)
+	    && md_flush_request(mddev, bio))
 		return true;
-	}
 
 	/*
 	 * make_request() can abort the operation when read-ahead is being
