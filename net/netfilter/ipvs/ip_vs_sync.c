@@ -1454,9 +1454,8 @@ error:
 /*
  *      Set up receiving multicast socket over UDP
  */
-static struct socket *make_receive_sock(struct net *net, int id)
+static struct socket *make_receive_sock(struct netns_ipvs *ipvs, int id)
 {
-	struct netns_ipvs *ipvs = net_ipvs(net);
 	/* multicast addr */
 	struct sockaddr_in mcast_addr = {
 		.sin_family		= AF_INET,
@@ -1477,7 +1476,7 @@ static struct socket *make_receive_sock(struct net *net, int id)
 	 * hold a reference to a namespace in order to allow to stop it.
 	 * After sk_change_net should be released using sk_release_kernel.
 	 */
-	sk_change_net(sock->sk, net);
+	sk_change_net(sock->sk, ipvs->net);
 	/* it is equivalent to the REUSEADDR option in user-space */
 	sock->sk->sk_reuse = SK_CAN_REUSE;
 	result = sysctl_sync_sock_size(ipvs);
@@ -1771,7 +1770,7 @@ int start_sync_thread(struct netns_ipvs *ipvs, struct ipvs_sync_daemon_cfg *c,
 		if (state == IP_VS_STATE_MASTER)
 			sock = make_send_sock(ipvs, id);
 		else
-			sock = make_receive_sock(ipvs->net, id);
+			sock = make_receive_sock(ipvs, id);
 		if (IS_ERR(sock)) {
 			result = PTR_ERR(sock);
 			goto outtinfo;
