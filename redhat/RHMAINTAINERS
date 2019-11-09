@@ -430,7 +430,7 @@ F:	drivers/net/ethernet/intel/ice
 F:	Documentation/networking/ice.txt
 
 INTEL MANAGEMENT ENGINE (mei)
-M:	Jerry Snitselaar <jsnitsel@redhat.com>
+M:	Tony Camuso <tcamuso@redhat.com>
 S:	Maintained
 F:	include/uapi/mei.h
 F:	include/linux/mei_cl_bus.h
