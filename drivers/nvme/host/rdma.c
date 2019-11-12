@@ -635,7 +635,8 @@ static int nvme_rdma_start_queue(struct nvme_rdma_ctrl *ctrl, int idx)
 	if (!ret) {
 		set_bit(NVME_RDMA_Q_LIVE, &ctrl->queues[idx].flags);
 	} else {
-		__nvme_rdma_stop_queue(&ctrl->queues[idx]);
+		if (test_bit(NVME_RDMA_Q_ALLOCATED, &ctrl->queues[idx].flags))
+			__nvme_rdma_stop_queue(&ctrl->queues[idx]);
 		dev_info(ctrl->ctrl.device,
 			"failed to connect queue: %d ret=%d\n", idx, ret);
 	}
