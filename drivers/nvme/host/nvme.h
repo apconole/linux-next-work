@@ -132,6 +132,7 @@ struct nvme_ctrl {
 	const struct nvme_ctrl_ops *ops;
 	struct request_queue *admin_q;
 	struct request_queue *connect_q;
+	struct request_queue *fabrics_q;
 	struct device *dev;
 	int instance;
 	struct blk_mq_tag_set *tagset;
