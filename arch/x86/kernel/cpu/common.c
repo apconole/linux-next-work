@@ -944,6 +944,8 @@ static const __initconst struct x86_cpu_id cpu_vuln_whitelist[] = {
 	VULNWL_INTEL(ATOM_GOLDMONT_X,		NO_MDS | NO_L1TF | NO_SWAPGS | NO_ITLB_MULTIHIT),
 	VULNWL_INTEL(ATOM_GOLDMONT_PLUS,	NO_MDS | NO_L1TF | NO_SWAPGS | NO_ITLB_MULTIHIT),
 
+	VULNWL_INTEL(ATOM_TREMONT_X,		NO_ITLB_MULTIHIT),
+
 	/*
 	 * Technically, swapgs isn't serializing on AMD (despite it previously
 	 * being documented as such in the APM).  But according to AMD, %gs is
