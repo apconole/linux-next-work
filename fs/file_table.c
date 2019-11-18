@@ -210,10 +210,10 @@ static void drop_file_write_access(struct file *file)
 	struct vfsmount *mnt = file->f_path.mnt;
 	struct inode *inode = file->f_inode;
 
-	put_write_access(inode);
-
 	if (special_file(inode->i_mode))
 		return;
+
+	put_write_access(inode);
 	if (file_check_writeable(file) != 0)
 		return;
 	__mnt_drop_write(mnt);
