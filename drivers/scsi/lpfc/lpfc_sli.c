@@ -14492,9 +14492,6 @@ lpfc_sli4_queue_free(struct lpfc_queue *queue)
 		kfree(queue->rqbp);
 	}
 
-	if (!list_empty(&queue->wq_list))
-		list_del(&queue->wq_list);
-
 	kfree(queue);
 	return;
 }
