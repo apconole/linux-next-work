@@ -1781,6 +1781,7 @@ static int qedf_vport_create(struct fc_vport *vport, bool disabled)
 	fc_exch_init(vn_port);
 	fc_elsct_init(vn_port);
 	fc_lport_init(vn_port);
+	fc_rport_init(vn_port);
 	fc_disc_init(vn_port);
 	fc_disc_config(vn_port, vn_port);
 
