@@ -85,6 +85,12 @@ void __init check_bugs(void)
 	mds_select_mitigation();
 	taa_select_mitigation();
 
+	/*
+	 * As MDS and TAA mitigations are inter-related, print MDS
+	 * mitigation until after TAA mitigation selection is done.
+	 */
+	mds_print_mitigation();
+
 	arch_smt_update();
 
 #ifdef CONFIG_X86_32
@@ -189,12 +195,13 @@ static void __init mds_select_mitigation(void)
 		    (mds_nosmt || cpu_mitigations_auto_nosmt()))
 			cpu_smt_disable(false);
 	}
-
-	pr_info("%s\n", mds_strings[mds_mitigation]);
 }
 
 void mds_print_mitigation(void)
 {
+	if (!boot_cpu_has_bug(X86_BUG_MDS) || cpu_mitigations_off())
+		return;
+
 	pr_info("%s\n", mds_strings[mds_mitigation]);
 }
 
