@@ -14,6 +14,8 @@
  * the dcache entry is deleted or garbage collected.
  */
 
+#define pr_fmt(fmt)	KBUILD_MODNAME ": " fmt
+
 #include <linux/syscalls.h>
 #include <linux/string.h>
 #include <linux/mm.h>
@@ -133,6 +135,14 @@ static long negative_dentry_limit;
 int dcache_negative_dentry_limit_sysctl;
 EXPORT_SYMBOL_GPL(dcache_negative_dentry_limit_sysctl);
 
+/*
+ * There will be a periodic check to see if the negative dentry limit
+ * is exceeded. If so, the excess negative dentries will be removed.
+ */
+#define NEGATIVE_DENTRY_CHECK_PERIOD	(15 * HZ)	/* Check every 15s */
+static void prune_negative_dentry(struct work_struct *work);
+static DECLARE_DELAYED_WORK(prune_negative_dentry_work, prune_negative_dentry);
+
 static DEFINE_PER_CPU(long, nr_dentry);
 static DEFINE_PER_CPU(long, nr_dentry_unused);
 static DEFINE_PER_CPU(long, nr_dentry_negative);
@@ -208,6 +218,18 @@ int proc_dcache_negative_dentry_limit(struct ctl_table *ctl, int write,
 
 	negative_dentry_limit = totalram_pages * nr_dentry_page *
 				dcache_negative_dentry_limit_sysctl / 1000;
+
+	/*
+	 * The periodic dentry pruner only runs when the limit is non-zero.
+	 * The sysctl handler is the only trigger mechanism that can be
+	 * used to start/stop the prune work reliably, so we do that here
+	 * after calculating the new limit.
+	 */
+	if (dcache_negative_dentry_limit_sysctl && !old)
+		schedule_delayed_work(&prune_negative_dentry_work, 0);
+
+	if (!dcache_negative_dentry_limit_sysctl && old)
+		cancel_delayed_work_sync(&prune_negative_dentry_work);
 
 	pr_info("Negative dentry limits = %ld\n", negative_dentry_limit);
 	return 0;
@@ -977,6 +999,8 @@ static void shrink_dentry_list(struct list_head *list)
  * prune_dcache_sb - shrink the dcache
  * @sb: superblock
  * @count: number of entries to try to free
+ * @negative_only: prune only negative dentries if true
+ * Return: # of dentries reclaimed.
  *
  * Attempt to shrink the superblock dcache LRU by @count entries. This is
  * done when we need more memory an called from the superblock shrinker
@@ -984,11 +1008,18 @@ static void shrink_dentry_list(struct list_head *list)
  *
  * This function may fail to free any resources if all the dentries are in
  * use.
+ *
+ * For negative dentry pruning, the positive dentries are skipped and
+ * temporarily put into a positive dentry list. This list will be put
+ * back to the main LRU list at the end of pruning process.
  */
-void prune_dcache_sb(struct super_block *sb, int count)
+static long __prune_dcache_sb(struct super_block *sb, long count,
+			      bool negative_only)
 {
 	struct dentry *dentry;
+	long orig_cnt = count;
 	LIST_HEAD(referenced);
+	LIST_HEAD(positive);
 	LIST_HEAD(tmp);
 
 relock:
@@ -1008,6 +1039,9 @@ relock:
 			dentry->d_flags &= ~DCACHE_REFERENCED;
 			list_move(&dentry->d_lru, &referenced);
 			spin_unlock(&dentry->d_lock);
+		} else if (negative_only && !d_is_negative(dentry)) {
+			list_move(&dentry->d_lru, &positive);
+			spin_unlock(&dentry->d_lock);
 		} else {
 			list_move_tail(&dentry->d_lru, &tmp);
 			dentry->d_flags |= DCACHE_SHRINK_LIST;
@@ -1019,9 +1053,17 @@ relock:
 	}
 	if (!list_empty(&referenced))
 		list_splice(&referenced, &sb->s_dentry_lru);
+	if (!list_empty(&positive))
+		list_splice_tail(&positive, &sb->s_dentry_lru);
 	spin_unlock(&dcache_lru_lock);
 
 	shrink_dentry_list(&tmp);
+	return orig_cnt - count;
+}
+
+void prune_dcache_sb(struct super_block *sb, int count)
+{
+	__prune_dcache_sb(sb, count, false);
 }
 
 /**
@@ -1045,6 +1087,68 @@ void shrink_dcache_sb(struct super_block *sb)
 	spin_unlock(&dcache_lru_lock);
 }
 EXPORT_SYMBOL(shrink_dcache_sb);
+
+struct prune_negative_ctrl
+{
+	unsigned long	prune_count;
+	int		prune_percent; /* Each unit = 0.01% */
+};
+
+/*
+ * Prune dentries from a super block.
+ */
+static void prune_negative_one_sb(struct super_block *sb, void *arg)
+{
+	unsigned long count = sb->s_nr_dentry_unused;
+	struct prune_negative_ctrl *ctrl = arg;
+	long scan = (count * ctrl->prune_percent) / 10000;
+
+	if (scan)
+		ctrl->prune_count += __prune_dcache_sb(sb, scan, true);
+}
+
+/*
+ * A workqueue function to prune negative dentry.
+ */
+static void prune_negative_dentry(struct work_struct *work)
+{
+	long count = get_nr_dentry_negative();
+	long limit = negative_dentry_limit;
+	struct prune_negative_ctrl ctrl;
+	unsigned long start;
+
+	if (!limit || count <= limit)
+		goto requeue_work;
+
+	/*
+	 * Add an extra 1% as a minimum and to increase the chance
+	 * that the after operation dentry count stays below the limit.
+	 */
+	ctrl.prune_count = 0;
+	ctrl.prune_percent = ((count - limit) * 10000 / count) + 100;
+	start = jiffies;
+
+	/*
+	 * iterate_supers() will take a read lock on the supers blocking
+	 * concurrent umount.
+	 */
+	iterate_supers(prune_negative_one_sb, &ctrl);
+
+	/*
+	 * Report negative dentry pruning stat.
+	 */
+	pr_debug("%ld negative dentries freed in %d ms\n",
+		 ctrl.prune_count, jiffies_to_msecs(jiffies - start));
+
+requeue_work:
+	/*
+	 * The requeuing will get cancelled if there is a concurrent
+	 * cancel_delayed_work_sync() call from user sysctl operation.
+	 * That call will wait until this work finishes and cancel it.
+	 */
+	schedule_delayed_work(&prune_negative_dentry_work,
+			      NEGATIVE_DENTRY_CHECK_PERIOD);
+}
 
 /*
  * destroy a single subtree of dentries for unmount
