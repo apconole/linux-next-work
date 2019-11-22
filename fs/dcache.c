@@ -408,10 +408,10 @@ static void dentry_lru_add(struct dentry *dentry)
 		else
 			list_add(&dentry->d_lru, &dentry->d_sb->s_dentry_lru);
 		dentry->d_sb->s_nr_dentry_unused++;
+		spin_unlock(&dcache_lru_lock);
 		this_cpu_inc(nr_dentry_unused);
 		if (d_is_negative(dentry))
 			this_cpu_inc(nr_dentry_negative);
-		spin_unlock(&dcache_lru_lock);
 	} else {
 		dentry->d_flags |= DCACHE_REFERENCED;
 	}
@@ -422,9 +422,6 @@ static void __dentry_lru_del(struct dentry *dentry)
 	list_del_init(&dentry->d_lru);
 	dentry->d_flags &= ~(DCACHE_SHRINK_LIST | DCACHE_LRU_LIST);
 	dentry->d_sb->s_nr_dentry_unused--;
-	this_cpu_dec(nr_dentry_unused);
-	if (d_is_negative(dentry))
-		this_cpu_dec(nr_dentry_negative);
 }
 
 /*
@@ -436,6 +433,9 @@ static void dentry_lru_del(struct dentry *dentry)
 		spin_lock(&dcache_lru_lock);
 		__dentry_lru_del(dentry);
 		spin_unlock(&dcache_lru_lock);
+		this_cpu_dec(nr_dentry_unused);
+		if (d_is_negative(dentry))
+			this_cpu_dec(nr_dentry_negative);
 	}
 }
 
