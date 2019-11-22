@@ -117,6 +117,22 @@ struct dentry_stat_t dentry_stat = {
 	.age_limit = 45,
 };
 
+/*
+ * dcache_negative_dentry_limit_sysctl:
+ * This is sysctl parameter "negative-dentry-limit" which specifies a
+ * limit for the number of negative dentries allowed in a system as a
+ * multiple of one-thousandth of the total system memory. The default
+ * is 0 which means there is no limit and the valid range is 0-100.
+ * So up to 10% of the total system memory can be used.
+ *
+ * negative_dentry_limit:
+ * The actual number of negative dentries allowed which is computed after
+ * the user changes dcache_negative_dentry_limit_sysctl.
+ */
+static long negative_dentry_limit;
+int dcache_negative_dentry_limit_sysctl;
+EXPORT_SYMBOL_GPL(dcache_negative_dentry_limit_sysctl);
+
 static DEFINE_PER_CPU(long, nr_dentry);
 static DEFINE_PER_CPU(long, nr_dentry_unused);
 static DEFINE_PER_CPU(long, nr_dentry_negative);
@@ -153,7 +169,6 @@ static long get_nr_dentry_unused(void)
 	return sum < 0 ? 0 : sum;
 }
 
-
 static long get_nr_dentry_negative(void)
 {
 	int i;
@@ -173,6 +188,31 @@ int proc_nr_dentry(ctl_table *table, int write, void __user *buffer,
 	return proc_doulongvec_minmax(table, write, buffer, lenp, ppos);
 }
 #endif
+
+/*
+ * Sysctl proc handler for dcache_negativ3_dentry_limit_sysctl.
+ */
+int proc_dcache_negative_dentry_limit(struct ctl_table *ctl, int write,
+				      void __user *buffer, size_t *lenp,
+				      loff_t *ppos)
+{
+	/* Rough estimate of # of dentries allocated per page */
+	const unsigned int nr_dentry_page = PAGE_SIZE/sizeof(struct dentry);
+	int old = dcache_negative_dentry_limit_sysctl;
+	int ret;
+
+	ret = proc_dointvec_minmax(ctl, write, buffer, lenp, ppos);
+
+	if (!write || ret || (dcache_negative_dentry_limit_sysctl == old))
+		return ret;
+
+	negative_dentry_limit = totalram_pages * nr_dentry_page *
+				dcache_negative_dentry_limit_sysctl / 1000;
+
+	pr_info("Negative dentry limits = %ld\n", negative_dentry_limit);
+	return 0;
+}
+EXPORT_SYMBOL_GPL(proc_dcache_negative_dentry_limit);
 
 /*
  * Compare 2 name strings, return 0 if they match, otherwise non-zero.
