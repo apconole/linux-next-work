@@ -412,6 +412,8 @@ static void dentry_lru_add(struct dentry *dentry)
 		if (d_is_negative(dentry))
 			this_cpu_inc(nr_dentry_negative);
 		spin_unlock(&dcache_lru_lock);
+	} else {
+		dentry->d_flags |= DCACHE_REFERENCED;
 	}
 }
 
@@ -682,7 +684,6 @@ repeat:
 			goto kill_it;
 	}
 
-	dentry->d_flags |= DCACHE_REFERENCED;
 	dentry_lru_add(dentry);
 
 	dentry->d_lockref.count--;
