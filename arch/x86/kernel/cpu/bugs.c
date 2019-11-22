@@ -571,22 +571,6 @@ void spectre_v2_print_mitigation(void)
 	pr_info("%s\n", spectre_v2_strings[spec_ctrl_get_mitigation()]);
 }
 
-static bool stibp_needed(void)
-{
-	if (spectre_v2_enabled == SPECTRE_V2_NONE)
-		return false;
-
-	if (!boot_cpu_has(X86_FEATURE_STIBP))
-		return false;
-
-	return true;
-}
-
-static void update_stibp_msr(void *info)
-{
-	wrmsrl(MSR_IA32_SPEC_CTRL, x86_spec_ctrl_base);
-}
-
 #undef pr_fmt
 #define pr_fmt(fmt) fmt
 
@@ -615,28 +599,7 @@ static void update_mds_branch_idle(void)
 
 void arch_smt_update(void)
 {
-	u64 mask;
-
-	if (!stibp_needed())
-		return;
-
 	mutex_lock(&spec_ctrl_mutex);
-
-	mask = x86_spec_ctrl_base & ~SPEC_CTRL_STIBP;
-
-	/*
-	 * RHEL: Disable automatic enabling of STIBP with SMT on for now.
-	 */
-#if 0
-	if (sched_smt_active())
-		mask |= SPEC_CTRL_STIBP;
-#endif
-	if (mask != x86_spec_ctrl_base) {
-		pr_info("Spectre v2 cross-process SMT mitigation: %s STIBP\n",
-			mask & SPEC_CTRL_STIBP ? "Enabling" : "Disabling");
-		x86_spec_ctrl_base = mask;
-		on_each_cpu(update_stibp_msr, NULL, 1);
-	}
 
 	switch (mds_mitigation) {
 	case MDS_MITIGATION_FULL:
