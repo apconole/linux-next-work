@@ -3509,7 +3509,7 @@ static int handle_pte_fault(struct vm_fault *vmf)
 	pte_t entry;
 	spinlock_t *ptl;
 
-	entry = *vmf->pte;
+	entry = vmf->orig_pte;
 	if (!pte_present(entry)) {
 		if (pte_none(entry)) {
 			if (!vma_is_anonymous(vma))
@@ -3679,6 +3679,9 @@ static int __handle_mm_fault(struct vm_area_struct *vma,
 	 * safe to run pte_offset_map().
 	 */
 	vmf.pte = pte_offset_map(vmf.pmd, address);
+
+	vmf.orig_pte = *(vmf.pte);
+	barrier();
 
 	return handle_pte_fault(&vmf);
 }
