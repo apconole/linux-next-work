@@ -2762,9 +2762,7 @@ EXPORT_SYMBOL(unmap_mapping_range);
  * but allow concurrent faults), and pte mapped but not yet locked.
  * We return with mmap_sem still held, but pte unmapped and unlocked.
  */
-static int do_swap_page(struct mm_struct *mm, struct vm_area_struct *vma,
-		unsigned long address, pte_t *page_table, pmd_t *pmd,
-		unsigned int flags, pte_t orig_pte)
+static int do_swap_page(struct vm_fault *vmf, pte_t orig_pte)
 {
 	spinlock_t *ptl;
 	struct page *page = NULL, *swapcache;
@@ -2776,56 +2774,57 @@ static int do_swap_page(struct mm_struct *mm, struct vm_area_struct *vma,
 	int exclusive = 0;
 	int ret = 0;
 	bool vma_readahead = swap_use_vma_readahead();
+	unsigned long address = (unsigned long)vmf->virtual_address;
+	struct mm_struct *mm = vmf->vma->vm_mm;
 
 	if (vma_readahead)
-		page = swap_readahead_detect(vma, &swap_ra,
-					     page_table, orig_pte, address);
+		page = swap_readahead_detect(vmf->vma, &swap_ra,
+					     vmf->pte, orig_pte, address);
 
-	if (!pte_unmap_same(mm, pmd, page_table, orig_pte)) {
+	if (!pte_unmap_same(mm, vmf->pmd, vmf->pte, orig_pte)) {
 		if (page)
 			put_page(page);
-			// page_cache_release(page);
 		goto out;
 	}
 
 	entry = pte_to_swp_entry(orig_pte);
 	if (unlikely(non_swap_entry(entry))) {
 		if (is_migration_entry(entry)) {
-			migration_entry_wait(mm, pmd, address);
+			migration_entry_wait(mm, vmf->pmd, address);
 		} else if (is_hmm_entry(entry)) {
 			/*
 			 * For un-addressable device memory we call the pgmap
 			 * fault handler callback. The callback must migrate
 			 * the page back to some CPU accessible page.
 			 */
-			ret = hmm_entry_fault(vma, address, entry,
-						 flags, pmd);
+			ret = hmm_entry_fault(vmf->vma, address, entry,
+						 vmf->flags, vmf->pmd);
 		} else if (is_hwpoison_entry(entry)) {
 			ret = VM_FAULT_HWPOISON;
 		} else {
-			print_bad_pte(vma, address, orig_pte, NULL);
+			print_bad_pte(vmf->vma, address, orig_pte, NULL);
 			ret = VM_FAULT_SIGBUS;
 		}
 		goto out;
 	}
 	delayacct_set_flag(DELAYACCT_PF_SWAPIN);
 	if (!page)
-		page = lookup_swap_cache(entry, vma_readahead ? vma : NULL,
+		page = lookup_swap_cache(entry, vma_readahead ? vmf->vma : NULL,
 					 address);
 	if (!page) {
 		if (vma_readahead)
 			page = do_swap_page_readahead(entry,
-				GFP_HIGHUSER_MOVABLE, vma, address, &swap_ra);
+				GFP_HIGHUSER_MOVABLE, vmf->vma, address, &swap_ra);
 		else
 			page = swapin_readahead(entry,
-				GFP_HIGHUSER_MOVABLE, vma, address);
+				GFP_HIGHUSER_MOVABLE, vmf->vma, address);
 		if (!page) {
 			/*
 			 * Back out if somebody else faulted in this pte
 			 * while we released the pte lock.
 			 */
-			page_table = pte_offset_map_lock(mm, pmd, address, &ptl);
-			if (likely(pte_same(*page_table, orig_pte)))
+			vmf->pte = pte_offset_map_lock(mm, vmf->pmd, address, &ptl);
+			if (likely(pte_same(*(vmf->pte), orig_pte)))
 				ret = VM_FAULT_OOM;
 			delayacct_clear_flag(DELAYACCT_PF_SWAPIN);
 			goto unlock;
@@ -2847,7 +2846,7 @@ static int do_swap_page(struct mm_struct *mm, struct vm_area_struct *vma,
 	}
 
 	swapcache = page;
-	locked = lock_page_or_retry(page, mm, flags);
+	locked = lock_page_or_retry(page, mm, vmf->flags);
 
 	delayacct_clear_flag(DELAYACCT_PF_SWAPIN);
 	if (!locked) {
@@ -2864,7 +2863,7 @@ static int do_swap_page(struct mm_struct *mm, struct vm_area_struct *vma,
 	if (unlikely(!PageSwapCache(page) || page_private(page) != entry.val))
 		goto out_page;
 
-	page = ksm_might_need_to_copy(page, vma, address);
+	page = ksm_might_need_to_copy(page, vmf->vma, address);
 	if (unlikely(!page)) {
 		ret = VM_FAULT_OOM;
 		page = swapcache;
@@ -2879,8 +2878,8 @@ static int do_swap_page(struct mm_struct *mm, struct vm_area_struct *vma,
 	/*
 	 * Back out if somebody else already faulted in this pte.
 	 */
-	page_table = pte_offset_map_lock(mm, pmd, address, &ptl);
-	if (unlikely(!pte_same(*page_table, orig_pte)))
+	vmf->pte = pte_offset_map_lock(mm, vmf->pmd, address, &ptl);
+	if (unlikely(!pte_same(*(vmf->pte), orig_pte)))
 		goto out_nomap;
 
 	if (unlikely(!PageUptodate(page))) {
@@ -2904,26 +2903,26 @@ static int do_swap_page(struct mm_struct *mm, struct vm_area_struct *vma,
 
 	inc_mm_counter_fast(mm, MM_ANONPAGES);
 	dec_mm_counter_fast(mm, MM_SWAPENTS);
-	pte = mk_pte(page, vma->vm_page_prot);
-	if ((flags & FAULT_FLAG_WRITE) && reuse_swap_page(page)) {
-		pte = maybe_mkwrite(pte_mkdirty(pte), vma);
-		flags &= ~FAULT_FLAG_WRITE;
+	pte = mk_pte(page, vmf->vma->vm_page_prot);
+	if ((vmf->flags & FAULT_FLAG_WRITE) && reuse_swap_page(page)) {
+		pte = maybe_mkwrite(pte_mkdirty(pte), vmf->vma);
+		vmf->flags &= ~FAULT_FLAG_WRITE;
 		ret |= VM_FAULT_WRITE;
 		exclusive = 1;
 	}
-	flush_icache_page(vma, page);
+	flush_icache_page(vmf->vma, page);
 	if (pte_swp_soft_dirty(orig_pte))
 		pte = pte_mksoft_dirty(pte);
-	set_pte_at(mm, address, page_table, pte);
+	set_pte_at(mm, address, vmf->pte, pte);
 	if (page == swapcache)
-		do_page_add_anon_rmap(page, vma, address, exclusive);
+		do_page_add_anon_rmap(page, vmf->vma, address, exclusive);
 	else /* ksm created a completely new copy */
-		page_add_new_anon_rmap(page, vma, address);
+		page_add_new_anon_rmap(page, vmf->vma, address);
 	/* It's better to call commit-charge after rmap is established */
 	mem_cgroup_commit_charge_swapin(page, ptr);
 
 	swap_free(entry);
-	if (vm_swap_full() || (vma->vm_flags & VM_LOCKED) || PageMlocked(page))
+	if (vm_swap_full() || (vmf->vma->vm_flags & VM_LOCKED) || PageMlocked(page))
 		try_to_free_swap(page);
 	unlock_page(page);
 	if (page != swapcache) {
@@ -2939,22 +2938,22 @@ static int do_swap_page(struct mm_struct *mm, struct vm_area_struct *vma,
 		page_cache_release(swapcache);
 	}
 
-	if (flags & FAULT_FLAG_WRITE) {
-		ret |= do_wp_page(mm, vma, address, page_table, pmd, ptl, pte);
+	if (vmf->flags & FAULT_FLAG_WRITE) {
+		ret |= do_wp_page(mm, vmf->vma, address, vmf->pte, vmf->pmd, ptl, pte);
 		if (ret & VM_FAULT_ERROR)
 			ret &= VM_FAULT_ERROR;
 		goto out;
 	}
 
 	/* No need to invalidate - it was non-present before */
-	update_mmu_cache(vma, address, page_table);
+	update_mmu_cache(vmf->vma, address, vmf->pte);
 unlock:
-	pte_unmap_unlock(page_table, ptl);
+	pte_unmap_unlock(vmf->pte, ptl);
 out:
 	return ret;
 out_nomap:
 	mem_cgroup_cancel_charge_swapin(ptr);
-	pte_unmap_unlock(page_table, ptl);
+	pte_unmap_unlock(vmf->pte, ptl);
 out_page:
 	unlock_page(page);
 out_release:
@@ -3522,9 +3521,7 @@ static int handle_pte_fault(struct vm_fault *vmf)
 			return do_nonlinear_fault(mm, vma, address,
 					vmf->pte, vmf->pmd, vmf->flags,
 					entry);
-		return do_swap_page(mm, vma, address,
-					vmf->pte, vmf->pmd, vmf->flags,
-					entry);
+		return do_swap_page(vmf, entry);
 	}
 
 	if (pte_numa(entry))
