@@ -2770,22 +2770,13 @@ static int do_swap_page(struct vm_fault *vmf, pte_t orig_pte)
 	pte_t pte;
 	int locked;
 	struct mem_cgroup *ptr;
-	struct vma_swap_readahead swap_ra;
 	int exclusive = 0;
 	int ret = 0;
-	bool vma_readahead = swap_use_vma_readahead();
 	unsigned long address = (unsigned long)vmf->virtual_address;
 	struct mm_struct *mm = vmf->vma->vm_mm;
 
-	if (vma_readahead)
-		page = swap_readahead_detect(vmf->vma, &swap_ra,
-					     vmf->pte, orig_pte, address);
-
-	if (!pte_unmap_same(mm, vmf->pmd, vmf->pte, orig_pte)) {
-		if (page)
-			put_page(page);
+	if (!pte_unmap_same(mm, vmf->pmd, vmf->pte, orig_pte))
 		goto out;
-	}
 
 	entry = pte_to_swp_entry(orig_pte);
 	if (unlikely(non_swap_entry(entry))) {
@@ -2807,14 +2798,15 @@ static int do_swap_page(struct vm_fault *vmf, pte_t orig_pte)
 		}
 		goto out;
 	}
+
 	delayacct_set_flag(DELAYACCT_PF_SWAPIN);
-	if (!page)
-		page = lookup_swap_cache(entry, vma_readahead ? vmf->vma : NULL,
-					 address);
+	page = lookup_swap_cache(entry, vmf->vma, address);
+	swapcache = page;
+
 	if (!page) {
-		if (vma_readahead)
+		if (swap_use_vma_readahead())
 			page = do_swap_page_readahead(entry,
-				GFP_HIGHUSER_MOVABLE, vmf->vma, address, &swap_ra);
+				GFP_HIGHUSER_MOVABLE, vmf);
 		else
 			page = swapin_readahead(entry,
 				GFP_HIGHUSER_MOVABLE, vmf->vma, address);
@@ -2841,7 +2833,6 @@ static int do_swap_page(struct vm_fault *vmf, pte_t orig_pte)
 		 */
 		ret = VM_FAULT_HWPOISON;
 		delayacct_clear_flag(DELAYACCT_PF_SWAPIN);
-		swapcache = page;
 		goto out_release;
 	}
 
