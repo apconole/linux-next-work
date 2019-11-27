@@ -8497,13 +8497,21 @@ static int cpuset_cpu_inactive(struct notifier_block *nfb, unsigned long action,
 struct static_key sched_smt_present = STATIC_KEY_INIT_FALSE;
 EXPORT_SYMBOL_GPL(sched_smt_present);
 
+/*
+ * RHEL: This mask is used as a temporary variable in
+ * sched_cpu_{activate,deactivate}().  It's allocated globally to avoid large
+ * stack allocations.  Concurrent access is protected by cpu_add_remove_lock.
+ */
+static cpumask_t smt_cpus;
+
 void sched_cpu_activate(unsigned int cpu)
 {
 #ifdef CONFIG_SCHED_SMT
 	/*
 	 * When going up, increment the number of cores with SMT present.
 	 */
-	if (cpumask_weight(cpu_smt_mask(cpu)) == 2)
+	cpumask_and(&smt_cpus, cpu_smt_mask(cpu), cpu_online_mask);
+	if (cpumask_weight(&smt_cpus) == 2)
 		static_key_slow_inc(&sched_smt_present);
 #endif
 }
@@ -8514,7 +8522,8 @@ void sched_cpu_deactivate(unsigned int cpu)
 	/*
 	 * When going down, decrement the number of cores with SMT present.
 	 */
-	if (cpumask_weight(cpu_smt_mask(cpu)) == 2)
+	cpumask_and(&smt_cpus, cpu_smt_mask(cpu), cpu_online_mask);
+	if (cpumask_weight(&smt_cpus) == 2)
 		static_key_slow_dec(&sched_smt_present);
 #endif
 }
