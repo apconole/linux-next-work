@@ -75,6 +75,7 @@ void __kprobes emulation_assist_interrupt(struct pt_regs *regs);
 /* Patch sites */
 extern s32 patch__call_flush_count_cache;
 extern s32 patch__flush_count_cache_return;
+extern s32 patch__flush_link_stack_return;
 
 extern long flush_count_cache;
 
