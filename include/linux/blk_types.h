@@ -211,13 +211,15 @@ enum rq_flag_bits {
 	__REQ_KERNEL, 		/* direct IO to kernel pages */
 	__REQ_PM,		/* runtime pm request */
 	__REQ_END,		/* OBSOLETE */
+#ifndef __GENKSYMS__
+	__REQ_TIMEOUT = __REQ_END, /* request is timed out, transisent state */
+#endif
 	__REQ_HASHED,		/* on IO scheduler merge hash */
 	__REQ_MQ_INFLIGHT,	/* track inflight for MQ */
 #ifdef __GENKSYMS__
 	__REQ_NO_TIMEOUT,	/* requests may never expire */
 #else
 	__REQ_STATS,
-	__REQ_TIMEOUT = __REQ_END, /* request is timed out, transisent state */
 #endif
 	__REQ_NR_BITS,		/* stops here */
 };
