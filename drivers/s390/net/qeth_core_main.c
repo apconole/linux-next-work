@@ -5134,6 +5134,7 @@ struct sk_buff *qeth_core_get_next_skb(struct qeth_card *card,
 {
 	struct qdio_buffer_element *element = *__element;
 	struct qdio_buffer *buffer = qethbuffer->buffer;
+	unsigned int linear_len;
 	int offset = *__offset;
 	struct sk_buff *skb;
 	int skb_len = 0;
@@ -5157,21 +5158,37 @@ struct sk_buff *qeth_core_get_next_skb(struct qeth_card *card,
 	switch ((*hdr)->hdr.l2.id) {
 	case QETH_HEADER_TYPE_LAYER2:
 		skb_len = (*hdr)->hdr.l2.pkt_length;
+		linear_len = ETH_HLEN;
 		break;
 	case QETH_HEADER_TYPE_LAYER3:
 		skb_len = (*hdr)->hdr.l3.length;
+
+		if ((*hdr)->hdr.l3.flags & QETH_HDR_PASSTHRU) {
+			linear_len = ETH_HLEN;
+			headroom = 0;
+			break;
+		}
+
+		if ((*hdr)->hdr.l3.flags & QETH_HDR_IPV6)
+			linear_len = sizeof(struct ipv6hdr);
+		else
+			linear_len = sizeof(struct iphdr);
 		headroom = ETH_HLEN;
 		break;
 	case QETH_HEADER_TYPE_OSN:
 		skb_len = (*hdr)->hdr.osn.pdu_length;
+		linear_len = skb_len;
 		headroom = sizeof(struct qeth_hdr);
 		break;
 	default:
-		break;
+		return NULL;
 	}
 
-	if (!skb_len)
+	if (skb_len < linear_len) {
+		card->stats.rx_dropped++;
+		QETH_CARD_STAT_INC(card, rx_dropped_runt);
 		return NULL;
+	}
 
 	if (((skb_len >= card->options.rx_sg_cb) &&
 	     (!(card->info.type == QETH_CARD_TYPE_OSN)) &&
@@ -5762,7 +5779,8 @@ static struct {
 	{"tx csum"},
 	{"tx lin"},
 	{"cq handler count"},
-	{"cq handler time"}
+	{"cq handler time"},
+	{"rx dropped, runt"},
 };
 
 int qeth_core_get_sset_count(struct net_device *dev, int stringset)
@@ -5823,6 +5841,7 @@ void qeth_core_get_ethtool_stats(struct net_device *dev,
 	data[34] = card->perf_stats.tx_lin;
 	data[35] = card->perf_stats.cq_cnt;
 	data[36] = card->perf_stats.cq_time;
+	data[37] = card->perf_stats.rx_dropped_runt;
 }
 EXPORT_SYMBOL_GPL(qeth_core_get_ethtool_stats);
 
