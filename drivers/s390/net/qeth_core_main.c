@@ -5104,11 +5104,13 @@ out:
 }
 EXPORT_SYMBOL_GPL(qeth_core_hardsetup_card);
 
-static inline int qeth_create_skb_frag(struct qeth_qdio_buffer *qethbuffer,
-		struct qdio_buffer_element *element,
-		struct sk_buff **pskb, int offset, int *pfrag, int data_len)
+static int qeth_create_skb_frag(struct qeth_qdio_buffer *qethbuffer,
+				struct qdio_buffer_element *element,
+				struct sk_buff **pskb, int offset, int data_len)
 {
 	struct page *page = virt_to_page(element->addr);
+	unsigned int next_frag;
+
 	if (*pskb == NULL) {
 		if (qethbuffer->rx_skb) {
 			/* only if qeth_card.options.cq == QETH_CQ_ENABLED */
@@ -5124,28 +5126,19 @@ static inline int qeth_create_skb_frag(struct qeth_qdio_buffer *qethbuffer,
 		if (data_len <= QETH_RX_PULL_LEN) {
 			memcpy(skb_put(*pskb, data_len), element->addr + offset,
 				data_len);
+			return 0;
 		} else {
-			get_page(page);
 			memcpy(skb_put(*pskb, QETH_RX_PULL_LEN),
 			       element->addr + offset, QETH_RX_PULL_LEN);
-			skb_fill_page_desc(*pskb, *pfrag, page,
-				offset + QETH_RX_PULL_LEN,
-				data_len - QETH_RX_PULL_LEN);
-			(*pskb)->data_len += data_len - QETH_RX_PULL_LEN;
-			(*pskb)->len      += data_len - QETH_RX_PULL_LEN;
-			(*pskb)->truesize += data_len - QETH_RX_PULL_LEN;
-			(*pfrag)++;
+			data_len -= QETH_RX_PULL_LEN;
+			offset += QETH_RX_PULL_LEN;
+			/* fall through to add page frag for remaining data */
 		}
-	} else {
-		get_page(page);
-		skb_fill_page_desc(*pskb, *pfrag, page, offset, data_len);
-		(*pskb)->data_len += data_len;
-		(*pskb)->len      += data_len;
-		(*pskb)->truesize += data_len;
-		(*pfrag)++;
 	}
 
-
+	next_frag = skb_shinfo(*pskb)->nr_frags;
+	get_page(page);
+	skb_add_rx_frag(*pskb, next_frag, page, offset, data_len, data_len);
 	return 0;
 }
 
@@ -5163,7 +5156,6 @@ struct sk_buff *qeth_core_get_next_skb(struct qeth_card *card,
 	int data_len;
 	int headroom = 0;
 	int use_rx_sg = 0;
-	int frag = 0;
 
 	/* qeth_hdr must not cross element boundaries */
 	if (element->length < offset + sizeof(struct qeth_hdr)) {
@@ -5215,7 +5207,7 @@ struct sk_buff *qeth_core_get_next_skb(struct qeth_card *card,
 		if (data_len) {
 			if (use_rx_sg) {
 				if (qeth_create_skb_frag(qethbuffer, element,
-				    &skb, offset, &frag, data_len))
+				    &skb, offset, data_len))
 					goto no_mem;
 			} else {
 				memcpy(skb_put(skb, data_len), data_ptr,
