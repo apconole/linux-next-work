@@ -1620,7 +1620,8 @@ struct page *follow_trans_huge_pmd(struct vm_area_struct *vma,
 	page += (addr & ~HPAGE_PMD_MASK) >> PAGE_SHIFT;
 	VM_BUG_ON_PAGE(!PageCompound(page), page);
 	if (flags & FOLL_GET)
-		get_page_foll(page);
+		if (!get_page_foll(page))
+			page = ERR_PTR(-ENOMEM);
 
 out:
 	return page;
