@@ -795,10 +795,13 @@ static struct dentry *__gfs2_lookup(struct inode *dir, struct dentry *dentry,
 		return ERR_PTR(error);
 	}
 
-	d = d_splice_alias(inode, dentry);
-	if (IS_ERR(d)) {
-		gfs2_glock_dq_uninit(&gh);
-		return d;
+	d = d_materialise_unique(dentry, inode);
+	if (d) {
+		if (IS_ERR(d)) {
+			gfs2_glock_dq_uninit(&gh);
+			return d;
+		}
+		dentry = d;
 	}
 	if (file && S_ISREG(inode->i_mode))
 		error = finish_open(file, dentry, gfs2_open_common, opened);
