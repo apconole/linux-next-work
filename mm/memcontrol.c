@@ -5028,6 +5028,30 @@ static inline unsigned long mem_cgroup_usage(struct mem_cgroup *memcg, bool swap
 	return val;
 }
 
+struct accumulated_stats {
+	unsigned long stat[MEM_CGROUP_STAT_NSTATS];
+	unsigned long events[MEM_CGROUP_EVENTS_NSTATS];
+	unsigned long lru_pages[NR_LRU_LISTS];
+};
+
+static void accumulate_memcg_tree(struct mem_cgroup *memcg,
+				  struct accumulated_stats *acc)
+{
+	struct mem_cgroup *mi;
+	int i;
+
+	for_each_mem_cgroup_tree(mi, memcg) {
+		for (i = 0; i < MEM_CGROUP_STAT_NSTATS; i++)
+			acc->stat[i] += mem_cgroup_read_stat(mi, i);
+
+		for (i = 0; i < MEM_CGROUP_EVENTS_NSTATS; i++)
+			acc->events[i] += mem_cgroup_read_events(mi, i);
+
+		for (i = 0; i < NR_LRU_LISTS; i++)
+			acc->lru_pages[i] += mem_cgroup_nr_lru_pages(mi, BIT(i));
+	}
+}
+
 enum {
 	RES_USAGE,
 	RES_LIMIT,
@@ -5360,6 +5384,7 @@ static int memcg_stat_show(struct cgroup *cont, struct cftype *cft,
 	unsigned long memory, memsw;
 	struct mem_cgroup *mi;
 	unsigned int i;
+	struct accumulated_stats acc;
 
 	for (i = 0; i < MEM_CGROUP_STAT_NSTATS; i++) {
 		if (i == MEM_CGROUP_STAT_SWAP && !do_swap_account)
@@ -5388,32 +5413,23 @@ static int memcg_stat_show(struct cgroup *cont, struct cftype *cft,
 		seq_printf(m, "hierarchical_memsw_limit %llu\n",
 			   (u64)memsw * PAGE_SIZE);
 
-	for (i = 0; i < MEM_CGROUP_STAT_NSTATS; i++) {
-		long long val = 0;
+	memset(&acc, 0, sizeof(acc));
+	accumulate_memcg_tree(memcg, &acc);
 
+	for (i = 0; i < MEM_CGROUP_STAT_NSTATS; i++) {
 		if (i == MEM_CGROUP_STAT_SWAP && !do_swap_account)
 			continue;
-		for_each_mem_cgroup_tree(mi, memcg)
-			val += mem_cgroup_read_stat(mi, i) * PAGE_SIZE;
-		seq_printf(m, "total_%s %lld\n", mem_cgroup_stat_names[i], val);
+		seq_printf(m, "total_%s %lld\n", mem_cgroup_stat_names[i],
+			   (u64)acc.stat[i] * PAGE_SIZE);
 	}
 
-	for (i = 0; i < MEM_CGROUP_EVENTS_NSTATS; i++) {
-		unsigned long long val = 0;
+	for (i = 0; i < MEM_CGROUP_EVENTS_NSTATS; i++)
+		seq_printf(m, "total_%s %llu\n", mem_cgroup_events_names[i],
+			   (u64)acc.events[i]);
 
-		for_each_mem_cgroup_tree(mi, memcg)
-			val += mem_cgroup_read_events(mi, i);
-		seq_printf(m, "total_%s %llu\n",
-			   mem_cgroup_events_names[i], val);
-	}
-
-	for (i = 0; i < NR_LRU_LISTS; i++) {
-		unsigned long long val = 0;
-
-		for_each_mem_cgroup_tree(mi, memcg)
-			val += mem_cgroup_nr_lru_pages(mi, BIT(i)) * PAGE_SIZE;
-		seq_printf(m, "total_%s %llu\n", mem_cgroup_lru_names[i], val);
-	}
+	for (i = 0; i < NR_LRU_LISTS; i++)
+		seq_printf(m, "total_%s %llu\n", mem_cgroup_lru_names[i],
+			   (u64)acc.lru_pages[i] * PAGE_SIZE);
 
 #ifdef CONFIG_DEBUG_VM
 	{
