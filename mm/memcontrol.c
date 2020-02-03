@@ -929,6 +929,45 @@ static unsigned long mem_cgroup_read_events(struct mem_cgroup *memcg,
 	return val;
 }
 
+/*
+ * A more cacheline efficient way to accumulate all the percpu statistics
+ * counts and events in the percpu stat->count and stat->events arrays into
+ * the given stats and events arrays.
+ */
+static void mem_cgroup_sum_all_stat_events(struct mem_cgroup *memcg,
+					   unsigned long *stats,
+					   unsigned long *events)
+{
+	int i;
+	int cpu;
+
+	get_online_cpus();
+	for_each_online_cpu(cpu) {
+		unsigned long *pcpu_stats = per_cpu(memcg->stat->count, cpu);
+		unsigned long *pcpu_events = per_cpu(memcg->stat->events, cpu);
+
+		for (i = 0; i < MEM_CGROUP_STAT_NSTATS; i++)
+			stats[i] += pcpu_stats[i];
+
+		for (i = 0; i < MEM_CGROUP_EVENTS_NSTATS; i++)
+			events[i] = pcpu_events[i];
+	}
+
+#ifdef CONFIG_HOTPLUG_CPU
+	spin_lock(&memcg->pcp_counter_lock);
+
+	for (i = 0; i < MEM_CGROUP_STAT_NSTATS; i++)
+		stats[i] += memcg->nocpu_base.count[i];
+
+	for (i = 0; i < MEM_CGROUP_EVENTS_NSTATS; i++)
+		events[i] = memcg->nocpu_base.events[i];
+
+	spin_unlock(&memcg->pcp_counter_lock);
+#endif
+	put_online_cpus();
+	return;
+}
+
 static void mem_cgroup_charge_statistics(struct mem_cgroup *memcg,
 					 struct page *page,
 					 bool anon, int nr_pages)
@@ -5041,11 +5080,7 @@ static void accumulate_memcg_tree(struct mem_cgroup *memcg,
 	int i;
 
 	for_each_mem_cgroup_tree(mi, memcg) {
-		for (i = 0; i < MEM_CGROUP_STAT_NSTATS; i++)
-			acc->stat[i] += mem_cgroup_read_stat(mi, i);
-
-		for (i = 0; i < MEM_CGROUP_EVENTS_NSTATS; i++)
-			acc->events[i] += mem_cgroup_read_events(mi, i);
+		mem_cgroup_sum_all_stat_events(mi, acc->stat, acc->events);
 
 		for (i = 0; i < NR_LRU_LISTS; i++)
 			acc->lru_pages[i] += mem_cgroup_nr_lru_pages(mi, BIT(i));
