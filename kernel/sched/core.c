@@ -9048,17 +9048,19 @@ void sched_move_task(struct task_struct *tsk)
  */
 static DEFINE_MUTEX(rt_constraints_mutex);
 
-/* Must be called with tasklist_lock held */
 static inline int tg_has_rt_tasks(struct task_group *tg)
 {
-	struct task_struct *g, *p;
+	struct task_struct *task;
+	struct cgroup_iter it;
+	struct cgroup * cg = tg->css.cgroup;
+	int ret = 0;
 
-	do_each_thread(g, p) {
-		if (rt_task(p) && task_rq(p)->rt.tg == tg)
-			return 1;
-	} while_each_thread(g, p);
+	cgroup_iter_start(cg, &it);
+	while (!ret && (task = cgroup_iter_next(cg, &it)))
+		ret |= rt_task(task);
+	cgroup_iter_end(cg, &it);
 
-	return 0;
+	return ret;
 }
 
 struct rt_schedulable_data {
@@ -9089,9 +9091,10 @@ static int tg_rt_schedulable(struct task_group *tg, void *data)
 		return -EINVAL;
 
 	/*
-	 * Ensure we don't starve existing RT tasks.
+	 * Ensure we don't starve existing RT tasks if runtime turns zero.
 	 */
-	if (rt_bandwidth_enabled() && !runtime && tg_has_rt_tasks(tg))
+	if (rt_bandwidth_enabled() && !runtime &&
+	    tg->rt_bandwidth.rt_runtime && tg_has_rt_tasks(tg))
 		return -EBUSY;
 
 	total = to_ratio(period, runtime);
@@ -9146,7 +9149,6 @@ static int tg_set_rt_bandwidth(struct task_group *tg,
 	int i, err = 0;
 
 	mutex_lock(&rt_constraints_mutex);
-	qread_lock(&tasklist_lock);
 	err = __rt_schedulable(tg, rt_period, rt_runtime);
 	if (err)
 		goto unlock;
@@ -9164,7 +9166,6 @@ static int tg_set_rt_bandwidth(struct task_group *tg,
 	}
 	raw_spin_unlock_irq(&tg->rt_bandwidth.rt_runtime_lock);
 unlock:
-	qread_unlock(&tasklist_lock);
 	mutex_unlock(&rt_constraints_mutex);
 
 	return err;
@@ -9223,9 +9224,7 @@ static int sched_rt_global_constraints(void)
 	int ret = 0;
 
 	mutex_lock(&rt_constraints_mutex);
-	qread_lock(&tasklist_lock);
 	ret = __rt_schedulable(NULL, 0, 0);
-	qread_unlock(&tasklist_lock);
 	mutex_unlock(&rt_constraints_mutex);
 
 	return ret;
