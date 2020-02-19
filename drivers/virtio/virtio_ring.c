@@ -420,7 +420,7 @@ unmap_release:
 	if (indirect)
 		kfree(desc);
 
-	return -EIO;
+	return -ENOMEM;
 }
 
 /**
