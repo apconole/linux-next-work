@@ -32,6 +32,7 @@
 #include <linux/slab.h>
 #include <linux/crash_dump.h>
 #include <asm/asm-offsets.h>
+#include <asm/diag.h>
 #include <asm/switch_to.h>
 #include <asm/facility.h>
 #include <asm/ipl.h>
@@ -436,11 +437,14 @@ void smp_yield(void)
 
 void smp_yield_cpu(int cpu)
 {
-	if (MACHINE_HAS_DIAG9C)
+	if (MACHINE_HAS_DIAG9C) {
+		diag_stat_inc(DIAG_STAT_X09C);
 		asm volatile("diag %0,0,0x9c"
 			     : : "d" (pcpu_devices[cpu].address));
-	else if (MACHINE_HAS_DIAG44)
+	} else if (MACHINE_HAS_DIAG44) {
+		diag_stat_inc(DIAG_STAT_X044);
 		asm volatile("diag 0,0,0x44");
+	}
 }
 
 /*
