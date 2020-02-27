@@ -1317,6 +1317,10 @@ _GLOBAL(_mcount)
 
 #ifndef CC_USING_MPROFILE_KERNEL
 _GLOBAL_TOC(ftrace_caller)
+	lbz	r3, PACA_FTRACE_ENABLED(r13)
+	cmpdi	r3, 0
+	beqlr
+
 	/* Taken from output of objdump from lib64/glibc */
 	mflr	r3
 	ld	r11, 0(r1)
@@ -1368,6 +1372,12 @@ _GLOBAL(ftrace_caller)
 	/* Save all gprs to pt_regs */
 	SAVE_GPR(0, r1)
 	SAVE_10GPRS(2, r1)
+
+	/* Ok to continue? */
+	lbz	r3, PACA_FTRACE_ENABLED(r13)
+	cmpdi	r3, 0
+	beq	ftrace_no_trace
+
 	SAVE_10GPRS(12, r1)
 	SAVE_10GPRS(22, r1)
 
@@ -1463,6 +1473,14 @@ _GLOBAL(ftrace_graph_stub)
 
 _GLOBAL(ftrace_stub)
 	blr
+
+ftrace_no_trace:
+	mflr	r3
+	mtctr	r3
+	REST_GPR(3, r1)
+	addi	r1, r1, SWITCH_FRAME_SIZE
+	mtlr	r0
+	bctr
 
 #ifdef CONFIG_LIVEPATCH
 	/*

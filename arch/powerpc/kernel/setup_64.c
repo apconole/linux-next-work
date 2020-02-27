@@ -171,6 +171,9 @@ static void cpu_ready_for_interrupts(void)
 	/* Set IR and DR in PACA MSR */
 	get_paca()->kernel_msr = MSR_KERNEL;
 
+	/* We are now ok to enable ftrace */
+	get_paca()->ftrace_enabled = 1;
+
 	/* Enable AIL if supported */
 	if (cpu_has_feature(CPU_FTR_HVMODE) &&
 	    cpu_has_feature(CPU_FTR_ARCH_207S)) {
