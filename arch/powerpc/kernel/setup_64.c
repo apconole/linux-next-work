@@ -171,9 +171,6 @@ static void cpu_ready_for_interrupts(void)
 	/* Set IR and DR in PACA MSR */
 	get_paca()->kernel_msr = MSR_KERNEL;
 
-	/* We are now ok to enable ftrace */
-	get_paca()->ftrace_enabled = 1;
-
 	/* Enable AIL if supported */
 	if (cpu_has_feature(CPU_FTR_HVMODE) &&
 	    cpu_has_feature(CPU_FTR_ARCH_207S)) {
@@ -262,6 +259,13 @@ void __init early_setup(unsigned long dt_ptr)
 	 * called since this will reserve memory.
 	 */
 	reserve_hugetlb_gpages();
+
+	/*
+	 * We enable ftrace here, but since we only support DYNAMIC_FTRACE, it
+	 * will only actually get enabled on the boot cpu much later once
+	 * ftrace itself has been initialized.
+	 */
+	this_cpu_enable_ftrace();
 
 	DBG(" <- early_setup()\n");
 }
