@@ -1893,6 +1893,18 @@ out:
 	return false;
 }
 
+/*
+ * Only called when the request isn't completed by SCSI, and not freed by
+ * SCSI
+ */
+static void scsi_cleanup_rq(struct request *rq)
+{
+	if (rq->cmd_flags & REQ_DONTPREP) {
+		scsi_mq_uninit_cmd(blk_mq_rq_to_pdu(rq));
+		rq->cmd_flags &= ~REQ_DONTPREP;
+	}
+}
+
 static int scsi_queue_rq(struct blk_mq_hw_ctx *hctx,
 			 const struct blk_mq_queue_data *bd)
 {
@@ -2092,6 +2104,7 @@ struct request_queue *scsi_alloc_queue(struct scsi_device *sdev)
 static struct blk_mq_aux_ops scsi_mq_aux_ops = {
 	.get_budget	= scsi_mq_get_budget,
 	.put_budget	= scsi_mq_put_budget,
+	.cleanup_rq	= scsi_cleanup_rq,
 };
 
 static struct blk_mq_ops scsi_mq_ops = {
