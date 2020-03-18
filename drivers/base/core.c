@@ -1778,6 +1778,7 @@ EXPORT_SYMBOL_GPL(root_device_unregister);
 static void device_create_release(struct device *dev)
 {
 	pr_debug("device: '%s': %s\n", dev_name(dev), __func__);
+	kfree(dev->device_rh);
 	kfree(dev);
 }
 
