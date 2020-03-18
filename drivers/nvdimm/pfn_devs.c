@@ -32,6 +32,7 @@ static void nd_pfn_release(struct device *dev)
 	ida_simple_remove(&nd_region->pfn_ida, nd_pfn->id);
 	kfree(nd_pfn->uuid);
 	kfree(nd_pfn);
+	device_rh_free(dev);
 }
 
 static struct device_type nd_pfn_device_type = {

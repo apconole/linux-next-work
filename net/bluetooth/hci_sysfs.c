@@ -55,6 +55,7 @@ static void bt_link_release(struct device *dev)
 {
 	struct hci_conn *conn = to_hci_conn(dev);
 	kfree(conn);
+	device_rh_free(dev);
 }
 
 static struct device_type bt_link = {
@@ -181,6 +182,7 @@ static void bt_host_release(struct device *dev)
 {
 	struct hci_dev *hdev = to_hci_dev(dev);
 	kfree(hdev);
+	device_rh_free(dev);
 	module_put(THIS_MODULE);
 }
 

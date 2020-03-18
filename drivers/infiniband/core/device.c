@@ -241,6 +241,7 @@ static void ib_device_release(struct device *device)
 	ib_security_release_port_pkey_list(dev);
 	kfree(dev->port_pkey_list);
 	kfree(dev->port_immutable);
+	device_rh_free(device);
 	kfree(dev);
 }
 
