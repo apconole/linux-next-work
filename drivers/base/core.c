@@ -255,6 +255,8 @@ static void device_release(struct kobject *kobj)
 			"function, it is broken and must be fixed.\n",
 			dev_name(dev));
 	kfree(p);
+	kfree(dev->device_rh);
+	dev->device_rh = NULL;
 }
 
 static const void *device_namespace(struct kobject *kobj)
