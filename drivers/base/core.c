@@ -1082,6 +1082,16 @@ void device_rh_alloc(struct device *dev)
 }
 EXPORT_SYMBOL(device_rh_alloc);
 
+/** device_rh_free -- disassociate a device_rh from a device and free it
+ * @dev: device to disassociate from
+ */
+void device_rh_free(struct device *dev)
+{
+	kfree(dev->device_rh);
+	dev->device_rh = NULL;
+}
+EXPORT_SYMBOL(device_rh_free);
+
 /**
  * device_add - add device to device hierarchy.
  * @dev: device.
