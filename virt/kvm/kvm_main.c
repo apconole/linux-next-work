@@ -187,29 +187,47 @@ static inline bool kvm_kick_many_cpus(const struct cpumask *cpus, bool wait)
 	return true;
 }
 
-bool kvm_make_all_cpus_request(struct kvm *kvm, unsigned int req)
+bool kvm_make_vcpus_request_mask(struct kvm *kvm, unsigned int req,
+				 unsigned long *vcpu_bitmap, cpumask_var_t tmp)
 {
 	int i, cpu, me;
-	cpumask_var_t cpus;
-	bool called;
 	struct kvm_vcpu *vcpu;
-
-	zalloc_cpumask_var(&cpus, GFP_ATOMIC);
+	bool called;
 
 	me = get_cpu();
+
 	kvm_for_each_vcpu(i, vcpu, kvm) {
+		if (!test_bit(i, vcpu_bitmap))
+			continue;
+
 		kvm_make_request(req, vcpu);
 		cpu = vcpu->cpu;
 
 		/* Set ->requests bit before we read ->mode */
 		smp_mb();
 
-		if (cpus != NULL && cpu != -1 && cpu != me &&
+		if (tmp != NULL && cpu != -1 && cpu != me &&
 		    kvm_vcpu_exiting_guest_mode(vcpu) != OUTSIDE_GUEST_MODE)
-			__cpumask_set_cpu(cpu, cpus);
+			__cpumask_set_cpu(cpu, tmp);
 	}
-	called = kvm_kick_many_cpus(cpus, 1);
+
+	called = kvm_kick_many_cpus(tmp, 1);
 	put_cpu();
+
+	return called;
+}
+
+bool kvm_make_all_cpus_request(struct kvm *kvm, unsigned int req)
+{
+	cpumask_var_t cpus;
+	bool called;
+	static unsigned long vcpu_bitmap[BITS_TO_LONGS(KVM_MAX_VCPUS)]
+		= {[0 ... BITS_TO_LONGS(KVM_MAX_VCPUS)-1] = ULONG_MAX};
+
+	zalloc_cpumask_var(&cpus, GFP_ATOMIC);
+
+	called = kvm_make_vcpus_request_mask(kvm, req, vcpu_bitmap, cpus);
+
 	free_cpumask_var(cpus);
 	return called;
 }
