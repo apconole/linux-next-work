@@ -219,9 +219,14 @@ static int virtio_queue_rq(struct blk_mq_hw_ctx *hctx,
 		if (err == -ENOSPC)
 			blk_mq_stop_hw_queue(hctx);
 		spin_unlock_irqrestore(&vblk->vqs[qid].lock, flags);
-		if (err == -ENOMEM || err == -ENOSPC)
+		switch (err) {
+		case -ENOSPC:
 			return BLK_MQ_RQ_QUEUE_DEV_BUSY;
-		return BLK_MQ_RQ_QUEUE_ERROR;
+		case -ENOMEM:
+			return BLK_MQ_RQ_QUEUE_BUSY;
+		default:
+			return BLK_MQ_RQ_QUEUE_ERROR;
+		}
 	}
 
 	if (bd->last && virtqueue_kick_prepare(vblk->vqs[qid].vq))
