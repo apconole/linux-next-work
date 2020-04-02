@@ -647,7 +647,15 @@ static void log_write_header(struct gfs2_sbd *sdp, u32 flags)
 	unsigned int tail;
 	u32 hash;
 	int rw = WRITE_FLUSH_FUA | REQ_META;
-	struct page *page = mempool_alloc(gfs2_page_pool, GFP_NOIO);
+	struct page *page;
+
+
+	if (gfs2_withdrawn(sdp)) {
+		log_flush_wait(sdp);
+		return;
+	}
+
+	page = mempool_alloc(gfs2_page_pool, GFP_NOIO);
 	lh = page_address(page);
 	clear_page(lh);
 
