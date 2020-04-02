@@ -36,21 +36,31 @@ void gfs2_assert_i(struct gfs2_sbd *sdp)
 	pr_emerg("fsid=%s: fatal assertion failed\n", sdp->sd_fsname);
 }
 
-int gfs2_lm_withdraw(struct gfs2_sbd *sdp, char *fmt, ...)
+
+void gfs2_lm(struct gfs2_sbd *sdp, const char *fmt, ...)
+{
+	struct va_format vaf;
+	va_list args;
+
+	if (sdp->sd_args.ar_errors == GFS2_ERRORS_WITHDRAW &&
+	    test_bit(SDF_WITHDRAWN, &sdp->sd_flags))
+		return;
+
+	va_start(args, fmt);
+	vaf.fmt = fmt;
+	vaf.va = &args;
+	fs_err(sdp, "%pV", &vaf);
+	va_end(args);
+}
+
+int gfs2_withdraw(struct gfs2_sbd *sdp)
 {
 	struct lm_lockstruct *ls = &sdp->sd_lockstruct;
 	const struct lm_lockops *lm = ls->ls_ops;
-	va_list args;
 
 	if (sdp->sd_args.ar_errors == GFS2_ERRORS_WITHDRAW &&
 	    test_and_set_bit(SDF_WITHDRAWN, &sdp->sd_flags))
 		return 0;
-
-	if (fmt) {
-		va_start(args, fmt);
-		vprintk(fmt, args);
-		va_end(args);
-	}
 
 	if (sdp->sd_args.ar_errors == GFS2_ERRORS_WITHDRAW) {
 		fs_err(sdp, "about to withdraw this file system\n");
@@ -86,11 +96,11 @@ int gfs2_assert_withdraw_i(struct gfs2_sbd *sdp, char *assertion,
 			   const char *function, char *file, unsigned int line)
 {
 	int me;
-	me = gfs2_lm_withdraw(sdp,
-		"GFS2: fsid=%s: fatal: assertion \"%s\" failed\n"
-		"GFS2: fsid=%s:   function = %s, file = %s, line = %u\n",
-		sdp->sd_fsname, assertion,
-		sdp->sd_fsname, function, file, line);
+	gfs2_lm(sdp,
+		"fatal: assertion \"%s\" failed\n"
+		"function = %s, file = %s, line = %u\n",
+		assertion, function, file, line);
+	me = gfs2_withdraw(sdp);
 	dump_stack();
 	return (me) ? -1 : -2;
 }
@@ -138,13 +148,11 @@ int gfs2_assert_warn_i(struct gfs2_sbd *sdp, char *assertion,
 int gfs2_consist_i(struct gfs2_sbd *sdp, int cluster_wide, const char *function,
 		   char *file, unsigned int line)
 {
-	int rv;
-	rv = gfs2_lm_withdraw(sdp,
-		"GFS2: fsid=%s: fatal: filesystem consistency error\n"
-		"GFS2: fsid=%s:   function = %s, file = %s, line = %u\n",
-		sdp->sd_fsname,
-		sdp->sd_fsname, function, file, line);
-	return rv;
+	gfs2_lm(sdp,
+		"fatal: filesystem consistency error\n"
+		"function = %s, file = %s, line = %u\n",
+		function, file, line);
+	return gfs2_withdraw(sdp);
 }
 
 /**
@@ -157,16 +165,14 @@ int gfs2_consist_inode_i(struct gfs2_inode *ip, int cluster_wide,
 			 const char *function, char *file, unsigned int line)
 {
 	struct gfs2_sbd *sdp = GFS2_SB(&ip->i_inode);
-	int rv;
-	rv = gfs2_lm_withdraw(sdp,
-		"GFS2: fsid=%s: fatal: filesystem consistency error\n"
-		"GFS2: fsid=%s:   inode = %llu %llu\n"
-		"GFS2: fsid=%s:   function = %s, file = %s, line = %u\n",
-		sdp->sd_fsname,
-		sdp->sd_fsname, (unsigned long long)ip->i_no_formal_ino,
+	gfs2_lm(sdp,
+		"fatal: filesystem consistency error\n"
+		"  inode = %llu %llu\n"
+		"  function = %s, file = %s, line = %u\n",
+		(unsigned long long)ip->i_no_formal_ino,
 		(unsigned long long)ip->i_no_addr,
-		sdp->sd_fsname, function, file, line);
-	return rv;
+		function, file, line);
+	return gfs2_withdraw(sdp);
 }
 
 /**
@@ -180,18 +186,16 @@ int gfs2_consist_rgrpd_i(struct gfs2_rgrpd *rgd, int cluster_wide,
 {
 	struct gfs2_sbd *sdp = rgd->rd_sbd;
 	char fs_id_buf[GFS2_FSNAME_LEN + 3 * sizeof(int) + 2];
-	int rv;
 
 	sprintf(fs_id_buf, "fsid=%s: ", sdp->sd_fsname);
 	gfs2_rgrp_dump(NULL, rgd->rd_gl, fs_id_buf);
-	rv = gfs2_lm_withdraw(sdp,
-		"GFS2: fsid=%s: fatal: filesystem consistency error\n"
-		"GFS2: fsid=%s:   RG = %llu\n"
-		"GFS2: fsid=%s:   function = %s, file = %s, line = %u\n",
-		sdp->sd_fsname,
-		sdp->sd_fsname, (unsigned long long)rgd->rd_addr,
-		sdp->sd_fsname, function, file, line);
-	return rv;
+	gfs2_lm(sdp,
+		"fatal: filesystem consistency error\n"
+		"  RG = %llu\n"
+		"  function = %s, file = %s, line = %u\n",
+		(unsigned long long)rgd->rd_addr,
+		function, file, line);
+	return gfs2_withdraw(sdp);
 }
 
 /**
@@ -205,13 +209,13 @@ int gfs2_meta_check_ii(struct gfs2_sbd *sdp, struct buffer_head *bh,
 		       unsigned int line)
 {
 	int me;
-	me = gfs2_lm_withdraw(sdp,
-		"GFS2: fsid=%s: fatal: invalid metadata block\n"
-		"GFS2: fsid=%s:   bh = %llu (%s)\n"
-		"GFS2: fsid=%s:   function = %s, file = %s, line = %u\n",
-		sdp->sd_fsname,
-		sdp->sd_fsname, (unsigned long long)bh->b_blocknr, type,
-		sdp->sd_fsname, function, file, line);
+	gfs2_lm(sdp,
+		"fatal: invalid metadata block\n"
+		"  bh = %llu (%s)\n"
+		"  function = %s, file = %s, line = %u\n",
+		(unsigned long long)bh->b_blocknr, type,
+		function, file, line);
+	me = gfs2_withdraw(sdp);
 	return (me) ? -1 : -2;
 }
 
@@ -225,15 +229,13 @@ int gfs2_metatype_check_ii(struct gfs2_sbd *sdp, struct buffer_head *bh,
 			   u16 type, u16 t, const char *function,
 			   char *file, unsigned int line)
 {
-	int me;
-	me = gfs2_lm_withdraw(sdp,
-		"GFS2: fsid=%s: fatal: invalid metadata block\n"
-		"GFS2: fsid=%s:   bh = %llu (type: exp=%u, found=%u)\n"
-		"GFS2: fsid=%s:   function = %s, file = %s, line = %u\n",
-		sdp->sd_fsname,
-		sdp->sd_fsname, (unsigned long long)bh->b_blocknr, type, t,
-		sdp->sd_fsname, function, file, line);
-	return (me) ? -1 : -2;
+	gfs2_lm(sdp,
+		"fatal: invalid metadata block\n"
+		"  bh = %llu (type: exp=%u, found=%u)\n"
+		"  function = %s, file = %s, line = %u\n",
+		(unsigned long long)bh->b_blocknr, type, t,
+		function, file, line);
+	return gfs2_withdraw(sdp);
 }
 
 /**
@@ -245,13 +247,11 @@ int gfs2_metatype_check_ii(struct gfs2_sbd *sdp, struct buffer_head *bh,
 int gfs2_io_error_i(struct gfs2_sbd *sdp, const char *function, char *file,
 		    unsigned int line)
 {
-	int rv;
-	rv = gfs2_lm_withdraw(sdp,
-		"GFS2: fsid=%s: fatal: I/O error\n"
-		"GFS2: fsid=%s:   function = %s, file = %s, line = %u\n",
-		sdp->sd_fsname,
-		sdp->sd_fsname, function, file, line);
-	return rv;
+	gfs2_lm(sdp,
+		"fatal: I/O error\n"
+		"  function = %s, file = %s, line = %u\n",
+		function, file, line);
+	return gfs2_withdraw(sdp);
 }
 
 /**
@@ -269,6 +269,6 @@ void gfs2_io_error_bh_i(struct gfs2_sbd *sdp, struct buffer_head *bh,
 		       "  function = %s, file = %s, line = %u\n",
 		       (unsigned long long)bh->b_blocknr, function, file, line);
 	if (withdraw)
-		gfs2_lm_withdraw(sdp, NULL);
+		gfs2_withdraw(sdp);
 }
 
