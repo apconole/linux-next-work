@@ -54,7 +54,8 @@ qla2x00_bsg_sp_free(void *ptr)
 	if (sp->type == SRB_CT_CMD ||
 	    sp->type == SRB_FXIOCB_BCMD ||
 	    sp->type == SRB_ELS_CMD_HST)
-		kfree(sp->fcport);
+		qla2x00_free_fcport(sp->fcport);
+
 	qla2x00_rel_sp(sp);
 }
 
@@ -401,7 +402,7 @@ done_unmap_sg:
 
 done_free_fcport:
 	if (bsg_job->request->msgcode == FC_BSG_RPT_ELS)
-		kfree(fcport);
+		qla2x00_free_fcport(fcport);
 done:
 	return rval;
 }
@@ -540,7 +541,7 @@ qla2x00_process_ct(struct fc_bsg_job *bsg_job)
 	return rval;
 
 done_free_fcport:
-	kfree(fcport);
+	qla2x00_free_fcport(fcport);
 done_unmap_sg:
 	dma_unmap_sg(&ha->pdev->dev, bsg_job->request_payload.sg_list,
 		bsg_job->request_payload.sg_cnt, DMA_TO_DEVICE);
@@ -2013,7 +2014,7 @@ qlafx00_mgmt_cmd(struct fc_bsg_job *bsg_job)
 	return rval;
 
 done_free_fcport:
-	kfree(fcport);
+	qla2x00_free_fcport(fcport);
 
 done_unmap_rsp_sg:
 	if (piocb_rqst->flags & SRB_FXDISC_RESP_DMA_VALID)
