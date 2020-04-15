@@ -1,0 +1,8 @@
+Version: 1.0
+File: arch/powerpc/include/uapi/asm/types.h:35
+Symbol:
+Byte size 16
+typedef __vector128
+struct (NULL) {
+0x0 u [4]@"typedef--__u32.txt"
+}

@@ -1,0 +1,12 @@
+Version: 1.0
+File: arch/s390/include/asm/module.h:18
+Symbol:
+Byte size 48
+struct mod_arch_specific {
+0x0 got_offset "long unsigned int"
+0x8 plt_offset "long unsigned int"
+0x10 got_size "long unsigned int"
+0x18 plt_size "long unsigned int"
+0x20 nsyms "int"
+0x28 syminfo * @"struct--mod_arch_syminfo.txt"
+}

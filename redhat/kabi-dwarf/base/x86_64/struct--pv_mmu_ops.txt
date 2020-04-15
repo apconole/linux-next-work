@@ -1,0 +1,173 @@
+Version: 1.0
+File: arch/x86/include/asm/paravirt_types.h:234
+Symbol:
+Byte size 344
+struct pv_mmu_ops {
+0x0 read_cr2 * func (NULL) (
+)
+"long unsigned int"
+0x8 write_cr2 * func (NULL) (
+(NULL) "long unsigned int"
+)
+"void"
+0x10 read_cr3 * func (NULL) (
+)
+"long unsigned int"
+0x18 write_cr3 * func (NULL) (
+(NULL) "long unsigned int"
+)
+"void"
+0x20 activate_mm * func (NULL) (
+(NULL) * @"struct--mm_struct.txt"
+(NULL) * @"struct--mm_struct.txt"
+)
+"void"
+0x28 dup_mmap * func (NULL) (
+(NULL) * @"struct--mm_struct.txt"
+(NULL) * @"struct--mm_struct.txt"
+)
+"void"
+0x30 exit_mmap * func (NULL) (
+(NULL) * @"struct--mm_struct.txt"
+)
+"void"
+0x38 flush_tlb_user * func (NULL) (
+)
+"void"
+0x40 flush_tlb_kernel * func (NULL) (
+)
+"void"
+0x48 flush_tlb_single * func (NULL) (
+(NULL) "long unsigned int"
+)
+"void"
+0x50 flush_tlb_others * func (NULL) (
+(NULL) * const @"struct--cpumask.txt"
+(NULL) * @"struct--mm_struct.txt"
+(NULL) "long unsigned int"
+(NULL) "long unsigned int"
+)
+"void"
+0x58 pgd_alloc * func (NULL) (
+(NULL) * @"struct--mm_struct.txt"
+)
+"int"
+0x60 pgd_free * func (NULL) (
+(NULL) * @"struct--mm_struct.txt"
+(NULL) * @"typedef--pgd_t.txt"
+)
+"void"
+0x68 alloc_pte * func (NULL) (
+(NULL) * @"struct--mm_struct.txt"
+(NULL) "long unsigned int"
+)
+"void"
+0x70 alloc_pmd * func (NULL) (
+(NULL) * @"struct--mm_struct.txt"
+(NULL) "long unsigned int"
+)
+"void"
+0x78 alloc_pud * func (NULL) (
+(NULL) * @"struct--mm_struct.txt"
+(NULL) "long unsigned int"
+)
+"void"
+0x80 release_pte * func (NULL) (
+(NULL) "long unsigned int"
+)
+"void"
+0x88 release_pmd * func (NULL) (
+(NULL) "long unsigned int"
+)
+"void"
+0x90 release_pud * func (NULL) (
+(NULL) "long unsigned int"
+)
+"void"
+0x98 set_pte * func (NULL) (
+(NULL) * @"typedef--pte_t.txt"
+(NULL) @"typedef--pte_t.txt"
+)
+"void"
+0xa0 set_pte_at * func (NULL) (
+(NULL) * @"struct--mm_struct.txt"
+(NULL) "long unsigned int"
+(NULL) * @"typedef--pte_t.txt"
+(NULL) @"typedef--pte_t.txt"
+)
+"void"
+0xa8 set_pmd * func (NULL) (
+(NULL) * @"typedef--pmd_t.txt"
+(NULL) @"typedef--pmd_t.txt"
+)
+"void"
+0xb0 set_pmd_at * func (NULL) (
+(NULL) * @"struct--mm_struct.txt"
+(NULL) "long unsigned int"
+(NULL) * @"typedef--pmd_t.txt"
+(NULL) @"typedef--pmd_t.txt"
+)
+"void"
+0xb8 pte_update * func (NULL) (
+(NULL) * @"struct--mm_struct.txt"
+(NULL) "long unsigned int"
+(NULL) * @"typedef--pte_t.txt"
+)
+"void"
+0xc0 rh_reserved_pte_update_defer * func (NULL) (
+(NULL) * @"struct--mm_struct.txt"
+(NULL) "long unsigned int"
+(NULL) * @"typedef--pte_t.txt"
+)
+"void"
+0xc8 rh_reserved_pmd_update * func (NULL) (
+(NULL) * @"struct--mm_struct.txt"
+(NULL) "long unsigned int"
+(NULL) * @"typedef--pmd_t.txt"
+)
+"void"
+0xd0 rh_reserved_pmd_update_defer * func (NULL) (
+(NULL) * @"struct--mm_struct.txt"
+(NULL) "long unsigned int"
+(NULL) * @"typedef--pmd_t.txt"
+)
+"void"
+0xd8 ptep_modify_prot_start * func (NULL) (
+(NULL) * @"struct--mm_struct.txt"
+(NULL) "long unsigned int"
+(NULL) * @"typedef--pte_t.txt"
+)
+@"typedef--pte_t.txt"
+0xe0 ptep_modify_prot_commit * func (NULL) (
+(NULL) * @"struct--mm_struct.txt"
+(NULL) "long unsigned int"
+(NULL) * @"typedef--pte_t.txt"
+(NULL) @"typedef--pte_t.txt"
+)
+"void"
+0xe8 pte_val @"struct--paravirt_callee_save.txt"
+0xf0 make_pte @"struct--paravirt_callee_save.txt"
+0xf8 pgd_val @"struct--paravirt_callee_save.txt"
+0x100 make_pgd @"struct--paravirt_callee_save.txt"
+0x108 set_pud * func (NULL) (
+(NULL) * @"typedef--pud_t.txt"
+(NULL) @"typedef--pud_t.txt"
+)
+"void"
+0x110 pmd_val @"struct--paravirt_callee_save.txt"
+0x118 make_pmd @"struct--paravirt_callee_save.txt"
+0x120 pud_val @"struct--paravirt_callee_save.txt"
+0x128 make_pud @"struct--paravirt_callee_save.txt"
+0x130 set_pgd * func (NULL) (
+(NULL) * @"typedef--pgd_t.txt"
+(NULL) @"typedef--pgd_t.txt"
+)
+"void"
+0x138 lazy_mode @"struct--pv_lazy_ops.txt"
+0x150 set_fixmap * func (NULL) (
+(NULL) "unsigned int"
+(NULL) @"typedef--phys_addr_t.txt"
+(NULL) @"typedef--pgprot_t.txt"
+)
+"void"
+}

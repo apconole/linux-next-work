@@ -1,0 +1,9 @@
+Version: 1.0
+File: lib/bitmap.c:1183
+Symbol:
+func bitmap_release_region (
+bitmap * "long unsigned int"
+pos "int"
+order "int"
+)
+"void"

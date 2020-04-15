@@ -1,0 +1,6 @@
+Version: 1.0
+File: include/linux/mmzone.h:101
+Symbol:
+struct zone_padding {
+0x0 x [0]"char"
+}

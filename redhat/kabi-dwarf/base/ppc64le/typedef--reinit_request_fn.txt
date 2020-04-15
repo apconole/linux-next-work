@@ -1,0 +1,10 @@
+Version: 1.0
+File: include/linux/blk-mq.h:162
+Symbol:
+Byte size 4
+typedef reinit_request_fn
+func (NULL) (
+(NULL) * "void"
+(NULL) * @"struct--request.txt"
+)
+"int"

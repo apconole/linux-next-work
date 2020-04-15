@@ -1,0 +1,28 @@
+Version: 1.0
+File: include/linux/mmzone.h:768
+Symbol:
+Byte size 33920
+struct pglist_data {
+0x0 node_zones [3]@"struct--zone.txt"
+0x1680 node_zonelists [2]@"struct--zonelist.txt"
+0x8380 nr_zones "int"
+0x8388 bdata * @"struct--bootmem_data.txt"
+0x8390 node_size_lock @"typedef--spinlock_t.txt"
+0x8398 node_start_pfn "long unsigned int"
+0x83a0 node_present_pages "long unsigned int"
+0x83a8 node_spanned_pages "long unsigned int"
+0x83b0 node_id "int"
+0x83b8 reclaim_nodes @"typedef--nodemask_t.txt"
+0x83d8 kswapd_wait @"typedef--wait_queue_head_t.txt"
+0x83f0 pfmemalloc_wait @"typedef--wait_queue_head_t.txt"
+0x8408 kswapd * @"struct--task_struct.txt"
+0x8410 kswapd_max_order "int"
+0x8414 classzone_idx @"enum--zone_type.txt"
+0x8418 numabalancing_migrate_lock @"typedef--spinlock_t.txt"
+0x8420 numabalancing_migrate_next_window "long unsigned int"
+0x8428 numabalancing_migrate_nr_pages "long unsigned int"
+0x8430 rh_reserved1 "long unsigned int"
+0x8438 rh_reserved2 "long unsigned int"
+0x8440 rh_reserved3 "long unsigned int"
+0x8448 rh_reserved4 "long unsigned int"
+}

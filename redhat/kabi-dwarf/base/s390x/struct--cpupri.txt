@@ -1,0 +1,8 @@
+Version: 1.0
+File: kernel/sched/cpupri.h:18
+Symbol:
+Byte size 5104
+struct cpupri {
+0x0 pri_to_cpu [102]@"struct--cpupri_vec.txt"
+0xff0 cpu_to_pri [256]"int"
+}

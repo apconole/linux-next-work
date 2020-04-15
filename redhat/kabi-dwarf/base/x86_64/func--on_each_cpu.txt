@@ -1,0 +1,12 @@
+Version: 1.0
+File: kernel/smp.c:594
+Symbol:
+func on_each_cpu (
+func * func (NULL) (
+(NULL) * "void"
+)
+"void"
+info * "void"
+wait "int"
+)
+"int"

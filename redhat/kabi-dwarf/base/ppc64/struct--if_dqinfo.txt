@@ -1,0 +1,10 @@
+Version: 1.0
+File: include/uapi/linux/quota.h:143
+Symbol:
+Byte size 24
+struct if_dqinfo {
+0x0 dqi_bgrace @"typedef--__u64.txt"
+0x8 dqi_igrace @"typedef--__u64.txt"
+0x10 dqi_flags @"typedef--__u32.txt"
+0x14 dqi_valid @"typedef--__u32.txt"
+}

@@ -1,0 +1,8 @@
+Version: 1.0
+File: mm/page-writeback.c:2372
+Symbol:
+func __test_set_page_writeback (
+page * @"struct--page.txt"
+keep_write @"typedef--bool.txt"
+)
+"int"

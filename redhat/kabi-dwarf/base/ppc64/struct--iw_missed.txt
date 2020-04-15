@@ -1,0 +1,7 @@
+Version: 1.0
+File: include/uapi/linux/wireless.h:741
+Symbol:
+Byte size 4
+struct iw_missed {
+0x0 beacon @"typedef--__u32.txt"
+}

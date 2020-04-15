@@ -1,0 +1,123 @@
+Version: 1.0
+File: include/linux/skbuff.h:667
+Symbol:
+Byte size 248
+struct sk_buff {
+0x0 (NULL) union (NULL) {
+(NULL) struct (NULL) {
+0x0 next * @"struct--sk_buff.txt"
+0x8 prev * @"struct--sk_buff.txt"
+0x10 (NULL) union (NULL) {
+tstamp @"typedef--ktime_t.txt"
+skb_mstamp @"struct--skb_mstamp.txt"
+(NULL) union (NULL) {
+}
+}
+}
+rbnode @"struct--rb_node.txt"
+}
+0x18 sk * @"struct--sock.txt"
+0x20 dev * @"struct--net_device.txt"
+0x28 cb [48]"char"
+0x58 _skb_refdst "long unsigned int"
+0x60 sp * @"struct--sec_path.txt"
+0x68 len "unsigned int"
+0x6c data_len "unsigned int"
+0x70 mac_len @"typedef--__u16.txt"
+0x72 hdr_len @"typedef--__u16.txt"
+0x74 (NULL) union (NULL) {
+csum @"typedef--__wsum.txt"
+(NULL) struct (NULL) {
+0x0 csum_start @"typedef--__u16.txt"
+0x2 csum_offset @"typedef--__u16.txt"
+}
+}
+0x78 priority @"typedef--__u32.txt"
+0x7c:0-1 ignore_df @"typedef--__u8.txt"
+0x7c:1-2 cloned @"typedef--__u8.txt"
+0x7c:2-4 ip_summed @"typedef--__u8.txt"
+0x7c:4-5 nohdr @"typedef--__u8.txt"
+0x7c:5-8 nfctinfo @"typedef--__u8.txt"
+0x7d:0-3 pkt_type @"typedef--__u8.txt"
+0x7d:3-5 fclone @"typedef--__u8.txt"
+0x7d:5-6 ipvs_property @"typedef--__u8.txt"
+0x7d:6-7 peeked @"typedef--__u8.txt"
+0x7d:7-8 nf_trace @"typedef--__u8.txt"
+0x7e protocol @"typedef--__be16.txt"
+0x80 destructor * func (NULL) (
+(NULL) * @"struct--sk_buff.txt"
+)
+"void"
+0x88 nfct * @"struct--nf_conntrack.txt"
+0x90 nf_bridge * @"struct--nf_bridge_info.txt"
+0x98 headers_start [0]@"typedef--__u32.txt"
+0x98 skb_iif "int"
+0x9c (NULL) union (NULL) {
+hash @"typedef--__u32.txt"
+__UNIQUE_ID_rh_kabi_hide27 struct (NULL) {
+0x0 rxhash @"typedef--__u32.txt"
+}
+(NULL) union (NULL) {
+}
+}
+0xa0 vlan_proto @"typedef--__be16.txt"
+0xa2 vlan_tci @"typedef--__u16.txt"
+0xa4 tc_index @"typedef--__u16.txt"
+0xa6 tc_verd @"typedef--__u16.txt"
+0xa8 queue_mapping @"typedef--__u16.txt"
+0xaa:0-2 ndisc_nodetype @"typedef--__u8.txt"
+0xaa:2-3 pfmemalloc @"typedef--__u8.txt"
+0xaa:3-4 ooo_okay @"typedef--__u8.txt"
+0xaa:4-5 l4_hash @"typedef--__u8.txt"
+0xaa:5-6 wifi_acked_valid @"typedef--__u8.txt"
+0xaa:6-7 wifi_acked @"typedef--__u8.txt"
+0xaa:7-8 no_fcs @"typedef--__u8.txt"
+0xab:0-1 head_frag @"typedef--__u8.txt"
+0xab:1-2 encapsulation @"typedef--__u8.txt"
+0xab:2-3 encap_hdr_csum @"typedef--__u8.txt"
+0xab:3-4 csum_valid @"typedef--__u8.txt"
+0xab:4-5 csum_complete_sw @"typedef--__u8.txt"
+0xab:5-6 xmit_more @"typedef--__u8.txt"
+0xab:6-7 inner_protocol_type @"typedef--__u8.txt"
+0xab:7-8 remcsum_offload @"typedef--__u8.txt"
+0xac (NULL) union (NULL) {
+napi_id "unsigned int"
+sender_cpu "unsigned int"
+rh_reserved_dma_cookie @"typedef--dma_cookie_t.txt"
+}
+0xb0 secmark @"typedef--__u32.txt"
+0xb4 (NULL) union (NULL) {
+mark @"typedef--__u32.txt"
+dropcount @"typedef--__u32.txt"
+reserved_tailroom @"typedef--__u32.txt"
+}
+0xb8 (NULL) union (NULL) {
+inner_protocol @"typedef--__be16.txt"
+inner_ipproto @"typedef--__u8.txt"
+}
+0xba inner_transport_header @"typedef--__u16.txt"
+0xbc inner_network_header @"typedef--__u16.txt"
+0xbe inner_mac_header @"typedef--__u16.txt"
+0xc0 transport_header @"typedef--__u16.txt"
+0xc2 network_header @"typedef--__u16.txt"
+0xc4 mac_header @"typedef--__u16.txt"
+0xc6:0-2 csum_level @"typedef--__u8.txt"
+0xc6:2-3 rh_csum_pad @"typedef--__u8.txt"
+0xc6:3-4 rh_csum_bad_unused @"typedef--__u8.txt"
+0xc6:4-5 offload_fwd_mark @"typedef--__u8.txt"
+0xc6:5-6 sw_hash @"typedef--__u8.txt"
+0xc6:6-7 csum_not_inet @"typedef--__u8.txt"
+0xc6:7-8 dst_pending_confirm @"typedef--__u8.txt"
+0xc7:0-1 offload_mr_fwd_mark @"typedef--__u8.txt"
+0xc8 headers_end [0]@"typedef--__u32.txt"
+0xc8 rh_reserved1 @"typedef--u32.txt"
+0xcc rh_reserved2 @"typedef--u32.txt"
+0xd0 rh_reserved3 @"typedef--u32.txt"
+0xd4 rh_reserved4 @"typedef--u32.txt"
+0xd8 tail @"typedef--sk_buff_data_t.txt"
+0xdc end @"typedef--sk_buff_data_t.txt"
+0xe0 head * "unsigned char"
+0xe8 data * "unsigned char"
+0xf0 truesize "unsigned int"
+0xf4 users @"typedef--atomic_t.txt"
+}

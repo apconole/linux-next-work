@@ -1,0 +1,12 @@
+Version: 1.0
+File: arch/x86/include/asm/rwlock.h:33
+Symbol:
+Byte size 8
+typedef arch_rwlock_t
+union (NULL) {
+lock @"typedef--s64.txt"
+(NULL) struct (NULL) {
+0x0 read @"typedef--u32.txt"
+0x4 write @"typedef--s32.txt"
+}
+}

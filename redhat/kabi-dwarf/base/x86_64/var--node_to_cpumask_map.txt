@@ -1,0 +1,4 @@
+Version: 1.0
+File: arch/x86/mm/numa.c:72
+Symbol:
+var node_to_cpumask_map [1024]@"typedef--cpumask_var_t.txt"

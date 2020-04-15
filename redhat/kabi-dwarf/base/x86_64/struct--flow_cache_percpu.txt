@@ -1,0 +1,11 @@
+Version: 1.0
+File: include/net/flowcache.h:9
+Symbol:
+Byte size 64
+struct flow_cache_percpu {
+0x0 hash_table * @"struct--hlist_head.txt"
+0x8 hash_count "int"
+0xc hash_rnd @"typedef--u32.txt"
+0x10 hash_rnd_recalc "int"
+0x18 flush_tasklet @"struct--tasklet_struct.txt"
+}

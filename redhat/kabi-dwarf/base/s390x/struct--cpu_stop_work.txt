@@ -1,0 +1,10 @@
+Version: 1.0
+File: include/linux/stop_machine.h:23
+Symbol:
+Byte size 40
+struct cpu_stop_work {
+0x0 list @"struct--list_head.txt"
+0x10 fn @"typedef--cpu_stop_fn_t.txt"
+0x18 arg * "void"
+0x20 done * @"<declarations>/struct--cpu_stop_done.txt"
+}

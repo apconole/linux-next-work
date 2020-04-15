@@ -1,0 +1,7 @@
+Version: 1.0
+File: include/linux/blkdev.h:317
+Symbol:
+Byte size 8
+struct queue_limits_aux {
+0x0 virt_boundary_mask "long unsigned int"
+}

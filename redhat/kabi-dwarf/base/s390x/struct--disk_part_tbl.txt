@@ -1,0 +1,10 @@
+Version: 1.0
+File: include/linux/genhd.h:156
+Symbol:
+Byte size 32
+struct disk_part_tbl {
+0x0 callback_head @"struct--callback_head.txt"
+0x10 len "int"
+0x18 last_lookup * @"struct--hd_struct.txt"
+0x20 part [0]* @"struct--hd_struct.txt"
+}

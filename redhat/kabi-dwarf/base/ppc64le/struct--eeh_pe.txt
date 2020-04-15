@@ -1,0 +1,22 @@
+Version: 1.0
+File: arch/powerpc/include/asm/eeh.h:88
+Symbol:
+Byte size 136
+struct eeh_pe {
+0x0 type "int"
+0x4 state "int"
+0x8 config_addr "int"
+0xc addr "int"
+0x10 phb * @"struct--pci_controller.txt"
+0x18 bus * @"struct--pci_bus.txt"
+0x20 check_count "int"
+0x24 freeze_count "int"
+0x28 tstamp @"struct--timeval.txt"
+0x38 false_positives "int"
+0x40 parent * @"struct--eeh_pe.txt"
+0x48 child_list @"struct--list_head.txt"
+0x58 edevs @"struct--list_head.txt"
+0x68 child @"struct--list_head.txt"
+0x78 pass_dev_cnt @"typedef--atomic_t.txt"
+0x80 data * "void"
+}

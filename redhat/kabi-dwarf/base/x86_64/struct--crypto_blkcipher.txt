@@ -1,0 +1,7 @@
+Version: 1.0
+File: include/linux/crypto.h:466
+Symbol:
+Byte size 88
+struct crypto_blkcipher {
+0x0 base @"struct--crypto_tfm.txt"
+}

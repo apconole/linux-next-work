@@ -1,0 +1,39 @@
+Version: 1.0
+File: include/linux/phy.h:154
+Symbol:
+Byte size 1088
+struct mii_bus {
+0x0 name * const "char"
+0x8 id [17]"char"
+0x20 priv * "void"
+0x28 read * func (NULL) (
+(NULL) * @"struct--mii_bus.txt"
+(NULL) "int"
+(NULL) "int"
+)
+"int"
+0x30 write * func (NULL) (
+(NULL) * @"struct--mii_bus.txt"
+(NULL) "int"
+(NULL) "int"
+(NULL) @"typedef--u16.txt"
+)
+"int"
+0x38 reset * func (NULL) (
+(NULL) * @"struct--mii_bus.txt"
+)
+"int"
+0x40 mdio_lock @"struct--mutex.txt"
+0x68 parent * @"struct--device.txt"
+0x70 state enum (NULL) {
+MDIOBUS_ALLOCATED = 0x1
+MDIOBUS_REGISTERED = 0x2
+MDIOBUS_UNREGISTERED = 0x3
+MDIOBUS_RELEASED = 0x4
+}
+0x78 dev @"struct--device.txt"
+0x328 phy_map [32]* @"struct--phy_device.txt"
+0x428 phy_mask @"typedef--u32.txt"
+0x430 irq * "int"
+0x438 owner * @"struct--module.txt"
+}

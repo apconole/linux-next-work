@@ -1,0 +1,10 @@
+Version: 1.0
+File: include/linux/aio.h:30
+Symbol:
+Byte size 4
+typedef kiocb_cancel_fn
+func (NULL) (
+(NULL) * @"struct--kiocb.txt"
+(NULL) * @"struct--io_event.txt"
+)
+"int"

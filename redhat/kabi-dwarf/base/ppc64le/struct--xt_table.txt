@@ -1,0 +1,13 @@
+Version: 1.0
+File: include/linux/netfilter/x_tables.h:229
+Symbol:
+Byte size 80
+struct xt_table {
+0x0 list @"struct--list_head.txt"
+0x10 valid_hooks "unsigned int"
+0x18 private * @"struct--xt_table_info.txt"
+0x20 me * @"struct--module.txt"
+0x28 af @"typedef--u_int8_t.txt"
+0x2c priority "int"
+0x30 name const [32]"char"
+}

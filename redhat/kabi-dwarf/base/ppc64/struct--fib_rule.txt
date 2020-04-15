@@ -1,0 +1,25 @@
+Version: 1.0
+File: include/net/fib_rules.h:12
+Symbol:
+Byte size 144
+struct fib_rule {
+0x0 list @"struct--list_head.txt"
+0x10 refcnt @"typedef--atomic_t.txt"
+0x14 iifindex "int"
+0x18 oifindex "int"
+0x1c mark @"typedef--u32.txt"
+0x20 mark_mask @"typedef--u32.txt"
+0x24 pref @"typedef--u32.txt"
+0x28 flags @"typedef--u32.txt"
+0x2c table @"typedef--u32.txt"
+0x30 action @"typedef--u8.txt"
+0x34 target @"typedef--u32.txt"
+0x38 ctarget * @"struct--fib_rule.txt"
+0x40 iifname [16]"char"
+0x50 oifname [16]"char"
+0x60 rcu @"struct--callback_head.txt"
+0x70 fr_net * @"struct--net.txt"
+0x78 tun_id @"typedef--__be64.txt"
+0x80 suppress_prefixlen "int"
+0x84 rh_reserved [12]@"typedef--u8.txt"
+}

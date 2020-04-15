@@ -1,0 +1,40 @@
+Version: 1.0
+File: include/linux/quota.h:316
+Symbol:
+Byte size 64
+struct dquot_operations {
+0x0 write_dquot * func (NULL) (
+(NULL) * @"struct--dquot.txt"
+)
+"int"
+0x8 alloc_dquot * func (NULL) (
+(NULL) * @"struct--super_block.txt"
+(NULL) "int"
+)
+* @"struct--dquot.txt"
+0x10 destroy_dquot * func (NULL) (
+(NULL) * @"struct--dquot.txt"
+)
+"void"
+0x18 acquire_dquot * func (NULL) (
+(NULL) * @"struct--dquot.txt"
+)
+"int"
+0x20 release_dquot * func (NULL) (
+(NULL) * @"struct--dquot.txt"
+)
+"int"
+0x28 mark_dirty * func (NULL) (
+(NULL) * @"struct--dquot.txt"
+)
+"int"
+0x30 write_info * func (NULL) (
+(NULL) * @"struct--super_block.txt"
+(NULL) "int"
+)
+"int"
+0x38 get_reserved_space * func (NULL) (
+(NULL) * @"struct--inode.txt"
+)
+* @"typedef--qsize_t.txt"
+}

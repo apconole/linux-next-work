@@ -1,0 +1,5 @@
+Version: 1.0
+File: arch/x86/include/asm/jump_label.h:35
+Symbol:
+typedef jump_label_t
+@"typedef--u64.txt"

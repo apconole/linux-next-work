@@ -1,0 +1,7 @@
+Version: 1.0
+File: fs/proc/proc_sysctl.c:1654
+Symbol:
+func unregister_sysctl_table (
+header * @"struct--ctl_table_header.txt"
+)
+"void"

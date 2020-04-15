@@ -1,0 +1,7 @@
+Version: 1.0
+File: fs/dcache.c:2661
+Symbol:
+func d_rehash (
+entry * @"struct--dentry.txt"
+)
+"void"

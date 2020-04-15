@@ -1,0 +1,36 @@
+Version: 1.0
+File: include/linux/crypto.h:240
+Symbol:
+Byte size 64
+struct aead_alg {
+0x0 setkey * func (NULL) (
+(NULL) * @"struct--crypto_aead.txt"
+(NULL) * const @"typedef--u8.txt"
+(NULL) "unsigned int"
+)
+"int"
+0x8 setauthsize * func (NULL) (
+(NULL) * @"struct--crypto_aead.txt"
+(NULL) "unsigned int"
+)
+"int"
+0x10 encrypt * func (NULL) (
+(NULL) * @"struct--aead_request.txt"
+)
+"int"
+0x18 decrypt * func (NULL) (
+(NULL) * @"struct--aead_request.txt"
+)
+"int"
+0x20 givencrypt * func (NULL) (
+(NULL) * @"<declarations>/struct--aead_givcrypt_request.txt"
+)
+"int"
+0x28 givdecrypt * func (NULL) (
+(NULL) * @"<declarations>/struct--aead_givcrypt_request.txt"
+)
+"int"
+0x30 geniv * const "char"
+0x38 ivsize "unsigned int"
+0x3c maxauthsize "unsigned int"
+}

@@ -1,0 +1,28 @@
+Version: 1.0
+File: include/linux/fs.h:478
+Symbol:
+Byte size 240
+struct block_device {
+0x0 bd_dev @"typedef--dev_t.txt"
+0x4 bd_openers "int"
+0x8 bd_inode * @"struct--inode.txt"
+0x10 bd_super * @"struct--super_block.txt"
+0x18 bd_mutex @"struct--mutex.txt"
+0x40 bd_inodes @"struct--list_head.txt"
+0x50 bd_claiming * "void"
+0x58 bd_holder * "void"
+0x60 bd_holders "int"
+0x64 bd_write_holder @"typedef--bool.txt"
+0x68 bd_holder_disks @"struct--list_head.txt"
+0x78 bd_contains * @"struct--block_device.txt"
+0x80 bd_block_size "unsigned int"
+0x88 bd_part * @"struct--hd_struct.txt"
+0x90 bd_part_count "unsigned int"
+0x94 bd_invalidated "int"
+0x98 bd_disk * @"struct--gendisk.txt"
+0xa0 bd_queue * @"struct--request_queue.txt"
+0xa8 bd_list @"struct--list_head.txt"
+0xb8 bd_private "long unsigned int"
+0xc0 bd_fsfreeze_count "int"
+0xc8 bd_fsfreeze_mutex @"struct--mutex.txt"
+}

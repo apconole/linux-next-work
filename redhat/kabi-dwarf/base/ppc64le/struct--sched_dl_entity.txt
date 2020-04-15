@@ -1,0 +1,21 @@
+Version: 1.0
+File: include/linux/sched.h:1274
+Symbol:
+Byte size 296
+struct sched_dl_entity {
+0x0 rb_node @"struct--rb_node.txt"
+0x18 dl_runtime @"typedef--u64.txt"
+0x20 dl_deadline @"typedef--u64.txt"
+0x28 dl_period @"typedef--u64.txt"
+0x30 dl_bw @"typedef--u64.txt"
+0x38 dl_density @"typedef--u64.txt"
+0x40 runtime @"typedef--s64.txt"
+0x48 deadline @"typedef--u64.txt"
+0x50 flags "unsigned int"
+0x54 dl_throttled "int"
+0x58 dl_boosted "int"
+0x5c dl_yielded "int"
+0x60 dl_non_contending "int"
+0x68 dl_timer @"struct--hrtimer.txt"
+0xc8 inactive_timer @"struct--hrtimer.txt"
+}

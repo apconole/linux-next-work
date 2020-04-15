@@ -1,4 +1,3 @@
-base
 kabi-dw/parser.tab.c
 kabi-dw/parser.tab.h
 kabi-dw/parser.yy.c

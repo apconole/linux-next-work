@@ -1,0 +1,11 @@
+Version: 1.0
+File: block/scsi_ioctl.c:582
+Symbol:
+func scsi_cmd_ioctl (
+q * @"struct--request_queue.txt"
+bd_disk * @"struct--gendisk.txt"
+mode @"typedef--fmode_t.txt"
+cmd "unsigned int"
+arg * "void"
+)
+"int"

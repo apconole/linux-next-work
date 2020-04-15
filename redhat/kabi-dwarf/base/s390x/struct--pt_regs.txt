@@ -1,0 +1,17 @@
+Version: 1.0
+File: arch/s390/include/asm/ptrace.h:67
+Symbol:
+Byte size 176
+struct pt_regs {
+0x0 (NULL) union (NULL) {
+user_regs @"typedef--user_pt_regs.txt"
+(NULL) struct (NULL) {
+0x0 args [1]"long unsigned int"
+0x8 psw @"typedef--psw_t.txt"
+0x18 gprs [16]"long unsigned int"
+}
+}
+0x98 orig_gpr2 "long unsigned int"
+0xa0 int_code "unsigned int"
+0xa8 int_parm_long "long unsigned int"
+}

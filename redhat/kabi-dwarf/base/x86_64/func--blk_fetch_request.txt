@@ -1,0 +1,7 @@
+Version: 1.0
+File: block/blk-core.c:2789
+Symbol:
+func blk_fetch_request (
+q * @"struct--request_queue.txt"
+)
+* @"struct--request.txt"

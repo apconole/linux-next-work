@@ -1,0 +1,5 @@
+Version: 1.0
+File: block/scsi_ioctl.c:45
+Symbol:
+Byte size 8
+var scsi_command_size_tbl const [8]"unsigned char"

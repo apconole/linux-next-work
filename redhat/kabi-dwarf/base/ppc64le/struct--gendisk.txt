@@ -1,0 +1,31 @@
+Version: 1.0
+File: include/linux/genhd.h:166
+Symbol:
+Byte size 968
+struct gendisk {
+0x0 major "int"
+0x4 first_minor "int"
+0x8 minors "int"
+0xc disk_name [32]"char"
+0x30 devnode * func (NULL) (
+(NULL) * @"struct--gendisk.txt"
+(NULL) * @"typedef--umode_t.txt"
+)
+* "char"
+0x38 events "unsigned int"
+0x3c async_events "unsigned int"
+0x40 part_tbl * @"struct--disk_part_tbl.txt"
+0x48 part0 @"struct--hd_struct.txt"
+0x368 fops * const @"struct--block_device_operations.txt"
+0x370 queue * @"struct--request_queue.txt"
+0x378 private_data * "void"
+0x380 flags "int"
+0x388 driverfs_dev * @"struct--device.txt"
+0x390 slave_dir * @"struct--kobject.txt"
+0x398 random * @"<declarations>/struct--timer_rand_state.txt"
+0x3a0 sync_io @"typedef--atomic_t.txt"
+0x3a8 ev * @"struct--disk_events.txt"
+0x3b0 integrity * @"struct--blk_integrity.txt"
+0x3b8 node_id "int"
+0x3c0 bb * @"struct--badblocks.txt"
+}

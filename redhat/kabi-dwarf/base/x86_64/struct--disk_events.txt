@@ -1,0 +1,15 @@
+Version: 1.0
+File: block/genhd.c:1525
+Symbol:
+Byte size 224
+struct disk_events {
+0x0 node @"struct--list_head.txt"
+0x10 disk * @"struct--gendisk.txt"
+0x18 lock @"typedef--spinlock_t.txt"
+0x20 block_mutex @"struct--mutex.txt"
+0x48 block "int"
+0x4c pending "unsigned int"
+0x50 clearing "unsigned int"
+0x58 poll_msecs "long int"
+0x60 dwork @"struct--delayed_work.txt"
+}

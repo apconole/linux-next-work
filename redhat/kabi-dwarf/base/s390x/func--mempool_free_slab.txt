@@ -1,0 +1,8 @@
+Version: 1.0
+File: mm/mempool.c:340
+Symbol:
+func mempool_free_slab (
+element * "void"
+pool_data * "void"
+)
+"void"

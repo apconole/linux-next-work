@@ -1,0 +1,8 @@
+Version: 1.0
+File: arch/s390/lib/string.c:244
+Symbol:
+func strstr (
+s1 * const "char"
+s2 * const "char"
+)
+* "char"

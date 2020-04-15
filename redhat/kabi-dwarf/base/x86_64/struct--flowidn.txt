@@ -1,0 +1,10 @@
+Version: 1.0
+File: include/net/flow.h:166
+Symbol:
+Byte size 32
+struct flowidn {
+0x0 __fl_common @"struct--flowi_common.txt"
+0x14 daddr @"typedef--__le16.txt"
+0x16 saddr @"typedef--__le16.txt"
+0x18 uli @"union--flowi_uli.txt"
+}

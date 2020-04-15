@@ -1,0 +1,15 @@
+Version: 1.0
+File: include/linux/kernfs.h:180
+Symbol:
+Byte size 112
+struct kernfs_open_file {
+0x0 kn * @"struct--kernfs_node.txt"
+0x8 file * @"struct--file.txt"
+0x10 priv * "void"
+0x18 mutex @"struct--mutex.txt"
+0x40 event "int"
+0x48 list @"struct--list_head.txt"
+0x58 atomic_write_len @"typedef--size_t.txt"
+0x60 mmapped @"typedef--bool.txt"
+0x68 vm_ops * const @"struct--vm_operations_struct.txt"
+}

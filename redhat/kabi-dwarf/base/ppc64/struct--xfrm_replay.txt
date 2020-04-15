@@ -1,0 +1,33 @@
+Version: 1.0
+File: include/net/xfrm.h:271
+Symbol:
+Byte size 40
+struct xfrm_replay {
+0x0 advance * func (NULL) (
+(NULL) * @"struct--xfrm_state.txt"
+(NULL) @"typedef--__be32.txt"
+)
+"void"
+0x8 check * func (NULL) (
+(NULL) * @"struct--xfrm_state.txt"
+(NULL) * @"struct--sk_buff.txt"
+(NULL) @"typedef--__be32.txt"
+)
+"int"
+0x10 recheck * func (NULL) (
+(NULL) * @"struct--xfrm_state.txt"
+(NULL) * @"struct--sk_buff.txt"
+(NULL) @"typedef--__be32.txt"
+)
+"int"
+0x18 notify * func (NULL) (
+(NULL) * @"struct--xfrm_state.txt"
+(NULL) "int"
+)
+"void"
+0x20 overflow * func (NULL) (
+(NULL) * @"struct--xfrm_state.txt"
+(NULL) * @"struct--sk_buff.txt"
+)
+"int"
+}

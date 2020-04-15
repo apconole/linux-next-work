@@ -1,0 +1,10 @@
+Version: 1.0
+File: include/net/udp.h:75
+Symbol:
+Byte size 24
+struct udp_table {
+0x0 hash * @"struct--udp_hslot.txt"
+0x8 hash2 * @"struct--udp_hslot.txt"
+0x10 mask "unsigned int"
+0x14 log "unsigned int"
+}

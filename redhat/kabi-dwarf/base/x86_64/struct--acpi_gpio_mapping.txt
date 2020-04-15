@@ -1,0 +1,9 @@
+Version: 1.0
+File: include/linux/acpi.h:771
+Symbol:
+Byte size 24
+struct acpi_gpio_mapping {
+0x0 name * const "char"
+0x8 data * const @"struct--acpi_gpio_params.txt"
+0x10 size "unsigned int"
+}

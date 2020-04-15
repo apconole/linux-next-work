@@ -1,0 +1,7 @@
+Version: 1.0
+File: mm/vmalloc.c:1761
+Symbol:
+func vmalloc (
+size "long unsigned int"
+)
+* "void"

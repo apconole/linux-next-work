@@ -1,0 +1,16 @@
+Version: 1.0
+File: include/linux/netpoll.h:38
+Symbol:
+Byte size 264
+struct netpoll_info {
+0x0 refcnt @"typedef--atomic_t.txt"
+0x8 rx_flags "long unsigned int"
+0x10 rx_lock @"typedef--spinlock_t.txt"
+0x18 dev_lock @"struct--semaphore.txt"
+0x30 rx_np @"struct--list_head.txt"
+0x40 neigh_tx @"struct--sk_buff_head.txt"
+0x58 txq @"struct--sk_buff_head.txt"
+0x70 tx_work @"struct--delayed_work.txt"
+0xf0 netpoll * @"struct--netpoll.txt"
+0xf8 rcu @"struct--callback_head.txt"
+}

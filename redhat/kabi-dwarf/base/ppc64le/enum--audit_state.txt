@@ -1,0 +1,9 @@
+Version: 1.0
+File: kernel/audit.h:40
+Symbol:
+Byte size 4
+enum audit_state {
+AUDIT_DISABLED = 0x0
+AUDIT_BUILD_CONTEXT = 0x1
+AUDIT_RECORD_CONTEXT = 0x2
+}

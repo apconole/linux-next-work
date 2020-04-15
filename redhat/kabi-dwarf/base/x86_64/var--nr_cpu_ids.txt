@@ -1,0 +1,5 @@
+Version: 1.0
+File: kernel/smp.c:535
+Symbol:
+Byte size 4
+var nr_cpu_ids "int"

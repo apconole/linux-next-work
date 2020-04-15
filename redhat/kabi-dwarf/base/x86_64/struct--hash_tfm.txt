@@ -1,0 +1,35 @@
+Version: 1.0
+File: include/linux/crypto.h:402
+Symbol:
+Byte size 48
+struct hash_tfm {
+0x0 init * func (NULL) (
+(NULL) * @"struct--hash_desc.txt"
+)
+"int"
+0x8 update * func (NULL) (
+(NULL) * @"struct--hash_desc.txt"
+(NULL) * @"struct--scatterlist.txt"
+(NULL) "unsigned int"
+)
+"int"
+0x10 final * func (NULL) (
+(NULL) * @"struct--hash_desc.txt"
+(NULL) * @"typedef--u8.txt"
+)
+"int"
+0x18 digest * func (NULL) (
+(NULL) * @"struct--hash_desc.txt"
+(NULL) * @"struct--scatterlist.txt"
+(NULL) "unsigned int"
+(NULL) * @"typedef--u8.txt"
+)
+"int"
+0x20 setkey * func (NULL) (
+(NULL) * @"struct--crypto_hash.txt"
+(NULL) * const @"typedef--u8.txt"
+(NULL) "unsigned int"
+)
+"int"
+0x28 digestsize "unsigned int"
+}

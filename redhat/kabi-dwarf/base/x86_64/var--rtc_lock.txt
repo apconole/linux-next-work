@@ -1,0 +1,4 @@
+Version: 1.0
+File: arch/x86/kernel/rtc.c:31
+Symbol:
+var rtc_lock @"typedef--spinlock_t.txt"

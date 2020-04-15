@@ -1,0 +1,7 @@
+Version: 1.0
+File: lib/cpumask.c:8
+Symbol:
+func __first_cpu (
+srcp * const @"typedef--cpumask_t.txt"
+)
+"int"

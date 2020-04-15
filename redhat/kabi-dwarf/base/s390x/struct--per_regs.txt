@@ -1,0 +1,9 @@
+Version: 1.0
+File: arch/s390/include/asm/ptrace.h:91
+Symbol:
+Byte size 24
+struct per_regs {
+0x0 control "long unsigned int"
+0x8 start "long unsigned int"
+0x10 end "long unsigned int"
+}

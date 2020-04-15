@@ -1,0 +1,11 @@
+Version: 1.0
+File: include/linux/fs.h:2494
+Symbol:
+Byte size 32
+struct filename {
+0x0 name * const "char"
+0x8 uptr * const "char"
+0x10 aname * @"struct--audit_names.txt"
+0x18 separate @"typedef--bool.txt"
+0x1c refcnt "int"
+}

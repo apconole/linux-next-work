@@ -1,0 +1,18 @@
+Version: 1.0
+File: include/linux/efi.h:154
+Symbol:
+Byte size 16
+typedef efi_time_t
+struct (NULL) {
+0x0 year @"typedef--u16.txt"
+0x2 month @"typedef--u8.txt"
+0x3 day @"typedef--u8.txt"
+0x4 hour @"typedef--u8.txt"
+0x5 minute @"typedef--u8.txt"
+0x6 second @"typedef--u8.txt"
+0x7 pad1 @"typedef--u8.txt"
+0x8 nanosecond @"typedef--u32.txt"
+0xc timezone @"typedef--s16.txt"
+0xe daylight @"typedef--u8.txt"
+0xf pad2 @"typedef--u8.txt"
+}

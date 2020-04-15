@@ -1,0 +1,230 @@
+Version: 1.0
+File: include/linux/netdevice.h:1675
+Symbol:
+Byte size 2304
+struct net_device {
+0x0 name [16]"char"
+0x10 name_hlist @"struct--hlist_node.txt"
+0x20 ifalias * "char"
+0x28 mem_end "long unsigned int"
+0x30 mem_start "long unsigned int"
+0x38 base_addr "long unsigned int"
+0x40 irq "unsigned int"
+0x48 state "long unsigned int"
+0x50 dev_list @"struct--list_head.txt"
+0x60 napi_list @"struct--list_head.txt"
+0x70 unreg_list @"struct--list_head.txt"
+0x80 upper_dev_list @"struct--list_head.txt"
+0x90 features @"typedef--netdev_features_t.txt"
+0x98 hw_features @"typedef--netdev_features_t.txt"
+0xa0 wanted_features @"typedef--netdev_features_t.txt"
+0xa8 vlan_features @"typedef--netdev_features_t.txt"
+0xb0 hw_enc_features @"typedef--netdev_features_t.txt"
+0xb8 mpls_features @"typedef--netdev_features_t.txt"
+0xc0 ifindex "int"
+0xc4 iflink "int"
+0xc8 stats @"struct--net_device_stats.txt"
+0x180 rx_dropped @"typedef--atomic_long_t.txt"
+0x188 wireless_handlers * const @"struct--iw_handler_def.txt"
+0x190 wireless_data * @"struct--iw_public_data.txt"
+0x198 netdev_ops * const @"struct--net_device_ops.txt"
+0x1a0 ethtool_ops * const @"struct--ethtool_ops.txt"
+0x1a8 header_ops * const @"struct--header_ops.txt"
+0x1b0 flags "unsigned int"
+0x1b4 priv_flags "unsigned int"
+0x1b8 gflags "short unsigned int"
+0x1ba padded "short unsigned int"
+0x1bc operstate "unsigned char"
+0x1bd link_mode "unsigned char"
+0x1be if_port "unsigned char"
+0x1bf dma "unsigned char"
+0x1c0 mtu "unsigned int"
+0x1c4 type "short unsigned int"
+0x1c6 hard_header_len "short unsigned int"
+0x1c8 needed_headroom "short unsigned int"
+0x1ca needed_tailroom "short unsigned int"
+0x1cc perm_addr [32]"unsigned char"
+0x1ec addr_assign_type "unsigned char"
+0x1ed addr_len "unsigned char"
+0x1ee neigh_priv_len "short unsigned int"
+0x1f0 dev_id "short unsigned int"
+0x1f2 dev_port "short unsigned int"
+0x1f4 addr_list_lock @"typedef--spinlock_t.txt"
+0x1f8 uc @"struct--netdev_hw_addr_list.txt"
+0x210 mc @"struct--netdev_hw_addr_list.txt"
+0x228 dev_addrs @"struct--netdev_hw_addr_list.txt"
+0x240 queues_kset * @"struct--kset.txt"
+0x248 uc_promisc @"typedef--bool.txt"
+0x249 proto_down @"typedef--bool.txt"
+0x24c promiscuity "unsigned int"
+0x250 allmulti "unsigned int"
+0x254 carrier_changes @"typedef--atomic_t.txt"
+0x258 vlan_info * @"struct--vlan_info.txt"
+0x260 atalk_ptr * "void"
+0x268 ip_ptr * @"struct--in_device.txt"
+0x270 dn_ptr * @"<declarations>/struct--dn_dev.txt"
+0x278 ip6_ptr * @"struct--inet6_dev.txt"
+0x280 ax25_ptr * "void"
+0x288 ieee80211_ptr * @"<declarations>/struct--wireless_dev.txt"
+0x290 rh_reserved_last_rx "long unsigned int"
+0x298 dev_addr * "unsigned char"
+0x2a0 _rx * @"struct--netdev_rx_queue.txt"
+0x2a8 num_rx_queues "unsigned int"
+0x2ac real_num_rx_queues "unsigned int"
+0x2b0 rx_handler * @"typedef--rx_handler_func_t.txt"
+0x2b8 rx_handler_data * "void"
+0x2c0 ingress_queue * @"struct--netdev_queue.txt"
+0x2c8 broadcast [32]"unsigned char"
+0x2e8 miniq_ingress * @"struct--mini_Qdisc.txt"
+0x300 _tx * @"struct--netdev_queue.txt"
+0x308 num_tx_queues "unsigned int"
+0x30c real_num_tx_queues "unsigned int"
+0x310 qdisc * @"struct--Qdisc.txt"
+0x318 tx_queue_len "long unsigned int"
+0x320 tx_global_lock @"typedef--spinlock_t.txt"
+0x328 xps_maps * @"struct--xps_dev_maps.txt"
+0x330 rx_cpu_rmap * @"struct--cpu_rmap.txt"
+0x338 rh_reserved_trans_start "long unsigned int"
+0x340 watchdog_timeo "int"
+0x348 watchdog_timer @"struct--timer_list.txt"
+0x398 pcpu_refcnt * "int"
+0x3a0 todo_list @"struct--list_head.txt"
+0x3b0 index_hlist @"struct--hlist_node.txt"
+0x3c0 link_watch_list @"struct--list_head.txt"
+0x3d0:0-8 reg_state enum (NULL) {
+NETREG_UNINITIALIZED = 0x0
+NETREG_REGISTERED = 0x1
+NETREG_UNREGISTERING = 0x2
+NETREG_UNREGISTERED = 0x3
+NETREG_RELEASED = 0x4
+NETREG_DUMMY = 0x5
+}
+0x3d1 dismantle @"typedef--bool.txt"
+0x3d2:0-16 rtnl_link_state enum (NULL) {
+RTNL_LINK_INITIALIZED = 0x0
+RTNL_LINK_INITIALIZING = 0x1
+}
+0x3d8 destructor * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+)
+"void"
+0x3e0 npinfo * @"struct--netpoll_info.txt"
+0x3e8 nd_net * @"struct--net.txt"
+0x3f0 (NULL) union (NULL) {
+ml_priv * "void"
+lstats * @"<declarations>/struct--pcpu_lstats.txt"
+(NULL) union (NULL) {
+tstats * @"struct--pcpu_sw_netstats.txt"
+__UNIQUE_ID_rh_kabi_hide60 struct (NULL) {
+0x0 tstats * @"<declarations>/struct--pcpu_tstats.txt"
+}
+(NULL) union (NULL) {
+}
+}
+dstats * @"<declarations>/struct--pcpu_dstats.txt"
+vstats * @"<declarations>/struct--pcpu_vstats.txt"
+}
+0x3f8 garp_port * @"<declarations>/struct--garp_port.txt"
+0x400 mrp_port * @"<declarations>/struct--mrp_port.txt"
+0x408 dev @"struct--device.txt"
+0x6b8 sysfs_groups [4]* const @"struct--attribute_group.txt"
+0x6d8 rtnl_link_ops * const @"struct--rtnl_link_ops.txt"
+0x6e0 gso_max_size "unsigned int"
+0x6e4 gso_max_segs @"typedef--u16.txt"
+0x6e8 dcbnl_ops * const @"struct--dcbnl_rtnl_ops.txt"
+0x6f0 num_tc @"typedef--u8.txt"
+0x6f2 tc_to_txq [16]@"struct--netdev_tc_txq.txt"
+0x732 prio_tc_map [16]@"typedef--u8.txt"
+0x744 fcoe_ddp_xid "unsigned int"
+0x748 priomap * @"struct--netprio_map.txt"
+0x750 phydev * @"struct--phy_device.txt"
+0x758 qdisc_tx_busylock * @"struct--lock_class_key.txt"
+0x760 group "int"
+0x768 rh_reserved_pm_qos_req @"struct--pm_qos_request.txt"
+0x818 (NULL) union (NULL) {
+gro_flush_timeout "long unsigned int"
+__UNIQUE_ID_rh_kabi_hide61 struct (NULL) {
+0x0 rh_reserved1 * func (NULL) (
+)
+"void"
+}
+(NULL) union (NULL) {
+}
+}
+0x820 (NULL) union (NULL) {
+rx_nohandler @"typedef--atomic_long_t.txt"
+__UNIQUE_ID_rh_kabi_hide62 struct (NULL) {
+0x0 rh_reserved2 * func (NULL) (
+)
+"void"
+}
+(NULL) union (NULL) {
+}
+}
+0x828 lower_dev_list @"struct--list_head.txt"
+0x838 adj_list struct (NULL) {
+0x0 upper @"struct--list_head.txt"
+0x10 lower @"struct--list_head.txt"
+}
+0x858 (NULL) union (NULL) {
+fwd_ops * const @"<declarations>/struct--forwarding_accel_ops.txt"
+__UNIQUE_ID_rh_kabi_hide63 struct (NULL) {
+0x0 rh_reserved9 * func (NULL) (
+)
+"void"
+}
+(NULL) union (NULL) {
+}
+}
+0x860 (NULL) union (NULL) {
+dcbnl_ops_ext * const @"struct--dcbnl_rtnl_ops_ext.txt"
+__UNIQUE_ID_rh_kabi_hide64 struct (NULL) {
+0x0 rh_reserved10 * func (NULL) (
+)
+"void"
+}
+(NULL) union (NULL) {
+}
+}
+0x868 (NULL) union (NULL) {
+ieee802154_ptr * @"<declarations>/struct--wpan_dev.txt"
+__UNIQUE_ID_rh_kabi_hide65 struct (NULL) {
+0x0 rh_reserved11 * func (NULL) (
+)
+"void"
+}
+(NULL) union (NULL) {
+}
+}
+0x870 close_list @"struct--list_head.txt"
+0x880 (NULL) union (NULL) {
+switchdev_ops * const @"struct--switchdev_ops.txt"
+__UNIQUE_ID_rh_kabi_hide66 struct (NULL) {
+0x0 rh_reserved14 * func (NULL) (
+)
+"void"
+}
+(NULL) union (NULL) {
+}
+}
+0x888 (NULL) union (NULL) {
+gso_partial_features @"typedef--netdev_features_t.txt"
+__UNIQUE_ID_rh_kabi_hide67 struct (NULL) {
+0x0 rh_reserved15 * func (NULL) (
+)
+"void"
+}
+(NULL) union (NULL) {
+}
+}
+0x890 (NULL) union (NULL) {
+extended * @"struct--net_device_extended.txt"
+__UNIQUE_ID_rh_kabi_hide68 struct (NULL) {
+0x0 rh_reserved16 * func (NULL) (
+)
+"void"
+}
+(NULL) union (NULL) {
+}
+}
+}

@@ -1,0 +1,8 @@
+Version: 1.0
+File: kernel/iomem.c:9
+Symbol:
+func ioremap_cache (
+offset @"typedef--resource_size_t.txt"
+size "long unsigned int"
+)
+* "void"

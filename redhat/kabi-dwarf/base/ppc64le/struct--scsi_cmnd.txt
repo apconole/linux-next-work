@@ -1,0 +1,53 @@
+Version: 1.0
+File: include/scsi/scsi_cmnd.h:60
+Symbol:
+Byte size 392
+struct scsi_cmnd {
+0x0 device * @"struct--scsi_device.txt"
+0x8 list @"struct--list_head.txt"
+0x18 eh_entry @"struct--list_head.txt"
+0x28 abort_work @"struct--delayed_work.txt"
+0xa8 eh_eflags "int"
+0xb0 serial_number "long unsigned int"
+0xb8 jiffies_at_alloc "long unsigned int"
+0xc0 retries "int"
+0xc4 allowed "int"
+0xc8 prot_op "unsigned char"
+0xc9 prot_type "unsigned char"
+0xca cmd_len "short unsigned int"
+0xcc sc_data_direction @"enum--dma_data_direction.txt"
+0xd0 cmnd * "unsigned char"
+0xd8 sdb @"struct--scsi_data_buffer.txt"
+0xf0 prot_sdb * @"struct--scsi_data_buffer.txt"
+0xf8 underflow "unsigned int"
+0xfc transfersize "unsigned int"
+0x100 request * @"struct--request.txt"
+0x108 sense_buffer * "unsigned char"
+0x110 scsi_done * func (NULL) (
+(NULL) * @"struct--scsi_cmnd.txt"
+)
+"void"
+0x118 SCp @"struct--scsi_pointer.txt"
+0x158 host_scribble * "unsigned char"
+0x160 result "int"
+0x164 tag "unsigned char"
+0x168 (NULL) union (NULL) {
+flags "int"
+__UNIQUE_ID_rh_kabi_hide44 struct (NULL) {
+0x0 rh_reserved1 * func (NULL) (
+)
+"void"
+}
+(NULL) union (NULL) {
+}
+}
+0x170 rh_reserved2 * func (NULL) (
+)
+"void"
+0x178 rh_reserved3 * func (NULL) (
+)
+"void"
+0x180 rh_reserved4 * func (NULL) (
+)
+"void"
+}

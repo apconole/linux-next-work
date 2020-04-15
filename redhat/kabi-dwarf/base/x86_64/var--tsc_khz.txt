@@ -1,0 +1,5 @@
+Version: 1.0
+File: arch/x86/kernel/tsc.c:30
+Symbol:
+Byte size 4
+var tsc_khz "unsigned int"

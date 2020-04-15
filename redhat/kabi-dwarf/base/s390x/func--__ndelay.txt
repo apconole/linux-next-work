@@ -1,0 +1,7 @@
+Version: 1.0
+File: arch/s390/lib/delay.c:118
+Symbol:
+func __ndelay (
+nsecs "long long unsigned int"
+)
+"void"

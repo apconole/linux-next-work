@@ -1,0 +1,6 @@
+Version: 1.0
+File: kernel/softirq.c:121
+Symbol:
+func local_bh_disable (
+)
+"void"

@@ -1,0 +1,11 @@
+Version: 1.0
+File: block/blk-lib.c:40
+Symbol:
+func blkdev_issue_discard (
+bdev * @"struct--block_device.txt"
+sector @"typedef--sector_t.txt"
+nr_sects @"typedef--sector_t.txt"
+gfp_mask @"typedef--gfp_t.txt"
+flags "long unsigned int"
+)
+"int"

@@ -1,0 +1,21 @@
+Version: 1.0
+File: kernel/sched/sched.h:229
+Symbol:
+Byte size 288
+struct cfs_bandwidth {
+0x0 lock @"typedef--raw_spinlock_t.txt"
+0x8 period @"typedef--ktime_t.txt"
+0x10 quota @"typedef--u64.txt"
+0x18 runtime @"typedef--u64.txt"
+0x20 hierarchal_quota @"typedef--s64.txt"
+0x28 rh_reserved_runtime_expires @"typedef--u64.txt"
+0x30 idle "int"
+0x34 timer_active "int"
+0x38 period_timer @"struct--hrtimer.txt"
+0x98 slack_timer @"struct--hrtimer.txt"
+0xf8 throttled_cfs_rq @"struct--list_head.txt"
+0x108 nr_periods "int"
+0x10c nr_throttled "int"
+0x110 throttled_time @"typedef--u64.txt"
+0x118 distribute_running @"typedef--bool.txt"
+}

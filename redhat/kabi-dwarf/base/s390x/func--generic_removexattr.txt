@@ -1,0 +1,8 @@
+Version: 1.0
+File: fs/xattr.c:815
+Symbol:
+func generic_removexattr (
+dentry * @"struct--dentry.txt"
+name * const "char"
+)
+"int"

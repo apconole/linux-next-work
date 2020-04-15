@@ -1,0 +1,9 @@
+Version: 1.0
+File: fs/bio.c:604
+Symbol:
+func bio_clone_bioset (
+bio * @"struct--bio.txt"
+gfp_mask @"typedef--gfp_t.txt"
+bs * @"struct--bio_set.txt"
+)
+* @"struct--bio.txt"

@@ -1,0 +1,9 @@
+Version: 1.0
+File: include/linux/pm_qos.h:54
+Symbol:
+Byte size 4
+enum dev_pm_qos_req_type {
+DEV_PM_QOS_LATENCY = 0x1
+DEV_PM_QOS_FLAGS = 0x2
+DEV_PM_QOS_LATENCY_TOLERANCE = 0x3
+}

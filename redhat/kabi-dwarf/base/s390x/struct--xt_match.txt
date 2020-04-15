@@ -1,0 +1,39 @@
+Version: 1.0
+File: include/linux/netfilter/x_tables.h:145
+Symbol:
+Byte size 120
+struct xt_match {
+0x0 list @"struct--list_head.txt"
+0x10 name const [29]"char"
+0x2d revision @"typedef--u_int8_t.txt"
+0x30 match * func (NULL) (
+(NULL) * const @"struct--sk_buff.txt"
+(NULL) * @"struct--xt_action_param.txt"
+)
+@"typedef--bool.txt"
+0x38 checkentry * func (NULL) (
+(NULL) * const @"struct--xt_mtchk_param.txt"
+)
+"int"
+0x40 destroy * func (NULL) (
+(NULL) * const @"struct--xt_mtdtor_param.txt"
+)
+"void"
+0x48 compat_from_user * func (NULL) (
+(NULL) * "void"
+(NULL) * const "void"
+)
+"void"
+0x50 compat_to_user * func (NULL) (
+(NULL) * "void"
+(NULL) * const "void"
+)
+"int"
+0x58 me * @"struct--module.txt"
+0x60 table * const "char"
+0x68 matchsize "unsigned int"
+0x6c compatsize "unsigned int"
+0x70 hooks "unsigned int"
+0x74 proto "short unsigned int"
+0x76 family "short unsigned int"
+}

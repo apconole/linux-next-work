@@ -1,0 +1,110 @@
+Version: 1.0
+File: include/linux/perf_event.h:209
+Symbol:
+Byte size 256
+struct pmu {
+0x0 entry @"struct--list_head.txt"
+0x10 dev * @"struct--device.txt"
+0x18 attr_groups * * const @"struct--attribute_group.txt"
+0x20 name * const "char"
+0x28 type "int"
+0x30 pmu_disable_count * "int"
+0x38 pmu_cpu_context * @"struct--perf_cpu_context.txt"
+0x40 task_ctx_nr "int"
+0x44 hrtimer_interval_ms "int"
+0x48 pmu_enable * func (NULL) (
+(NULL) * @"struct--pmu.txt"
+)
+"void"
+0x50 pmu_disable * func (NULL) (
+(NULL) * @"struct--pmu.txt"
+)
+"void"
+0x58 event_init * func (NULL) (
+(NULL) * @"struct--perf_event.txt"
+)
+"int"
+0x60 add * func (NULL) (
+(NULL) * @"struct--perf_event.txt"
+(NULL) "int"
+)
+"int"
+0x68 del * func (NULL) (
+(NULL) * @"struct--perf_event.txt"
+(NULL) "int"
+)
+"void"
+0x70 start * func (NULL) (
+(NULL) * @"struct--perf_event.txt"
+(NULL) "int"
+)
+"void"
+0x78 stop * func (NULL) (
+(NULL) * @"struct--perf_event.txt"
+(NULL) "int"
+)
+"void"
+0x80 read * func (NULL) (
+(NULL) * @"struct--perf_event.txt"
+)
+"void"
+0x88 (NULL) union (NULL) {
+start_txn * func (NULL) (
+(NULL) * @"struct--pmu.txt"
+(NULL) "unsigned int"
+)
+"void"
+__UNIQUE_ID_rh_kabi_hide34 struct (NULL) {
+0x0 start_txn * func (NULL) (
+(NULL) * @"struct--pmu.txt"
+)
+"void"
+}
+(NULL) union (NULL) {
+}
+}
+0x90 commit_txn * func (NULL) (
+(NULL) * @"struct--pmu.txt"
+)
+"int"
+0x98 cancel_txn * func (NULL) (
+(NULL) * @"struct--pmu.txt"
+)
+"void"
+0xa0 event_idx * func (NULL) (
+(NULL) * @"struct--perf_event.txt"
+)
+"int"
+0xa8 rh_reserved_flush_branch_stack * func (NULL) (
+)
+"void"
+0xb0 module * @"struct--module.txt"
+0xb8 capabilities "int"
+0xc0 sched_task * func (NULL) (
+(NULL) * @"struct--perf_event_context.txt"
+(NULL) @"typedef--bool.txt"
+)
+"void"
+0xc8 task_ctx_size @"typedef--size_t.txt"
+0xd0 setup_aux * func (NULL) (
+(NULL) "int"
+(NULL) * * "void"
+(NULL) "int"
+(NULL) @"typedef--bool.txt"
+)
+* "void"
+0xd8 free_aux * func (NULL) (
+(NULL) * "void"
+)
+"void"
+0xe0 exclusive_cnt @"typedef--atomic_t.txt"
+0xe8 addr_filters_validate * func (NULL) (
+(NULL) * @"struct--list_head.txt"
+)
+"int"
+0xf0 addr_filters_sync * func (NULL) (
+(NULL) * @"struct--perf_event.txt"
+)
+"void"
+0xf8 nr_addr_filters "unsigned int"
+}

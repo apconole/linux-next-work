@@ -1,0 +1,35 @@
+Version: 1.0
+File: include/net/netns/ipv6.h:33
+Symbol:
+Byte size 1792
+struct netns_ipv6 {
+0x0 sysctl @"struct--netns_sysctl_ipv6.txt"
+0x50 devconf_all * @"struct--ipv6_devconf.txt"
+0x58 devconf_dflt * @"struct--ipv6_devconf.txt"
+0x60 peers * @"struct--inet_peer_base.txt"
+0x100 frags @"struct--netns_frags.txt"
+0x300 ip6table_filter * @"struct--xt_table.txt"
+0x308 ip6table_mangle * @"struct--xt_table.txt"
+0x310 ip6table_raw * @"struct--xt_table.txt"
+0x318 ip6table_security * @"struct--xt_table.txt"
+0x320 ip6table_nat * @"struct--xt_table.txt"
+0x328 ip6_null_entry * @"struct--rt6_info.txt"
+0x330 rt6_stats * @"struct--rt6_statistics.txt"
+0x338 ip6_fib_timer @"struct--timer_list.txt"
+0x388 fib_table_hash * @"struct--hlist_head.txt"
+0x390 fib6_main_tbl * @"struct--fib6_table.txt"
+0x400 ip6_dst_ops @"struct--dst_ops.txt"
+0x600 ip6_rt_gc_expire "unsigned int"
+0x608 ip6_rt_last_gc "long unsigned int"
+0x610 ip6_prohibit_entry * @"struct--rt6_info.txt"
+0x618 ip6_blk_hole_entry * @"struct--rt6_info.txt"
+0x620 fib6_local_tbl * @"struct--fib6_table.txt"
+0x628 fib6_rules_ops * @"struct--fib_rules_ops.txt"
+0x630 icmp_sk * * @"struct--sock.txt"
+0x638 ndisc_sk * @"struct--sock.txt"
+0x640 tcp_sk * @"struct--sock.txt"
+0x648 igmp_sk * @"struct--sock.txt"
+0x650 mr6_tables @"struct--list_head.txt"
+0x660 mr6_rules_ops * @"struct--fib_rules_ops.txt"
+0x668 dev_addr_genid @"typedef--atomic_t.txt"
+}

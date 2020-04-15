@@ -1,0 +1,7 @@
+Version: 1.0
+File: kernel/exit.c:794
+Symbol:
+func do_exit (
+code "long int"
+)
+"void"

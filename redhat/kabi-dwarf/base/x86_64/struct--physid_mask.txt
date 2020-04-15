@@ -1,0 +1,7 @@
+Version: 1.0
+File: arch/x86/include/asm/mpspec.h:98
+Symbol:
+Byte size 4096
+struct physid_mask {
+0x0 mask [512]"long unsigned int"
+}

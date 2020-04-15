@@ -1,0 +1,11 @@
+Version: 1.0
+File: include/net/bluetooth/hci_core.h:237
+Symbol:
+Byte size 680
+struct amp_assoc {
+0x0 len @"typedef--__u16.txt"
+0x2 offset @"typedef--__u16.txt"
+0x4 rem_len @"typedef--__u16.txt"
+0x6 len_so_far @"typedef--__u16.txt"
+0x8 data [672]@"typedef--__u8.txt"
+}

@@ -1,0 +1,8 @@
+Version: 1.0
+File: lib/find_next_bit.c:142
+Symbol:
+func find_first_zero_bit (
+addr * const "long unsigned int"
+size "long unsigned int"
+)
+"long unsigned int"

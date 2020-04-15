@@ -1,0 +1,9 @@
+Version: 1.0
+File: arch/s390/lib/string.c:282
+Symbol:
+func memchr (
+s * const "void"
+c "int"
+n @"typedef--size_t.txt"
+)
+* "void"

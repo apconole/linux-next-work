@@ -1,0 +1,8 @@
+Version: 1.0
+File: fs/quota/dquot.c:803
+Symbol:
+func dquot_alloc (
+sb * @"struct--super_block.txt"
+type "int"
+)
+* @"struct--dquot.txt"

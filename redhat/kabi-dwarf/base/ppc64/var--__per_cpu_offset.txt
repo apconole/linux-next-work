@@ -1,0 +1,5 @@
+Version: 1.0
+File: arch/powerpc/kernel/setup_64.c:711
+Symbol:
+Byte size 16384
+var __per_cpu_offset [2048]"long unsigned int"

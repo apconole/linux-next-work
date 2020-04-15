@@ -1,0 +1,9 @@
+Version: 1.0
+File: arch/s390/include/asm/jump_label.h:31
+Symbol:
+Byte size 24
+struct jump_entry {
+0x0 code @"typedef--jump_label_t.txt"
+0x8 target @"typedef--jump_label_t.txt"
+0x10 key @"typedef--jump_label_t.txt"
+}

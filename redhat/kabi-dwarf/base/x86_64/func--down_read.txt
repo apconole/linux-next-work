@@ -1,0 +1,7 @@
+Version: 1.0
+File: kernel/rwsem.c:19
+Symbol:
+func down_read (
+sem * @"struct--rw_semaphore.txt"
+)
+"void"

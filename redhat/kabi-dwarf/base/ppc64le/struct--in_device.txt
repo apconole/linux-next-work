@@ -1,0 +1,25 @@
+Version: 1.0
+File: include/linux/inetdevice.h:70
+Symbol:
+Byte size 456
+struct in_device {
+0x0 dev * @"struct--net_device.txt"
+0x8 refcnt @"typedef--atomic_t.txt"
+0xc dead "int"
+0x10 ifa_list * @"struct--in_ifaddr.txt"
+0x18 mc_list * @"<declarations>/struct--ip_mc_list.txt"
+0x20 mc_count "int"
+0x24 mc_tomb_lock @"typedef--spinlock_t.txt"
+0x28 mc_tomb * @"<declarations>/struct--ip_mc_list.txt"
+0x30 mr_v1_seen "long unsigned int"
+0x38 mr_v2_seen "long unsigned int"
+0x40 mr_maxdelay "long unsigned int"
+0x48 mr_qrv "unsigned char"
+0x49 mr_gq_running "unsigned char"
+0x4a mr_ifc_count "unsigned char"
+0x50 mr_gq_timer @"struct--timer_list.txt"
+0xa0 mr_ifc_timer @"struct--timer_list.txt"
+0xf0 arp_parms * @"struct--neigh_parms.txt"
+0xf8 cnf @"struct--ipv4_devconf.txt"
+0x1b8 callback_head @"struct--callback_head.txt"
+}

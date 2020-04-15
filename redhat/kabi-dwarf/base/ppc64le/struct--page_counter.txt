@@ -1,0 +1,11 @@
+Version: 1.0
+File: include/linux/page_counter.h:8
+Symbol:
+Byte size 40
+struct page_counter {
+0x0 count @"typedef--atomic_long_t.txt"
+0x8 limit "long unsigned int"
+0x10 parent * @"struct--page_counter.txt"
+0x18 watermark "long unsigned int"
+0x20 failcnt "long unsigned int"
+}

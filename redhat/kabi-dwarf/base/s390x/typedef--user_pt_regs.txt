@@ -1,0 +1,10 @@
+Version: 1.0
+File: arch/s390/include/uapi/asm/ptrace.h:301
+Symbol:
+Byte size 152
+typedef user_pt_regs
+struct (NULL) {
+0x0 args [1]"long unsigned int"
+0x8 psw @"typedef--psw_t.txt"
+0x18 gprs [16]"long unsigned int"
+}

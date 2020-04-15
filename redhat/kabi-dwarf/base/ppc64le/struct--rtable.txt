@@ -1,0 +1,17 @@
+Version: 1.0
+File: include/net/route.h:49
+Symbol:
+Byte size 208
+struct rtable {
+0x0 dst @"struct--dst_entry.txt"
+0xa8 rt_genid "int"
+0xac rt_flags "unsigned int"
+0xb0 rt_type @"typedef--__u16.txt"
+0xb2 rt_is_input @"typedef--__u8.txt"
+0xb3 rt_uses_gateway @"typedef--__u8.txt"
+0xb4 rt_iif "int"
+0xb8 rt_gateway @"typedef--__be32.txt"
+0xbc:0-1 rt_mtu_locked @"typedef--u32.txt"
+0xbc:1-32 rt_pmtu @"typedef--u32.txt"
+0xc0 rt_uncached @"struct--list_head.txt"
+}

@@ -1,0 +1,7 @@
+Version: 1.0
+File: kernel/jump_label.c:67
+Symbol:
+func static_key_slow_inc (
+key * @"struct--static_key.txt"
+)
+"void"

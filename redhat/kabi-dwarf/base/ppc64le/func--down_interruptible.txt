@@ -1,0 +1,7 @@
+Version: 1.0
+File: kernel/semaphore.c:75
+Symbol:
+func down_interruptible (
+sem * @"struct--semaphore.txt"
+)
+"int"

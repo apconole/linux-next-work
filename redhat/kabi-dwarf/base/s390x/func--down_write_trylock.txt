@@ -1,0 +1,7 @@
+Version: 1.0
+File: kernel/rwsem.c:63
+Symbol:
+func down_write_trylock (
+sem * @"struct--rw_semaphore.txt"
+)
+"int"

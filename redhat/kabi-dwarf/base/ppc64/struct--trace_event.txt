@@ -1,0 +1,10 @@
+Version: 1.0
+File: include/linux/ftrace_event.h:128
+Symbol:
+Byte size 48
+struct trace_event {
+0x0 node @"struct--hlist_node.txt"
+0x10 list @"struct--list_head.txt"
+0x20 type "int"
+0x28 funcs * @"struct--trace_event_functions.txt"
+}

@@ -1,0 +1,36 @@
+Version: 1.0
+File: include/linux/netdevice.h:282
+Symbol:
+Byte size 40
+struct header_ops {
+0x0 create * func (NULL) (
+(NULL) * @"struct--sk_buff.txt"
+(NULL) * @"struct--net_device.txt"
+(NULL) "short unsigned int"
+(NULL) * const "void"
+(NULL) * const "void"
+(NULL) "unsigned int"
+)
+"int"
+0x8 parse * func (NULL) (
+(NULL) * const @"struct--sk_buff.txt"
+(NULL) * "unsigned char"
+)
+"int"
+0x10 rebuild * func (NULL) (
+(NULL) * @"struct--sk_buff.txt"
+)
+"int"
+0x18 cache * func (NULL) (
+(NULL) * const @"struct--neighbour.txt"
+(NULL) * @"struct--hh_cache.txt"
+(NULL) @"typedef--__be16.txt"
+)
+"int"
+0x20 cache_update * func (NULL) (
+(NULL) * @"struct--hh_cache.txt"
+(NULL) * const @"struct--net_device.txt"
+(NULL) * const "unsigned char"
+)
+"void"
+}

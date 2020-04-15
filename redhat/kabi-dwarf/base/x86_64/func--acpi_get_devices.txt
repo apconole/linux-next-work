@@ -1,0 +1,10 @@
+Version: 1.0
+File: drivers/acpi/acpica/nsxfeval.c:773
+Symbol:
+func acpi_get_devices (
+HID * const "char"
+user_function @"typedef--acpi_walk_callback.txt"
+context * "void"
+return_value * * "void"
+)
+@"typedef--acpi_status.txt"

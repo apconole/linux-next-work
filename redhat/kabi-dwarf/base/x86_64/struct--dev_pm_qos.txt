@@ -1,0 +1,12 @@
+Version: 1.0
+File: include/linux/pm_qos.h:95
+Symbol:
+Byte size 128
+struct dev_pm_qos {
+0x0 latency @"struct--pm_qos_constraints.txt"
+0x28 flags @"struct--pm_qos_flags.txt"
+0x40 latency_req * @"struct--dev_pm_qos_request.txt"
+0x48 flags_req * @"struct--dev_pm_qos_request.txt"
+0x50 latency_tolerance @"struct--pm_qos_constraints.txt"
+0x78 latency_tolerance_req * @"struct--dev_pm_qos_request.txt"
+}

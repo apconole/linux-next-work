@@ -1,0 +1,10 @@
+Version: 1.0
+File: include/linux/netdevice.h:1028
+Symbol:
+Byte size 4
+enum xdp_netdev_command {
+XDP_SETUP_PROG = 0x0
+XDP_QUERY_PROG = 0x1
+XDP_QUERY_XSK_UMEM = 0x2
+XDP_SETUP_XSK_UMEM = 0x3
+}

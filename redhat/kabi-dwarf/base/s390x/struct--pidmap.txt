@@ -1,0 +1,8 @@
+Version: 1.0
+File: include/linux/pid_namespace.h:12
+Symbol:
+Byte size 16
+struct pidmap {
+0x0 nr_free @"typedef--atomic_t.txt"
+0x8 page * "void"
+}

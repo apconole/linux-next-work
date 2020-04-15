@@ -1,0 +1,5 @@
+Version: 1.0
+File: arch/s390/include/asm/compat.h:70
+Symbol:
+typedef compat_long_t
+@"typedef--s32.txt"

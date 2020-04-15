@@ -1,0 +1,170 @@
+Version: 1.0
+File: arch/x86/include/asm/paravirt_types.h:104
+Symbol:
+Byte size 320
+struct pv_cpu_ops {
+0x0 get_debugreg * func (NULL) (
+(NULL) "int"
+)
+"long unsigned int"
+0x8 set_debugreg * func (NULL) (
+(NULL) "int"
+(NULL) "long unsigned int"
+)
+"void"
+0x10 clts * func (NULL) (
+)
+"void"
+0x18 read_cr0 * func (NULL) (
+)
+"long unsigned int"
+0x20 write_cr0 * func (NULL) (
+(NULL) "long unsigned int"
+)
+"void"
+0x28 read_cr4_safe * func (NULL) (
+)
+"long unsigned int"
+0x30 read_cr4 * func (NULL) (
+)
+"long unsigned int"
+0x38 write_cr4 * func (NULL) (
+(NULL) "long unsigned int"
+)
+"void"
+0x40 read_cr8 * func (NULL) (
+)
+"long unsigned int"
+0x48 write_cr8 * func (NULL) (
+(NULL) "long unsigned int"
+)
+"void"
+0x50 load_tr_desc * func (NULL) (
+)
+"void"
+0x58 load_gdt * func (NULL) (
+(NULL) * const @"struct--desc_ptr.txt"
+)
+"void"
+0x60 load_idt * func (NULL) (
+(NULL) * const @"struct--desc_ptr.txt"
+)
+"void"
+0x68 store_idt * func (NULL) (
+(NULL) * @"struct--desc_ptr.txt"
+)
+"void"
+0x70 set_ldt * func (NULL) (
+(NULL) * const "void"
+(NULL) "unsigned int"
+)
+"void"
+0x78 store_tr * func (NULL) (
+)
+"long unsigned int"
+0x80 load_tls * func (NULL) (
+(NULL) * @"struct--thread_struct.txt"
+(NULL) "unsigned int"
+)
+"void"
+0x88 load_gs_index * func (NULL) (
+(NULL) "unsigned int"
+)
+"void"
+0x90 write_ldt_entry * func (NULL) (
+(NULL) * @"struct--desc_struct.txt"
+(NULL) "int"
+(NULL) * const "void"
+)
+"void"
+0x98 write_gdt_entry * func (NULL) (
+(NULL) * @"struct--desc_struct.txt"
+(NULL) "int"
+(NULL) * const "void"
+(NULL) "int"
+)
+"void"
+0xa0 write_idt_entry * func (NULL) (
+(NULL) * @"typedef--gate_desc.txt"
+(NULL) "int"
+(NULL) * const @"typedef--gate_desc.txt"
+)
+"void"
+0xa8 alloc_ldt * func (NULL) (
+(NULL) * @"struct--desc_struct.txt"
+(NULL) "unsigned int"
+)
+"void"
+0xb0 free_ldt * func (NULL) (
+(NULL) * @"struct--desc_struct.txt"
+(NULL) "unsigned int"
+)
+"void"
+0xb8 load_sp0 * func (NULL) (
+(NULL) * @"struct--tss_struct.txt"
+(NULL) * @"struct--thread_struct.txt"
+)
+"void"
+0xc0 set_iopl_mask * func (NULL) (
+(NULL) "unsigned int"
+)
+"void"
+0xc8 wbinvd * func (NULL) (
+)
+"void"
+0xd0 io_delay * func (NULL) (
+)
+"void"
+0xd8 cpuid * func (NULL) (
+(NULL) * "unsigned int"
+(NULL) * "unsigned int"
+(NULL) * "unsigned int"
+(NULL) * "unsigned int"
+)
+"void"
+0xe0 read_msr * func (NULL) (
+(NULL) "unsigned int"
+(NULL) * "int"
+)
+@"typedef--u64.txt"
+0xe8 write_msr * func (NULL) (
+(NULL) "unsigned int"
+(NULL) "unsigned int"
+(NULL) "unsigned int"
+)
+"int"
+0xf0 read_tsc * func (NULL) (
+)
+@"typedef--u64.txt"
+0xf8 read_pmc * func (NULL) (
+(NULL) "int"
+)
+@"typedef--u64.txt"
+0x100 rh_reserved_read_tscp * func (NULL) (
+(NULL) * "unsigned int"
+)
+"long long unsigned int"
+0x108 irq_enable_sysexit * func (NULL) (
+)
+"void"
+0x110 usergs_sysret64 * func (NULL) (
+)
+"void"
+0x118 usergs_sysret32 * func (NULL) (
+)
+"void"
+0x120 iret * func (NULL) (
+)
+"void"
+0x128 swapgs * func (NULL) (
+)
+"void"
+0x130 start_context_switch * func (NULL) (
+(NULL) * @"struct--task_struct.txt"
+)
+"void"
+0x138 end_context_switch * func (NULL) (
+(NULL) * @"struct--task_struct.txt"
+)
+"void"
+}

@@ -1,0 +1,7 @@
+Version: 1.0
+File: mm/swap.c:1093
+Symbol:
+func __pagevec_release (
+pvec * @"struct--pagevec.txt"
+)
+"void"

@@ -1,0 +1,7 @@
+Version: 1.0
+File: kernel/semaphore.c:53
+Symbol:
+func down (
+sem * @"struct--semaphore.txt"
+)
+"void"

@@ -1,0 +1,28 @@
+Version: 1.0
+File: include/scsi/scsi_transport_fc.h:336
+Symbol:
+Byte size 1128
+struct fc_rport {
+0x0 maxframe_size @"typedef--u32.txt"
+0x4 supported_classes @"typedef--u32.txt"
+0x8 dev_loss_tmo @"typedef--u32.txt"
+0x10 node_name @"typedef--u64.txt"
+0x18 port_name @"typedef--u64.txt"
+0x20 port_id @"typedef--u32.txt"
+0x24 roles @"typedef--u32.txt"
+0x28 port_state @"enum--fc_port_state.txt"
+0x2c scsi_target_id @"typedef--u32.txt"
+0x30 fast_io_fail_tmo @"typedef--u32.txt"
+0x38 dd_data * "void"
+0x40 channel "unsigned int"
+0x44 number @"typedef--u32.txt"
+0x48 flags @"typedef--u8.txt"
+0x50 peers @"struct--list_head.txt"
+0x60 dev @"struct--device.txt"
+0x300 dev_loss_work @"struct--delayed_work.txt"
+0x380 scan_work @"struct--work_struct.txt"
+0x3a0 fail_io_work @"struct--delayed_work.txt"
+0x420 stgt_delete_work @"struct--work_struct.txt"
+0x440 rport_delete_work @"struct--work_struct.txt"
+0x460 rqst_q * @"struct--request_queue.txt"
+}

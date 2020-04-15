@@ -1,0 +1,41 @@
+Version: 1.0
+File: arch/powerpc/include/asm/iommu.h:47
+Symbol:
+Byte size 48
+struct iommu_table_ops {
+0x0 set * func (NULL) (
+(NULL) * @"struct--iommu_table.txt"
+(NULL) "long int"
+(NULL) "long int"
+(NULL) "long unsigned int"
+(NULL) @"enum--dma_data_direction.txt"
+(NULL) * @"struct--dma_attrs.txt"
+)
+"int"
+0x8 exchange * func (NULL) (
+(NULL) * @"struct--iommu_table.txt"
+(NULL) "long int"
+(NULL) * "long unsigned int"
+(NULL) * @"enum--dma_data_direction.txt"
+)
+"int"
+0x10 clear * func (NULL) (
+(NULL) * @"struct--iommu_table.txt"
+(NULL) "long int"
+(NULL) "long int"
+)
+"void"
+0x18 get * func (NULL) (
+(NULL) * @"struct--iommu_table.txt"
+(NULL) "long int"
+)
+"long unsigned int"
+0x20 flush * func (NULL) (
+(NULL) * @"struct--iommu_table.txt"
+)
+"void"
+0x28 free * func (NULL) (
+(NULL) * @"struct--iommu_table.txt"
+)
+"void"
+}

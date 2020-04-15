@@ -1,0 +1,12 @@
+Version: 1.0
+File: include/linux/efi.h:507
+Symbol:
+typedef efi_set_variable_t
+func (NULL) (
+(NULL) * @"typedef--efi_char16_t.txt"
+(NULL) * @"typedef--efi_guid_t.txt"
+(NULL) @"typedef--u32.txt"
+(NULL) "long unsigned int"
+(NULL) * "void"
+)
+@"typedef--efi_status_t.txt"

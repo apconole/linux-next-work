@@ -1,0 +1,9 @@
+Version: 1.0
+File: net/core/dev.c:4180
+Symbol:
+func netdev_rx_handler_register (
+dev * @"struct--net_device.txt"
+rx_handler * @"typedef--rx_handler_func_t.txt"
+rx_handler_data * "void"
+)
+"int"

@@ -1,0 +1,8 @@
+Version: 1.0
+File: arch/s390/include/asm/processor.h:78
+Symbol:
+Byte size 4
+typedef mm_segment_t
+struct (NULL) {
+0x0 ar4 @"typedef--__u32.txt"
+}

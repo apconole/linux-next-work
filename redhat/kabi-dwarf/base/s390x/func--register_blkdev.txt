@@ -1,0 +1,8 @@
+Version: 1.0
+File: block/genhd.c:337
+Symbol:
+func register_blkdev (
+major "unsigned int"
+name * const "char"
+)
+"int"

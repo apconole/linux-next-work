@@ -1,0 +1,8 @@
+Version: 1.0
+File: fs/dcache.c:1936
+Symbol:
+func d_instantiate (
+entry * @"struct--dentry.txt"
+inode * @"struct--inode.txt"
+)
+"void"

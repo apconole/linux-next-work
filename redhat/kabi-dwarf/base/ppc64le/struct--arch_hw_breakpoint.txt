@@ -1,0 +1,9 @@
+Version: 1.0
+File: arch/powerpc/include/asm/hw_breakpoint.h:27
+Symbol:
+Byte size 16
+struct arch_hw_breakpoint {
+0x0 address "long unsigned int"
+0x8 type @"typedef--u16.txt"
+0xa len @"typedef--u16.txt"
+}

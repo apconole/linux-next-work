@@ -1,0 +1,101 @@
+Version: 1.0
+File: kernel/audit.h:124
+Symbol:
+Byte size 920
+struct audit_context {
+0x0 dummy "int"
+0x4 in_syscall "int"
+0x8 state @"enum--audit_state.txt"
+0xc current_state @"enum--audit_state.txt"
+0x10 serial "unsigned int"
+0x14 major "int"
+0x18 ctime @"struct--timespec.txt"
+0x28 argv [4]"long unsigned int"
+0x48 return_code "long int"
+0x50 prio @"typedef--u64.txt"
+0x58 return_valid "int"
+0x60 preallocated_names [5]@"struct--audit_names.txt"
+0x268 name_count "int"
+0x270 names_list @"struct--list_head.txt"
+0x280 filterkey * "char"
+0x288 pwd @"struct--path.txt"
+0x298 aux * @"<declarations>/struct--audit_aux_data.txt"
+0x2a0 aux_pids * @"<declarations>/struct--audit_aux_data.txt"
+0x2a8 sockaddr * @"struct--__kernel_sockaddr_storage.txt"
+0x2b0 sockaddr_len @"typedef--size_t.txt"
+0x2b8 pid @"typedef--pid_t.txt"
+0x2bc ppid @"typedef--pid_t.txt"
+0x2c0 uid @"typedef--kuid_t.txt"
+0x2c4 euid @"typedef--kuid_t.txt"
+0x2c8 suid @"typedef--kuid_t.txt"
+0x2cc fsuid @"typedef--kuid_t.txt"
+0x2d0 gid @"typedef--kgid_t.txt"
+0x2d4 egid @"typedef--kgid_t.txt"
+0x2d8 sgid @"typedef--kgid_t.txt"
+0x2dc fsgid @"typedef--kgid_t.txt"
+0x2e0 personality "long unsigned int"
+0x2e8 arch "int"
+0x2ec target_pid @"typedef--pid_t.txt"
+0x2f0 target_auid @"typedef--kuid_t.txt"
+0x2f4 target_uid @"typedef--kuid_t.txt"
+0x2f8 target_sessionid "unsigned int"
+0x2fc target_sid @"typedef--u32.txt"
+0x300 target_comm [16]"char"
+0x310 trees * @"<declarations>/struct--audit_tree_refs.txt"
+0x318 first_trees * @"<declarations>/struct--audit_tree_refs.txt"
+0x320 killed_trees @"struct--list_head.txt"
+0x330 tree_count "int"
+0x334 type "int"
+0x338 (NULL) union (NULL) {
+socketcall struct (NULL) {
+0x0 nargs "int"
+0x8 args [6]"long int"
+}
+ipc struct (NULL) {
+0x0 uid @"typedef--kuid_t.txt"
+0x4 gid @"typedef--kgid_t.txt"
+0x8 mode @"typedef--umode_t.txt"
+0xc osid @"typedef--u32.txt"
+0x10 has_perm "int"
+0x14 perm_uid @"typedef--uid_t.txt"
+0x18 perm_gid @"typedef--gid_t.txt"
+0x1c perm_mode @"typedef--umode_t.txt"
+0x20 qbytes "long unsigned int"
+}
+mq_getsetattr struct (NULL) {
+0x0 mqdes @"typedef--mqd_t.txt"
+0x8 mqstat @"struct--mq_attr.txt"
+}
+mq_notify struct (NULL) {
+0x0 mqdes @"typedef--mqd_t.txt"
+0x4 sigev_signo "int"
+}
+mq_sendrecv struct (NULL) {
+0x0 mqdes @"typedef--mqd_t.txt"
+0x8 msg_len @"typedef--size_t.txt"
+0x10 msg_prio "unsigned int"
+0x18 abs_timeout @"struct--timespec.txt"
+}
+mq_open struct (NULL) {
+0x0 oflag "int"
+0x4 mode @"typedef--umode_t.txt"
+0x8 attr @"struct--mq_attr.txt"
+}
+capset struct (NULL) {
+0x0 pid @"typedef--pid_t.txt"
+0x4 cap @"struct--audit_cap_data.txt"
+}
+mmap struct (NULL) {
+0x0 fd "int"
+0x4 flags "int"
+}
+execve struct (NULL) {
+0x0 argc "int"
+}
+module struct (NULL) {
+0x0 name * "char"
+}
+}
+0x380 proctitle @"struct--audit_proctitle.txt"
+0x390 fds [2]"int"
+}

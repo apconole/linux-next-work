@@ -1,0 +1,8 @@
+Version: 1.0
+File: lib/cpumask.c:21
+Symbol:
+func __next_cpu_nr (
+n "int"
+srcp * const @"typedef--cpumask_t.txt"
+)
+"int"

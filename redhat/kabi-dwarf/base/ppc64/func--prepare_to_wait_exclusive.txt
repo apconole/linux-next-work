@@ -1,0 +1,9 @@
+Version: 1.0
+File: kernel/wait.c:83
+Symbol:
+func prepare_to_wait_exclusive (
+q * @"typedef--wait_queue_head_t.txt"
+wait * @"typedef--wait_queue_t.txt"
+state "int"
+)
+"void"

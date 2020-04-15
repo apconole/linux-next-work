@@ -1,0 +1,9 @@
+Version: 1.0
+File: include/linux/radix-tree.h:118
+Symbol:
+Byte size 16
+struct radix_tree_root {
+0x0 rh_reserved_height "unsigned int"
+0x4 gfp_mask @"typedef--gfp_t.txt"
+0x8 rnode * @"struct--radix_tree_node.txt"
+}

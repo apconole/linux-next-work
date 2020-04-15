@@ -1,0 +1,7 @@
+Version: 1.0
+File: fs/inode.c:1470
+Symbol:
+func generic_delete_inode (
+inode * @"struct--inode.txt"
+)
+"int"

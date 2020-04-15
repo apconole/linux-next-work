@@ -1,0 +1,8 @@
+Version: 1.0
+File: include/linux/swap.h:235
+Symbol:
+Byte size 16
+struct swap_cluster_list {
+0x0 head @"struct--swap_cluster_info.txt"
+0x8 tail @"struct--swap_cluster_info.txt"
+}

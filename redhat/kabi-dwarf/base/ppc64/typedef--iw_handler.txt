@@ -1,0 +1,12 @@
+Version: 1.0
+File: include/net/iw_handler.h:314
+Symbol:
+Byte size 8
+typedef iw_handler
+* func (NULL) (
+(NULL) * @"struct--net_device.txt"
+(NULL) * @"struct--iw_request_info.txt"
+(NULL) * @"union--iwreq_data.txt"
+(NULL) * "char"
+)
+"int"

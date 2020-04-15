@@ -1,0 +1,9 @@
+Version: 1.0
+File: mm/maccess.c:21
+Symbol:
+func __probe_kernel_read (
+dst * "void"
+src * const "void"
+size @"typedef--size_t.txt"
+)
+"long int"

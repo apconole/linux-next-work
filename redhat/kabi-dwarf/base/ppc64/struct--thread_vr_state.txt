@@ -1,0 +1,8 @@
+Version: 1.0
+File: arch/powerpc/include/asm/processor.h:166
+Symbol:
+Byte size 528
+struct thread_vr_state {
+0x0 vr [32]@"typedef--vector128.txt"
+0x200 vscr @"typedef--vector128.txt"
+}

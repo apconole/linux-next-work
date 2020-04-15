@@ -1,0 +1,55 @@
+Version: 1.0
+File: include/uapi/asm-generic/siginfo.h:48
+Symbol:
+Byte size 128
+struct siginfo {
+0x0 si_signo "int"
+0x4 si_errno "int"
+0x8 si_code "int"
+0x10 _sifields union (NULL) {
+_pad [28]"int"
+_kill struct (NULL) {
+0x0 _pid @"typedef--__kernel_pid_t.txt"
+0x4 _uid @"typedef--__kernel_uid32_t.txt"
+}
+_timer struct (NULL) {
+0x0 _tid @"typedef--__kernel_timer_t.txt"
+0x4 _overrun "int"
+0x8 _pad [0]"char"
+0x8 _sigval @"typedef--sigval_t.txt"
+0x10 _sys_private "int"
+}
+_rt struct (NULL) {
+0x0 _pid @"typedef--__kernel_pid_t.txt"
+0x4 _uid @"typedef--__kernel_uid32_t.txt"
+0x8 _sigval @"typedef--sigval_t.txt"
+}
+_sigchld struct (NULL) {
+0x0 _pid @"typedef--__kernel_pid_t.txt"
+0x4 _uid @"typedef--__kernel_uid32_t.txt"
+0x8 _status "int"
+0x10 _utime @"typedef--__kernel_clock_t.txt"
+0x18 _stime @"typedef--__kernel_clock_t.txt"
+}
+_sigfault struct (NULL) {
+0x0 _addr * "void"
+0x8 _addr_lsb "short int"
+0x10 (NULL) union (NULL) {
+_addr_bnd struct (NULL) {
+0x0 _lower * "void"
+0x8 _upper * "void"
+}
+_pkey @"typedef--__u32.txt"
+}
+}
+_sigpoll struct (NULL) {
+0x0 _band "long int"
+0x8 _fd "int"
+}
+_sigsys struct (NULL) {
+0x0 _call_addr * "void"
+0x8 _syscall "int"
+0xc _arch "unsigned int"
+}
+}
+}

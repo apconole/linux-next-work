@@ -1,0 +1,7 @@
+Version: 1.0
+File: net/ethernet/eth.c:440
+Symbol:
+func ether_setup_rh (
+dev * @"struct--net_device.txt"
+)
+"void"

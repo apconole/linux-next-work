@@ -1,0 +1,8 @@
+Version: 1.0
+File: block/genhd.c:1508
+Symbol:
+func invalidate_partition (
+disk * @"struct--gendisk.txt"
+partno "int"
+)
+"int"

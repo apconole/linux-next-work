@@ -1,0 +1,19 @@
+Version: 1.0
+File: include/linux/stat.h:21
+Symbol:
+Byte size 104
+struct kstat {
+0x0 ino @"typedef--u64.txt"
+0x8 dev @"typedef--dev_t.txt"
+0xc mode @"typedef--umode_t.txt"
+0x10 nlink "unsigned int"
+0x14 uid @"typedef--kuid_t.txt"
+0x18 gid @"typedef--kgid_t.txt"
+0x1c rdev @"typedef--dev_t.txt"
+0x20 size @"typedef--loff_t.txt"
+0x28 atime @"struct--timespec.txt"
+0x38 mtime @"struct--timespec.txt"
+0x48 ctime @"struct--timespec.txt"
+0x58 blksize "long unsigned int"
+0x60 blocks "long long unsigned int"
+}

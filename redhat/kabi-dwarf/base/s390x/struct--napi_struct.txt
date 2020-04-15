@@ -1,0 +1,25 @@
+Version: 1.0
+File: include/linux/netdevice.h:323
+Symbol:
+Byte size 216
+struct napi_struct {
+0x0 poll_list @"struct--list_head.txt"
+0x10 state "long unsigned int"
+0x18 weight "int"
+0x1c gro_count "unsigned int"
+0x20 poll * func (NULL) (
+(NULL) * @"struct--napi_struct.txt"
+(NULL) "int"
+)
+"int"
+0x28 rh_reserved_poll_lock @"typedef--spinlock_t.txt"
+0x2c poll_owner "int"
+0x30 dev * @"struct--net_device.txt"
+0x38 gro_list * @"struct--sk_buff.txt"
+0x40 skb * @"struct--sk_buff.txt"
+0x48 dev_list @"struct--list_head.txt"
+0x58 napi_hash_node @"struct--hlist_node.txt"
+0x68 napi_id "unsigned int"
+0x70 size @"typedef--size_t.txt"
+0x78 timer @"struct--hrtimer.txt"
+}

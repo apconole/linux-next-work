@@ -1,0 +1,9 @@
+Version: 1.0
+File: include/scsi/libfc.h:83
+Symbol:
+Byte size 4
+enum fc_disc_event {
+DISC_EV_NONE = 0x0
+DISC_EV_SUCCESS = 0x1
+DISC_EV_FAILED = 0x2
+}

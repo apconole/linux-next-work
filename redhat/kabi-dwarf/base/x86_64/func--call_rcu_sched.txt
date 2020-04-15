@@ -1,0 +1,11 @@
+Version: 1.0
+File: kernel/rcutree.c:2549
+Symbol:
+func call_rcu_sched (
+head * @"struct--callback_head.txt"
+func * func (NULL) (
+(NULL) * @"struct--callback_head.txt"
+)
+"void"
+)
+"void"

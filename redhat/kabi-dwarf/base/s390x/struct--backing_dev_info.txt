@@ -1,0 +1,33 @@
+Version: 1.0
+File: include/linux/backing-dev.h:64
+Symbol:
+Byte size 680
+struct backing_dev_info {
+0x0 bdi_list @"struct--list_head.txt"
+0x10 ra_pages "long unsigned int"
+0x18 state "long unsigned int"
+0x20 capabilities "unsigned int"
+0x28 congested_fn * @"typedef--congested_fn.txt"
+0x30 congested_data * "void"
+0x38 name * "char"
+0x40 bdi_stat [4]@"struct--percpu_counter.txt"
+0xe0 bw_time_stamp "long unsigned int"
+0xe8 dirtied_stamp "long unsigned int"
+0xf0 written_stamp "long unsigned int"
+0xf8 write_bandwidth "long unsigned int"
+0x100 avg_write_bandwidth "long unsigned int"
+0x108 dirty_ratelimit "long unsigned int"
+0x110 balanced_dirty_ratelimit "long unsigned int"
+0x118 completions @"struct--fprop_local_percpu.txt"
+0x148 dirty_exceeded "int"
+0x14c min_ratio "unsigned int"
+0x150 max_ratio "unsigned int"
+0x154 max_prop_frac "unsigned int"
+0x158 wb @"struct--bdi_writeback.txt"
+0x228 wb_lock @"typedef--spinlock_t.txt"
+0x230 work_list @"struct--list_head.txt"
+0x240 dev * @"struct--device.txt"
+0x248 laptop_mode_wb_timer @"struct--timer_list.txt"
+0x298 debug_dir * @"struct--dentry.txt"
+0x2a0 debug_stats * @"struct--dentry.txt"
+}

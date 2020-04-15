@@ -1,0 +1,7 @@
+Version: 1.0
+File: include/linux/rwsem.h:30
+Symbol:
+Byte size 8
+struct slist_head {
+0x0 next * @"struct--list_head.txt"
+}

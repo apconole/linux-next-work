@@ -1,0 +1,21 @@
+Version: 1.0
+File: include/net/if_inet6.h:120
+Symbol:
+Byte size 184
+struct ifmcaddr6 {
+0x0 mca_addr @"struct--in6_addr.txt"
+0x10 idev * @"struct--inet6_dev.txt"
+0x18 next * @"struct--ifmcaddr6.txt"
+0x20 mca_sources * @"struct--ip6_sf_list.txt"
+0x28 mca_tomb * @"struct--ip6_sf_list.txt"
+0x30 mca_sfmode "unsigned int"
+0x34 mca_crcount "unsigned char"
+0x38 mca_sfcount [2]"long unsigned int"
+0x48 mca_timer @"struct--timer_list.txt"
+0x98 mca_flags "unsigned int"
+0x9c mca_users "int"
+0xa0 mca_refcnt @"typedef--atomic_t.txt"
+0xa4 mca_lock @"typedef--spinlock_t.txt"
+0xa8 mca_cstamp "long unsigned int"
+0xb0 mca_tstamp "long unsigned int"
+}

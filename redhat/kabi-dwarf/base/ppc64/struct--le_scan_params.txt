@@ -1,0 +1,10 @@
+Version: 1.0
+File: include/net/bluetooth/hci_core.h:201
+Symbol:
+Byte size 12
+struct le_scan_params {
+0x0 type @"typedef--u8.txt"
+0x2 interval @"typedef--u16.txt"
+0x4 window @"typedef--u16.txt"
+0x8 timeout "int"
+}

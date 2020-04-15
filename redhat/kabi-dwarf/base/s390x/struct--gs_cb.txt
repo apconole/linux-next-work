@@ -1,0 +1,10 @@
+Version: 1.0
+File: arch/s390/include/uapi/asm/guarded_storage.h:6
+Symbol:
+Byte size 32
+struct gs_cb {
+0x0 reserved @"typedef--__u64.txt"
+0x8 gsd @"typedef--__u64.txt"
+0x10 gssm @"typedef--__u64.txt"
+0x18 gs_epl_a @"typedef--__u64.txt"
+}

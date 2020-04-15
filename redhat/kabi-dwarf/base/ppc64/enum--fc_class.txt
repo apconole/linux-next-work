@@ -1,0 +1,11 @@
+Version: 1.0
+File: include/scsi/fc/fc_encaps.h:98
+Symbol:
+Byte size 4
+enum fc_class {
+FC_CLASS_NONE = 0x0
+FC_CLASS_2 = 0x2d
+FC_CLASS_3 = 0x2e
+FC_CLASS_4 = 0x29
+FC_CLASS_F = 0x28
+}

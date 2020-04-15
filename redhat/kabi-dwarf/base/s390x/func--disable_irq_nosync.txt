@@ -1,0 +1,7 @@
+Version: 1.0
+File: arch/s390/kernel/irq.c:350
+Symbol:
+func disable_irq_nosync (
+irq "unsigned int"
+)
+"void"

@@ -1,0 +1,8 @@
+Version: 1.0
+File: include/scsi/scsi_device.h:256
+Symbol:
+Byte size 16
+struct scsi_dh_devlist {
+0x0 vendor * "char"
+0x8 model * "char"
+}

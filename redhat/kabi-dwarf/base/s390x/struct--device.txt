@@ -1,0 +1,40 @@
+Version: 1.0
+File: include/linux/device.h:802
+Symbol:
+Byte size 640
+struct device {
+0x0 parent * @"struct--device.txt"
+0x8 p * @"struct--device_private.txt"
+0x10 kobj @"struct--kobject.txt"
+0x50 init_name * const "char"
+0x58 type * const @"struct--device_type.txt"
+0x60 mutex @"struct--mutex.txt"
+0x88 bus * @"struct--bus_type.txt"
+0x90 driver * @"struct--device_driver.txt"
+0x98 platform_data * "void"
+0xa0 power @"struct--dev_pm_info.txt"
+0x1d0 pm_domain * @"struct--dev_pm_domain.txt"
+0x1d8 dma_mask * @"typedef--u64.txt"
+0x1e0 coherent_dma_mask @"typedef--u64.txt"
+0x1e8 dma_parms * @"struct--device_dma_parameters.txt"
+0x1f0 dma_pools @"struct--list_head.txt"
+0x200 dma_mem * @"<declarations>/struct--dma_coherent_mem.txt"
+0x208 archdata @"struct--dev_archdata.txt"
+0x208 of_node * @"struct--device_node.txt"
+0x210 rh_reserved_acpi_node @"struct--acpi_dev_node.txt"
+0x210 devt @"typedef--dev_t.txt"
+0x214 id @"typedef--u32.txt"
+0x218 devres_lock @"typedef--spinlock_t.txt"
+0x220 devres_head @"struct--list_head.txt"
+0x230 knode_class @"struct--klist_node.txt"
+0x250 class * @"struct--class.txt"
+0x258 groups * * const @"struct--attribute_group.txt"
+0x260 release * func (NULL) (
+(NULL) * @"struct--device.txt"
+)
+"void"
+0x268 iommu_group * @"<declarations>/struct--iommu_group.txt"
+0x270:0-1 offline_disabled @"typedef--bool.txt"
+0x270:1-2 offline @"typedef--bool.txt"
+0x278 device_rh * @"struct--device_rh.txt"
+}

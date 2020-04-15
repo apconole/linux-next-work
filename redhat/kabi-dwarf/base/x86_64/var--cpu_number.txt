@@ -1,0 +1,5 @@
+Version: 1.0
+File: arch/x86/kernel/setup_percpu.c:25
+Symbol:
+Byte size 4
+var cpu_number "int"

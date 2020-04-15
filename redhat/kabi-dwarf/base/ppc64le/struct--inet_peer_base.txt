@@ -1,0 +1,10 @@
+Version: 1.0
+File: include/net/inetpeer.h:64
+Symbol:
+Byte size 24
+struct inet_peer_base {
+0x0 root * @"struct--inet_peer.txt"
+0x8 lock @"typedef--seqlock_t.txt"
+0x10 flush_seq @"typedef--u32.txt"
+0x14 total "int"
+}

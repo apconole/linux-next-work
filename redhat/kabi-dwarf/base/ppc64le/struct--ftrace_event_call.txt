@@ -1,0 +1,32 @@
+Version: 1.0
+File: include/linux/ftrace_event.h:265
+Symbol:
+Byte size 136
+struct ftrace_event_call {
+0x0 list @"struct--list_head.txt"
+0x10 class * @"struct--ftrace_event_class.txt"
+0x18 name * "char"
+0x20 event @"struct--trace_event.txt"
+0x50 (NULL) union (NULL) {
+print_fmt * "char"
+__UNIQUE_ID_rh_kabi_hide38 struct (NULL) {
+0x0 print_fmt * const "char"
+}
+(NULL) union (NULL) {
+}
+}
+0x58 filter * @"<declarations>/struct--event_filter.txt"
+0x60 files * @"struct--list_head.txt"
+0x68 mod * "void"
+0x70 (NULL) union (NULL) {
+rh_data * @"struct--ftrace_event_data.txt"
+__UNIQUE_ID_rh_kabi_hide39 struct (NULL) {
+0x0 data * "void"
+}
+(NULL) union (NULL) {
+}
+}
+0x78 flags "int"
+0x7c perf_refcount "int"
+0x80 perf_events * @"struct--hlist_head.txt"
+}

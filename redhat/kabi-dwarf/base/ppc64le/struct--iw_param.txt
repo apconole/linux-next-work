@@ -1,0 +1,10 @@
+Version: 1.0
+File: include/uapi/linux/wireless.h:673
+Symbol:
+Byte size 8
+struct iw_param {
+0x0 value @"typedef--__s32.txt"
+0x4 fixed @"typedef--__u8.txt"
+0x5 disabled @"typedef--__u8.txt"
+0x6 flags @"typedef--__u16.txt"
+}

@@ -1,0 +1,13 @@
+Version: 1.0
+File: drivers/base/base.h:73
+Symbol:
+Byte size 168
+struct device_private {
+0x0 klist_children @"struct--klist.txt"
+0x28 knode_parent @"struct--klist_node.txt"
+0x48 knode_driver @"struct--klist_node.txt"
+0x68 knode_bus @"struct--klist_node.txt"
+0x88 deferred_probe @"struct--list_head.txt"
+0x98 driver_data * "void"
+0xa0 device * @"struct--device.txt"
+}

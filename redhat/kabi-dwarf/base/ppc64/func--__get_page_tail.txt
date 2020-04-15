@@ -1,0 +1,7 @@
+Version: 1.0
+File: mm/swap.c:288
+Symbol:
+func __get_page_tail (
+page * @"struct--page.txt"
+)
+@"typedef--bool.txt"

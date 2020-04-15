@@ -1,0 +1,15 @@
+Version: 1.0
+File: include/linux/platform_device.h:23
+Symbol:
+Byte size 688
+struct platform_device {
+0x0 name * const "char"
+0x8 id "int"
+0xc id_auto @"typedef--bool.txt"
+0x10 dev @"struct--device.txt"
+0x290 num_resources @"typedef--u32.txt"
+0x298 resource * @"struct--resource.txt"
+0x2a0 id_entry * const @"struct--platform_device_id.txt"
+0x2a8 mfd_cell * @"<declarations>/struct--mfd_cell.txt"
+0x2b0 archdata @"struct--pdev_archdata.txt"
+}

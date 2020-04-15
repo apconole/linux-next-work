@@ -1,0 +1,24 @@
+Version: 1.0
+File: kernel/sched/sched.h:460
+Symbol:
+Byte size 1744
+struct rt_rq {
+0x0 active @"struct--rt_prio_array.txt"
+0x650 rt_nr_running "unsigned int"
+0x654 highest_prio struct (NULL) {
+0x0 curr "int"
+0x4 next "int"
+}
+0x660 rt_nr_migratory "long unsigned int"
+0x668 rt_nr_total "long unsigned int"
+0x670 overloaded "int"
+0x678 pushable_tasks @"struct--plist_head.txt"
+0x688 rt_throttled "int"
+0x690 rt_time @"typedef--u64.txt"
+0x698 rt_runtime @"typedef--u64.txt"
+0x6a0 rt_runtime_lock @"typedef--raw_spinlock_t.txt"
+0x6a8 rt_nr_boosted "long unsigned int"
+0x6b0 rq * @"struct--rq.txt"
+0x6b8 leaf_rt_rq_list @"struct--list_head.txt"
+0x6c8 tg * @"struct--task_group.txt"
+}

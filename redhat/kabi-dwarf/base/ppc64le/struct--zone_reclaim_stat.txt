@@ -1,0 +1,8 @@
+Version: 1.0
+File: include/linux/mmzone.h:197
+Symbol:
+Byte size 32
+struct zone_reclaim_stat {
+0x0 recent_rotated [2]"long unsigned int"
+0x10 recent_scanned [2]"long unsigned int"
+}

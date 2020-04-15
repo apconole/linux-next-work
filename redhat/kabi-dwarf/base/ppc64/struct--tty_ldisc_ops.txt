@@ -1,0 +1,99 @@
+Version: 1.0
+File: include/linux/tty_ldisc.h:175
+Symbol:
+Byte size 168
+struct tty_ldisc_ops {
+0x0 magic "int"
+0x8 name * "char"
+0x10 num "int"
+0x14 flags "int"
+0x18 open * func (NULL) (
+(NULL) * @"struct--tty_struct.txt"
+)
+"int"
+0x20 close * func (NULL) (
+(NULL) * @"struct--tty_struct.txt"
+)
+"void"
+0x28 flush_buffer * func (NULL) (
+(NULL) * @"struct--tty_struct.txt"
+)
+"void"
+0x30 chars_in_buffer * func (NULL) (
+(NULL) * @"struct--tty_struct.txt"
+)
+@"typedef--ssize_t.txt"
+0x38 read * func (NULL) (
+(NULL) * @"struct--tty_struct.txt"
+(NULL) * @"struct--file.txt"
+(NULL) * "unsigned char"
+(NULL) @"typedef--size_t.txt"
+)
+@"typedef--ssize_t.txt"
+0x40 write * func (NULL) (
+(NULL) * @"struct--tty_struct.txt"
+(NULL) * @"struct--file.txt"
+(NULL) * const "unsigned char"
+(NULL) @"typedef--size_t.txt"
+)
+@"typedef--ssize_t.txt"
+0x48 ioctl * func (NULL) (
+(NULL) * @"struct--tty_struct.txt"
+(NULL) * @"struct--file.txt"
+(NULL) "unsigned int"
+(NULL) "long unsigned int"
+)
+"int"
+0x50 compat_ioctl * func (NULL) (
+(NULL) * @"struct--tty_struct.txt"
+(NULL) * @"struct--file.txt"
+(NULL) "unsigned int"
+(NULL) "long unsigned int"
+)
+"long int"
+0x58 set_termios * func (NULL) (
+(NULL) * @"struct--tty_struct.txt"
+(NULL) * @"struct--ktermios.txt"
+)
+"void"
+0x60 poll * func (NULL) (
+(NULL) * @"struct--tty_struct.txt"
+(NULL) * @"struct--file.txt"
+(NULL) * @"struct--poll_table_struct.txt"
+)
+"unsigned int"
+0x68 hangup * func (NULL) (
+(NULL) * @"struct--tty_struct.txt"
+)
+"int"
+0x70 receive_buf * func (NULL) (
+(NULL) * @"struct--tty_struct.txt"
+(NULL) * const "unsigned char"
+(NULL) * "char"
+(NULL) "int"
+)
+"void"
+0x78 write_wakeup * func (NULL) (
+(NULL) * @"struct--tty_struct.txt"
+)
+"void"
+0x80 dcd_change * func (NULL) (
+(NULL) * @"struct--tty_struct.txt"
+(NULL) "unsigned int"
+)
+"void"
+0x88 owner * @"struct--module.txt"
+0x90 refcount "int"
+0x98 fasync * func (NULL) (
+(NULL) * @"struct--tty_struct.txt"
+(NULL) "int"
+)
+"void"
+0xa0 receive_buf2 * func (NULL) (
+(NULL) * @"struct--tty_struct.txt"
+(NULL) * const "unsigned char"
+(NULL) * "char"
+(NULL) "int"
+)
+"int"
+}

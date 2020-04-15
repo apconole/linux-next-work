@@ -1,0 +1,10 @@
+Version: 1.0
+File: security/security.c:322
+Symbol:
+func security_sb_set_mnt_opts (
+sb * @"struct--super_block.txt"
+opts * @"struct--security_mnt_opts.txt"
+kern_flags "long unsigned int"
+set_kern_flags * "long unsigned int"
+)
+"int"

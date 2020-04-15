@@ -1,0 +1,40 @@
+Version: 1.0
+File: include/net/dcbnl.h:103
+Symbol:
+Byte size 64
+struct dcbnl_rtnl_ops_ext {
+0x0 ieee_getqcn * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+(NULL) * @"struct--ieee_qcn.txt"
+)
+"int"
+0x8 ieee_setqcn * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+(NULL) * @"struct--ieee_qcn.txt"
+)
+"int"
+0x10 ieee_getqcnstats * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+(NULL) * @"struct--ieee_qcn_stats.txt"
+)
+"int"
+0x18 dcbnl_getbuffer * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+(NULL) * @"struct--dcbnl_buffer.txt"
+)
+"int"
+0x20 dcbnl_setbuffer * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+(NULL) * @"struct--dcbnl_buffer.txt"
+)
+"int"
+0x28 rh_reserved3 * func (NULL) (
+)
+"void"
+0x30 rh_reserved4 * func (NULL) (
+)
+"void"
+0x38 rh_reserved5 * func (NULL) (
+)
+"void"
+}

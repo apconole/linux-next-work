@@ -1,0 +1,7 @@
+Version: 1.0
+File: arch/s390/include/asm/irq.h:68
+Symbol:
+Byte size 132
+struct irq_stat {
+0x0 irqs [33]"unsigned int"
+}

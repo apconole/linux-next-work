@@ -1,0 +1,8 @@
+Version: 1.0
+File: include/linux/perf_event.h:742
+Symbol:
+Byte size 72
+struct perf_cgroup {
+0x0 css @"struct--cgroup_subsys_state.txt"
+0x40 info * @"struct--perf_cgroup_info.txt"
+}

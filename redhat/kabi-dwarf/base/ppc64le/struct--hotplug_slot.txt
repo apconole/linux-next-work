@@ -1,0 +1,15 @@
+Version: 1.0
+File: include/linux/pci_hotplug.h:102
+Symbol:
+Byte size 56
+struct hotplug_slot {
+0x0 ops * @"struct--hotplug_slot_ops.txt"
+0x8 info * @"struct--hotplug_slot_info.txt"
+0x10 release * func (NULL) (
+(NULL) * @"struct--hotplug_slot.txt"
+)
+"void"
+0x18 private * "void"
+0x20 slot_list @"struct--list_head.txt"
+0x30 pci_slot * @"struct--pci_slot.txt"
+}

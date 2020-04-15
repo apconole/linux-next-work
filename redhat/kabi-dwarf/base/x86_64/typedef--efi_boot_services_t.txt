@@ -1,0 +1,86 @@
+Version: 1.0
+File: include/linux/efi.h:309
+Symbol:
+Byte size 376
+typedef efi_boot_services_t
+struct (NULL) {
+0x0 hdr @"typedef--efi_table_hdr_t.txt"
+0x18 raise_tpl * "void"
+0x20 restore_tpl * "void"
+0x28 allocate_pages * func (NULL) (
+(NULL) "int"
+(NULL) "int"
+(NULL) "long unsigned int"
+(NULL) * @"typedef--efi_physical_addr_t.txt"
+)
+@"typedef--efi_status_t.txt"
+0x30 free_pages * func (NULL) (
+(NULL) @"typedef--efi_physical_addr_t.txt"
+(NULL) "long unsigned int"
+)
+@"typedef--efi_status_t.txt"
+0x38 get_memory_map * func (NULL) (
+(NULL) * "long unsigned int"
+(NULL) * "void"
+(NULL) * "long unsigned int"
+(NULL) * "long unsigned int"
+(NULL) * @"typedef--u32.txt"
+)
+@"typedef--efi_status_t.txt"
+0x40 allocate_pool * func (NULL) (
+(NULL) "int"
+(NULL) "long unsigned int"
+(NULL) * * "void"
+)
+@"typedef--efi_status_t.txt"
+0x48 free_pool * func (NULL) (
+(NULL) * "void"
+)
+@"typedef--efi_status_t.txt"
+0x50 create_event * "void"
+0x58 set_timer * "void"
+0x60 wait_for_event * "void"
+0x68 signal_event * "void"
+0x70 close_event * "void"
+0x78 check_event * "void"
+0x80 install_protocol_interface * "void"
+0x88 reinstall_protocol_interface * "void"
+0x90 uninstall_protocol_interface * "void"
+0x98 handle_protocol * func (NULL) (
+(NULL) @"typedef--efi_handle_t.txt"
+(NULL) * @"typedef--efi_guid_t.txt"
+(NULL) * * "void"
+)
+@"typedef--efi_status_t.txt"
+0xa0 __reserved * "void"
+0xa8 register_protocol_notify * "void"
+0xb0 locate_handle * "void"
+0xb8 locate_device_path * "void"
+0xc0 install_configuration_table * "void"
+0xc8 load_image * "void"
+0xd0 start_image * "void"
+0xd8 exit * "void"
+0xe0 unload_image * "void"
+0xe8 exit_boot_services * func (NULL) (
+(NULL) @"typedef--efi_handle_t.txt"
+(NULL) "long unsigned int"
+)
+@"typedef--efi_status_t.txt"
+0xf0 get_next_monotonic_count * "void"
+0xf8 stall * "void"
+0x100 set_watchdog_timer * "void"
+0x108 connect_controller * "void"
+0x110 disconnect_controller * "void"
+0x118 open_protocol * "void"
+0x120 close_protocol * "void"
+0x128 open_protocol_information * "void"
+0x130 protocols_per_handle * "void"
+0x138 locate_handle_buffer * "void"
+0x140 locate_protocol * "void"
+0x148 install_multiple_protocol_interfaces * "void"
+0x150 uninstall_multiple_protocol_interfaces * "void"
+0x158 calculate_crc32 * "void"
+0x160 copy_mem * "void"
+0x168 set_mem * "void"
+0x170 create_event_ex * "void"
+}

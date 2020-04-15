@@ -1,0 +1,9 @@
+Version: 1.0
+File: arch/s390/lib/string.c:303
+Symbol:
+func memcmp (
+cs * const "void"
+ct * const "void"
+n @"typedef--size_t.txt"
+)
+"int"

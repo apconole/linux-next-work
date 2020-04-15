@@ -1,0 +1,24 @@
+Version: 1.0
+File: include/linux/relay.h:31
+Symbol:
+Byte size 256
+struct rchan_buf {
+0x0 start * "void"
+0x8 data * "void"
+0x10 offset @"typedef--size_t.txt"
+0x18 subbufs_produced @"typedef--size_t.txt"
+0x20 subbufs_consumed @"typedef--size_t.txt"
+0x28 chan * @"struct--rchan.txt"
+0x30 read_wait @"typedef--wait_queue_head_t.txt"
+0x48 timer @"struct--timer_list.txt"
+0x98 dentry * @"struct--dentry.txt"
+0xa0 kref @"struct--kref.txt"
+0xa8 page_array * * @"struct--page.txt"
+0xb0 page_count "unsigned int"
+0xb4 finalized "unsigned int"
+0xb8 padding * @"typedef--size_t.txt"
+0xc0 prev_padding @"typedef--size_t.txt"
+0xc8 bytes_consumed @"typedef--size_t.txt"
+0xd0 early_bytes @"typedef--size_t.txt"
+0xd8 cpu "unsigned int"
+}

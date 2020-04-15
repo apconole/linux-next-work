@@ -1,0 +1,7 @@
+Version: 1.0
+File: net/core/dev.c:5088
+Symbol:
+func __napi_complete (
+n * @"struct--napi_struct.txt"
+)
+@"typedef--bool.txt"

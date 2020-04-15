@@ -1,0 +1,5 @@
+Version: 1.0
+File: mm/sparse.c:29
+Symbol:
+Byte size 16384
+var mem_section [2048]* @"struct--mem_section.txt"

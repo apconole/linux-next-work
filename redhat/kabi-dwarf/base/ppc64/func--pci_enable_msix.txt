@@ -1,0 +1,9 @@
+Version: 1.0
+File: drivers/pci/msi.c:1070
+Symbol:
+func pci_enable_msix (
+dev * @"struct--pci_dev.txt"
+entries * @"struct--msix_entry.txt"
+nvec "int"
+)
+"int"

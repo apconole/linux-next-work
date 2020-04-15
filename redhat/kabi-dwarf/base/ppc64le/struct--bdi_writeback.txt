@@ -1,0 +1,14 @@
+Version: 1.0
+File: include/linux/backing-dev.h:51
+Symbol:
+Byte size 208
+struct bdi_writeback {
+0x0 bdi * @"struct--backing_dev_info.txt"
+0x8 nr "unsigned int"
+0x10 last_old_flush "long unsigned int"
+0x18 dwork @"struct--delayed_work.txt"
+0x98 b_dirty @"struct--list_head.txt"
+0xa8 b_io @"struct--list_head.txt"
+0xb8 b_more_io @"struct--list_head.txt"
+0xc8 list_lock @"typedef--spinlock_t.txt"
+}

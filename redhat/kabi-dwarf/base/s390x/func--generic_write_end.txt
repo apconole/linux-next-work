@@ -1,0 +1,13 @@
+Version: 1.0
+File: fs/buffer.c:2105
+Symbol:
+func generic_write_end (
+file * @"struct--file.txt"
+mapping * @"struct--address_space.txt"
+pos @"typedef--loff_t.txt"
+len "unsigned int"
+copied "unsigned int"
+page * @"struct--page.txt"
+fsdata * "void"
+)
+"int"

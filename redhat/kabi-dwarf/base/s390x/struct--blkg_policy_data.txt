@@ -1,0 +1,9 @@
+Version: 1.0
+File: block/blk-cgroup.h:86
+Symbol:
+Byte size 32
+struct blkg_policy_data {
+0x0 blkg * @"struct--blkcg_gq.txt"
+0x8 plid "int"
+0x10 alloc_node @"struct--list_head.txt"
+}

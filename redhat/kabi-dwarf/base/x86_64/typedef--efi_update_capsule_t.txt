@@ -1,0 +1,10 @@
+Version: 1.0
+File: include/linux/efi.h:525
+Symbol:
+typedef efi_update_capsule_t
+func (NULL) (
+(NULL) * * @"typedef--efi_capsule_header_t.txt"
+(NULL) "long unsigned int"
+(NULL) "long unsigned int"
+)
+@"typedef--efi_status_t.txt"

@@ -1,0 +1,10 @@
+Version: 1.0
+File: block/blk-tag.c:163
+Symbol:
+func blk_queue_init_tags (
+q * @"struct--request_queue.txt"
+depth "int"
+tags * @"struct--blk_queue_tag.txt"
+alloc_policy "int"
+)
+"int"

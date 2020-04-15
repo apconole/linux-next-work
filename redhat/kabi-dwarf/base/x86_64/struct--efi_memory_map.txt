@@ -1,0 +1,19 @@
+Version: 1.0
+File: include/linux/efi.h:690
+Symbol:
+Byte size 48
+struct efi_memory_map {
+0x0 (NULL) union (NULL) {
+phys_map @"typedef--phys_addr_t.txt"
+__UNIQUE_ID_rh_kabi_hide24 struct (NULL) {
+0x0 phys_map * "void"
+}
+(NULL) union (NULL) {
+}
+}
+0x8 map * "void"
+0x10 map_end * "void"
+0x18 nr_map "int"
+0x20 desc_version "long unsigned int"
+0x28 desc_size "long unsigned int"
+}

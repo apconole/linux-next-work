@@ -1,0 +1,9 @@
+Version: 1.0
+File: include/linux/blkdev.h:282
+Symbol:
+Byte size 4
+typedef lld_busy_fn
+func (NULL) (
+(NULL) * @"struct--request_queue.txt"
+)
+"int"

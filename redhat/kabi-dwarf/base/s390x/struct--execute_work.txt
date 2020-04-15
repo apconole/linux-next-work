@@ -1,0 +1,7 @@
+Version: 1.0
+File: include/linux/workqueue.h:155
+Symbol:
+Byte size 32
+struct execute_work {
+0x0 work @"struct--work_struct.txt"
+}

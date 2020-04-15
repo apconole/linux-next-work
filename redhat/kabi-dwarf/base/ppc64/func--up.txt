@@ -1,0 +1,7 @@
+Version: 1.0
+File: kernel/semaphore.c:178
+Symbol:
+func up (
+sem * @"struct--semaphore.txt"
+)
+"void"

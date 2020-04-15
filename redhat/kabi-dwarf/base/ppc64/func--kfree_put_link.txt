@@ -1,0 +1,9 @@
+Version: 1.0
+File: fs/libfs.c:1086
+Symbol:
+func kfree_put_link (
+dentry * @"struct--dentry.txt"
+nd * @"struct--nameidata.txt"
+cookie * "void"
+)
+"void"

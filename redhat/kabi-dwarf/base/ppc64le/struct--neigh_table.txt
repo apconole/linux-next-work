@@ -1,0 +1,48 @@
+Version: 1.0
+File: include/net/neighbour.h:183
+Symbol:
+Byte size 512
+struct neigh_table {
+0x0 next * @"struct--neigh_table.txt"
+0x8 family "int"
+0xc entry_size "int"
+0x10 key_len "int"
+0x18 hash * func (NULL) (
+(NULL) * const "void"
+(NULL) * const @"struct--net_device.txt"
+(NULL) * @"typedef--__u32.txt"
+)
+@"typedef--__u32.txt"
+0x20 constructor * func (NULL) (
+(NULL) * @"struct--neighbour.txt"
+)
+"int"
+0x28 pconstructor * func (NULL) (
+(NULL) * @"struct--pneigh_entry.txt"
+)
+"int"
+0x30 pdestructor * func (NULL) (
+(NULL) * @"struct--pneigh_entry.txt"
+)
+"void"
+0x38 proxy_redo * func (NULL) (
+(NULL) * @"struct--sk_buff.txt"
+)
+"void"
+0x40 id * "char"
+0x48 parms @"struct--neigh_parms.txt"
+0xd8 gc_interval "int"
+0xdc gc_thresh1 "int"
+0xe0 gc_thresh2 "int"
+0xe4 gc_thresh3 "int"
+0xe8 last_flush "long unsigned int"
+0xf0 gc_work @"struct--delayed_work.txt"
+0x170 proxy_timer @"struct--timer_list.txt"
+0x1c0 proxy_queue @"struct--sk_buff_head.txt"
+0x1d8 entries @"typedef--atomic_t.txt"
+0x1dc lock @"typedef--rwlock_t.txt"
+0x1e0 last_rand "long unsigned int"
+0x1e8 stats * @"struct--neigh_statistics.txt"
+0x1f0 nht * @"struct--neigh_hash_table.txt"
+0x1f8 phash_buckets * * @"struct--pneigh_entry.txt"
+}

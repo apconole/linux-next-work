@@ -1,0 +1,8 @@
+Version: 1.0
+File: arch/x86/kernel/pci-dma.c:61
+Symbol:
+func dma_set_mask (
+dev * @"struct--device.txt"
+mask @"typedef--u64.txt"
+)
+"int"

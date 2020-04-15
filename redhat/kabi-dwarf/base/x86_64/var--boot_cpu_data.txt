@@ -1,0 +1,4 @@
+Version: 1.0
+File: arch/x86/kernel/setup.c:214
+Symbol:
+var boot_cpu_data @"struct--cpuinfo_x86.txt"

@@ -1,0 +1,7 @@
+Version: 1.0
+File: fs/inode.c:2014
+Symbol:
+func inode_owner_or_capable (
+inode * const @"struct--inode.txt"
+)
+@"typedef--bool.txt"

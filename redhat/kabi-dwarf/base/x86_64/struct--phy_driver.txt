@@ -1,0 +1,114 @@
+Version: 1.0
+File: include/linux/phy.h:452
+Symbol:
+Byte size 336
+struct phy_driver {
+0x0 phy_id @"typedef--u32.txt"
+0x8 name * "char"
+0x10 phy_id_mask "unsigned int"
+0x14 features @"typedef--u32.txt"
+0x18 flags @"typedef--u32.txt"
+0x20 config_init * func (NULL) (
+(NULL) * @"struct--phy_device.txt"
+)
+"int"
+0x28 probe * func (NULL) (
+(NULL) * @"struct--phy_device.txt"
+)
+"int"
+0x30 suspend * func (NULL) (
+(NULL) * @"struct--phy_device.txt"
+)
+"int"
+0x38 resume * func (NULL) (
+(NULL) * @"struct--phy_device.txt"
+)
+"int"
+0x40 config_aneg * func (NULL) (
+(NULL) * @"struct--phy_device.txt"
+)
+"int"
+0x48 read_status * func (NULL) (
+(NULL) * @"struct--phy_device.txt"
+)
+"int"
+0x50 ack_interrupt * func (NULL) (
+(NULL) * @"struct--phy_device.txt"
+)
+"int"
+0x58 config_intr * func (NULL) (
+(NULL) * @"struct--phy_device.txt"
+)
+"int"
+0x60 did_interrupt * func (NULL) (
+(NULL) * @"struct--phy_device.txt"
+)
+"int"
+0x68 remove * func (NULL) (
+(NULL) * @"struct--phy_device.txt"
+)
+"void"
+0x70 match_phy_device * func (NULL) (
+(NULL) * @"struct--phy_device.txt"
+)
+"int"
+0x78 ts_info * func (NULL) (
+(NULL) * @"struct--phy_device.txt"
+(NULL) * @"struct--ethtool_ts_info.txt"
+)
+"int"
+0x80 hwtstamp * func (NULL) (
+(NULL) * @"struct--phy_device.txt"
+(NULL) * @"struct--ifreq.txt"
+)
+"int"
+0x88 rxtstamp * func (NULL) (
+(NULL) * @"struct--phy_device.txt"
+(NULL) * @"struct--sk_buff.txt"
+(NULL) "int"
+)
+@"typedef--bool.txt"
+0x90 txtstamp * func (NULL) (
+(NULL) * @"struct--phy_device.txt"
+(NULL) * @"struct--sk_buff.txt"
+(NULL) "int"
+)
+"void"
+0x98 set_wol * func (NULL) (
+(NULL) * @"struct--phy_device.txt"
+(NULL) * @"struct--ethtool_wolinfo.txt"
+)
+"int"
+0xa0 get_wol * func (NULL) (
+(NULL) * @"struct--phy_device.txt"
+(NULL) * @"struct--ethtool_wolinfo.txt"
+)
+"void"
+0xa8 driver @"struct--device_driver.txt"
+0x128 aneg_done * func (NULL) (
+(NULL) * @"struct--phy_device.txt"
+)
+"int"
+0x130 read_mmd * func (NULL) (
+(NULL) * @"struct--phy_device.txt"
+(NULL) "int"
+(NULL) @"typedef--u16.txt"
+)
+"int"
+0x138 write_mmd * func (NULL) (
+(NULL) * @"struct--phy_device.txt"
+(NULL) "int"
+(NULL) @"typedef--u16.txt"
+(NULL) @"typedef--u16.txt"
+)
+"int"
+0x140 read_page * func (NULL) (
+(NULL) * @"struct--phy_device.txt"
+)
+"int"
+0x148 write_page * func (NULL) (
+(NULL) * @"struct--phy_device.txt"
+(NULL) "int"
+)
+"int"
+}

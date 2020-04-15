@@ -1,0 +1,9 @@
+Version: 1.0
+File: include/linux/memremap.h:46
+Symbol:
+Byte size 4
+enum memory_type {
+MEMORY_HMM = 0x1
+MEMORY_DEVICE_FS_DAX = 0x2
+MEMORY_DEVICE_DEV_DAX = 0x3
+}

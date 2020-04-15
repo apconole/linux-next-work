@@ -1,0 +1,12 @@
+Version: 1.0
+File: include/linux/pci.h:761
+Symbol:
+Byte size 16
+struct pci_driver_rh {
+0x0 size "unsigned int"
+0x8 reset_notify * func (NULL) (
+(NULL) * @"struct--pci_dev.txt"
+(NULL) @"typedef--bool.txt"
+)
+"void"
+}

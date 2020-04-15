@@ -1,0 +1,9 @@
+Version: 1.0
+File: include/linux/mmzone.h:735
+Symbol:
+Byte size 74272
+struct zonelist {
+0x0 zlcache_ptr * @"struct--zonelist_cache.txt"
+0x8 _zonerefs [4097]@"struct--zoneref.txt"
+0x10018 zlcache @"struct--zonelist_cache.txt"
+}

@@ -1,0 +1,8 @@
+Version: 1.0
+File: drivers/scsi/hosts.c:66
+Symbol:
+func scsi_host_set_state (
+shost * @"struct--Scsi_Host.txt"
+state @"enum--scsi_host_state.txt"
+)
+"int"

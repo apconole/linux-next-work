@@ -1,0 +1,7 @@
+Version: 1.0
+File: net/netfilter/core.c:68
+Symbol:
+func nf_register_hook (
+reg * @"struct--nf_hook_ops.txt"
+)
+"int"

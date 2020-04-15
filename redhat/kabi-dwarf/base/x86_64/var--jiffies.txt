@@ -1,0 +1,5 @@
+Version: 1.0
+File: arch/x86/kernel/time.c:26
+Symbol:
+Byte size 8
+var jiffies volatile "long unsigned int"

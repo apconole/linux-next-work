@@ -1,0 +1,15 @@
+Version: 1.0
+File: include/linux/bsg.h:8
+Symbol:
+Byte size 48
+struct bsg_class_device {
+0x0 class_dev * @"struct--device.txt"
+0x8 parent * @"struct--device.txt"
+0x10 minor "int"
+0x18 queue * @"struct--request_queue.txt"
+0x20 ref @"struct--kref.txt"
+0x28 release * func (NULL) (
+(NULL) * @"struct--device.txt"
+)
+"void"
+}

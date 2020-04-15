@@ -1,0 +1,18 @@
+Version: 1.0
+File: include/linux/netdevice.h:620
+Symbol:
+Byte size 512
+struct netdev_queue {
+0x0 dev * @"struct--net_device.txt"
+0x8 qdisc * @"struct--Qdisc.txt"
+0x10 qdisc_sleeping * @"struct--Qdisc.txt"
+0x18 kobj @"struct--kobject.txt"
+0x58 numa_node "int"
+0x80 _xmit_lock @"typedef--spinlock_t.txt"
+0x84 xmit_lock_owner "int"
+0x88 trans_start "long unsigned int"
+0x90 trans_timeout "long unsigned int"
+0x98 state "long unsigned int"
+0xa0 tx_maxrate "long unsigned int"
+0x100 dql @"struct--dql.txt"
+}

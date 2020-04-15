@@ -1,0 +1,11 @@
+Version: 1.0
+File: net/core/utils.c:411
+Symbol:
+func inet_proto_csum_replace4 (
+sum * @"typedef--__sum16.txt"
+skb * @"struct--sk_buff.txt"
+from @"typedef--__be32.txt"
+to @"typedef--__be32.txt"
+pseudohdr "int"
+)
+"void"

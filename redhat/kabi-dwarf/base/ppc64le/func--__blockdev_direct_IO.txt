@@ -1,0 +1,17 @@
+Version: 1.0
+File: fs/direct-io.c:1471
+Symbol:
+func __blockdev_direct_IO (
+rw "int"
+iocb * @"struct--kiocb.txt"
+inode * @"struct--inode.txt"
+bdev * @"struct--block_device.txt"
+iov * const @"struct--iovec.txt"
+offset @"typedef--loff_t.txt"
+nr_segs "long unsigned int"
+get_block * @"typedef--get_block_t.txt"
+end_io * @"typedef--dio_iodone_t.txt"
+submit_io * @"typedef--dio_submit_t.txt"
+flags "int"
+)
+@"typedef--ssize_t.txt"

@@ -1,0 +1,9 @@
+Version: 1.0
+File: include/linux/mmzone.h:210
+Symbol:
+Byte size 120
+struct lruvec {
+0x0 lists [5]@"struct--list_head.txt"
+0x50 reclaim_stat @"struct--zone_reclaim_stat.txt"
+0x70 zone * @"struct--zone.txt"
+}

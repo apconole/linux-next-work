@@ -1,0 +1,8 @@
+Version: 1.0
+File: include/linux/fwnode.h:25
+Symbol:
+Byte size 16
+struct fwnode_handle {
+0x0 type @"enum--fwnode_type.txt"
+0x8 secondary * @"struct--fwnode_handle.txt"
+}

@@ -1,0 +1,82 @@
+Version: 1.0
+File: include/uapi/linux/bpf.h:248
+Symbol:
+Byte size 72
+union bpf_attr {
+(NULL) struct (NULL) {
+0x0 map_type @"typedef--__u32.txt"
+0x4 key_size @"typedef--__u32.txt"
+0x8 value_size @"typedef--__u32.txt"
+0xc max_entries @"typedef--__u32.txt"
+0x10 map_flags @"typedef--__u32.txt"
+0x14 inner_map_fd @"typedef--__u32.txt"
+0x18 numa_node @"typedef--__u32.txt"
+0x1c map_name [16]"char"
+}
+(NULL) struct (NULL) {
+0x0 map_fd @"typedef--__u32.txt"
+0x8 key @"typedef--__u64.txt"
+0x10 (NULL) union (NULL) {
+value @"typedef--__u64.txt"
+next_key @"typedef--__u64.txt"
+}
+0x18 flags @"typedef--__u64.txt"
+}
+(NULL) struct (NULL) {
+0x0 prog_type @"typedef--__u32.txt"
+0x4 insn_cnt @"typedef--__u32.txt"
+0x8 insns @"typedef--__u64.txt"
+0x10 license @"typedef--__u64.txt"
+0x18 log_level @"typedef--__u32.txt"
+0x1c log_size @"typedef--__u32.txt"
+0x20 log_buf @"typedef--__u64.txt"
+0x28 kern_version @"typedef--__u32.txt"
+0x2c prog_flags @"typedef--__u32.txt"
+0x30 prog_name [16]"char"
+0x40 prog_ifindex @"typedef--__u32.txt"
+0x44 expected_attach_type @"typedef--__u32.txt"
+}
+(NULL) struct (NULL) {
+0x0 pathname @"typedef--__u64.txt"
+0x8 bpf_fd @"typedef--__u32.txt"
+0xc file_flags @"typedef--__u32.txt"
+}
+(NULL) struct (NULL) {
+0x0 target_fd @"typedef--__u32.txt"
+0x4 attach_bpf_fd @"typedef--__u32.txt"
+0x8 attach_type @"typedef--__u32.txt"
+0xc attach_flags @"typedef--__u32.txt"
+}
+test struct (NULL) {
+0x0 prog_fd @"typedef--__u32.txt"
+0x4 retval @"typedef--__u32.txt"
+0x8 data_size_in @"typedef--__u32.txt"
+0xc data_size_out @"typedef--__u32.txt"
+0x10 data_in @"typedef--__u64.txt"
+0x18 data_out @"typedef--__u64.txt"
+0x20 repeat @"typedef--__u32.txt"
+0x24 duration @"typedef--__u32.txt"
+}
+(NULL) struct (NULL) {
+0x0 (NULL) union (NULL) {
+start_id @"typedef--__u32.txt"
+prog_id @"typedef--__u32.txt"
+map_id @"typedef--__u32.txt"
+}
+0x4 next_id @"typedef--__u32.txt"
+0x8 open_flags @"typedef--__u32.txt"
+}
+info struct (NULL) {
+0x0 bpf_fd @"typedef--__u32.txt"
+0x4 info_len @"typedef--__u32.txt"
+0x8 info @"typedef--__u64.txt"
+}
+query struct (NULL) {
+0x0 target_fd @"typedef--__u32.txt"
+0x4 attach_type @"typedef--__u32.txt"
+0x8 query_flags @"typedef--__u32.txt"
+0xc attach_flags @"typedef--__u32.txt"
+0x10 prog_ids @"typedef--__u64.txt"
+0x18 prog_cnt @"typedef--__u32.txt"
+}
+}

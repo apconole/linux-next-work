@@ -1,0 +1,4 @@
+Version: 1.0
+File: net/core/net_namespace.c:37
+Symbol:
+var init_net @"struct--net.txt"

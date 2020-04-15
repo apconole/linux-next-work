@@ -1,0 +1,8 @@
+Version: 1.0
+File: block/blk-core.c:952
+Symbol:
+func blk_init_queue (
+rfn * @"typedef--request_fn_proc.txt"
+lock * @"typedef--spinlock_t.txt"
+)
+* @"struct--request_queue.txt"

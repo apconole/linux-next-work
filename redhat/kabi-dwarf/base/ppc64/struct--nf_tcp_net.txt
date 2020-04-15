@@ -1,0 +1,11 @@
+Version: 1.0
+File: include/net/netns/conntrack.h:37
+Symbol:
+Byte size 96
+struct nf_tcp_net {
+0x0 pn @"struct--nf_proto_net.txt"
+0x18 timeouts [14]"unsigned int"
+0x50 tcp_loose "unsigned int"
+0x54 tcp_be_liberal "unsigned int"
+0x58 tcp_max_retrans "unsigned int"
+}

@@ -1,0 +1,7 @@
+Version: 1.0
+File: mm/page-writeback.c:2280
+Symbol:
+func clear_page_dirty_for_io (
+page * @"struct--page.txt"
+)
+"int"

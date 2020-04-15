@@ -1,0 +1,45 @@
+Version: 1.0
+File: include/net/xfrm.h:367
+Symbol:
+Byte size 80
+struct xfrm_type {
+0x0 description * "char"
+0x8 owner * @"struct--module.txt"
+0x10 proto @"typedef--u8.txt"
+0x11 flags @"typedef--u8.txt"
+0x18 init_state * func (NULL) (
+(NULL) * @"struct--xfrm_state.txt"
+)
+"int"
+0x20 destructor * func (NULL) (
+(NULL) * @"struct--xfrm_state.txt"
+)
+"void"
+0x28 input * func (NULL) (
+(NULL) * @"struct--xfrm_state.txt"
+(NULL) * @"struct--sk_buff.txt"
+)
+"int"
+0x30 output * func (NULL) (
+(NULL) * @"struct--xfrm_state.txt"
+(NULL) * @"struct--sk_buff.txt"
+)
+"int"
+0x38 reject * func (NULL) (
+(NULL) * @"struct--xfrm_state.txt"
+(NULL) * @"struct--sk_buff.txt"
+(NULL) * const @"struct--flowi.txt"
+)
+"int"
+0x40 hdr_offset * func (NULL) (
+(NULL) * @"struct--xfrm_state.txt"
+(NULL) * @"struct--sk_buff.txt"
+(NULL) * * @"typedef--u8.txt"
+)
+"int"
+0x48 get_mtu * func (NULL) (
+(NULL) * @"struct--xfrm_state.txt"
+(NULL) "int"
+)
+@"typedef--u32.txt"
+}

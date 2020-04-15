@@ -1,0 +1,7 @@
+Version: 1.0
+File: mm/vmalloc.c:1558
+Symbol:
+func vunmap (
+addr * const "void"
+)
+"void"

@@ -1,0 +1,27 @@
+Version: 1.0
+File: include/linux/binfmts.h:14
+Symbol:
+Byte size 256
+struct linux_binprm {
+0x0 buf [128]"char"
+0x80 vma * @"struct--vm_area_struct.txt"
+0x88 vma_pages "long unsigned int"
+0x90 mm * @"struct--mm_struct.txt"
+0x98 p "long unsigned int"
+0xa0:0-1 cred_prepared "unsigned int"
+0xa0:1-2 cap_effective "unsigned int"
+0xa4 recursion_depth "unsigned int"
+0xa8 file * @"struct--file.txt"
+0xb0 cred * @"struct--cred.txt"
+0xb8 unsafe "int"
+0xbc per_clear "unsigned int"
+0xc0 argc "int"
+0xc4 envc "int"
+0xc8 filename * const "char"
+0xd0 interp * const "char"
+0xd8 interp_flags "unsigned int"
+0xdc interp_data "unsigned int"
+0xe0 loader "long unsigned int"
+0xe8 exec "long unsigned int"
+0xf0 tcomm [16]"char"
+}

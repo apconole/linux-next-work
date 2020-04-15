@@ -1,0 +1,7 @@
+Version: 1.0
+File: fs/block_dev.c:107
+Symbol:
+func invalidate_bdev (
+bdev * @"struct--block_device.txt"
+)
+"void"

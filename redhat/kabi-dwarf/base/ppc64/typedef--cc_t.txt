@@ -1,0 +1,6 @@
+Version: 1.0
+File: arch/powerpc/include/uapi/asm/termbits.h:11
+Symbol:
+Byte size 1
+typedef cc_t
+"unsigned char"

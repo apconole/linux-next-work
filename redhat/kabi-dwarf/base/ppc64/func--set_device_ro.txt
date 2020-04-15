@@ -1,0 +1,8 @@
+Version: 1.0
+File: block/genhd.c:1474
+Symbol:
+func set_device_ro (
+bdev * @"struct--block_device.txt"
+flag "int"
+)
+"void"

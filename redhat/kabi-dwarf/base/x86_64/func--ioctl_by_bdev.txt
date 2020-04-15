@@ -1,0 +1,9 @@
+Version: 1.0
+File: fs/block_dev.c:1727
+Symbol:
+func ioctl_by_bdev (
+bdev * @"struct--block_device.txt"
+cmd "unsigned int"
+arg "long unsigned int"
+)
+"int"

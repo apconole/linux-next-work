@@ -1,0 +1,17 @@
+Version: 1.0
+File: include/linux/ipmi.h:263
+Symbol:
+Byte size 4
+enum ipmi_addr_src {
+SI_INVALID = 0x0
+SI_HOTMOD = 0x1
+SI_HARDCODED = 0x2
+SI_SPMI = 0x3
+SI_ACPI = 0x4
+SI_SMBIOS = 0x5
+SI_PCI = 0x6
+SI_DEVICETREE = 0x7
+SI_DEFAULT = 0x8
+SI_PLATFORM = 0x8
+SI_LAST = 0x9
+}

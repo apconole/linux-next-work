@@ -1,0 +1,9 @@
+Version: 1.0
+File: drivers/base/class.c:238
+Symbol:
+func __class_create (
+owner * @"struct--module.txt"
+name * const "char"
+key * @"struct--lock_class_key.txt"
+)
+* @"struct--class.txt"

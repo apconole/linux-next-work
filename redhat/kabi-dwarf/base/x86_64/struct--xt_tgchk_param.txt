@@ -1,0 +1,14 @@
+Version: 1.0
+File: include/linux/netfilter/x_tables.h:126
+Symbol:
+Byte size 48
+struct xt_tgchk_param {
+0x0 net * @"struct--net.txt"
+0x8 table * const "char"
+0x10 entryinfo * const "void"
+0x18 target * const @"struct--xt_target.txt"
+0x20 targinfo * "void"
+0x28 hook_mask "unsigned int"
+0x2c family @"typedef--u_int8_t.txt"
+0x2d nft_compat @"typedef--bool.txt"
+}

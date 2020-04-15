@@ -1,0 +1,18 @@
+Version: 1.0
+File: include/linux/ipmi.h:36
+Symbol:
+Byte size 384
+struct ipmi_recv_msg {
+0x0 link @"struct--list_head.txt"
+0x10 recv_type "int"
+0x18 user @"typedef--ipmi_user_t.txt"
+0x20 addr @"struct--ipmi_addr.txt"
+0x48 msgid "long int"
+0x50 msg @"struct--kernel_ipmi_msg.txt"
+0x60 user_msg_data * "void"
+0x68 done * func (NULL) (
+(NULL) * @"struct--ipmi_recv_msg.txt"
+)
+"void"
+0x70 msg_data [272]"unsigned char"
+}

@@ -1,0 +1,7 @@
+Version: 1.0
+File: block/blk-core.c:563
+Symbol:
+func blk_cleanup_queue (
+q * @"struct--request_queue.txt"
+)
+"void"

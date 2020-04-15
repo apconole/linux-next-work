@@ -1,0 +1,7 @@
+Version: 1.0
+File: net/core/flow_dissector.c:1198
+Symbol:
+func __skb_get_hash (
+skb * @"struct--sk_buff.txt"
+)
+"void"

@@ -1,0 +1,51 @@
+Version: 1.0
+File: include/linux/blkdev.h:321
+Symbol:
+Byte size 104
+struct queue_limits {
+0x0 bounce_pfn "long unsigned int"
+0x8 seg_boundary_mask "long unsigned int"
+0x10 max_hw_sectors "unsigned int"
+0x14 max_sectors "unsigned int"
+0x18 max_segment_size "unsigned int"
+0x1c physical_block_size "unsigned int"
+0x20 alignment_offset "unsigned int"
+0x24 io_min "unsigned int"
+0x28 io_opt "unsigned int"
+0x2c max_discard_sectors "unsigned int"
+0x30 max_write_same_sectors "unsigned int"
+0x34 discard_granularity "unsigned int"
+0x38 discard_alignment "unsigned int"
+0x3c logical_block_size "short unsigned int"
+0x3e max_segments "short unsigned int"
+0x40 max_integrity_segments "short unsigned int"
+0x42 misaligned "unsigned char"
+0x43 discard_misaligned "unsigned char"
+0x44 cluster "unsigned char"
+0x45 discard_zeroes_data "unsigned char"
+0x48 xcopy_reserved "unsigned int"
+0x50 (NULL) union (NULL) {
+chunk_sectors "unsigned int"
+__UNIQUE_ID_rh_kabi_hide27 struct (NULL) {
+0x0 rh_reserved1 "long unsigned int"
+}
+(NULL) union (NULL) {
+}
+}
+0x58 (NULL) union (NULL) {
+max_dev_sectors "unsigned int"
+__UNIQUE_ID_rh_kabi_hide28 struct (NULL) {
+0x0 rh_reserved2 "long unsigned int"
+}
+(NULL) union (NULL) {
+}
+}
+0x60 (NULL) union (NULL) {
+limits_aux * @"struct--queue_limits_aux.txt"
+__UNIQUE_ID_rh_kabi_hide29 struct (NULL) {
+0x0 rh_reserved3 "long unsigned int"
+}
+(NULL) union (NULL) {
+}
+}
+}

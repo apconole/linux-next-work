@@ -1,0 +1,90 @@
+Version: 1.0
+File: include/linux/blkdev.h:1855
+Symbol:
+Byte size 136
+struct block_device_operations {
+0x0 open * func (NULL) (
+(NULL) * @"struct--block_device.txt"
+(NULL) @"typedef--fmode_t.txt"
+)
+"int"
+0x8 release * func (NULL) (
+(NULL) * @"struct--gendisk.txt"
+(NULL) @"typedef--fmode_t.txt"
+)
+"void"
+0x10 ioctl * func (NULL) (
+(NULL) * @"struct--block_device.txt"
+(NULL) @"typedef--fmode_t.txt"
+(NULL) "unsigned int"
+(NULL) "long unsigned int"
+)
+"int"
+0x18 compat_ioctl * func (NULL) (
+(NULL) * @"struct--block_device.txt"
+(NULL) @"typedef--fmode_t.txt"
+(NULL) "unsigned int"
+(NULL) "long unsigned int"
+)
+"int"
+0x20 rh_reserved_direct_access * func (NULL) (
+(NULL) * @"struct--block_device.txt"
+(NULL) @"typedef--sector_t.txt"
+(NULL) * * "void"
+(NULL) * "long unsigned int"
+)
+"int"
+0x28 check_events * func (NULL) (
+(NULL) * @"struct--gendisk.txt"
+(NULL) "unsigned int"
+)
+"unsigned int"
+0x30 media_changed * func (NULL) (
+(NULL) * @"struct--gendisk.txt"
+)
+"int"
+0x38 unlock_native_capacity * func (NULL) (
+(NULL) * @"struct--gendisk.txt"
+)
+"void"
+0x40 revalidate_disk * func (NULL) (
+(NULL) * @"struct--gendisk.txt"
+)
+"int"
+0x48 getgeo * func (NULL) (
+(NULL) * @"struct--block_device.txt"
+(NULL) * @"<declarations>/struct--hd_geometry.txt"
+)
+"int"
+0x50 swap_slot_free_notify * func (NULL) (
+(NULL) * @"struct--block_device.txt"
+(NULL) "long unsigned int"
+)
+"void"
+0x58 (NULL) union (NULL) {
+pr_ops * const @"<declarations>/struct--pr_ops.txt"
+__UNIQUE_ID_rh_kabi_hide31 struct (NULL) {
+0x0 rh_reserved_ptrs1 * "void"
+}
+(NULL) union (NULL) {
+}
+}
+0x60 (NULL) union (NULL) {
+rw_page * func (NULL) (
+(NULL) * @"struct--block_device.txt"
+(NULL) @"typedef--sector_t.txt"
+(NULL) * @"struct--page.txt"
+(NULL) "int"
+)
+"int"
+__UNIQUE_ID_rh_kabi_hide32 struct (NULL) {
+0x0 rh_reserved_ptrs2 * "void"
+}
+(NULL) union (NULL) {
+}
+}
+0x68 rh_reserved_ptrs3 * "void"
+0x70 rh_reserved_ptrs4 * "void"
+0x78 rh_reserved_ptrs5 * "void"
+0x80 owner * @"struct--module.txt"
+}

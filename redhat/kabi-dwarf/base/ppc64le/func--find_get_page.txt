@@ -1,0 +1,8 @@
+Version: 1.0
+File: mm/filemap.c:1034
+Symbol:
+func find_get_page (
+mapping * @"struct--address_space.txt"
+offset "long unsigned int"
+)
+* @"struct--page.txt"

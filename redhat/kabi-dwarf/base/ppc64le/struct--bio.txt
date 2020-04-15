@@ -1,0 +1,35 @@
+Version: 1.0
+File: include/linux/blk_types.h:54
+Symbol:
+Byte size 136
+struct bio {
+0x0 bi_sector @"typedef--sector_t.txt"
+0x8 bi_next * @"struct--bio.txt"
+0x10 bi_bdev * @"struct--block_device.txt"
+0x18 bi_flags "long unsigned int"
+0x20 bi_rw "long unsigned int"
+0x28 bi_vcnt "short unsigned int"
+0x2a bi_idx "short unsigned int"
+0x2c bi_phys_segments "unsigned int"
+0x30 bi_size "unsigned int"
+0x34 bi_seg_front_size "unsigned int"
+0x38 bi_seg_back_size "unsigned int"
+0x40 bi_end_io * @"typedef--bio_end_io_t.txt"
+0x48 bi_private * "void"
+0x50 bi_ioc * @"struct--io_context.txt"
+0x58 bi_css * @"struct--cgroup_subsys_state.txt"
+0x60 bi_integrity * @"struct--bio_integrity_payload.txt"
+0x68 bi_max_vecs "unsigned int"
+0x6c bi_cnt @"typedef--atomic_t.txt"
+0x70 bi_io_vec * @"struct--bio_vec.txt"
+0x78 bi_pool * @"struct--bio_set.txt"
+0x80 (NULL) union (NULL) {
+bio_aux * @"struct--bio_aux.txt"
+__UNIQUE_ID_rh_kabi_hide21 struct (NULL) {
+0x0 rh_reserved1 * "void"
+}
+(NULL) union (NULL) {
+}
+}
+0x88 bi_inline_vecs [0]@"struct--bio_vec.txt"
+}

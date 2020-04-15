@@ -1,0 +1,8 @@
+Version: 1.0
+File: kernel/time.c:596
+Symbol:
+func jiffies_to_timespec (
+jiffies const "long unsigned int"
+value * @"struct--timespec.txt"
+)
+"void"

@@ -1,0 +1,8 @@
+Version: 1.0
+File: mm/backing-dev.c:344
+Symbol:
+func bdi_register_dev (
+bdi * @"struct--backing_dev_info.txt"
+dev @"typedef--dev_t.txt"
+)
+"int"

@@ -1,0 +1,7 @@
+Version: 1.0
+File: kernel/time.c:500
+Symbol:
+func msecs_to_jiffies (
+m const "unsigned int"
+)
+"long unsigned int"

@@ -1,0 +1,5 @@
+Version: 1.0
+File: net/core/utils.c:40
+Symbol:
+Byte size 4
+var net_msg_warn "int"

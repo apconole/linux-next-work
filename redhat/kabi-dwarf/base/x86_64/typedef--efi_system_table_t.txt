@@ -1,0 +1,20 @@
+Version: 1.0
+File: include/linux/efi.h:688
+Symbol:
+Byte size 120
+typedef efi_system_table_t
+struct (NULL) {
+0x0 hdr @"typedef--efi_table_hdr_t.txt"
+0x18 fw_vendor "long unsigned int"
+0x20 fw_revision @"typedef--u32.txt"
+0x28 con_in_handle "long unsigned int"
+0x30 con_in "long unsigned int"
+0x38 con_out_handle "long unsigned int"
+0x40 con_out "long unsigned int"
+0x48 stderr_handle "long unsigned int"
+0x50 stderr "long unsigned int"
+0x58 runtime * @"typedef--efi_runtime_services_t.txt"
+0x60 boottime * @"typedef--efi_boot_services_t.txt"
+0x68 nr_tables "long unsigned int"
+0x70 tables "long unsigned int"
+}

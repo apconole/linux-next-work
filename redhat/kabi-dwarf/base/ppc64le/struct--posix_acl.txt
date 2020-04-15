@@ -1,0 +1,12 @@
+Version: 1.0
+File: include/linux/posix_acl.h:48
+Symbol:
+Byte size 24
+struct posix_acl {
+0x0 (NULL) union (NULL) {
+a_refcount @"typedef--atomic_t.txt"
+a_rcu @"struct--callback_head.txt"
+}
+0x10 a_count "unsigned int"
+0x14 a_entries [0]@"struct--posix_acl_entry.txt"
+}

@@ -1,0 +1,18 @@
+Version: 1.0
+File: include/linux/crypto.h:423
+Symbol:
+Byte size 16
+struct rng_tfm {
+0x0 rng_gen_random * func (NULL) (
+(NULL) * @"struct--crypto_rng.txt"
+(NULL) * @"typedef--u8.txt"
+(NULL) "unsigned int"
+)
+"int"
+0x8 rng_reset * func (NULL) (
+(NULL) * @"struct--crypto_rng.txt"
+(NULL) * @"typedef--u8.txt"
+(NULL) "unsigned int"
+)
+"int"
+}

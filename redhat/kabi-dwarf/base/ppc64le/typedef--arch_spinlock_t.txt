@@ -1,0 +1,8 @@
+Version: 1.0
+File: arch/powerpc/include/asm/spinlock_types.h:10
+Symbol:
+Byte size 4
+typedef arch_spinlock_t
+struct (NULL) {
+0x0 slock volatile "unsigned int"
+}

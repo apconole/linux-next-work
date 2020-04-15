@@ -1,0 +1,4 @@
+Version: 1.0
+File: include/trace/events/module.h:91
+Symbol:
+var __tracepoint_module_get @"struct--tracepoint.txt"

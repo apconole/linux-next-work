@@ -1,0 +1,7 @@
+Version: 1.0
+File: include/scsi/fc_frame.h:76
+Symbol:
+Byte size 248
+struct fc_frame {
+0x0 skb @"struct--sk_buff.txt"
+}

@@ -1,0 +1,18 @@
+Version: 1.0
+File: include/linux/rwsem.h:49
+Symbol:
+Byte size 32
+struct rw_semaphore {
+0x0 (NULL) union (NULL) {
+count @"typedef--atomic_long_t.txt"
+__UNIQUE_ID_rh_kabi_hide4 struct (NULL) {
+0x0 count "long int"
+}
+(NULL) union (NULL) {
+}
+}
+0x8 wait_lock @"typedef--raw_spinlock_t.txt"
+0xc osq @"struct--optimistic_spin_queue.txt"
+0x10 wait_list @"struct--slist_head.txt"
+0x18 owner * @"struct--task_struct.txt"
+}

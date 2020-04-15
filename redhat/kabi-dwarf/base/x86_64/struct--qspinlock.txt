@@ -1,0 +1,7 @@
+Version: 1.0
+File: include/asm-generic/qspinlock_types.h:36
+Symbol:
+Byte size 4
+struct qspinlock {
+0x0 val @"typedef--atomic_t.txt"
+}

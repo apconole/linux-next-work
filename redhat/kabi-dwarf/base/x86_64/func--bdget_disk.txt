@@ -1,0 +1,8 @@
+Version: 1.0
+File: block/genhd.c:844
+Symbol:
+func bdget_disk (
+disk * @"struct--gendisk.txt"
+partno "int"
+)
+* @"struct--block_device.txt"

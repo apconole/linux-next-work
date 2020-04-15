@@ -1,0 +1,7 @@
+Version: 1.0
+File: arch/s390/lib/string.c:44
+Symbol:
+func strlen (
+s * const "char"
+)
+@"typedef--size_t.txt"

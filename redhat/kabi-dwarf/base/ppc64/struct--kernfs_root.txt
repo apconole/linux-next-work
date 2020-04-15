@@ -1,0 +1,12 @@
+Version: 1.0
+File: include/linux/kernfs.h:165
+Symbol:
+Byte size 112
+struct kernfs_root {
+0x0 kn * @"struct--kernfs_node.txt"
+0x8 flags "unsigned int"
+0x10 ino_ida @"struct--ida.txt"
+0x40 syscall_ops * @"struct--kernfs_syscall_ops.txt"
+0x48 supers @"struct--list_head.txt"
+0x58 deactivate_waitq @"typedef--wait_queue_head_t.txt"
+}

@@ -1,0 +1,5 @@
+Version: 1.0
+File: kernel/workqueue.c:330
+Symbol:
+Byte size 8
+var system_wq * @"struct--workqueue_struct.txt"

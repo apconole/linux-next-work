@@ -1,0 +1,21 @@
+Version: 1.0
+File: arch/powerpc/include/asm/device.h:32
+Symbol:
+Byte size 40
+struct dev_archdata {
+0x0 rh_reserved_dma_ops * @"struct--dma_map_ops.txt"
+0x8 (NULL) union (NULL) {
+hybrid_dma_data * @"struct--dev_arch_dmadata.txt"
+__UNIQUE_ID_rh_kabi_hide17 struct (NULL) {
+0x0 dma_data union (NULL) {
+dma_offset @"typedef--dma_addr_t.txt"
+iommu_table_base * "void"
+}
+}
+(NULL) union (NULL) {
+}
+}
+0x10 max_direct_dma_addr @"typedef--dma_addr_t.txt"
+0x18 edev * @"struct--eeh_dev.txt"
+0x20 cxl_ctx * @"<declarations>/struct--cxl_context.txt"
+}

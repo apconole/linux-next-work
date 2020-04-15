@@ -1,0 +1,8 @@
+Version: 1.0
+File: arch/powerpc/kernel/dma.c:281
+Symbol:
+func dma_set_mask (
+dev * @"struct--device.txt"
+dma_mask @"typedef--u64.txt"
+)
+"int"

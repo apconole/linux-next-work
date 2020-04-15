@@ -1,0 +1,4 @@
+Version: 1.0
+File: init/version.c:25
+Symbol:
+var init_uts_ns @"struct--uts_namespace.txt"

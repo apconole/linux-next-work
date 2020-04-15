@@ -1,0 +1,7 @@
+Version: 1.0
+File: mm/slub.c:3793
+Symbol:
+func kmem_cache_shrink (
+s * @"struct--kmem_cache.txt"
+)
+"int"

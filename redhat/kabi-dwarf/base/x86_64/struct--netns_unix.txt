@@ -1,0 +1,8 @@
+Version: 1.0
+File: include/net/netns/unix.h:8
+Symbol:
+Byte size 16
+struct netns_unix {
+0x0 sysctl_max_dgram_qlen "int"
+0x8 ctl * @"struct--ctl_table_header.txt"
+}

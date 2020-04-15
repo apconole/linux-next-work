@@ -1,0 +1,10 @@
+Version: 1.0
+File: include/linux/random.h:43
+Symbol:
+Byte size 16
+struct rnd_state {
+0x0 s1 @"typedef--__u32.txt"
+0x4 s2 @"typedef--__u32.txt"
+0x8 s3 @"typedef--__u32.txt"
+0xc s4 @"typedef--__u32.txt"
+}

@@ -1,0 +1,50 @@
+Version: 1.0
+File: include/scsi/libfcoe.h:125
+Symbol:
+Byte size 384
+struct fcoe_ctlr {
+0x0 state @"enum--fip_state.txt"
+0x4 mode @"enum--fip_state.txt"
+0x8 lp * @"struct--fc_lport.txt"
+0x10 sel_fcf * @"struct--fcoe_fcf.txt"
+0x18 fcfs @"struct--list_head.txt"
+0x28 cdev * @"struct--fcoe_ctlr_device.txt"
+0x30 fcf_count @"typedef--u16.txt"
+0x38 sol_time "long unsigned int"
+0x40 sel_time "long unsigned int"
+0x48 port_ka_time "long unsigned int"
+0x50 ctlr_ka_time "long unsigned int"
+0x58 timer @"struct--timer_list.txt"
+0xa8 timer_work @"struct--work_struct.txt"
+0xc8 recv_work @"struct--work_struct.txt"
+0xe8 fip_recv_list @"struct--sk_buff_head.txt"
+0x100 flogi_req * @"struct--sk_buff.txt"
+0x108 rnd_state @"struct--rnd_state.txt"
+0x118 port_id @"typedef--u32.txt"
+0x11c user_mfs @"typedef--u16.txt"
+0x11e flogi_oxid @"typedef--u16.txt"
+0x120 flogi_req_send @"typedef--u8.txt"
+0x121 flogi_count @"typedef--u8.txt"
+0x122 map_dest @"typedef--u8.txt"
+0x123 spma @"typedef--u8.txt"
+0x124 probe_tries @"typedef--u8.txt"
+0x125 priority @"typedef--u8.txt"
+0x126 dest_addr [6]@"typedef--u8.txt"
+0x12c ctl_src_addr [6]@"typedef--u8.txt"
+0x138 send * func (NULL) (
+(NULL) * @"struct--fcoe_ctlr.txt"
+(NULL) * @"struct--sk_buff.txt"
+)
+"void"
+0x140 update_mac * func (NULL) (
+(NULL) * @"struct--fc_lport.txt"
+(NULL) * @"typedef--u8.txt"
+)
+"void"
+0x148 get_src_addr * func (NULL) (
+(NULL) * @"struct--fc_lport.txt"
+)
+* @"typedef--u8.txt"
+0x150 ctlr_mutex @"struct--mutex.txt"
+0x178 ctlr_lock @"typedef--spinlock_t.txt"
+}

@@ -1,0 +1,8 @@
+Version: 1.0
+File: include/net/iw_handler.h:419
+Symbol:
+Byte size 16
+struct iw_public_data {
+0x0 spy_data * @"struct--iw_spy_data.txt"
+0x8 libipw * @"<declarations>/struct--libipw_device.txt"
+}

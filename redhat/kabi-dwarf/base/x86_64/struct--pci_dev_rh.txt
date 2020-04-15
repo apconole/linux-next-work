@@ -1,0 +1,13 @@
+Version: 1.0
+File: include/linux/pci.h:417
+Symbol:
+Byte size 40
+struct pci_dev_rh {
+0x0 dma_alias_mask * "long unsigned int"
+0x8 driver_override * "char"
+0x10:0-1 ats_enabled "unsigned int"
+0x12 ats_cap @"typedef--u16.txt"
+0x14 ats_stu @"typedef--u8.txt"
+0x18 ats_ref_cnt @"typedef--atomic_t.txt"
+0x20 priv_flags "long unsigned int"
+}

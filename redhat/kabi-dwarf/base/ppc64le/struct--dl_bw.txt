@@ -1,0 +1,9 @@
+Version: 1.0
+File: kernel/sched/sched.h:189
+Symbol:
+Byte size 24
+struct dl_bw {
+0x0 lock @"typedef--raw_spinlock_t.txt"
+0x8 bw @"typedef--u64.txt"
+0x10 total_bw @"typedef--u64.txt"
+}

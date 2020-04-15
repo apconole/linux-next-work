@@ -1,0 +1,4 @@
+Version: 1.0
+File: arch/powerpc/kernel/time.c:132
+Symbol:
+var rtc_lock @"typedef--spinlock_t.txt"

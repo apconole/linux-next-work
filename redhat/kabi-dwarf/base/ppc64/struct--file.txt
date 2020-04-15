@@ -1,0 +1,29 @@
+Version: 1.0
+File: include/linux/fs.h:849
+Symbol:
+Byte size 256
+struct file {
+0x0 f_u union (NULL) {
+fu_list @"struct--list_head.txt"
+fu_rcuhead @"struct--callback_head.txt"
+}
+0x10 f_path @"struct--path.txt"
+0x20 f_inode * @"struct--inode.txt"
+0x28 f_op * const @"struct--file_operations.txt"
+0x30 f_lock @"typedef--spinlock_t.txt"
+0x34 f_sb_list_cpu_deprecated "int"
+0x38 f_count @"typedef--atomic_long_t.txt"
+0x40 f_flags "unsigned int"
+0x44 f_mode @"typedef--fmode_t.txt"
+0x48 f_pos @"typedef--loff_t.txt"
+0x50 f_owner @"struct--fown_struct.txt"
+0x70 f_cred * const @"struct--cred.txt"
+0x78 f_ra @"struct--file_ra_state.txt"
+0x98 f_version @"typedef--u64.txt"
+0xa0 f_security * "void"
+0xa8 private_data * "void"
+0xb0 f_ep_links @"struct--list_head.txt"
+0xc0 f_tfile_llink @"struct--list_head.txt"
+0xd0 f_mapping * @"struct--address_space.txt"
+0xd8 f_pos_lock @"struct--mutex.txt"
+}

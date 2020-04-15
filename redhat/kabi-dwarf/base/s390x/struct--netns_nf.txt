@@ -1,0 +1,9 @@
+Version: 1.0
+File: include/net/netns/netfilter.h:9
+Symbol:
+Byte size 120
+struct netns_nf {
+0x0 proc_netfilter * @"<declarations>/struct--proc_dir_entry.txt"
+0x8 nf_loggers [13]* const @"<declarations>/struct--nf_logger.txt"
+0x70 nf_log_dir_header * @"struct--ctl_table_header.txt"
+}

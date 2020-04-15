@@ -1,0 +1,8 @@
+Version: 1.0
+File: lib/zlib_inflate/inflate.c:332
+Symbol:
+func zlib_inflate (
+strm @"typedef--z_streamp.txt"
+flush "int"
+)
+"int"

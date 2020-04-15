@@ -1,0 +1,8 @@
+Version: 1.0
+File: include/net/netns/ipv6.h:78
+Symbol:
+Byte size 384
+struct netns_nf_frag {
+0x0 sysctl @"struct--netns_sysctl_ipv6.txt"
+0x80 frags @"struct--netns_frags.txt"
+}

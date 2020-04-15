@@ -1,0 +1,8 @@
+Version: 1.0
+File: lib/zlib_deflate/deflate.c:1266
+Symbol:
+func zlib_deflate_workspacesize (
+windowBits "int"
+memLevel "int"
+)
+"int"

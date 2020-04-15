@@ -1,0 +1,11 @@
+Version: 1.0
+File: include/linux/pid.h:57
+Symbol:
+Byte size 80
+struct pid {
+0x0 count @"typedef--atomic_t.txt"
+0x4 level "unsigned int"
+0x8 tasks [3]@"struct--hlist_head.txt"
+0x20 rcu @"struct--callback_head.txt"
+0x30 numbers [1]@"struct--upid.txt"
+}

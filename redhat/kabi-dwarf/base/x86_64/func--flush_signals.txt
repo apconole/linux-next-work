@@ -1,0 +1,7 @@
+Version: 1.0
+File: kernel/signal.c:445
+Symbol:
+func flush_signals (
+t * @"struct--task_struct.txt"
+)
+"void"

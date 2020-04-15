@@ -1,0 +1,16 @@
+Version: 1.0
+File: include/linux/elevator.h:148
+Symbol:
+Byte size 240
+struct elevator_type_aux {
+0x0 list @"struct--list_head.txt"
+0x10 type * @"struct--elevator_type.txt"
+0x18 elevator_alias * const "char"
+0x20 uses_mq @"typedef--bool.txt"
+0x28 ops union (NULL) {
+sq @"struct--elevator_sq_ops_aux.txt"
+mq @"struct--elevator_mq_ops.txt"
+}
+0xe0 queue_debugfs_attrs * const @"<declarations>/struct--blk_mq_debugfs_attr.txt"
+0xe8 hctx_debugfs_attrs * const @"<declarations>/struct--blk_mq_debugfs_attr.txt"
+}

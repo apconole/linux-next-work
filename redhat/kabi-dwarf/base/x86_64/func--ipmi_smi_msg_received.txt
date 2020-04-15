@@ -1,0 +1,8 @@
+Version: 1.0
+File: drivers/char/ipmi/ipmi_msghandler.c:4583
+Symbol:
+func ipmi_smi_msg_received (
+intf @"typedef--ipmi_smi_t.txt"
+msg * @"struct--ipmi_smi_msg.txt"
+)
+"void"

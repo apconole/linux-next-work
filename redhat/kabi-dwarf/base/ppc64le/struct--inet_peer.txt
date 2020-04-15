@@ -1,0 +1,27 @@
+Version: 1.0
+File: include/net/inetpeer.h:32
+Symbol:
+Byte size 184
+struct inet_peer {
+0x0 avl_left * @"struct--inet_peer.txt"
+0x8 avl_right * @"struct--inet_peer.txt"
+0x10 daddr @"struct--inetpeer_addr.txt"
+0x24 avl_height @"typedef--__u32.txt"
+0x28 metrics [23]@"typedef--u32.txt"
+0x84 rate_tokens @"typedef--u32.txt"
+0x88 rate_last "long unsigned int"
+0x90 (NULL) union (NULL) {
+gc_list @"struct--list_head.txt"
+gc_rcu @"struct--callback_head.txt"
+}
+0xa0 (NULL) union (NULL) {
+(NULL) struct (NULL) {
+0x0 rid @"typedef--atomic_t.txt"
+0x4 rh_reserved_ip_id_count @"typedef--atomic_t.txt"
+}
+rcu @"struct--callback_head.txt"
+gc_next * @"struct--inet_peer.txt"
+}
+0xb0 dtime @"typedef--__u32.txt"
+0xb4 refcnt @"typedef--atomic_t.txt"
+}

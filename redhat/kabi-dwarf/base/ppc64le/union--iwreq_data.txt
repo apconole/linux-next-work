@@ -1,0 +1,24 @@
+Version: 1.0
+File: include/uapi/linux/wireless.h:909
+Symbol:
+Byte size 16
+union iwreq_data {
+name [16]"char"
+essid @"struct--iw_point.txt"
+nwid @"struct--iw_param.txt"
+freq @"struct--iw_freq.txt"
+sens @"struct--iw_param.txt"
+bitrate @"struct--iw_param.txt"
+txpower @"struct--iw_param.txt"
+rts @"struct--iw_param.txt"
+frag @"struct--iw_param.txt"
+mode @"typedef--__u32.txt"
+retry @"struct--iw_param.txt"
+encoding @"struct--iw_point.txt"
+power @"struct--iw_param.txt"
+qual @"struct--iw_quality.txt"
+ap_addr @"struct--sockaddr.txt"
+addr @"struct--sockaddr.txt"
+param @"struct--iw_param.txt"
+data @"struct--iw_point.txt"
+}

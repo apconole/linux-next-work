@@ -1,0 +1,7 @@
+Version: 1.0
+File: include/linux/ktime.h:46
+Symbol:
+Byte size 8
+union ktime {
+tv64 @"typedef--s64.txt"
+}

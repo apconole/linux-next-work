@@ -1,0 +1,24 @@
+Version: 1.0
+File: include/linux/crypto.h:395
+Symbol:
+Byte size 24
+struct cipher_tfm {
+0x0 cit_setkey * func (NULL) (
+(NULL) * @"struct--crypto_tfm.txt"
+(NULL) * const @"typedef--u8.txt"
+(NULL) "unsigned int"
+)
+"int"
+0x8 cit_encrypt_one * func (NULL) (
+(NULL) * @"struct--crypto_tfm.txt"
+(NULL) * @"typedef--u8.txt"
+(NULL) * const @"typedef--u8.txt"
+)
+"void"
+0x10 cit_decrypt_one * func (NULL) (
+(NULL) * @"struct--crypto_tfm.txt"
+(NULL) * @"typedef--u8.txt"
+(NULL) * const @"typedef--u8.txt"
+)
+"void"
+}

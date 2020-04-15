@@ -1,0 +1,41 @@
+Version: 1.0
+File: include/linux/mmzone.h:768
+Symbol:
+Byte size 157056
+struct pglist_data {
+0x0 node_zones [4]@"struct--zone.txt"
+0x2000 node_zonelists [2]@"struct--zonelist.txt"
+0x26440 nr_zones "int"
+0x26444 node_size_lock @"typedef--spinlock_t.txt"
+0x26448 node_start_pfn "long unsigned int"
+0x26450 node_present_pages "long unsigned int"
+0x26458 node_spanned_pages "long unsigned int"
+0x26460 node_id "int"
+0x26468 reclaim_nodes @"typedef--nodemask_t.txt"
+0x264e8 kswapd_wait @"typedef--wait_queue_head_t.txt"
+0x26500 pfmemalloc_wait @"typedef--wait_queue_head_t.txt"
+0x26518 kswapd * @"struct--task_struct.txt"
+0x26520 kswapd_max_order "int"
+0x26524 classzone_idx @"enum--zone_type.txt"
+0x26528 numabalancing_migrate_lock @"typedef--spinlock_t.txt"
+0x26530 numabalancing_migrate_next_window "long unsigned int"
+0x26538 numabalancing_migrate_nr_pages "long unsigned int"
+0x26540 (NULL) union (NULL) {
+first_deferred_pfn "long unsigned int"
+__UNIQUE_ID_rh_kabi_hide1 struct (NULL) {
+0x0 rh_reserved1 "long unsigned int"
+}
+(NULL) union (NULL) {
+}
+}
+0x26548 (NULL) union (NULL) {
+zone_device * @"struct--zone.txt"
+__UNIQUE_ID_rh_kabi_hide2 struct (NULL) {
+0x0 rh_reserved2 "long unsigned int"
+}
+(NULL) union (NULL) {
+}
+}
+0x26550 rh_reserved3 "long unsigned int"
+0x26558 rh_reserved4 "long unsigned int"
+}

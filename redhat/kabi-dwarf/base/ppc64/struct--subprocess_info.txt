@@ -1,0 +1,23 @@
+Version: 1.0
+File: include/linux/kmod.h:56
+Symbol:
+Byte size 96
+struct subprocess_info {
+0x0 work @"struct--work_struct.txt"
+0x20 complete * @"struct--completion.txt"
+0x28 path * "char"
+0x30 argv * * "char"
+0x38 envp * * "char"
+0x40 wait "int"
+0x44 retval "int"
+0x48 init * func (NULL) (
+(NULL) * @"struct--subprocess_info.txt"
+(NULL) * @"struct--cred.txt"
+)
+"int"
+0x50 cleanup * func (NULL) (
+(NULL) * @"struct--subprocess_info.txt"
+)
+"void"
+0x58 data * "void"
+}

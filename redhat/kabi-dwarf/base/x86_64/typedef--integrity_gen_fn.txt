@@ -1,0 +1,8 @@
+Version: 1.0
+File: include/linux/blkdev.h:1722
+Symbol:
+typedef integrity_gen_fn
+func (NULL) (
+(NULL) * @"struct--blk_integrity_exchg.txt"
+)
+"void"

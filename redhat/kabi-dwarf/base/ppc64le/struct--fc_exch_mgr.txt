@@ -1,0 +1,21 @@
+Version: 1.0
+File: drivers/scsi/libfc/fc_exch.c:93
+Symbol:
+Byte size 56
+struct fc_exch_mgr {
+0x0 pool * @"struct--fc_exch_pool.txt"
+0x8 ep_pool * @"typedef--mempool_t.txt"
+0x10 class @"enum--fc_class.txt"
+0x14 kref @"struct--kref.txt"
+0x18 min_xid @"typedef--u16.txt"
+0x1a max_xid @"typedef--u16.txt"
+0x1c pool_max_index @"typedef--u16.txt"
+0x20 stats struct (NULL) {
+0x0 no_free_exch @"typedef--atomic_t.txt"
+0x4 no_free_exch_xid @"typedef--atomic_t.txt"
+0x8 xid_not_found @"typedef--atomic_t.txt"
+0xc xid_busy @"typedef--atomic_t.txt"
+0x10 seq_not_found @"typedef--atomic_t.txt"
+0x14 non_bls_resp @"typedef--atomic_t.txt"
+}
+}

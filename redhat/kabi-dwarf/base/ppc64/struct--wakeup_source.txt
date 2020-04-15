@@ -1,0 +1,23 @@
+Version: 1.0
+File: include/linux/pm_wakeup.h:46
+Symbol:
+Byte size 208
+struct wakeup_source {
+0x0 name * const "char"
+0x8 entry @"struct--list_head.txt"
+0x18 lock @"typedef--spinlock_t.txt"
+0x20 timer @"struct--timer_list.txt"
+0x70 timer_expires "long unsigned int"
+0x78 total_time @"typedef--ktime_t.txt"
+0x80 max_time @"typedef--ktime_t.txt"
+0x88 last_time @"typedef--ktime_t.txt"
+0x90 start_prevent_time @"typedef--ktime_t.txt"
+0x98 prevent_sleep_time @"typedef--ktime_t.txt"
+0xa0 event_count "long unsigned int"
+0xa8 active_count "long unsigned int"
+0xb0 relax_count "long unsigned int"
+0xb8 expire_count "long unsigned int"
+0xc0 wakeup_count "long unsigned int"
+0xc8:0-1 active @"typedef--bool.txt"
+0xc8:1-2 autosleep_enabled @"typedef--bool.txt"
+}

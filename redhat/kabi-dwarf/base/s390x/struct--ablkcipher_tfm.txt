@@ -1,0 +1,31 @@
+Version: 1.0
+File: include/linux/crypto.h:356
+Symbol:
+Byte size 56
+struct ablkcipher_tfm {
+0x0 setkey * func (NULL) (
+(NULL) * @"struct--crypto_ablkcipher.txt"
+(NULL) * const @"typedef--u8.txt"
+(NULL) "unsigned int"
+)
+"int"
+0x8 encrypt * func (NULL) (
+(NULL) * @"struct--ablkcipher_request.txt"
+)
+"int"
+0x10 decrypt * func (NULL) (
+(NULL) * @"struct--ablkcipher_request.txt"
+)
+"int"
+0x18 givencrypt * func (NULL) (
+(NULL) * @"<declarations>/struct--skcipher_givcrypt_request.txt"
+)
+"int"
+0x20 givdecrypt * func (NULL) (
+(NULL) * @"<declarations>/struct--skcipher_givcrypt_request.txt"
+)
+"int"
+0x28 base * @"struct--crypto_ablkcipher.txt"
+0x30 ivsize "unsigned int"
+0x34 reqsize "unsigned int"
+}

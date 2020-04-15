@@ -1,0 +1,9 @@
+Version: 1.0
+File: block/blk-core.c:3161
+Symbol:
+func __blk_end_request (
+rq * @"struct--request.txt"
+error "int"
+nr_bytes "unsigned int"
+)
+@"typedef--bool.txt"

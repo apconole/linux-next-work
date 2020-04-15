@@ -1,0 +1,15 @@
+Version: 1.0
+File: include/net/genetlink.h:90
+Symbol:
+Byte size 72
+struct genl_info {
+0x0 snd_seq @"typedef--u32.txt"
+0x4 snd_portid @"typedef--u32.txt"
+0x8 nlhdr * @"struct--nlmsghdr.txt"
+0x10 genlhdr * @"struct--genlmsghdr.txt"
+0x18 userhdr * "void"
+0x20 attrs * * @"struct--nlattr.txt"
+0x28 _net * @"struct--net.txt"
+0x30 user_ptr [2]* "void"
+0x40 rh_reserved_dst_sk * @"struct--sock.txt"
+}

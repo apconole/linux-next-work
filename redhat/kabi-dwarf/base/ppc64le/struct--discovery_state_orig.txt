@@ -1,0 +1,18 @@
+Version: 1.0
+File: include/net/bluetooth/hci_core.h:68
+Symbol:
+Byte size 64
+struct discovery_state_orig {
+0x0 type "int"
+0x4 state enum (NULL) {
+DISCOVERY_STOPPED_orig = 0x0
+DISCOVERY_STARTING_orig = 0x1
+DISCOVERY_FINDING_orig = 0x2
+DISCOVERY_RESOLVING_orig = 0x3
+DISCOVERY_STOPPING_orig = 0x4
+}
+0x8 all @"struct--list_head.txt"
+0x18 unknown @"struct--list_head.txt"
+0x28 resolve @"struct--list_head.txt"
+0x38 timestamp @"typedef--__u32.txt"
+}

@@ -1,0 +1,12 @@
+Version: 1.0
+File: include/linux/bootmem.h:32
+Symbol:
+Byte size 56
+struct bootmem_data {
+0x0 node_min_pfn "long unsigned int"
+0x8 node_low_pfn "long unsigned int"
+0x10 node_bootmem_map * "void"
+0x18 last_end_off "long unsigned int"
+0x20 hint_idx "long unsigned int"
+0x28 list @"struct--list_head.txt"
+}

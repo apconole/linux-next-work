@@ -1,0 +1,8 @@
+Version: 1.0
+File: block/blk-core.c:1641
+Symbol:
+func __blk_put_request (
+q * @"struct--request_queue.txt"
+req * @"struct--request.txt"
+)
+"void"

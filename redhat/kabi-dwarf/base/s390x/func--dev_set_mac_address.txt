@@ -1,0 +1,8 @@
+Version: 1.0
+File: net/core/dev.c:7101
+Symbol:
+func dev_set_mac_address (
+dev * @"struct--net_device.txt"
+sa * @"struct--sockaddr.txt"
+)
+"int"

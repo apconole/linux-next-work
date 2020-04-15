@@ -1,0 +1,18 @@
+Version: 1.0
+File: kernel/sched/sched.h:578
+Symbol:
+Byte size 22232
+struct root_domain {
+0x0 refcount @"typedef--atomic_t.txt"
+0x4 rto_count @"typedef--atomic_t.txt"
+0x8 rcu @"struct--callback_head.txt"
+0x18 span @"typedef--cpumask_var_t.txt"
+0x20 online @"typedef--cpumask_var_t.txt"
+0x28 rto_mask @"typedef--cpumask_var_t.txt"
+0x30 cpupri @"struct--cpupri.txt"
+0x5690 overload @"typedef--bool.txt"
+0x5698 dlo_mask @"typedef--cpumask_var_t.txt"
+0x56a0 dlo_count @"typedef--atomic_t.txt"
+0x56a8 dl_bw @"struct--dl_bw.txt"
+0x56c0 cpudl @"struct--cpudl.txt"
+}

@@ -1,0 +1,18 @@
+Version: 1.0
+File: include/linux/sched.h:838
+Symbol:
+Byte size 112
+struct task_delay_info {
+0x0 lock @"typedef--spinlock_t.txt"
+0x4 flags "unsigned int"
+0x8 blkio_start @"struct--timespec.txt"
+0x18 blkio_end @"struct--timespec.txt"
+0x28 blkio_delay @"typedef--u64.txt"
+0x30 swapin_delay @"typedef--u64.txt"
+0x38 blkio_count @"typedef--u32.txt"
+0x3c swapin_count @"typedef--u32.txt"
+0x40 freepages_start @"struct--timespec.txt"
+0x50 freepages_end @"struct--timespec.txt"
+0x60 freepages_delay @"typedef--u64.txt"
+0x68 freepages_count @"typedef--u32.txt"
+}

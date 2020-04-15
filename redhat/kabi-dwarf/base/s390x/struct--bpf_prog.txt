@@ -1,0 +1,32 @@
+Version: 1.0
+File: include/linux/filter.h:425
+Symbol:
+Byte size 56
+struct bpf_prog {
+0x0 pages @"typedef--u16.txt"
+0x2:0-1 jited @"typedef--u16.txt"
+0x2:1-2 jit_requested @"typedef--u16.txt"
+0x2:2-3 gpl_compatible @"typedef--u16.txt"
+0x2:3-4 cb_access @"typedef--u16.txt"
+0x2:4-5 dst_needed @"typedef--u16.txt"
+0x2:5-6 blinded @"typedef--u16.txt"
+0x2:6-7 is_func @"typedef--u16.txt"
+0x2:7-8 kprobe_override @"typedef--u16.txt"
+0x3:0-1 has_callchain_buf @"typedef--u16.txt"
+0x4 type @"enum--bpf_prog_type.txt"
+0x8 expected_attach_type @"enum--bpf_attach_type.txt"
+0xc len @"typedef--u32.txt"
+0x10 jited_len @"typedef--u32.txt"
+0x14 tag [8]@"typedef--u8.txt"
+0x20 aux * @"struct--bpf_prog_aux.txt"
+0x28 orig_prog * @"<declarations>/struct--sock_fprog_kern.txt"
+0x30 bpf_func * func (NULL) (
+(NULL) * const "void"
+(NULL) * const @"struct--bpf_insn.txt"
+)
+"unsigned int"
+0x38 (NULL) union (NULL) {
+insns [0]@"struct--sock_filter.txt"
+insnsi [0]@"struct--bpf_insn.txt"
+}
+}

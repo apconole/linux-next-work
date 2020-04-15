@@ -1,0 +1,9 @@
+Version: 1.0
+File: drivers/pci/probe.c:162
+Symbol:
+func pci_write_config_byte (
+dev * const @"struct--pci_dev.txt"
+where "int"
+val @"typedef--u8.txt"
+)
+"int"

@@ -1,0 +1,8 @@
+Version: 1.0
+File: include/linux/pm.h:532
+Symbol:
+Byte size 8
+struct pm_subsys_data {
+0x0 lock @"typedef--spinlock_t.txt"
+0x4 refcount "unsigned int"
+}

@@ -1,0 +1,8 @@
+Version: 1.0
+File: net/core/dev.c:8129
+Symbol:
+func dev_get_stats (
+dev * @"struct--net_device.txt"
+storage * @"struct--rtnl_link_stats64.txt"
+)
+* @"struct--rtnl_link_stats64.txt"

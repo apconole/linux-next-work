@@ -1,0 +1,22 @@
+Version: 1.0
+File: include/linux/efi.h:496
+Symbol:
+Byte size 136
+typedef efi_runtime_services_t
+struct (NULL) {
+0x0 hdr @"typedef--efi_table_hdr_t.txt"
+0x18 get_time * "void"
+0x20 set_time * "void"
+0x28 get_wakeup_time * "void"
+0x30 set_wakeup_time * "void"
+0x38 set_virtual_address_map * "void"
+0x40 convert_pointer * "void"
+0x48 get_variable * "void"
+0x50 get_next_variable * "void"
+0x58 set_variable * "void"
+0x60 get_next_high_mono_count * "void"
+0x68 reset_system * "void"
+0x70 update_capsule * "void"
+0x78 query_capsule_caps * "void"
+0x80 query_variable_info * "void"
+}

@@ -1,0 +1,9 @@
+Version: 1.0
+File: kernel/module.c:1406
+Symbol:
+Byte size 72
+struct module_sect_attr {
+0x0 mattr @"struct--module_attribute.txt"
+0x38 name * "char"
+0x40 address "long unsigned int"
+}

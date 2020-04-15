@@ -1,0 +1,5 @@
+Version: 1.0
+File: include/linux/device.h:271
+Symbol:
+struct device_driver_rh {
+}

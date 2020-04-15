@@ -1,0 +1,13 @@
+Version: 1.0
+File: include/linux/blkdev.h:62
+Symbol:
+Byte size 96
+struct request_list {
+0x0 q * @"struct--request_queue.txt"
+0x8 blkg * @"struct--blkcg_gq.txt"
+0x10 count [2]"int"
+0x18 starved [2]"int"
+0x20 rq_pool * @"typedef--mempool_t.txt"
+0x28 wait [2]@"typedef--wait_queue_head_t.txt"
+0x58 flags "unsigned int"
+}

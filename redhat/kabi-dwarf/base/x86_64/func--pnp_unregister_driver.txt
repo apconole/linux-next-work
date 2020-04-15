@@ -1,0 +1,7 @@
+Version: 1.0
+File: drivers/pnp/driver.c:270
+Symbol:
+func pnp_unregister_driver (
+drv * @"struct--pnp_driver.txt"
+)
+"void"

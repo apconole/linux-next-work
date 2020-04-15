@@ -1,0 +1,7 @@
+Version: 1.0
+File: arch/powerpc/include/asm/uprobes.h:43
+Symbol:
+Byte size 8
+struct arch_uprobe_task {
+0x0 saved_trap_nr "long unsigned int"
+}

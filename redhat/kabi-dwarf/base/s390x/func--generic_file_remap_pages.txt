@@ -1,0 +1,10 @@
+Version: 1.0
+File: mm/fremap.c:98
+Symbol:
+func generic_file_remap_pages (
+vma * @"struct--vm_area_struct.txt"
+addr "long unsigned int"
+size "long unsigned int"
+pgoff "long unsigned int"
+)
+"int"

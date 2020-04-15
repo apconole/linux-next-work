@@ -1,0 +1,7 @@
+Version: 1.0
+File: mm/filemap.c:469
+Symbol:
+func filemap_write_and_wait (
+mapping * @"struct--address_space.txt"
+)
+"int"

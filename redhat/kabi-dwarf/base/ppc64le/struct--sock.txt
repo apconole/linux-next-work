@@ -1,0 +1,147 @@
+Version: 1.0
+File: include/net/sock.h:303
+Symbol:
+Byte size 760
+struct sock {
+0x0 __sk_common @"struct--sock_common.txt"
+0x70 sk_lock @"typedef--socket_lock_t.txt"
+0x90 sk_receive_queue @"struct--sk_buff_head.txt"
+0xa8 sk_backlog struct (NULL) {
+0x0 rmem_alloc @"typedef--atomic_t.txt"
+0x4 len "int"
+0x8 head * @"struct--sk_buff.txt"
+0x10 tail * @"struct--sk_buff.txt"
+}
+0xc0 sk_forward_alloc "int"
+0xc4 sk_rxhash @"typedef--__u32.txt"
+0xc8 sk_napi_id "unsigned int"
+0xcc sk_ll_usec "unsigned int"
+0xd0 sk_drops @"typedef--atomic_t.txt"
+0xd4 sk_rcvbuf "int"
+0xd8 sk_filter * @"struct--sk_filter.txt"
+0xe0 sk_wq * @"struct--socket_wq.txt"
+0xe8 rh_reserved_sk_async_wait_queue @"struct--sk_buff_head.txt"
+0x100 sk_policy [2]* @"struct--xfrm_policy.txt"
+0x110 sk_flags "long unsigned int"
+0x118 sk_rx_dst * @"struct--dst_entry.txt"
+0x120 sk_dst_cache * @"struct--dst_entry.txt"
+0x128 rh_reserved_sk_dst_lock @"typedef--spinlock_t.txt"
+0x12c sk_wmem_alloc @"typedef--atomic_t.txt"
+0x130 sk_omem_alloc @"typedef--atomic_t.txt"
+0x134 sk_sndbuf "int"
+0x138 sk_write_queue @"struct--sk_buff_head.txt"
+0x150:0-2 sk_shutdown "unsigned int"
+0x150:2-3 sk_no_check_tx "unsigned int"
+0x150:3-4 sk_no_check_rx "unsigned int"
+0x150:4-8 sk_userlocks "unsigned int"
+0x151:0-8 sk_protocol "unsigned int"
+0x152:0-16 sk_type "unsigned int"
+0x154 sk_wmem_queued "int"
+0x158 sk_allocation @"typedef--gfp_t.txt"
+0x15c sk_pacing_rate @"typedef--u32.txt"
+0x160 sk_route_caps @"typedef--netdev_features_t.txt"
+0x168 sk_route_nocaps @"typedef--netdev_features_t.txt"
+0x170 sk_gso_type "int"
+0x174 sk_gso_max_size "unsigned int"
+0x178 sk_gso_max_segs @"typedef--u16.txt"
+0x17c sk_rcvlowat "int"
+0x180 sk_lingertime "long unsigned int"
+0x188 sk_error_queue @"struct--sk_buff_head.txt"
+0x1a0 sk_prot_creator * @"struct--proto.txt"
+0x1a8 sk_callback_lock @"typedef--rwlock_t.txt"
+0x1ac sk_err "int"
+0x1b0 sk_err_soft "int"
+0x1b4 sk_ack_backlog "short unsigned int"
+0x1b6 sk_max_ack_backlog "short unsigned int"
+0x1b8 sk_priority @"typedef--__u32.txt"
+0x1bc sk_cgrp_prioidx @"typedef--__u32.txt"
+0x1c0 sk_peer_pid * @"struct--pid.txt"
+0x1c8 sk_peer_cred * const @"struct--cred.txt"
+0x1d0 sk_rcvtimeo "long int"
+0x1d8 sk_sndtimeo "long int"
+0x1e0 sk_protinfo * "void"
+0x1e8 sk_timer @"struct--timer_list.txt"
+0x238 sk_stamp @"typedef--ktime_t.txt"
+0x240 sk_socket * @"struct--socket.txt"
+0x248 sk_user_data * "void"
+0x250 sk_frag @"struct--page_frag.txt"
+0x260 sk_send_head * @"struct--sk_buff.txt"
+0x268 sk_peek_off @"typedef--__s32.txt"
+0x26c sk_write_pending "int"
+0x270 sk_security * "void"
+0x278 sk_mark @"typedef--__u32.txt"
+0x27c sk_classid @"typedef--u32.txt"
+0x280 sk_cgrp * @"struct--cg_proto.txt"
+0x288 sk_state_change * func (NULL) (
+(NULL) * @"struct--sock.txt"
+)
+"void"
+0x290 sk_data_ready * func (NULL) (
+(NULL) * @"struct--sock.txt"
+(NULL) "int"
+)
+"void"
+0x298 sk_write_space * func (NULL) (
+(NULL) * @"struct--sock.txt"
+)
+"void"
+0x2a0 sk_error_report * func (NULL) (
+(NULL) * @"struct--sock.txt"
+)
+"void"
+0x2a8 sk_backlog_rcv * func (NULL) (
+(NULL) * @"struct--sock.txt"
+(NULL) * @"struct--sk_buff.txt"
+)
+"int"
+0x2b0 sk_destruct * func (NULL) (
+(NULL) * @"struct--sock.txt"
+)
+"void"
+0x2b8 (NULL) union (NULL) {
+(NULL) struct (NULL) {
+0x0 sk_txhash @"typedef--__u32.txt"
+0x4 sk_max_pacing_rate @"typedef--u32.txt"
+}
+__UNIQUE_ID_rh_kabi_hide84 struct (NULL) {
+0x0 rh_reserved1 * func (NULL) (
+)
+"void"
+}
+(NULL) union (NULL) {
+}
+}
+0x2c0 (NULL) union (NULL) {
+(NULL) struct (NULL) {
+0x0 sk_tsflags @"typedef--u16.txt"
+0x4 sk_dst_pending_confirm @"typedef--__u32.txt"
+}
+__UNIQUE_ID_rh_kabi_hide85 struct (NULL) {
+0x0 rh_reserved2 * func (NULL) (
+)
+"void"
+}
+(NULL) union (NULL) {
+}
+}
+0x2c8 (NULL) union (NULL) {
+sk_reuseport_cb * @"<declarations>/struct--sock_reuseport.txt"
+__UNIQUE_ID_rh_kabi_hide86 struct (NULL) {
+0x0 rh_reserved3 * func (NULL) (
+)
+"void"
+}
+(NULL) union (NULL) {
+}
+}
+0x2d0 sk_rcu @"struct--callback_head.txt"
+0x2e0 rh_reserved6 * func (NULL) (
+)
+"void"
+0x2e8 rh_reserved7 * func (NULL) (
+)
+"void"
+0x2f0 rh_reserved8 * func (NULL) (
+)
+"void"
+}

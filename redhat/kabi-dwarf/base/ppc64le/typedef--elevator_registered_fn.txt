@@ -1,0 +1,8 @@
+Version: 1.0
+File: include/linux/elevator.h:51
+Symbol:
+typedef elevator_registered_fn
+func (NULL) (
+(NULL) * @"struct--request_queue.txt"
+)
+"void"

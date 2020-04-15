@@ -1,0 +1,15 @@
+Version: 1.0
+File: include/linux/netfilter/x_tables.h:251
+Symbol:
+Byte size 72
+struct xt_table_info {
+0x0 size "unsigned int"
+0x4 number "unsigned int"
+0x8 initial_entries "unsigned int"
+0xc hook_entry [5]"unsigned int"
+0x20 underflow [5]"unsigned int"
+0x34 stacksize "unsigned int"
+0x38 stackptr * "unsigned int"
+0x40 jumpstack * * * "void"
+0x48 entries [0]"unsigned char"
+}

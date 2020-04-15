@@ -1,0 +1,7 @@
+Version: 1.0
+File: drivers/scsi/scsi_sysfs.c:1319
+Symbol:
+func scsi_register_driver (
+drv * @"struct--device_driver.txt"
+)
+"int"

@@ -1,0 +1,8 @@
+Version: 1.0
+File: arch/x86/kernel/nmi.c:168
+Symbol:
+func unregister_nmi_handler (
+type "unsigned int"
+name * const "char"
+)
+"void"

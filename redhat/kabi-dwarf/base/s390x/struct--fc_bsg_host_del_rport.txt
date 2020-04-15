@@ -1,0 +1,8 @@
+Version: 1.0
+File: include/uapi/scsi/scsi_bsg_fc.h:103
+Symbol:
+Byte size 4
+struct fc_bsg_host_del_rport {
+0x0 reserved @"typedef--uint8_t.txt"
+0x1 port_id [3]@"typedef--uint8_t.txt"
+}

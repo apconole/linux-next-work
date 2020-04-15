@@ -1,0 +1,5 @@
+Version: 1.0
+File: arch/powerpc/include/asm/processor.h:178
+Symbol:
+struct debug_reg {
+}

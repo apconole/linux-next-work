@@ -1,0 +1,7 @@
+Version: 1.0
+File: drivers/base/bus.c:933
+Symbol:
+func bus_register (
+bus * @"struct--bus_type.txt"
+)
+"int"

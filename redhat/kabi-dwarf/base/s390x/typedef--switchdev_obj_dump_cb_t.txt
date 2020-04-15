@@ -1,0 +1,9 @@
+Version: 1.0
+File: include/net/switchdev.h:127
+Symbol:
+Byte size 4
+typedef switchdev_obj_dump_cb_t
+func (NULL) (
+(NULL) * @"struct--switchdev_obj.txt"
+)
+"int"

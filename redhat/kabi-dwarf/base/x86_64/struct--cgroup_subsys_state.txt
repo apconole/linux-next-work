@@ -1,0 +1,11 @@
+Version: 1.0
+File: include/linux/cgroup.h:93
+Symbol:
+Byte size 64
+struct cgroup_subsys_state {
+0x0 cgroup * @"struct--cgroup.txt"
+0x8 refcnt @"typedef--atomic_t.txt"
+0x10 flags "long unsigned int"
+0x18 id * @"<declarations>/struct--css_id.txt"
+0x20 dput_work @"struct--work_struct.txt"
+}

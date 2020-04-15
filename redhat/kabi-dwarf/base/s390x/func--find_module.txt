@@ -1,0 +1,7 @@
+Version: 1.0
+File: kernel/module.c:508
+Symbol:
+func find_module (
+name * const "char"
+)
+* @"struct--module.txt"

@@ -1,0 +1,8 @@
+Version: 1.0
+File: include/asm-generic/pgtable-nopud.h:13
+Symbol:
+Byte size 8
+typedef pud_t
+struct (NULL) {
+0x0 pgd @"typedef--pgd_t.txt"
+}

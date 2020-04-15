@@ -1,0 +1,441 @@
+Version: 1.0
+File: include/linux/ethtool.h:330
+Symbol:
+Byte size 496
+struct ethtool_ops {
+0x0 get_settings * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+(NULL) * @"struct--ethtool_cmd.txt"
+)
+"int"
+0x8 set_settings * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+(NULL) * @"struct--ethtool_cmd.txt"
+)
+"int"
+0x10 get_drvinfo * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+(NULL) * @"struct--ethtool_drvinfo.txt"
+)
+"void"
+0x18 get_regs_len * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+)
+"int"
+0x20 get_regs * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+(NULL) * @"struct--ethtool_regs.txt"
+(NULL) * "void"
+)
+"void"
+0x28 get_wol * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+(NULL) * @"struct--ethtool_wolinfo.txt"
+)
+"void"
+0x30 set_wol * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+(NULL) * @"struct--ethtool_wolinfo.txt"
+)
+"int"
+0x38 get_msglevel * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+)
+@"typedef--u32.txt"
+0x40 set_msglevel * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+(NULL) @"typedef--u32.txt"
+)
+"void"
+0x48 nway_reset * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+)
+"int"
+0x50 get_link * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+)
+@"typedef--u32.txt"
+0x58 get_eeprom_len * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+)
+"int"
+0x60 get_eeprom * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+(NULL) * @"struct--ethtool_eeprom.txt"
+(NULL) * @"typedef--u8.txt"
+)
+"int"
+0x68 set_eeprom * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+(NULL) * @"struct--ethtool_eeprom.txt"
+(NULL) * @"typedef--u8.txt"
+)
+"int"
+0x70 get_coalesce * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+(NULL) * @"struct--ethtool_coalesce.txt"
+)
+"int"
+0x78 set_coalesce * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+(NULL) * @"struct--ethtool_coalesce.txt"
+)
+"int"
+0x80 get_ringparam * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+(NULL) * @"struct--ethtool_ringparam.txt"
+)
+"void"
+0x88 set_ringparam * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+(NULL) * @"struct--ethtool_ringparam.txt"
+)
+"int"
+0x90 get_pauseparam * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+(NULL) * @"struct--ethtool_pauseparam.txt"
+)
+"void"
+0x98 set_pauseparam * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+(NULL) * @"struct--ethtool_pauseparam.txt"
+)
+"int"
+0xa0 self_test * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+(NULL) * @"struct--ethtool_test.txt"
+(NULL) * @"typedef--u64.txt"
+)
+"void"
+0xa8 get_strings * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+(NULL) @"typedef--u32.txt"
+(NULL) * @"typedef--u8.txt"
+)
+"void"
+0xb0 set_phys_id * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+(NULL) @"enum--ethtool_phys_id_state.txt"
+)
+"int"
+0xb8 get_ethtool_stats * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+(NULL) * @"struct--ethtool_stats.txt"
+(NULL) * @"typedef--u64.txt"
+)
+"void"
+0xc0 begin * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+)
+"int"
+0xc8 complete * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+)
+"void"
+0xd0 get_priv_flags * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+)
+@"typedef--u32.txt"
+0xd8 set_priv_flags * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+(NULL) @"typedef--u32.txt"
+)
+"int"
+0xe0 get_sset_count * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+(NULL) "int"
+)
+"int"
+0xe8 get_rxnfc * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+(NULL) * @"struct--ethtool_rxnfc.txt"
+(NULL) * @"typedef--u32.txt"
+)
+"int"
+0xf0 set_rxnfc * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+(NULL) * @"struct--ethtool_rxnfc.txt"
+)
+"int"
+0xf8 flash_device * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+(NULL) * @"struct--ethtool_flash.txt"
+)
+"int"
+0x100 reset * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+(NULL) * @"typedef--u32.txt"
+)
+"int"
+0x108 get_rxfh_indir_size * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+)
+@"typedef--u32.txt"
+0x110 get_rxfh_indir * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+(NULL) * @"typedef--u32.txt"
+)
+"int"
+0x118 set_rxfh_indir * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+(NULL) * const @"typedef--u32.txt"
+)
+"int"
+0x120 get_channels * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+(NULL) * @"struct--ethtool_channels.txt"
+)
+"void"
+0x128 set_channels * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+(NULL) * @"struct--ethtool_channels.txt"
+)
+"int"
+0x130 get_dump_flag * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+(NULL) * @"struct--ethtool_dump.txt"
+)
+"int"
+0x138 get_dump_data * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+(NULL) * @"struct--ethtool_dump.txt"
+(NULL) * "void"
+)
+"int"
+0x140 set_dump * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+(NULL) * @"struct--ethtool_dump.txt"
+)
+"int"
+0x148 get_ts_info * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+(NULL) * @"struct--ethtool_ts_info.txt"
+)
+"int"
+0x150 get_module_info * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+(NULL) * @"struct--ethtool_modinfo.txt"
+)
+"int"
+0x158 get_module_eeprom * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+(NULL) * @"struct--ethtool_eeprom.txt"
+(NULL) * @"typedef--u8.txt"
+)
+"int"
+0x160 get_eee * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+(NULL) * @"struct--ethtool_eee.txt"
+)
+"int"
+0x168 set_eee * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+(NULL) * @"struct--ethtool_eee.txt"
+)
+"int"
+0x170 (NULL) union (NULL) {
+get_rxfh_key_size * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+)
+@"typedef--u32.txt"
+__UNIQUE_ID_rh_kabi_hide28 struct (NULL) {
+0x0 rh_reserved1 * func (NULL) (
+)
+"void"
+}
+(NULL) union (NULL) {
+}
+}
+0x178 (NULL) union (NULL) {
+get_rxfh * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+(NULL) * @"typedef--u32.txt"
+(NULL) * @"typedef--u8.txt"
+(NULL) * @"typedef--u8.txt"
+)
+"int"
+__UNIQUE_ID_rh_kabi_hide29 struct (NULL) {
+0x0 rh_reserved2 * func (NULL) (
+)
+"void"
+}
+(NULL) union (NULL) {
+}
+}
+0x180 (NULL) union (NULL) {
+set_rxfh * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+(NULL) * const @"typedef--u32.txt"
+(NULL) * const @"typedef--u8.txt"
+(NULL) const @"typedef--u8.txt"
+)
+"int"
+__UNIQUE_ID_rh_kabi_hide30 struct (NULL) {
+0x0 rh_reserved3 * func (NULL) (
+)
+"void"
+}
+(NULL) union (NULL) {
+}
+}
+0x188 (NULL) union (NULL) {
+get_tunable * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+(NULL) * const @"struct--ethtool_tunable.txt"
+(NULL) * "void"
+)
+"int"
+__UNIQUE_ID_rh_kabi_hide31 struct (NULL) {
+0x0 rh_reserved4 * func (NULL) (
+)
+"void"
+}
+(NULL) union (NULL) {
+}
+}
+0x190 (NULL) union (NULL) {
+set_tunable * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+(NULL) * const @"struct--ethtool_tunable.txt"
+(NULL) * const "void"
+)
+"int"
+__UNIQUE_ID_rh_kabi_hide32 struct (NULL) {
+0x0 rh_reserved5 * func (NULL) (
+)
+"void"
+}
+(NULL) union (NULL) {
+}
+}
+0x198 (NULL) union (NULL) {
+get_per_queue_coalesce * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+(NULL) @"typedef--u32.txt"
+(NULL) * @"struct--ethtool_coalesce.txt"
+)
+"int"
+__UNIQUE_ID_rh_kabi_hide33 struct (NULL) {
+0x0 rh_reserved6 * func (NULL) (
+)
+"void"
+}
+(NULL) union (NULL) {
+}
+}
+0x1a0 (NULL) union (NULL) {
+set_per_queue_coalesce * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+(NULL) @"typedef--u32.txt"
+(NULL) * @"struct--ethtool_coalesce.txt"
+)
+"int"
+__UNIQUE_ID_rh_kabi_hide34 struct (NULL) {
+0x0 rh_reserved7 * func (NULL) (
+)
+"void"
+}
+(NULL) union (NULL) {
+}
+}
+0x1a8 (NULL) union (NULL) {
+get_link_ksettings * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+(NULL) * @"struct--ethtool_link_ksettings.txt"
+)
+"int"
+__UNIQUE_ID_rh_kabi_hide35 struct (NULL) {
+0x0 rh_reserved8 * func (NULL) (
+)
+"void"
+}
+(NULL) union (NULL) {
+}
+}
+0x1b0 (NULL) union (NULL) {
+set_link_ksettings * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+(NULL) * const @"struct--ethtool_link_ksettings.txt"
+)
+"int"
+__UNIQUE_ID_rh_kabi_hide36 struct (NULL) {
+0x0 rh_reserved9 * func (NULL) (
+)
+"void"
+}
+(NULL) union (NULL) {
+}
+}
+0x1b8 (NULL) union (NULL) {
+get_fecparam * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+(NULL) * @"struct--ethtool_fecparam.txt"
+)
+"int"
+__UNIQUE_ID_rh_kabi_hide37 struct (NULL) {
+0x0 rh_reserved10 * func (NULL) (
+)
+"void"
+}
+(NULL) union (NULL) {
+}
+}
+0x1c0 (NULL) union (NULL) {
+set_fecparam * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+(NULL) * @"struct--ethtool_fecparam.txt"
+)
+"int"
+__UNIQUE_ID_rh_kabi_hide38 struct (NULL) {
+0x0 rh_reserved11 * func (NULL) (
+)
+"void"
+}
+(NULL) union (NULL) {
+}
+}
+0x1c8 (NULL) union (NULL) {
+get_rxfh_context * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+(NULL) * @"typedef--u32.txt"
+(NULL) * @"typedef--u8.txt"
+(NULL) * @"typedef--u8.txt"
+(NULL) @"typedef--u32.txt"
+)
+"int"
+__UNIQUE_ID_rh_kabi_hide39 struct (NULL) {
+0x0 rh_reserved12 * func (NULL) (
+)
+"void"
+}
+(NULL) union (NULL) {
+}
+}
+0x1d0 (NULL) union (NULL) {
+set_rxfh_context * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+(NULL) * const @"typedef--u32.txt"
+(NULL) * const @"typedef--u8.txt"
+(NULL) const @"typedef--u8.txt"
+(NULL) * @"typedef--u32.txt"
+(NULL) @"typedef--bool.txt"
+)
+"int"
+__UNIQUE_ID_rh_kabi_hide40 struct (NULL) {
+0x0 rh_reserved13 * func (NULL) (
+)
+"void"
+}
+(NULL) union (NULL) {
+}
+}
+0x1d8 rh_reserved14 * func (NULL) (
+)
+"void"
+0x1e0 rh_reserved15 * func (NULL) (
+)
+"void"
+0x1e8 rh_reserved16 * func (NULL) (
+)
+"void"
+}

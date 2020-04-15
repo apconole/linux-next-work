@@ -1,0 +1,11 @@
+Version: 1.0
+File: mm/filemap.c:1378
+Symbol:
+func find_get_pages_tag (
+mapping * @"struct--address_space.txt"
+index * "long unsigned int"
+tag "int"
+nr_pages "unsigned int"
+pages * * @"struct--page.txt"
+)
+"unsigned int"

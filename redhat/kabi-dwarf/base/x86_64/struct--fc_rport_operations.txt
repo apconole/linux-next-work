@@ -1,0 +1,12 @@
+Version: 1.0
+File: include/scsi/libfc.h:149
+Symbol:
+Byte size 8
+struct fc_rport_operations {
+0x0 event_callback * func (NULL) (
+(NULL) * @"struct--fc_lport.txt"
+(NULL) * @"struct--fc_rport_priv.txt"
+(NULL) @"enum--fc_rport_event.txt"
+)
+"void"
+}

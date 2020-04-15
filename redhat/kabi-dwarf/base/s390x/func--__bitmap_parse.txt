@@ -1,0 +1,11 @@
+Version: 1.0
+File: lib/bitmap.c:432
+Symbol:
+func __bitmap_parse (
+buf * const "char"
+buflen "unsigned int"
+is_user "int"
+maskp * "long unsigned int"
+nmaskbits "int"
+)
+"int"

@@ -1,0 +1,8 @@
+Version: 1.0
+File: drivers/base/core.c:1728
+Symbol:
+func __root_device_register (
+name * const "char"
+owner * @"struct--module.txt"
+)
+* @"struct--device.txt"

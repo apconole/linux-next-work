@@ -1,0 +1,15 @@
+Version: 1.0
+File: include/linux/blkdev.h:81
+Symbol:
+Byte size 4
+enum rq_cmd_type_bits {
+REQ_TYPE_FS = 0x1
+REQ_TYPE_BLOCK_PC = 0x2
+REQ_TYPE_SENSE = 0x3
+REQ_TYPE_PM_SUSPEND = 0x4
+REQ_TYPE_PM_RESUME = 0x5
+REQ_TYPE_PM_SHUTDOWN = 0x6
+REQ_TYPE_DRV_PRIV = 0x7
+REQ_TYPE_ATA_TASKFILE = 0x8
+REQ_TYPE_ATA_PC = 0x9
+}

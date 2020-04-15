@@ -1,0 +1,6 @@
+Version: 1.0
+File: include/asm-generic/int-ll64.h:18
+Symbol:
+Byte size 2
+typedef s16
+"short int"

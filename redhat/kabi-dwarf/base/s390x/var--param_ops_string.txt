@@ -1,0 +1,4 @@
+Version: 1.0
+File: kernel/params.c:438
+Symbol:
+var param_ops_string @"struct--kernel_param_ops.txt"

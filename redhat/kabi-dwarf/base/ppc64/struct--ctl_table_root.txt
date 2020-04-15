@@ -1,0 +1,17 @@
+Version: 1.0
+File: include/linux/sysctl.h:166
+Symbol:
+Byte size 112
+struct ctl_table_root {
+0x0 default_set @"struct--ctl_table_set.txt"
+0x60 lookup * func (NULL) (
+(NULL) * @"struct--ctl_table_root.txt"
+(NULL) * @"struct--nsproxy.txt"
+)
+* @"struct--ctl_table_set.txt"
+0x68 permissions * func (NULL) (
+(NULL) * @"struct--ctl_table_header.txt"
+(NULL) * @"struct--ctl_table.txt"
+)
+"int"
+}

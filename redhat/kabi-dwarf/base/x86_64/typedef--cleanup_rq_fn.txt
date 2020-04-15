@@ -1,0 +1,8 @@
+Version: 1.0
+File: include/linux/blk-mq.h:168
+Symbol:
+typedef cleanup_rq_fn
+func (NULL) (
+(NULL) * @"struct--request.txt"
+)
+"void"

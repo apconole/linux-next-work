@@ -1,0 +1,8 @@
+Version: 1.0
+File: arch/s390/pci/pci.c:367
+Symbol:
+func pci_iounmap (
+pdev * @"struct--pci_dev.txt"
+addr * "void"
+)
+"void"

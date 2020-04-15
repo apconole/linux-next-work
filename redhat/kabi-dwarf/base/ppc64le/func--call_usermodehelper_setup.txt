@@ -1,0 +1,20 @@
+Version: 1.0
+File: kernel/kmod.c:525
+Symbol:
+func call_usermodehelper_setup (
+path * "char"
+argv * * "char"
+envp * * "char"
+gfp_mask @"typedef--gfp_t.txt"
+init * func (NULL) (
+(NULL) * @"struct--subprocess_info.txt"
+(NULL) * @"struct--cred.txt"
+)
+"int"
+cleanup * func (NULL) (
+(NULL) * @"struct--subprocess_info.txt"
+)
+"void"
+data * "void"
+)
+* @"struct--subprocess_info.txt"

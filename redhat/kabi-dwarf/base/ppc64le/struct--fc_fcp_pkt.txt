@@ -1,0 +1,31 @@
+Version: 1.0
+File: include/scsi/libfc.h:317
+Symbol:
+Byte size 256
+struct fc_fcp_pkt {
+0x0 scsi_pkt_lock @"typedef--spinlock_t.txt"
+0x4 ref_cnt @"typedef--atomic_t.txt"
+0x8 data_len @"typedef--u32.txt"
+0x10 cmd * @"struct--scsi_cmnd.txt"
+0x18 list @"struct--list_head.txt"
+0x28 lp * @"struct--fc_lport.txt"
+0x30 state @"typedef--u8.txt"
+0x31 cdb_status @"typedef--u8.txt"
+0x32 status_code @"typedef--u8.txt"
+0x33 scsi_comp_flags @"typedef--u8.txt"
+0x34 io_status @"typedef--u32.txt"
+0x38 req_flags @"typedef--u32.txt"
+0x3c scsi_resid @"typedef--u32.txt"
+0x40 xfer_len @"typedef--size_t.txt"
+0x48 cdb_cmd @"struct--fcp_cmnd.txt"
+0x68 xfer_contig_end @"typedef--u32.txt"
+0x6c max_payload @"typedef--u16.txt"
+0x6e xfer_ddp @"typedef--u16.txt"
+0x70 rport * @"struct--fc_rport.txt"
+0x78 seq_ptr * @"struct--fc_seq.txt"
+0x80 timer @"struct--timer_list.txt"
+0xd0 wait_for_comp "int"
+0xd4 recov_retry @"typedef--u32.txt"
+0xd8 recov_seq * @"struct--fc_seq.txt"
+0xe0 tm_done @"struct--completion.txt"
+}

@@ -1,0 +1,8 @@
+Version: 1.0
+File: kernel/irq/manage.c:259
+Symbol:
+func irq_set_affinity_hint (
+irq "unsigned int"
+m * const @"struct--cpumask.txt"
+)
+"int"

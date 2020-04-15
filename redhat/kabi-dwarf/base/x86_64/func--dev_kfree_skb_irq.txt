@@ -1,0 +1,7 @@
+Version: 1.0
+File: net/core/dev.c:2636
+Symbol:
+func dev_kfree_skb_irq (
+skb * @"struct--sk_buff.txt"
+)
+"void"

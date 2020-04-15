@@ -1,0 +1,9 @@
+Version: 1.0
+File: include/uapi/scsi/scsi_bsg_fc.h:264
+Symbol:
+Byte size 12
+struct fc_bsg_rport_ct {
+0x0 preamble_word0 @"typedef--uint32_t.txt"
+0x4 preamble_word1 @"typedef--uint32_t.txt"
+0x8 preamble_word2 @"typedef--uint32_t.txt"
+}

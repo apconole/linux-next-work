@@ -1,0 +1,13 @@
+Version: 1.0
+File: include/linux/quota.h:403
+Symbol:
+Byte size 296
+struct quota_info {
+0x0 flags "unsigned int"
+0x8 dqio_mutex @"struct--mutex.txt"
+0x30 dqonoff_mutex @"struct--mutex.txt"
+0x58 dqptr_sem @"struct--rw_semaphore.txt"
+0x78 files [2]* @"struct--inode.txt"
+0x88 info [2]@"struct--mem_dqinfo.txt"
+0x118 ops [2]* const @"struct--quota_format_ops.txt"
+}

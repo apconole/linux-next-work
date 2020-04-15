@@ -1,0 +1,8 @@
+Version: 1.0
+File: arch/powerpc/include/asm/device.h:13
+Symbol:
+Byte size 16
+struct dev_arch_dmadata {
+0x0 dma_offset @"typedef--dma_addr_t.txt"
+0x8 iommu_table_base * @"struct--iommu_table.txt"
+}

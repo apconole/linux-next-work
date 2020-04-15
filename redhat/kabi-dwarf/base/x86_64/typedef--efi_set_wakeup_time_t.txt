@@ -1,0 +1,9 @@
+Version: 1.0
+File: include/linux/efi.h:502
+Symbol:
+typedef efi_set_wakeup_time_t
+func (NULL) (
+(NULL) @"typedef--efi_bool_t.txt"
+(NULL) * @"typedef--efi_time_t.txt"
+)
+@"typedef--efi_status_t.txt"

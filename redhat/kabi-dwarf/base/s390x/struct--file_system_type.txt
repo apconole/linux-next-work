@@ -1,0 +1,29 @@
+Version: 1.0
+File: include/linux/fs.h:2117
+Symbol:
+Byte size 56
+struct file_system_type {
+0x0 name * const "char"
+0x8 fs_flags "int"
+0x10 mount * func (NULL) (
+(NULL) * @"struct--file_system_type.txt"
+(NULL) "int"
+(NULL) * const "char"
+(NULL) * "void"
+)
+* @"struct--dentry.txt"
+0x18 kill_sb * func (NULL) (
+(NULL) * @"struct--super_block.txt"
+)
+"void"
+0x20 owner * @"struct--module.txt"
+0x28 next * @"struct--file_system_type.txt"
+0x30 fs_supers @"struct--hlist_head.txt"
+0x38 s_lock_key @"struct--lock_class_key.txt"
+0x38 s_umount_key @"struct--lock_class_key.txt"
+0x38 s_vfs_rename_key @"struct--lock_class_key.txt"
+0x38 s_writers_key [3]@"struct--lock_class_key.txt"
+0x38 i_lock_key @"struct--lock_class_key.txt"
+0x38 i_mutex_key @"struct--lock_class_key.txt"
+0x38 i_mutex_dir_key @"struct--lock_class_key.txt"
+}

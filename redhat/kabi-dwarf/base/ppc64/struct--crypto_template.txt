@@ -1,0 +1,23 @@
+Version: 1.0
+File: include/crypto/algapi.h:50
+Symbol:
+Byte size 120
+struct crypto_template {
+0x0 list @"struct--list_head.txt"
+0x10 instances @"struct--hlist_head.txt"
+0x18 module * @"struct--module.txt"
+0x20 alloc * func (NULL) (
+(NULL) * * @"<declarations>/struct--rtattr.txt"
+)
+* @"struct--crypto_instance.txt"
+0x28 free * func (NULL) (
+(NULL) * @"struct--crypto_instance.txt"
+)
+"void"
+0x30 create * func (NULL) (
+(NULL) * @"struct--crypto_template.txt"
+(NULL) * * @"<declarations>/struct--rtattr.txt"
+)
+"int"
+0x38 name [64]"char"
+}

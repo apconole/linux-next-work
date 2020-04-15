@@ -1,0 +1,13 @@
+Version: 1.0
+File: include/linux/task_io_accounting.h:11
+Symbol:
+Byte size 56
+struct task_io_accounting {
+0x0 rchar @"typedef--u64.txt"
+0x8 wchar @"typedef--u64.txt"
+0x10 syscr @"typedef--u64.txt"
+0x18 syscw @"typedef--u64.txt"
+0x20 read_bytes @"typedef--u64.txt"
+0x28 write_bytes @"typedef--u64.txt"
+0x30 cancelled_write_bytes @"typedef--u64.txt"
+}

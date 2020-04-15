@@ -1,0 +1,5 @@
+Version: 1.0
+File: include/asm-generic/module.h:9
+Symbol:
+struct mod_arch_specific {
+}

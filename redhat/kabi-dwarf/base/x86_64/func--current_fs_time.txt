@@ -1,0 +1,7 @@
+Version: 1.0
+File: kernel/time.c:232
+Symbol:
+func current_fs_time (
+sb * @"struct--super_block.txt"
+)
+@"struct--timespec.txt"

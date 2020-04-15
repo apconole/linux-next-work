@@ -1,0 +1,16 @@
+Version: 1.0
+File: include/linux/ioc4.h:63
+Symbol:
+Byte size 4
+union ioc4_other_int {
+raw @"typedef--uint32_t.txt"
+fields struct (NULL) {
+0x0:0-1 ata_int @"typedef--uint32_t.txt"
+0x0:1-2 ata_memerr @"typedef--uint32_t.txt"
+0x0:2-6 memerr @"typedef--uint32_t.txt"
+0x0:6-7 kbd_int @"typedef--uint32_t.txt"
+0x0:7-23 reserved @"typedef--uint32_t.txt"
+0x2:7-8 rt_int @"typedef--uint32_t.txt"
+0x3:0-8 gen_int @"typedef--uint32_t.txt"
+}
+}

@@ -1,0 +1,7 @@
+Version: 1.0
+File: include/linux/capability.h:23
+Symbol:
+Byte size 8
+struct kernel_cap_struct {
+0x0 cap [2]@"typedef--__u32.txt"
+}

@@ -1,0 +1,7 @@
+Version: 1.0
+File: include/linux/pm.h:606
+Symbol:
+Byte size 184
+struct dev_pm_domain {
+0x0 ops @"struct--dev_pm_ops.txt"
+}

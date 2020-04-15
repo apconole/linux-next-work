@@ -1,0 +1,16 @@
+Version: 1.0
+File: arch/s390/include/asm/mmu.h:17
+Symbol:
+Byte size 80
+typedef mm_context_t
+struct (NULL) {
+0x0 attach_count @"typedef--atomic_t.txt"
+0x4 flush_mm "unsigned int"
+0x8 list_lock @"typedef--spinlock_t.txt"
+0x10 pgtable_list @"struct--list_head.txt"
+0x20 gmap_list @"struct--list_head.txt"
+0x30 asce "long unsigned int"
+0x38 asce_limit "long unsigned int"
+0x40 vdso_base "long unsigned int"
+0x48:0-1 has_pgste "unsigned int"
+}

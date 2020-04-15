@@ -1,0 +1,10 @@
+Version: 1.0
+File: fs/xattr.c:753
+Symbol:
+func generic_getxattr (
+dentry * @"struct--dentry.txt"
+name * const "char"
+buffer * "void"
+size @"typedef--size_t.txt"
+)
+@"typedef--ssize_t.txt"

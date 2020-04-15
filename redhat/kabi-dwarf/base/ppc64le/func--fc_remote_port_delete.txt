@@ -1,0 +1,7 @@
+Version: 1.0
+File: drivers/scsi/scsi_transport_fc.c:2978
+Symbol:
+func fc_remote_port_delete (
+rport * @"struct--fc_rport.txt"
+)
+"void"

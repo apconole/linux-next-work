@@ -1,0 +1,8 @@
+Version: 1.0
+File: block/blk-settings.c:212
+Symbol:
+func blk_queue_bounce_limit (
+q * @"struct--request_queue.txt"
+dma_mask @"typedef--u64.txt"
+)
+"void"

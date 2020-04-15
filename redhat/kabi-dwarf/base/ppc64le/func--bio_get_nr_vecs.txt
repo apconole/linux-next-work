@@ -1,0 +1,7 @@
+Version: 1.0
+File: fs/bio.c:639
+Symbol:
+func bio_get_nr_vecs (
+bdev * @"struct--block_device.txt"
+)
+"int"

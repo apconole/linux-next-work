@@ -1,0 +1,9 @@
+Version: 1.0
+File: include/linux/blk-mq.h:167
+Symbol:
+Byte size 4
+typedef map_queues_fn
+func (NULL) (
+(NULL) * @"struct--blk_mq_tag_set.txt"
+)
+"int"

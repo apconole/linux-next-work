@@ -1,0 +1,10 @@
+Version: 1.0
+File: include/uapi/linux/wireless.h:701
+Symbol:
+Byte size 8
+struct iw_freq {
+0x0 m @"typedef--__s32.txt"
+0x4 e @"typedef--__s16.txt"
+0x6 i @"typedef--__u8.txt"
+0x7 flags @"typedef--__u8.txt"
+}

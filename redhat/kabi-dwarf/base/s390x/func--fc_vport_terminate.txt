@@ -1,0 +1,7 @@
+Version: 1.0
+File: drivers/scsi/scsi_transport_fc.c:3502
+Symbol:
+func fc_vport_terminate (
+vport * @"struct--fc_vport.txt"
+)
+"int"

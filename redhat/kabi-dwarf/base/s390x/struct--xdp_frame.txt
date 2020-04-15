@@ -1,0 +1,11 @@
+Version: 1.0
+File: include/net/xdp.h:75
+Symbol:
+Byte size 24
+struct xdp_frame {
+0x0 data * "void"
+0x8 len @"typedef--u16.txt"
+0xa headroom @"typedef--u16.txt"
+0xc metasize @"typedef--u16.txt"
+0x10 mem @"struct--xdp_mem_info.txt"
+}

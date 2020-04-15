@@ -1,0 +1,16 @@
+Version: 1.0
+File: include/scsi/scsi_cmnd.h:42
+Symbol:
+Byte size 64
+struct scsi_pointer {
+0x0 ptr * "char"
+0x8 this_residual "int"
+0x10 buffer * @"struct--scatterlist.txt"
+0x18 buffers_residual "int"
+0x20 dma_handle @"typedef--dma_addr_t.txt"
+0x28 Status volatile "int"
+0x2c Message volatile "int"
+0x30 have_data_in volatile "int"
+0x34 sent_command volatile "int"
+0x38 phase volatile "int"
+}

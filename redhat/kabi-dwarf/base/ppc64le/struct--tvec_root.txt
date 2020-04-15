@@ -1,0 +1,7 @@
+Version: 1.0
+File: kernel/timer.c:76
+Symbol:
+Byte size 4096
+struct tvec_root {
+0x0 vec [256]@"struct--list_head.txt"
+}

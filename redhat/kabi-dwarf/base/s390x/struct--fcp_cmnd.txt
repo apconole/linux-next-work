@@ -1,0 +1,13 @@
+Version: 1.0
+File: include/scsi/fc/fc_fcp.h:49
+Symbol:
+Byte size 32
+struct fcp_cmnd {
+0x0 fc_lun @"struct--scsi_lun.txt"
+0x8 fc_cmdref @"typedef--__u8.txt"
+0x9 fc_pri_ta @"typedef--__u8.txt"
+0xa fc_tm_flags @"typedef--__u8.txt"
+0xb fc_flags @"typedef--__u8.txt"
+0xc fc_cdb [16]@"typedef--__u8.txt"
+0x1c fc_dl @"typedef--__be32.txt"
+}

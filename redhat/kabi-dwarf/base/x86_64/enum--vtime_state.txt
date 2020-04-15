@@ -1,0 +1,9 @@
+Version: 1.0
+File: include/linux/sched.h:806
+Symbol:
+Byte size 4
+enum vtime_state {
+VTIME_SLEEPING = 0x0
+VTIME_USER = 0x1
+VTIME_SYS = 0x2
+}

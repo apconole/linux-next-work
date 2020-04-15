@@ -1,0 +1,8 @@
+Version: 1.0
+File: arch/s390/pci/pci_dma.c:326
+Symbol:
+func dma_set_mask (
+dev * @"struct--device.txt"
+mask @"typedef--u64.txt"
+)
+"int"

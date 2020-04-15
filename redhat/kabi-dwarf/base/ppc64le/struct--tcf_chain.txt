@@ -1,0 +1,12 @@
+Version: 1.0
+File: include/net/sch_generic.h:290
+Symbol:
+Byte size 56
+struct tcf_chain {
+0x0 filter_chain * @"struct--tcf_proto.txt"
+0x8 filter_chain_list @"struct--list_head.txt"
+0x18 list @"struct--list_head.txt"
+0x28 block * @"struct--tcf_block.txt"
+0x30 index @"typedef--u32.txt"
+0x34 refcnt "unsigned int"
+}

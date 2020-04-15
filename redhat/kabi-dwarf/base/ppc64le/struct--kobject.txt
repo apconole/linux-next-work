@@ -1,0 +1,25 @@
+Version: 1.0
+File: include/linux/kobject.h:61
+Symbol:
+Byte size 64
+struct kobject {
+0x0 name * const "char"
+0x8 entry @"struct--list_head.txt"
+0x18 parent * @"struct--kobject.txt"
+0x20 kset * @"struct--kset.txt"
+0x28 ktype * @"struct--kobj_type.txt"
+0x30 (NULL) union (NULL) {
+sd * @"struct--kernfs_node.txt"
+__UNIQUE_ID_rh_kabi_hide2 struct (NULL) {
+0x0 sd * @"<declarations>/struct--sysfs_dirent.txt"
+}
+(NULL) union (NULL) {
+}
+}
+0x38 kref @"struct--kref.txt"
+0x3c:0-1 state_initialized "unsigned int"
+0x3c:1-2 state_in_sysfs "unsigned int"
+0x3c:2-3 state_add_uevent_sent "unsigned int"
+0x3c:3-4 state_remove_uevent_sent "unsigned int"
+0x3c:4-5 uevent_suppress "unsigned int"
+}

@@ -1,0 +1,10 @@
+Version: 1.0
+File: kernel/wait.c:164
+Symbol:
+func autoremove_wake_function (
+wait * @"typedef--wait_queue_t.txt"
+mode "unsigned int"
+sync "int"
+key * "void"
+)
+"int"

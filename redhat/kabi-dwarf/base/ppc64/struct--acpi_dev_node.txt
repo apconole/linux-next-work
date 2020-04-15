@@ -1,0 +1,5 @@
+Version: 1.0
+File: include/linux/device.h:727
+Symbol:
+struct acpi_dev_node {
+}

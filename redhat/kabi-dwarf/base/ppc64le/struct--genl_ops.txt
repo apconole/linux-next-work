@@ -1,0 +1,24 @@
+Version: 1.0
+File: include/net/genetlink.h:123
+Symbol:
+Byte size 40
+struct genl_ops {
+0x0 policy * const @"struct--nla_policy.txt"
+0x8 doit * func (NULL) (
+(NULL) * @"struct--sk_buff.txt"
+(NULL) * @"struct--genl_info.txt"
+)
+"int"
+0x10 dumpit * func (NULL) (
+(NULL) * @"struct--sk_buff.txt"
+(NULL) * @"struct--netlink_callback.txt"
+)
+"int"
+0x18 done * func (NULL) (
+(NULL) * @"struct--netlink_callback.txt"
+)
+"int"
+0x20 cmd @"typedef--u8.txt"
+0x21 internal_flags @"typedef--u8.txt"
+0x22 flags @"typedef--u8.txt"
+}

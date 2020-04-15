@@ -1,0 +1,10 @@
+Version: 1.0
+File: include/linux/netfilter/x_tables.h:138
+Symbol:
+Byte size 32
+struct xt_tgdtor_param {
+0x0 net * @"struct--net.txt"
+0x8 target * const @"struct--xt_target.txt"
+0x10 targinfo * "void"
+0x18 family @"typedef--u_int8_t.txt"
+}

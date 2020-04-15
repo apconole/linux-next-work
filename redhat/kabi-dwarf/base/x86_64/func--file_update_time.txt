@@ -1,0 +1,7 @@
+Version: 1.0
+File: fs/inode.c:1816
+Symbol:
+func file_update_time (
+file * @"struct--file.txt"
+)
+"int"

@@ -1,0 +1,39 @@
+Version: 1.0
+File: include/linux/pipe_fs_i.h:79
+Symbol:
+Byte size 56
+struct pipe_buf_operations {
+0x0 can_merge "int"
+0x8 map * func (NULL) (
+(NULL) * @"struct--pipe_inode_info.txt"
+(NULL) * @"struct--pipe_buffer.txt"
+(NULL) "int"
+)
+* "void"
+0x10 unmap * func (NULL) (
+(NULL) * @"struct--pipe_inode_info.txt"
+(NULL) * @"struct--pipe_buffer.txt"
+(NULL) * "void"
+)
+"void"
+0x18 confirm * func (NULL) (
+(NULL) * @"struct--pipe_inode_info.txt"
+(NULL) * @"struct--pipe_buffer.txt"
+)
+"int"
+0x20 release * func (NULL) (
+(NULL) * @"struct--pipe_inode_info.txt"
+(NULL) * @"struct--pipe_buffer.txt"
+)
+"void"
+0x28 steal * func (NULL) (
+(NULL) * @"struct--pipe_inode_info.txt"
+(NULL) * @"struct--pipe_buffer.txt"
+)
+"int"
+0x30 get * func (NULL) (
+(NULL) * @"struct--pipe_inode_info.txt"
+(NULL) * @"struct--pipe_buffer.txt"
+)
+"void"
+}

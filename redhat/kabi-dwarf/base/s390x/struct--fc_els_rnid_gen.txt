@@ -1,0 +1,16 @@
+Version: 1.0
+File: include/uapi/scsi/fc/fc_els.h:556
+Symbol:
+Byte size 52
+struct fc_els_rnid_gen {
+0x0 rnid_vend_id [16]@"typedef--__u8.txt"
+0x10 rnid_atype @"typedef--__be32.txt"
+0x14 rnid_phys_port @"typedef--__be32.txt"
+0x18 rnid_att_nodes @"typedef--__be32.txt"
+0x1c rnid_node_mgmt @"typedef--__u8.txt"
+0x1d rnid_ip_ver @"typedef--__u8.txt"
+0x1e rnid_prot_port @"typedef--__be16.txt"
+0x20 rnid_ip_addr [4]@"typedef--__be32.txt"
+0x30 rnid_resvd [2]@"typedef--__u8.txt"
+0x32 rnid_vend_spec @"typedef--__be16.txt"
+}

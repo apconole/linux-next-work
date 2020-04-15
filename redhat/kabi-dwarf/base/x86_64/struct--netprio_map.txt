@@ -1,0 +1,9 @@
+Version: 1.0
+File: include/net/netprio_cgroup.h:22
+Symbol:
+Byte size 24
+struct netprio_map {
+0x0 rcu @"struct--callback_head.txt"
+0x10 priomap_len @"typedef--u32.txt"
+0x14 priomap [0]@"typedef--u32.txt"
+}

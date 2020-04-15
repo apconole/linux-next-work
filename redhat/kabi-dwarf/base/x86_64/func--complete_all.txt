@@ -1,0 +1,7 @@
+Version: 1.0
+File: kernel/sched/core.c:3949
+Symbol:
+func complete_all (
+x * @"struct--completion.txt"
+)
+"void"

@@ -1,0 +1,5 @@
+Version: 1.0
+File: include/uapi/asm-generic/siginfo.h:120
+Symbol:
+typedef siginfo_t
+@"struct--siginfo.txt"

@@ -1,0 +1,28 @@
+Version: 1.0
+File: include/linux/blk-mq.h:190
+Symbol:
+Byte size 64
+struct blk_mq_ops {
+0x0 queue_rq * @"typedef--queue_rq_fn.txt"
+0x8 (NULL) union (NULL) {
+aux_ops * @"struct--blk_mq_aux_ops.txt"
+__UNIQUE_ID_rh_kabi_hide50 struct (NULL) {
+0x0 map_queue * @"typedef--map_queue_fn.txt"
+}
+(NULL) union (NULL) {
+}
+}
+0x10 (NULL) union (NULL) {
+timeout * @"typedef--timeout_fn.txt"
+__UNIQUE_ID_rh_kabi_hide51 struct (NULL) {
+0x0 timeout * @"typedef--rq_timed_out_fn.txt"
+}
+(NULL) union (NULL) {
+}
+}
+0x18 complete * @"typedef--softirq_done_fn.txt"
+0x20 init_request * @"typedef--init_request_fn.txt"
+0x28 exit_request * @"typedef--exit_request_fn.txt"
+0x30 init_hctx * @"typedef--init_hctx_fn.txt"
+0x38 exit_hctx * @"typedef--exit_hctx_fn.txt"
+}

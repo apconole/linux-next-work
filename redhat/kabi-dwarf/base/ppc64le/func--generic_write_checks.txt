@@ -1,0 +1,10 @@
+Version: 1.0
+File: mm/filemap.c:2741
+Symbol:
+func generic_write_checks (
+file * @"struct--file.txt"
+pos * @"typedef--loff_t.txt"
+count * @"typedef--size_t.txt"
+isblk "int"
+)
+"int"

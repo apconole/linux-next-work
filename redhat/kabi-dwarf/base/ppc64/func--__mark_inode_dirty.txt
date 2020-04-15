@@ -1,0 +1,8 @@
+Version: 1.0
+File: fs/fs-writeback.c:1179
+Symbol:
+func __mark_inode_dirty (
+inode * @"struct--inode.txt"
+flags "int"
+)
+"void"

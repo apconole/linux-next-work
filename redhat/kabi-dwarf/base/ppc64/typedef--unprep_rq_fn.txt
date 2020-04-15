@@ -1,0 +1,9 @@
+Version: 1.0
+File: include/linux/blkdev.h:269
+Symbol:
+typedef unprep_rq_fn
+func (NULL) (
+(NULL) * @"struct--request_queue.txt"
+(NULL) * @"struct--request.txt"
+)
+"void"

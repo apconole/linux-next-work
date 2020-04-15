@@ -1,0 +1,8 @@
+Version: 1.0
+File: fs/inode.c:477
+Symbol:
+func __insert_inode_hash (
+inode * @"struct--inode.txt"
+hashval "long unsigned int"
+)
+"void"

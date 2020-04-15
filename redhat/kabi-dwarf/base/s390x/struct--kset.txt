@@ -1,0 +1,10 @@
+Version: 1.0
+File: include/linux/kobject.h:163
+Symbol:
+Byte size 96
+struct kset {
+0x0 list @"struct--list_head.txt"
+0x10 list_lock @"typedef--spinlock_t.txt"
+0x18 kobj @"struct--kobject.txt"
+0x58 uevent_ops * const @"struct--kset_uevent_ops.txt"
+}

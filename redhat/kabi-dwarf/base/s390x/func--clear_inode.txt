@@ -1,0 +1,7 @@
+Version: 1.0
+File: fs/inode.c:505
+Symbol:
+func clear_inode (
+inode * @"struct--inode.txt"
+)
+"void"

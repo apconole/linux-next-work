@@ -1,0 +1,8 @@
+Version: 1.0
+File: kernel/exit.c:970
+Symbol:
+func complete_and_exit (
+comp * @"struct--completion.txt"
+code "long int"
+)
+"void"

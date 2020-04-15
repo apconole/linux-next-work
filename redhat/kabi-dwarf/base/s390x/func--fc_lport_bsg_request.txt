@@ -1,0 +1,7 @@
+Version: 1.0
+File: drivers/scsi/libfc/fc_lport.c:2070
+Symbol:
+func fc_lport_bsg_request (
+job * @"struct--fc_bsg_job.txt"
+)
+"int"

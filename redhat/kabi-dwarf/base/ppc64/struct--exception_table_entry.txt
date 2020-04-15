@@ -1,0 +1,8 @@
+Version: 1.0
+File: arch/powerpc/include/asm/uaccess.h:78
+Symbol:
+Byte size 16
+struct exception_table_entry {
+0x0 insn "long unsigned int"
+0x8 fixup "long unsigned int"
+}

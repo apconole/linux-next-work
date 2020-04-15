@@ -1,0 +1,10 @@
+Version: 1.0
+File: kernel/smp.c:274
+Symbol:
+func smp_call_function_single (
+cpu "int"
+func @"typedef--smp_call_func_t.txt"
+info * "void"
+wait "int"
+)
+"int"

@@ -1,0 +1,14 @@
+Version: 1.0
+File: mm/readahead.c:84
+Symbol:
+func read_cache_pages (
+mapping * @"struct--address_space.txt"
+pages * @"struct--list_head.txt"
+filler * func (NULL) (
+(NULL) * "void"
+(NULL) * @"struct--page.txt"
+)
+"int"
+data * "void"
+)
+"int"

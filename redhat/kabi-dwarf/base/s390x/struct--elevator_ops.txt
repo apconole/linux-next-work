@@ -1,0 +1,25 @@
+Version: 1.0
+File: include/linux/elevator.h:53
+Symbol:
+Byte size 152
+struct elevator_ops {
+0x0 elevator_merge_fn * @"typedef--elevator_merge_fn.txt"
+0x8 elevator_merged_fn * @"typedef--elevator_merged_fn.txt"
+0x10 elevator_merge_req_fn * @"typedef--elevator_merge_req_fn.txt"
+0x18 elevator_allow_merge_fn * @"typedef--elevator_allow_merge_fn.txt"
+0x20 elevator_bio_merged_fn * @"typedef--elevator_bio_merged_fn.txt"
+0x28 elevator_dispatch_fn * @"typedef--elevator_dispatch_fn.txt"
+0x30 elevator_add_req_fn * @"typedef--elevator_add_req_fn.txt"
+0x38 elevator_activate_req_fn * @"typedef--elevator_activate_req_fn.txt"
+0x40 elevator_deactivate_req_fn * @"typedef--elevator_deactivate_req_fn.txt"
+0x48 elevator_completed_req_fn * @"typedef--elevator_completed_req_fn.txt"
+0x50 elevator_former_req_fn * @"typedef--elevator_request_list_fn.txt"
+0x58 elevator_latter_req_fn * @"typedef--elevator_request_list_fn.txt"
+0x60 elevator_init_icq_fn * @"typedef--elevator_init_icq_fn.txt"
+0x68 elevator_exit_icq_fn * @"typedef--elevator_exit_icq_fn.txt"
+0x70 elevator_set_req_fn * @"typedef--elevator_set_req_fn.txt"
+0x78 elevator_put_req_fn * @"typedef--elevator_put_req_fn.txt"
+0x80 elevator_may_queue_fn * @"typedef--elevator_may_queue_fn.txt"
+0x88 elevator_init_fn * @"typedef--elevator_init_fn.txt"
+0x90 elevator_exit_fn * @"typedef--elevator_exit_fn.txt"
+}

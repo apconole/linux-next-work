@@ -1,0 +1,5 @@
+Version: 1.0
+File: include/linux/efi.h:43
+Symbol:
+typedef efi_char16_t
+@"typedef--u16.txt"

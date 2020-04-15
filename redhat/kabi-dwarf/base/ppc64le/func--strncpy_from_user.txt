@@ -1,0 +1,9 @@
+Version: 1.0
+File: lib/strncpy_from_user.c:98
+Symbol:
+func strncpy_from_user (
+dst * "char"
+src * const "char"
+count "long int"
+)
+"long int"

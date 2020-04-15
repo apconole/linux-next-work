@@ -1,0 +1,10 @@
+Version: 1.0
+File: include/linux/kobject.h:120
+Symbol:
+Byte size 2312
+struct kobj_uevent_env {
+0x0 envp [32]* "char"
+0x100 envp_idx "int"
+0x104 buf [2048]"char"
+0x904 buflen "int"
+}

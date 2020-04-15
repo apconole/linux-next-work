@@ -1,0 +1,5 @@
+Version: 1.0
+File: include/linux/ktime.h:59
+Symbol:
+typedef ktime_t
+@"union--ktime.txt"

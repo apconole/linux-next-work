@@ -1,0 +1,7 @@
+Version: 1.0
+File: net/core/dev.c:4894
+Symbol:
+func napi_gro_frags (
+napi * @"struct--napi_struct.txt"
+)
+@"typedef--gro_result_t.txt"

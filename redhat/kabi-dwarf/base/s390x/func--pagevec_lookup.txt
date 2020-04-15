@@ -1,0 +1,10 @@
+Version: 1.0
+File: mm/swap.c:1231
+Symbol:
+func pagevec_lookup (
+pvec * @"struct--pagevec.txt"
+mapping * @"struct--address_space.txt"
+start "long unsigned int"
+nr_pages "unsigned int"
+)
+"unsigned int"

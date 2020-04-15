@@ -1,0 +1,28 @@
+Version: 1.0
+File: include/uapi/linux/dqblk_xfs.h:52
+Symbol:
+Byte size 112
+struct fs_disk_quota {
+0x0 d_version @"typedef--__s8.txt"
+0x1 d_flags @"typedef--__s8.txt"
+0x2 d_fieldmask @"typedef--__u16.txt"
+0x4 d_id @"typedef--__u32.txt"
+0x8 d_blk_hardlimit @"typedef--__u64.txt"
+0x10 d_blk_softlimit @"typedef--__u64.txt"
+0x18 d_ino_hardlimit @"typedef--__u64.txt"
+0x20 d_ino_softlimit @"typedef--__u64.txt"
+0x28 d_bcount @"typedef--__u64.txt"
+0x30 d_icount @"typedef--__u64.txt"
+0x38 d_itimer @"typedef--__s32.txt"
+0x3c d_btimer @"typedef--__s32.txt"
+0x40 d_iwarns @"typedef--__u16.txt"
+0x42 d_bwarns @"typedef--__u16.txt"
+0x44 d_padding2 @"typedef--__s32.txt"
+0x48 d_rtb_hardlimit @"typedef--__u64.txt"
+0x50 d_rtb_softlimit @"typedef--__u64.txt"
+0x58 d_rtbcount @"typedef--__u64.txt"
+0x60 d_rtbtimer @"typedef--__s32.txt"
+0x64 d_rtbwarns @"typedef--__u16.txt"
+0x66 d_padding3 @"typedef--__s16.txt"
+0x68 d_padding4 [8]"char"
+}

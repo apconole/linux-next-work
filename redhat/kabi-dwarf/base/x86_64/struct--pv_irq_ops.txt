@@ -1,0 +1,19 @@
+Version: 1.0
+File: arch/x86/include/asm/paravirt_types.h:203
+Symbol:
+Byte size 56
+struct pv_irq_ops {
+0x0 save_fl @"struct--paravirt_callee_save.txt"
+0x8 restore_fl @"struct--paravirt_callee_save.txt"
+0x10 irq_disable @"struct--paravirt_callee_save.txt"
+0x18 irq_enable @"struct--paravirt_callee_save.txt"
+0x20 safe_halt * func (NULL) (
+)
+"void"
+0x28 halt * func (NULL) (
+)
+"void"
+0x30 adjust_exception_frame * func (NULL) (
+)
+"void"
+}

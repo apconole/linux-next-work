@@ -1,0 +1,6 @@
+Version: 1.0
+File: include/linux/efi.h:41
+Symbol:
+Byte size 8
+typedef efi_status_t
+"long unsigned int"

@@ -1,0 +1,7 @@
+Version: 1.0
+File: arch/x86/kernel/rtc.c:116
+Symbol:
+func rtc_cmos_read (
+addr "unsigned char"
+)
+"unsigned char"

@@ -1,0 +1,9 @@
+Version: 1.0
+File: lib/string.c:81
+Symbol:
+func strncasecmp (
+s1 * const "char"
+s2 * const "char"
+n @"typedef--size_t.txt"
+)
+"int"

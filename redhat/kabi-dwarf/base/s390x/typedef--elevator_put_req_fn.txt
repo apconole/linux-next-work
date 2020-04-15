@@ -1,0 +1,8 @@
+Version: 1.0
+File: include/linux/elevator.h:44
+Symbol:
+typedef elevator_put_req_fn
+func (NULL) (
+(NULL) * @"struct--request.txt"
+)
+"void"

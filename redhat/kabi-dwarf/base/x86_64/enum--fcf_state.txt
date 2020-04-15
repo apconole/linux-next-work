@@ -1,0 +1,10 @@
+Version: 1.0
+File: include/scsi/fcoe_sysfs.h:86
+Symbol:
+Byte size 4
+enum fcf_state {
+FCOE_FCF_STATE_UNKNOWN = 0x0
+FCOE_FCF_STATE_DISCONNECTED = 0x1
+FCOE_FCF_STATE_CONNECTED = 0x2
+FCOE_FCF_STATE_DELETED = 0x3
+}

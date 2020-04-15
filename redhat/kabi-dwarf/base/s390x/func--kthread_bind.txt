@@ -1,0 +1,8 @@
+Version: 1.0
+File: kernel/kthread.c:314
+Symbol:
+func kthread_bind (
+p * @"struct--task_struct.txt"
+cpu "unsigned int"
+)
+"void"

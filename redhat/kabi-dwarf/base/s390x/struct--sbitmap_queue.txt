@@ -1,0 +1,12 @@
+Version: 1.0
+File: include/linux/sbitmap.h:97
+Symbol:
+Byte size 56
+struct sbitmap_queue {
+0x0 sb @"struct--sbitmap.txt"
+0x18 alloc_hint * "unsigned int"
+0x20 wake_batch "unsigned int"
+0x24 wake_index @"typedef--atomic_t.txt"
+0x28 ws * @"struct--sbq_wait_state.txt"
+0x30 round_robin @"typedef--bool.txt"
+}

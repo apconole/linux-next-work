@@ -1,0 +1,10 @@
+Version: 1.0
+File: include/linux/blkdev.h:1242
+Symbol:
+Byte size 56
+struct blk_plug {
+0x0 magic "long unsigned int"
+0x8 list @"struct--list_head.txt"
+0x18 mq_list @"struct--list_head.txt"
+0x28 cb_list @"struct--list_head.txt"
+}

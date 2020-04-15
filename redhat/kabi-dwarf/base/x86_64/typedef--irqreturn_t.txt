@@ -1,0 +1,5 @@
+Version: 1.0
+File: include/linux/irqreturn.h:16
+Symbol:
+typedef irqreturn_t
+@"enum--irqreturn.txt"

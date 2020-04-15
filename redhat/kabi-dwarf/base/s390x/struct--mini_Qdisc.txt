@@ -1,0 +1,10 @@
+Version: 1.0
+File: include/net/sch_generic.h:974
+Symbol:
+Byte size 40
+struct mini_Qdisc {
+0x0 filter_list * @"struct--tcf_proto.txt"
+0x8 cpu_bstats * @"struct--gnet_stats_basic_cpu.txt"
+0x10 cpu_qstats * @"struct--gnet_stats_queue.txt"
+0x18 rcu @"struct--callback_head.txt"
+}

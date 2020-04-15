@@ -1,0 +1,9 @@
+Version: 1.0
+File: kernel/module.c:1413
+Symbol:
+Byte size 40
+struct module_sect_attrs {
+0x0 grp @"struct--attribute_group.txt"
+0x20 nsections "unsigned int"
+0x28 attrs [0]@"struct--module_sect_attr.txt"
+}

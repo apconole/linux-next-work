@@ -1,0 +1,9 @@
+Version: 1.0
+File: kernel/time/timeconv.c:77
+Symbol:
+func time_to_tm (
+totalsecs @"typedef--time_t.txt"
+offset "int"
+result * @"struct--tm.txt"
+)
+"void"

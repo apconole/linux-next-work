@@ -1,0 +1,7 @@
+Version: 1.0
+File: drivers/base/platform.c:174
+Symbol:
+func platform_device_put (
+pdev * @"struct--platform_device.txt"
+)
+"void"

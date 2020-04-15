@@ -1,0 +1,8 @@
+Version: 1.0
+File: arch/powerpc/include/asm/processor.h:160
+Symbol:
+Byte size 528
+struct thread_fp_state {
+0x0 fpr [32][2]@"typedef--u64.txt"
+0x200 fpscr @"typedef--u64.txt"
+}

@@ -1,0 +1,10 @@
+Version: 1.0
+File: net/ipv6/ip6_icmp.c:33
+Symbol:
+func icmpv6_send (
+skb * @"struct--sk_buff.txt"
+type @"typedef--u8.txt"
+code @"typedef--u8.txt"
+info @"typedef--__u32.txt"
+)
+"void"

@@ -1,0 +1,4 @@
+Version: 1.0
+File: arch/powerpc/mm/numa.c:56
+Symbol:
+var node_to_cpumask_map [256][1]@"struct--cpumask.txt"

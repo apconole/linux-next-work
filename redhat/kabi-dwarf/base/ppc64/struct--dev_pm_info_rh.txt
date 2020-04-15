@@ -1,0 +1,11 @@
+Version: 1.0
+File: include/linux/pm.h:593
+Symbol:
+Byte size 8
+struct dev_pm_info_rh {
+0x0 set_latency_tolerance * func (NULL) (
+(NULL) * @"struct--device.txt"
+(NULL) @"typedef--s32.txt"
+)
+"void"
+}

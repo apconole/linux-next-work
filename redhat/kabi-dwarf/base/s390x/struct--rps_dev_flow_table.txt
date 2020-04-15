@@ -1,0 +1,9 @@
+Version: 1.0
+File: include/linux/netdevice.h:709
+Symbol:
+Byte size 24
+struct rps_dev_flow_table {
+0x0 mask "unsigned int"
+0x8 rcu @"struct--callback_head.txt"
+0x18 flows [0]@"struct--rps_dev_flow.txt"
+}

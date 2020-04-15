@@ -1,0 +1,8 @@
+Version: 1.0
+File: crypto/api.c:592
+Symbol:
+func crypto_destroy_tfm (
+mem * "void"
+tfm * @"struct--crypto_tfm.txt"
+)
+"void"

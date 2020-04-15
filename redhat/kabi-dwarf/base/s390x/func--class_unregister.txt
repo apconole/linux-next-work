@@ -1,0 +1,7 @@
+Version: 1.0
+File: drivers/base/class.c:211
+Symbol:
+func class_unregister (
+cls * @"struct--class.txt"
+)
+"void"

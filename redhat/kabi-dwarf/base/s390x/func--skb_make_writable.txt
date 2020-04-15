@@ -1,0 +1,8 @@
+Version: 1.0
+File: net/netfilter/core.c:204
+Symbol:
+func skb_make_writable (
+skb * @"struct--sk_buff.txt"
+writable_len "unsigned int"
+)
+"int"

@@ -1,0 +1,8 @@
+Version: 1.0
+File: include/linux/elevator.h:40
+Symbol:
+typedef elevator_init_icq_fn
+func (NULL) (
+(NULL) * @"struct--io_cq.txt"
+)
+"void"

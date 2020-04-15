@@ -1,0 +1,51 @@
+Version: 1.0
+File: include/linux/pci_hotplug.h:62
+Symbol:
+Byte size 88
+struct hotplug_slot_ops {
+0x0 owner * @"struct--module.txt"
+0x8 mod_name * const "char"
+0x10 enable_slot * func (NULL) (
+(NULL) * @"struct--hotplug_slot.txt"
+)
+"int"
+0x18 disable_slot * func (NULL) (
+(NULL) * @"struct--hotplug_slot.txt"
+)
+"int"
+0x20 set_attention_status * func (NULL) (
+(NULL) * @"struct--hotplug_slot.txt"
+(NULL) @"typedef--u8.txt"
+)
+"int"
+0x28 hardware_test * func (NULL) (
+(NULL) * @"struct--hotplug_slot.txt"
+(NULL) @"typedef--u32.txt"
+)
+"int"
+0x30 get_power_status * func (NULL) (
+(NULL) * @"struct--hotplug_slot.txt"
+(NULL) * @"typedef--u8.txt"
+)
+"int"
+0x38 get_attention_status * func (NULL) (
+(NULL) * @"struct--hotplug_slot.txt"
+(NULL) * @"typedef--u8.txt"
+)
+"int"
+0x40 get_latch_status * func (NULL) (
+(NULL) * @"struct--hotplug_slot.txt"
+(NULL) * @"typedef--u8.txt"
+)
+"int"
+0x48 get_adapter_status * func (NULL) (
+(NULL) * @"struct--hotplug_slot.txt"
+(NULL) * @"typedef--u8.txt"
+)
+"int"
+0x50 reset_slot * func (NULL) (
+(NULL) * @"struct--hotplug_slot.txt"
+(NULL) "int"
+)
+"int"
+}

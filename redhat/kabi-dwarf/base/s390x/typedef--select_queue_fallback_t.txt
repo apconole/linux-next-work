@@ -1,0 +1,10 @@
+Version: 1.0
+File: include/linux/netdevice.h:837
+Symbol:
+Byte size 8
+typedef select_queue_fallback_t
+* func (NULL) (
+(NULL) * @"struct--net_device.txt"
+(NULL) * @"struct--sk_buff.txt"
+)
+@"typedef--u16.txt"

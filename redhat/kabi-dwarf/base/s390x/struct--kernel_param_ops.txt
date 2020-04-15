@@ -1,0 +1,20 @@
+Version: 1.0
+File: include/linux/moduleparam.h:39
+Symbol:
+Byte size 24
+struct kernel_param_ops {
+0x0 set * func (NULL) (
+(NULL) * const "char"
+(NULL) * const @"struct--kernel_param.txt"
+)
+"int"
+0x8 get * func (NULL) (
+(NULL) * "char"
+(NULL) * const @"struct--kernel_param.txt"
+)
+"int"
+0x10 free * func (NULL) (
+(NULL) * "void"
+)
+"void"
+}

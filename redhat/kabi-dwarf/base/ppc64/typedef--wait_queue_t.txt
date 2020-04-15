@@ -1,0 +1,5 @@
+Version: 1.0
+File: include/linux/wait.h:11
+Symbol:
+typedef wait_queue_t
+@"struct--__wait_queue.txt"

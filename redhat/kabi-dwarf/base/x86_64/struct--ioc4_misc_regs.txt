@@ -1,0 +1,23 @@
+Version: 1.0
+File: include/linux/ioc4.h:31
+Symbol:
+Byte size 96
+struct ioc4_misc_regs {
+0x0 pci_err_addr_l @"union--ioc4_pci_err_addr_l.txt"
+0x4 pci_err_addr_h @"typedef--uint32_t.txt"
+0x8 sio_ir @"union--ioc4_sio_int.txt"
+0xc other_ir @"union--ioc4_other_int.txt"
+0x10 sio_ies @"union--ioc4_sio_int.txt"
+0x14 other_ies @"union--ioc4_other_int.txt"
+0x18 sio_iec @"union--ioc4_sio_int.txt"
+0x1c other_iec @"union--ioc4_other_int.txt"
+0x20 sio_cr @"union--ioc4_sio_cr.txt"
+0x24 unused1 @"typedef--uint32_t.txt"
+0x28 int_out @"union--ioc4_int_out.txt"
+0x2c unused2 @"typedef--uint32_t.txt"
+0x30 gpcr_s @"union--ioc4_gpcr.txt"
+0x34 gpcr_c @"union--ioc4_gpcr.txt"
+0x38 gpdr @"union--ioc4_gpdr.txt"
+0x3c unused3 @"typedef--uint32_t.txt"
+0x40 gppr [8]@"union--ioc4_gppr.txt"
+}

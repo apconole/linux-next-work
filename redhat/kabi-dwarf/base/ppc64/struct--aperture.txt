@@ -1,0 +1,8 @@
+Version: 1.0
+File: include/linux/fb.h:506
+Symbol:
+Byte size 16
+struct aperture {
+0x0 base @"typedef--resource_size_t.txt"
+0x8 size @"typedef--resource_size_t.txt"
+}

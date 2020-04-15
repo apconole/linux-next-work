@@ -1,0 +1,58 @@
+Version: 1.0
+File: arch/powerpc/include/asm/pci-bridge.h:19
+Symbol:
+Byte size 96
+struct pci_controller_ops {
+0x0 dma_dev_setup * func (NULL) (
+(NULL) * @"struct--pci_dev.txt"
+)
+"void"
+0x8 dma_bus_setup * func (NULL) (
+(NULL) * @"struct--pci_bus.txt"
+)
+"void"
+0x10 probe_mode * func (NULL) (
+(NULL) * @"struct--pci_bus.txt"
+)
+"int"
+0x18 enable_device_hook * func (NULL) (
+(NULL) * @"struct--pci_dev.txt"
+)
+@"typedef--bool.txt"
+0x20 disable_device * func (NULL) (
+(NULL) * @"struct--pci_dev.txt"
+)
+"void"
+0x28 release_device * func (NULL) (
+(NULL) * @"struct--pci_dev.txt"
+)
+"void"
+0x30 window_alignment * func (NULL) (
+(NULL) * @"struct--pci_bus.txt"
+(NULL) "long unsigned int"
+)
+@"typedef--resource_size_t.txt"
+0x38 reset_secondary_bus * func (NULL) (
+(NULL) * @"struct--pci_dev.txt"
+)
+"void"
+0x40 setup_msi_irqs * func (NULL) (
+(NULL) * @"struct--pci_dev.txt"
+(NULL) "int"
+(NULL) "int"
+)
+"int"
+0x48 teardown_msi_irqs * func (NULL) (
+(NULL) * @"struct--pci_dev.txt"
+)
+"void"
+0x50 dma_set_mask * func (NULL) (
+(NULL) * @"struct--pci_dev.txt"
+(NULL) @"typedef--u64.txt"
+)
+"int"
+0x58 shutdown * func (NULL) (
+(NULL) * @"struct--pci_controller.txt"
+)
+"void"
+}

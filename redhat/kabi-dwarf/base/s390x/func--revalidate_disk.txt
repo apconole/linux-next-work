@@ -1,0 +1,7 @@
+Version: 1.0
+File: fs/block_dev.c:1103
+Symbol:
+func revalidate_disk (
+disk * @"struct--gendisk.txt"
+)
+"int"

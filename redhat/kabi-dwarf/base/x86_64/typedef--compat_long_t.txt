@@ -1,0 +1,5 @@
+Version: 1.0
+File: arch/x86/include/asm/compat.h:39
+Symbol:
+typedef compat_long_t
+@"typedef--s32.txt"

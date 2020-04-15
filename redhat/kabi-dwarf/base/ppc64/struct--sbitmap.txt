@@ -1,0 +1,10 @@
+Version: 1.0
+File: include/linux/sbitmap.h:48
+Symbol:
+Byte size 24
+struct sbitmap {
+0x0 depth "unsigned int"
+0x4 shift "unsigned int"
+0x8 map_nr "unsigned int"
+0x10 map * @"struct--sbitmap_word.txt"
+}

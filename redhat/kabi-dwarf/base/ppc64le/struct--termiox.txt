@@ -1,0 +1,10 @@
+Version: 1.0
+File: include/uapi/linux/termios.h:9
+Symbol:
+Byte size 16
+struct termiox {
+0x0 x_hflag @"typedef--__u16.txt"
+0x2 x_cflag @"typedef--__u16.txt"
+0x4 x_rflag [5]@"typedef--__u16.txt"
+0xe x_sflag @"typedef--__u16.txt"
+}

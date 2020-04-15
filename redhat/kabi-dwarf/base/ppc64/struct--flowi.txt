@@ -1,0 +1,12 @@
+Version: 1.0
+File: include/net/flow.h:181
+Symbol:
+Byte size 104
+struct flowi {
+0x0 u union (NULL) {
+__fl_common @"struct--flowi_common.txt"
+ip4 @"struct--flowi4.txt"
+ip6 @"struct--flowi6.txt"
+dn @"struct--flowidn.txt"
+}
+}

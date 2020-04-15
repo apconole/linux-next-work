@@ -1,0 +1,12 @@
+Version: 1.0
+File: include/linux/efi.h:68
+Symbol:
+Byte size 24
+typedef efi_table_hdr_t
+struct (NULL) {
+0x0 signature @"typedef--u64.txt"
+0x8 revision @"typedef--u32.txt"
+0xc headersize @"typedef--u32.txt"
+0x10 crc32 @"typedef--u32.txt"
+0x14 reserved @"typedef--u32.txt"
+}

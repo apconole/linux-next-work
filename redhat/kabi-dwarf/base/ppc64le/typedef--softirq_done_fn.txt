@@ -1,0 +1,8 @@
+Version: 1.0
+File: include/linux/blkdev.h:280
+Symbol:
+typedef softirq_done_fn
+func (NULL) (
+(NULL) * @"struct--request.txt"
+)
+"void"

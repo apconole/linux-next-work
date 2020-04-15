@@ -1,0 +1,7 @@
+Version: 1.0
+File: drivers/misc/ioc4.c:90
+Symbol:
+func ioc4_unregister_submodule (
+is * @"struct--ioc4_submodule.txt"
+)
+"void"

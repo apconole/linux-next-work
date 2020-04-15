@@ -1,0 +1,34 @@
+Version: 1.0
+File: include/net/neighbour.h:126
+Symbol:
+Byte size 376
+struct neighbour {
+0x0 next * @"struct--neighbour.txt"
+0x8 tbl * @"struct--neigh_table.txt"
+0x10 parms * @"struct--neigh_parms.txt"
+0x18 confirmed "long unsigned int"
+0x20 updated "long unsigned int"
+0x28 lock @"typedef--rwlock_t.txt"
+0x30 refcnt @"typedef--atomic_t.txt"
+0x38 arp_queue @"struct--sk_buff_head.txt"
+0x50 arp_queue_len_bytes "unsigned int"
+0x58 timer @"struct--timer_list.txt"
+0xa8 used "long unsigned int"
+0xb0 probes @"typedef--atomic_t.txt"
+0xb4 flags @"typedef--__u8.txt"
+0xb5 nud_state @"typedef--__u8.txt"
+0xb6 type @"typedef--__u8.txt"
+0xb7 dead @"typedef--__u8.txt"
+0xb8 ha_lock @"typedef--seqlock_t.txt"
+0xc0 ha [32]"unsigned char"
+0xe0 hh @"struct--hh_cache.txt"
+0x150 output * func (NULL) (
+(NULL) * @"struct--neighbour.txt"
+(NULL) * @"struct--sk_buff.txt"
+)
+"int"
+0x158 ops * const @"struct--neigh_ops.txt"
+0x160 rcu @"struct--callback_head.txt"
+0x170 dev * @"struct--net_device.txt"
+0x178 primary_key [0]@"typedef--u8.txt"
+}

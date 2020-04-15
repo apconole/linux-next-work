@@ -1,0 +1,32 @@
+Version: 1.0
+File: include/linux/pid_namespace.h:23
+Symbol:
+Byte size 2200
+struct pid_namespace {
+0x0 kref @"struct--kref.txt"
+0x8 pidmap [128]@"struct--pidmap.txt"
+0x808 last_pid "int"
+0x80c nr_hashed "unsigned int"
+0x810 child_reaper * @"struct--task_struct.txt"
+0x818 pid_cachep * @"struct--kmem_cache.txt"
+0x820 level "unsigned int"
+0x828 parent * @"struct--pid_namespace.txt"
+0x830 proc_mnt * @"struct--vfsmount.txt"
+0x838 proc_self * @"struct--dentry.txt"
+0x840 (NULL) union (NULL) {
+bacct * @"struct--fs_pin.txt"
+__UNIQUE_ID_rh_kabi_hide25 struct (NULL) {
+0x0 bacct * @"<declarations>/struct--bsd_acct_struct.txt"
+}
+(NULL) union (NULL) {
+}
+}
+0x848 user_ns * @"struct--user_namespace.txt"
+0x850 proc_work @"struct--work_struct.txt"
+0x870 pid_gid @"typedef--kgid_t.txt"
+0x874 hide_pid "int"
+0x878 reboot "int"
+0x87c proc_inum "unsigned int"
+0x880 rcu @"struct--callback_head.txt"
+0x890 ucounts * @"struct--ucounts.txt"
+}

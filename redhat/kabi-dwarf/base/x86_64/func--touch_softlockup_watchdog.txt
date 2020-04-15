@@ -1,0 +1,6 @@
+Version: 1.0
+File: kernel/watchdog.c:259
+Symbol:
+func touch_softlockup_watchdog (
+)
+"void"

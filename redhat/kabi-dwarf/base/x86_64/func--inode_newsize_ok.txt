@@ -1,0 +1,8 @@
+Version: 1.0
+File: fs/attr.c:119
+Symbol:
+func inode_newsize_ok (
+inode * const @"struct--inode.txt"
+offset @"typedef--loff_t.txt"
+)
+"int"

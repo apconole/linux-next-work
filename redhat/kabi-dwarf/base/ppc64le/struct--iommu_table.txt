@@ -1,0 +1,25 @@
+Version: 1.0
+File: arch/powerpc/include/asm/iommu.h:97
+Symbol:
+Byte size 896
+struct iommu_table {
+0x0 it_busno "long unsigned int"
+0x8 it_size "long unsigned int"
+0x10 it_indirect_levels "long unsigned int"
+0x18 it_level_size "long unsigned int"
+0x20 it_allocated_size "long unsigned int"
+0x28 it_offset "long unsigned int"
+0x30 it_base "long unsigned int"
+0x38 it_index "long unsigned int"
+0x40 it_type "long unsigned int"
+0x48 it_blocksize "long unsigned int"
+0x50 poolsize "long unsigned int"
+0x58 nr_pools "long unsigned int"
+0x80 large_pool @"struct--iommu_pool.txt"
+0x100 pools [4]@"struct--iommu_pool.txt"
+0x300 it_map * "long unsigned int"
+0x308 it_page_shift "long unsigned int"
+0x310 it_group_list @"struct--list_head.txt"
+0x320 it_userspace * "long unsigned int"
+0x328 it_ops * @"struct--iommu_table_ops.txt"
+}

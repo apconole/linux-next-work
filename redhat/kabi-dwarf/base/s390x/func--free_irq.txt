@@ -1,0 +1,8 @@
+Version: 1.0
+File: arch/s390/pci/pci.c:644
+Symbol:
+func free_irq (
+irq "unsigned int"
+dev_id * "void"
+)
+* const "void"

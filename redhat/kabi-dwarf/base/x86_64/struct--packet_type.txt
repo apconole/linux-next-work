@@ -1,0 +1,26 @@
+Version: 1.0
+File: include/linux/netdevice.h:2377
+Symbol:
+Byte size 88
+struct packet_type {
+0x0 type @"typedef--__be16.txt"
+0x8 dev * @"struct--net_device.txt"
+0x10 func * func (NULL) (
+(NULL) * @"struct--sk_buff.txt"
+(NULL) * @"struct--net_device.txt"
+(NULL) * @"struct--packet_type.txt"
+(NULL) * @"struct--net_device.txt"
+)
+"int"
+0x18 id_match * func (NULL) (
+(NULL) * @"struct--packet_type.txt"
+(NULL) * @"struct--sock.txt"
+)
+@"typedef--bool.txt"
+0x20 af_packet_priv * "void"
+0x28 list @"struct--list_head.txt"
+0x38 rh_reserved1 "long unsigned int"
+0x40 rh_reserved2 "long unsigned int"
+0x48 rh_reserved3 "long unsigned int"
+0x50 rh_reserved4 "long unsigned int"
+}

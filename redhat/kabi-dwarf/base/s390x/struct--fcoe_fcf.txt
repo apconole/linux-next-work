@@ -1,0 +1,22 @@
+Version: 1.0
+File: include/scsi/libfcoe.h:205
+Symbol:
+Byte size 120
+struct fcoe_fcf {
+0x0 list @"struct--list_head.txt"
+0x10 event_work @"struct--work_struct.txt"
+0x30 fip * @"struct--fcoe_ctlr.txt"
+0x38 fcf_dev * @"struct--fcoe_fcf_device.txt"
+0x40 time "long unsigned int"
+0x48 switch_name @"typedef--u64.txt"
+0x50 fabric_name @"typedef--u64.txt"
+0x58 fc_map @"typedef--u32.txt"
+0x5c vfid @"typedef--u16.txt"
+0x5e fcf_mac [6]@"typedef--u8.txt"
+0x64 fcoe_mac [6]@"typedef--u8.txt"
+0x6a pri @"typedef--u8.txt"
+0x6b flogi_sent @"typedef--u8.txt"
+0x6c flags @"typedef--u16.txt"
+0x70 fka_period @"typedef--u32.txt"
+0x74:0-1 fd_flags @"typedef--u8.txt"
+}

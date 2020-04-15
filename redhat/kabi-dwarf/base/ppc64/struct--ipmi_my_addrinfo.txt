@@ -1,0 +1,8 @@
+Version: 1.0
+File: drivers/char/ipmi/ipmi_msghandler.c:286
+Symbol:
+Byte size 2
+struct ipmi_my_addrinfo {
+0x0 address "unsigned char"
+0x1 lun "unsigned char"
+}

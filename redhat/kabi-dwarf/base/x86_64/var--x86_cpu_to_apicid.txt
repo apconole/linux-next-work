@@ -1,0 +1,4 @@
+Version: 1.0
+File: arch/x86/kernel/apic/apic.c:96
+Symbol:
+var x86_cpu_to_apicid @"typedef--u16.txt"

@@ -1,0 +1,5 @@
+Version: 1.0
+File: arch/x86/mm/kaslr.c:62
+Symbol:
+Byte size 8
+var vmemmap_base "long unsigned int"

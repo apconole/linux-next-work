@@ -1,0 +1,8 @@
+Version: 1.0
+File: drivers/scsi/scsi_error.c:2403
+Symbol:
+func scsi_reset_provider (
+dev * @"struct--scsi_device.txt"
+flag "int"
+)
+"int"

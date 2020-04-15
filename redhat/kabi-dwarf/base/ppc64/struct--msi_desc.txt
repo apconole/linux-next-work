@@ -1,0 +1,28 @@
+Version: 1.0
+File: include/linux/msi.h:29
+Symbol:
+Byte size 144
+struct msi_desc {
+0x0 msi_attrib struct (NULL) {
+0x0:0-1 is_msix @"typedef--__u8.txt"
+0x0:1-4 multiple @"typedef--__u8.txt"
+0x0:4-5 maskbit @"typedef--__u8.txt"
+0x0:5-6 is_64 @"typedef--__u8.txt"
+0x1 pos @"typedef--__u8.txt"
+0x2 entry_nr @"typedef--__u16.txt"
+0x4 default_irq "unsigned int"
+}
+0x8 masked @"typedef--u32.txt"
+0xc irq "unsigned int"
+0x10 nvec_used "unsigned int"
+0x14:0-3 multi_cap @"typedef--__u8.txt"
+0x18 list @"struct--list_head.txt"
+0x28 (NULL) union (NULL) {
+mask_base * "void"
+mask_pos @"typedef--u8.txt"
+}
+0x30 dev * @"struct--pci_dev.txt"
+0x38 msg @"struct--msi_msg.txt"
+0x48 kobj @"struct--kobject.txt"
+0x88 affinity * @"struct--cpumask.txt"
+}

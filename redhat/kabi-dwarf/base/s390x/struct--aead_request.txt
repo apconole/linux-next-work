@@ -1,0 +1,14 @@
+Version: 1.0
+File: include/linux/crypto.h:187
+Symbol:
+Byte size 88
+struct aead_request {
+0x0 base @"struct--crypto_async_request.txt"
+0x30 assoclen "unsigned int"
+0x34 cryptlen "unsigned int"
+0x38 iv * @"typedef--u8.txt"
+0x40 assoc * @"struct--scatterlist.txt"
+0x48 src * @"struct--scatterlist.txt"
+0x50 dst * @"struct--scatterlist.txt"
+0x58 __ctx [0]* "void"
+}

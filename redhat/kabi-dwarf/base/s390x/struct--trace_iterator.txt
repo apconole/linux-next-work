@@ -1,0 +1,26 @@
+Version: 1.0
+File: include/linux/ftrace_event.h:78
+Symbol:
+Byte size 8408
+struct trace_iterator {
+0x0 tr * @"<declarations>/struct--trace_array.txt"
+0x8 trace * @"<declarations>/struct--tracer.txt"
+0x10 trace_buffer * @"<declarations>/struct--trace_buffer.txt"
+0x18 private * "void"
+0x20 cpu_file "int"
+0x28 mutex @"struct--mutex.txt"
+0x50 buffer_iter * * @"<declarations>/struct--ring_buffer_iter.txt"
+0x58 iter_flags "long unsigned int"
+0x60 tmp_seq @"struct--trace_seq.txt"
+0x1070 started @"typedef--cpumask_var_t.txt"
+0x1090 snapshot @"typedef--bool.txt"
+0x1094 seq @"struct--trace_seq.txt"
+0x20a0 ent * @"struct--trace_entry.txt"
+0x20a8 lost_events "long unsigned int"
+0x20b0 leftover "int"
+0x20b4 ent_size "int"
+0x20b8 cpu "int"
+0x20c0 ts @"typedef--u64.txt"
+0x20c8 pos @"typedef--loff_t.txt"
+0x20d0 idx "long int"
+}

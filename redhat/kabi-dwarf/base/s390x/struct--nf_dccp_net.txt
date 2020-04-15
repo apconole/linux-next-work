@@ -1,0 +1,9 @@
+Version: 1.0
+File: include/net/netns/conntrack.h:62
+Symbol:
+Byte size 72
+struct nf_dccp_net {
+0x0 pn @"struct--nf_proto_net.txt"
+0x18 dccp_loose "int"
+0x1c dccp_timeout [10]"unsigned int"
+}

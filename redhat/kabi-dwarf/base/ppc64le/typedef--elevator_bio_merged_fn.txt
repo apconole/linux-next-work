@@ -1,0 +1,10 @@
+Version: 1.0
+File: include/linux/elevator.h:30
+Symbol:
+typedef elevator_bio_merged_fn
+func (NULL) (
+(NULL) * @"struct--request_queue.txt"
+(NULL) * @"struct--request.txt"
+(NULL) * @"struct--bio.txt"
+)
+"void"

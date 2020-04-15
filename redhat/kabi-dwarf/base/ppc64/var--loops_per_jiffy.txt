@@ -1,0 +1,5 @@
+Version: 1.0
+File: init/main.c:208
+Symbol:
+Byte size 8
+var loops_per_jiffy "long unsigned int"

@@ -1,0 +1,47 @@
+Version: 1.0
+File: include/linux/kernfs.h:196
+Symbol:
+Byte size 64
+struct kernfs_ops {
+0x0 seq_show * func (NULL) (
+(NULL) * @"struct--seq_file.txt"
+(NULL) * "void"
+)
+"int"
+0x8 seq_start * func (NULL) (
+(NULL) * @"struct--seq_file.txt"
+(NULL) * @"typedef--loff_t.txt"
+)
+* "void"
+0x10 seq_next * func (NULL) (
+(NULL) * @"struct--seq_file.txt"
+(NULL) * "void"
+(NULL) * @"typedef--loff_t.txt"
+)
+* "void"
+0x18 seq_stop * func (NULL) (
+(NULL) * @"struct--seq_file.txt"
+(NULL) * "void"
+)
+"void"
+0x20 read * func (NULL) (
+(NULL) * @"struct--kernfs_open_file.txt"
+(NULL) * "char"
+(NULL) @"typedef--size_t.txt"
+(NULL) @"typedef--loff_t.txt"
+)
+@"typedef--ssize_t.txt"
+0x28 atomic_write_len @"typedef--size_t.txt"
+0x30 write * func (NULL) (
+(NULL) * @"struct--kernfs_open_file.txt"
+(NULL) * "char"
+(NULL) @"typedef--size_t.txt"
+(NULL) @"typedef--loff_t.txt"
+)
+@"typedef--ssize_t.txt"
+0x38 mmap * func (NULL) (
+(NULL) * @"struct--kernfs_open_file.txt"
+(NULL) * @"struct--vm_area_struct.txt"
+)
+"int"
+}

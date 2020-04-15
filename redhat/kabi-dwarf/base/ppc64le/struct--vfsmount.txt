@@ -1,0 +1,9 @@
+Version: 1.0
+File: include/linux/mount.h:66
+Symbol:
+Byte size 24
+struct vfsmount {
+0x0 mnt_root * @"struct--dentry.txt"
+0x8 mnt_sb * @"struct--super_block.txt"
+0x10 mnt_flags "int"
+}

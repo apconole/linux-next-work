@@ -1,0 +1,12 @@
+Version: 1.0
+File: include/linux/blk-mq.h:158
+Symbol:
+Byte size 4
+typedef init_request_fn
+func (NULL) (
+(NULL) * @"struct--blk_mq_tag_set.txt"
+(NULL) * @"struct--request.txt"
+(NULL) "unsigned int"
+(NULL) "unsigned int"
+)
+"int"

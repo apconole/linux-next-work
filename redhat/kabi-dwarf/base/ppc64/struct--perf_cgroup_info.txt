@@ -1,0 +1,8 @@
+Version: 1.0
+File: include/linux/perf_event.h:737
+Symbol:
+Byte size 16
+struct perf_cgroup_info {
+0x0 time @"typedef--u64.txt"
+0x8 timestamp @"typedef--u64.txt"
+}

@@ -1,0 +1,7 @@
+Version: 1.0
+File: drivers/base/dd.c:663
+Symbol:
+func dev_get_drvdata (
+dev * const @"struct--device.txt"
+)
+* "void"

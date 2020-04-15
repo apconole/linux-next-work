@@ -1,0 +1,15 @@
+Version: 1.0
+File: arch/x86/include/asm/vm86.h:17
+Symbol:
+Byte size 184
+struct kernel_vm86_regs {
+0x0 pt @"struct--pt_regs.txt"
+0xa8 es "short unsigned int"
+0xaa __esh "short unsigned int"
+0xac ds "short unsigned int"
+0xae __dsh "short unsigned int"
+0xb0 fs "short unsigned int"
+0xb2 __fsh "short unsigned int"
+0xb4 gs "short unsigned int"
+0xb6 __gsh "short unsigned int"
+}

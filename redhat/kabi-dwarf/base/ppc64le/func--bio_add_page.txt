@@ -1,0 +1,10 @@
+Version: 1.0
+File: fs/bio.c:812
+Symbol:
+func bio_add_page (
+bio * @"struct--bio.txt"
+page * @"struct--page.txt"
+len "unsigned int"
+offset "unsigned int"
+)
+"int"

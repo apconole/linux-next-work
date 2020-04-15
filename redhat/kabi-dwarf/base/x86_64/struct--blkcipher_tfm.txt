@@ -1,0 +1,27 @@
+Version: 1.0
+File: include/linux/crypto.h:385
+Symbol:
+Byte size 32
+struct blkcipher_tfm {
+0x0 iv * "void"
+0x8 setkey * func (NULL) (
+(NULL) * @"struct--crypto_tfm.txt"
+(NULL) * const @"typedef--u8.txt"
+(NULL) "unsigned int"
+)
+"int"
+0x10 encrypt * func (NULL) (
+(NULL) * @"struct--blkcipher_desc.txt"
+(NULL) * @"struct--scatterlist.txt"
+(NULL) * @"struct--scatterlist.txt"
+(NULL) "unsigned int"
+)
+"int"
+0x18 decrypt * func (NULL) (
+(NULL) * @"struct--blkcipher_desc.txt"
+(NULL) * @"struct--scatterlist.txt"
+(NULL) * @"struct--scatterlist.txt"
+(NULL) "unsigned int"
+)
+"int"
+}

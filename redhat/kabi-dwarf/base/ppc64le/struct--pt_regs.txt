@@ -1,0 +1,19 @@
+Version: 1.0
+File: arch/powerpc/include/uapi/asm/ptrace.h:31
+Symbol:
+Byte size 352
+struct pt_regs {
+0x0 gpr [32]"long unsigned int"
+0x100 nip "long unsigned int"
+0x108 msr "long unsigned int"
+0x110 orig_gpr3 "long unsigned int"
+0x118 ctr "long unsigned int"
+0x120 link "long unsigned int"
+0x128 xer "long unsigned int"
+0x130 ccr "long unsigned int"
+0x138 softe "long unsigned int"
+0x140 trap "long unsigned int"
+0x148 dar "long unsigned int"
+0x150 dsisr "long unsigned int"
+0x158 result "long unsigned int"
+}

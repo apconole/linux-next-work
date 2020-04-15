@@ -1,0 +1,7 @@
+Version: 1.0
+File: fs/dcache.c:2170
+Symbol:
+func d_obtain_alias (
+inode * @"struct--inode.txt"
+)
+* @"struct--dentry.txt"

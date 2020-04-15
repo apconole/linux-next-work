@@ -1,0 +1,10 @@
+Version: 1.0
+File: arch/s390/include/uapi/asm/ptrace.h:204
+Symbol:
+Byte size 136
+typedef s390_fp_regs
+struct (NULL) {
+0x0 fpc @"typedef--__u32.txt"
+0x4 pad @"typedef--__u32.txt"
+0x8 fprs [16]@"typedef--freg_t.txt"
+}

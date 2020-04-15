@@ -1,0 +1,7 @@
+Version: 1.0
+File: fs/inode.c:299
+Symbol:
+func clear_nlink (
+inode * @"struct--inode.txt"
+)
+"void"

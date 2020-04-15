@@ -1,0 +1,7 @@
+Version: 1.0
+File: arch/powerpc/include/asm/mmu-hash64.h:514
+Symbol:
+Byte size 64
+struct protptrs_kabi {
+0x0 protptrs [8]* * "unsigned int"
+}

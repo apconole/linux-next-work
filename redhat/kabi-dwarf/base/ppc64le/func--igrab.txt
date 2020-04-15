@@ -1,0 +1,7 @@
+Version: 1.0
+File: fs/inode.c:1293
+Symbol:
+func igrab (
+inode * @"struct--inode.txt"
+)
+* @"struct--inode.txt"

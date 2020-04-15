@@ -1,0 +1,7 @@
+Version: 1.0
+File: block/genhd.c:1388
+Symbol:
+func alloc_disk (
+minors "int"
+)
+* @"struct--gendisk.txt"

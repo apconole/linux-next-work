@@ -1,0 +1,10 @@
+Version: 1.0
+File: include/uapi/linux/aio_abi.h:58
+Symbol:
+Byte size 32
+struct io_event {
+0x0 data @"typedef--__u64.txt"
+0x8 obj @"typedef--__u64.txt"
+0x10 res @"typedef--__s64.txt"
+0x18 res2 @"typedef--__s64.txt"
+}

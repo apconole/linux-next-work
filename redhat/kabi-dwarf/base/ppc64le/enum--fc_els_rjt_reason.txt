@@ -1,0 +1,16 @@
+Version: 1.0
+File: include/uapi/scsi/fc/fc_els.h:185
+Symbol:
+Byte size 4
+enum fc_els_rjt_reason {
+ELS_RJT_NONE = 0x0
+ELS_RJT_INVAL = 0x1
+ELS_RJT_LOGIC = 0x3
+ELS_RJT_BUSY = 0x5
+ELS_RJT_PROT = 0x7
+ELS_RJT_UNAB = 0x9
+ELS_RJT_UNSUP = 0xb
+ELS_RJT_INPROG = 0xe
+ELS_RJT_FIP = 0x20
+ELS_RJT_VENDOR = 0xff
+}

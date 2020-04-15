@@ -1,0 +1,17 @@
+Version: 1.0
+File: include/linux/ioc4.h:167
+Symbol:
+Byte size 48
+struct ioc4_submodule {
+0x0 is_list @"struct--list_head.txt"
+0x10 is_name * "char"
+0x18 is_owner * @"struct--module.txt"
+0x20 is_probe * func (NULL) (
+(NULL) * @"struct--ioc4_driver_data.txt"
+)
+"int"
+0x28 is_remove * func (NULL) (
+(NULL) * @"struct--ioc4_driver_data.txt"
+)
+"int"
+}

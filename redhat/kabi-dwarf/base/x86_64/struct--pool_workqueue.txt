@@ -1,0 +1,19 @@
+Version: 1.0
+File: kernel/workqueue.c:194
+Symbol:
+Byte size 256
+struct pool_workqueue {
+0x0 pool * @"struct--worker_pool.txt"
+0x8 wq * @"struct--workqueue_struct.txt"
+0x10 work_color "int"
+0x14 flush_color "int"
+0x18 refcnt "int"
+0x1c nr_in_flight [15]"int"
+0x58 nr_active "int"
+0x5c max_active "int"
+0x60 delayed_works @"struct--list_head.txt"
+0x70 pwqs_node @"struct--list_head.txt"
+0x80 mayday_node @"struct--list_head.txt"
+0x90 unbound_release_work @"struct--work_struct.txt"
+0xb0 rcu @"struct--callback_head.txt"
+}

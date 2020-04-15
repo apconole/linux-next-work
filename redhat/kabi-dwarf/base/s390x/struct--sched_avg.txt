@@ -1,0 +1,11 @@
+Version: 1.0
+File: include/linux/sched.h:1171
+Symbol:
+Byte size 32
+struct sched_avg {
+0x0 runnable_avg_sum @"typedef--u32.txt"
+0x4 runnable_avg_period @"typedef--u32.txt"
+0x8 last_runnable_update @"typedef--u64.txt"
+0x10 decay_count @"typedef--s64.txt"
+0x18 load_avg_contrib "long unsigned int"
+}

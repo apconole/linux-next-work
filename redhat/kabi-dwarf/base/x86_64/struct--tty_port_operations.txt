@@ -1,0 +1,32 @@
+Version: 1.0
+File: include/linux/tty.h:173
+Symbol:
+Byte size 48
+struct tty_port_operations {
+0x0 carrier_raised * func (NULL) (
+(NULL) * @"struct--tty_port.txt"
+)
+"int"
+0x8 dtr_rts * func (NULL) (
+(NULL) * @"struct--tty_port.txt"
+(NULL) "int"
+)
+"void"
+0x10 shutdown * func (NULL) (
+(NULL) * @"struct--tty_port.txt"
+)
+"void"
+0x18 drop * func (NULL) (
+(NULL) * @"struct--tty_port.txt"
+)
+"void"
+0x20 activate * func (NULL) (
+(NULL) * @"struct--tty_port.txt"
+(NULL) * @"struct--tty_struct.txt"
+)
+"int"
+0x28 destruct * func (NULL) (
+(NULL) * @"struct--tty_port.txt"
+)
+"void"
+}

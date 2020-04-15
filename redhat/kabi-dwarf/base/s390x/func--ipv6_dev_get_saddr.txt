@@ -1,0 +1,11 @@
+Version: 1.0
+File: net/ipv6/addrconf.c:1416
+Symbol:
+func ipv6_dev_get_saddr (
+net * @"struct--net.txt"
+dst_dev * const @"struct--net_device.txt"
+daddr * const @"struct--in6_addr.txt"
+prefs "unsigned int"
+saddr * @"struct--in6_addr.txt"
+)
+"int"

@@ -1,0 +1,12 @@
+Version: 1.0
+File: include/linux/blkdev.h:1713
+Symbol:
+Byte size 40
+struct blk_integrity_exchg {
+0x0 prot_buf * "void"
+0x8 data_buf * "void"
+0x10 sector @"typedef--sector_t.txt"
+0x18 data_size "unsigned int"
+0x1c sector_size "short unsigned int"
+0x20 disk_name * const "char"
+}

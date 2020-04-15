@@ -1,0 +1,8 @@
+Version: 1.0
+File: drivers/base/dd.c:671
+Symbol:
+func dev_set_drvdata (
+dev * @"struct--device.txt"
+data * "void"
+)
+"int"

@@ -1,0 +1,8 @@
+Version: 1.0
+File: net/core/skbuff.c:2633
+Symbol:
+func skb_unlink (
+skb * @"struct--sk_buff.txt"
+list * @"struct--sk_buff_head.txt"
+)
+"void"

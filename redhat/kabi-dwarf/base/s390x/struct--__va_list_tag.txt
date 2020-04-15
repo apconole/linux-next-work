@@ -1,0 +1,10 @@
+Version: 1.0
+File: <built-in>:0
+Symbol:
+Byte size 32
+struct __va_list_tag {
+0x0 __gpr "long int"
+0x8 __fpr "long int"
+0x10 __overflow_arg_area * "void"
+0x18 __reg_save_area * "void"
+}

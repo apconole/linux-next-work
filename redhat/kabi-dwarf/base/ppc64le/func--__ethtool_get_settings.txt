@@ -1,0 +1,8 @@
+Version: 1.0
+File: net/core/ethtool.c:736
+Symbol:
+func __ethtool_get_settings (
+dev * @"struct--net_device.txt"
+cmd * @"struct--ethtool_cmd.txt"
+)
+"int"

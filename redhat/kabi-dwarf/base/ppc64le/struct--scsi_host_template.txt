@@ -1,0 +1,199 @@
+Version: 1.0
+File: include/scsi/scsi_host.h:59
+Symbol:
+Byte size 384
+struct scsi_host_template {
+0x0 module * @"struct--module.txt"
+0x8 name * const "char"
+0x10 detect * func (NULL) (
+(NULL) * @"struct--scsi_host_template.txt"
+)
+"int"
+0x18 release * func (NULL) (
+(NULL) * @"struct--Scsi_Host.txt"
+)
+"int"
+0x20 info * func (NULL) (
+(NULL) * @"struct--Scsi_Host.txt"
+)
+* const "char"
+0x28 ioctl * func (NULL) (
+(NULL) * @"struct--scsi_device.txt"
+(NULL) "int"
+(NULL) * "void"
+)
+"int"
+0x30 compat_ioctl * func (NULL) (
+(NULL) * @"struct--scsi_device.txt"
+(NULL) "int"
+(NULL) * "void"
+)
+"int"
+0x38 queuecommand * func (NULL) (
+(NULL) * @"struct--Scsi_Host.txt"
+(NULL) * @"struct--scsi_cmnd.txt"
+)
+"int"
+0x40 transfer_response * func (NULL) (
+(NULL) * @"struct--scsi_cmnd.txt"
+(NULL) * func (NULL) (
+(NULL) * @"struct--scsi_cmnd.txt"
+)
+"void"
+)
+"int"
+0x48 eh_abort_handler * func (NULL) (
+(NULL) * @"struct--scsi_cmnd.txt"
+)
+"int"
+0x50 eh_device_reset_handler * func (NULL) (
+(NULL) * @"struct--scsi_cmnd.txt"
+)
+"int"
+0x58 eh_target_reset_handler * func (NULL) (
+(NULL) * @"struct--scsi_cmnd.txt"
+)
+"int"
+0x60 eh_bus_reset_handler * func (NULL) (
+(NULL) * @"struct--scsi_cmnd.txt"
+)
+"int"
+0x68 eh_host_reset_handler * func (NULL) (
+(NULL) * @"struct--scsi_cmnd.txt"
+)
+"int"
+0x70 slave_alloc * func (NULL) (
+(NULL) * @"struct--scsi_device.txt"
+)
+"int"
+0x78 slave_configure * func (NULL) (
+(NULL) * @"struct--scsi_device.txt"
+)
+"int"
+0x80 slave_destroy * func (NULL) (
+(NULL) * @"struct--scsi_device.txt"
+)
+"void"
+0x88 target_alloc * func (NULL) (
+(NULL) * @"struct--scsi_target.txt"
+)
+"int"
+0x90 target_destroy * func (NULL) (
+(NULL) * @"struct--scsi_target.txt"
+)
+"void"
+0x98 scan_finished * func (NULL) (
+(NULL) * @"struct--Scsi_Host.txt"
+(NULL) "long unsigned int"
+)
+"int"
+0xa0 scan_start * func (NULL) (
+(NULL) * @"struct--Scsi_Host.txt"
+)
+"void"
+0xa8 change_queue_depth * func (NULL) (
+(NULL) * @"struct--scsi_device.txt"
+(NULL) "int"
+(NULL) "int"
+)
+"int"
+0xb0 change_queue_type * func (NULL) (
+(NULL) * @"struct--scsi_device.txt"
+(NULL) "int"
+)
+"int"
+0xb8 bios_param * func (NULL) (
+(NULL) * @"struct--scsi_device.txt"
+(NULL) * @"struct--block_device.txt"
+(NULL) @"typedef--sector_t.txt"
+(NULL) * "int"
+)
+"int"
+0xc0 unlock_native_capacity * func (NULL) (
+(NULL) * @"struct--scsi_device.txt"
+)
+"void"
+0xc8 show_info * func (NULL) (
+(NULL) * @"struct--seq_file.txt"
+(NULL) * @"struct--Scsi_Host.txt"
+)
+"int"
+0xd0 write_info * func (NULL) (
+(NULL) * @"struct--Scsi_Host.txt"
+(NULL) * "char"
+(NULL) "int"
+)
+"int"
+0xd8 eh_timed_out * func (NULL) (
+(NULL) * @"struct--scsi_cmnd.txt"
+)
+@"enum--blk_eh_timer_return.txt"
+0xe0 host_reset * func (NULL) (
+(NULL) * @"struct--Scsi_Host.txt"
+(NULL) "int"
+)
+"int"
+0xe8 proc_name * const "char"
+0xf0 proc_dir * @"<declarations>/struct--proc_dir_entry.txt"
+0xf8 can_queue "int"
+0xfc this_id "int"
+0x100 sg_tablesize "short unsigned int"
+0x102 sg_prot_tablesize "short unsigned int"
+0x104 max_sectors "short unsigned int"
+0x108 dma_boundary "long unsigned int"
+0x110 cmd_per_lun "short int"
+0x112 present "unsigned char"
+0x113:0-2 supported_mode "unsigned int"
+0x113:2-3 unchecked_isa_dma "unsigned int"
+0x113:3-4 use_clustering "unsigned int"
+0x113:4-5 emulated "unsigned int"
+0x113:5-6 skip_settle_delay "unsigned int"
+0x113:6-7 ordered_tag "unsigned int"
+0x113:7-8 no_write_same "unsigned int"
+0x114:0-1 no_async_abort "unsigned int"
+0x114:1-2 disable_blk_mq "unsigned int"
+0x114:2-3 use_host_wide_tags "unsigned int"
+0x114:3-4 force_blk_mq "unsigned int"
+0x118 max_host_blocked "unsigned int"
+0x120 shost_attrs * * @"struct--device_attribute.txt"
+0x128 sdev_attrs * * @"struct--device_attribute.txt"
+0x130 legacy_hosts @"struct--list_head.txt"
+0x140 vendor_id @"typedef--u64.txt"
+0x148 (NULL) union (NULL) {
+tag_alloc_policy "int"
+__UNIQUE_ID_rh_kabi_hide52 struct (NULL) {
+0x0 rh_reserved1 * func (NULL) (
+)
+"void"
+}
+(NULL) union (NULL) {
+}
+}
+0x150 rh_reserved2 * func (NULL) (
+)
+"void"
+0x158 rh_reserved3 * func (NULL) (
+)
+"void"
+0x160 rh_reserved4 * func (NULL) (
+)
+"void"
+0x168 (NULL) union (NULL) {
+cmd_size "unsigned int"
+__UNIQUE_ID_rh_kabi_hide53 struct (NULL) {
+0x0 scsi_mq_reserved1 "unsigned int"
+}
+(NULL) union (NULL) {
+}
+}
+0x16c scsi_mq_reserved2 "unsigned int"
+0x170 (NULL) union (NULL) {
+cmd_pool * @"struct--scsi_host_cmd_pool.txt"
+__UNIQUE_ID_rh_kabi_hide54 struct (NULL) {
+0x0 scsi_mq_reserved3 * "void"
+}
+(NULL) union (NULL) {
+}
+}
+0x178 scsi_mq_reserved4 * "void"
+}

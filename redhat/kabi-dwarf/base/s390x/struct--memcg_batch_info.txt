@@ -1,0 +1,10 @@
+Version: 1.0
+File: include/linux/sched.h:1787
+Symbol:
+Byte size 32
+struct memcg_batch_info {
+0x0 do_batch "int"
+0x8 memcg * @"<declarations>/struct--mem_cgroup.txt"
+0x10 nr_pages "long unsigned int"
+0x18 memsw_nr_pages "long unsigned int"
+}

@@ -1,0 +1,10 @@
+Version: 1.0
+File: arch/x86/include/asm/nmi.h:36
+Symbol:
+Byte size 8
+typedef nmi_handler_t
+* func (NULL) (
+(NULL) "unsigned int"
+(NULL) * @"struct--pt_regs.txt"
+)
+"int"

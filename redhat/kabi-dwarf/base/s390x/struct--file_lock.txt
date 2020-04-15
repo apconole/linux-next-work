@@ -1,0 +1,32 @@
+Version: 1.0
+File: include/linux/fs.h:1020
+Symbol:
+Byte size 192
+struct file_lock {
+0x0 fl_next * @"struct--file_lock.txt"
+0x8 fl_link @"struct--hlist_node.txt"
+0x18 fl_block @"struct--list_head.txt"
+0x28 fl_owner @"typedef--fl_owner_t.txt"
+0x30 fl_flags "unsigned int"
+0x34 fl_type "unsigned char"
+0x38 fl_pid "unsigned int"
+0x3c fl_link_cpu "int"
+0x40 fl_nspid * @"struct--pid.txt"
+0x48 fl_wait @"typedef--wait_queue_head_t.txt"
+0x60 fl_file * @"struct--file.txt"
+0x68 fl_start @"typedef--loff_t.txt"
+0x70 fl_end @"typedef--loff_t.txt"
+0x78 fl_fasync * @"struct--fasync_struct.txt"
+0x80 fl_break_time "long unsigned int"
+0x88 fl_downgrade_time "long unsigned int"
+0x90 fl_ops * const @"struct--file_lock_operations.txt"
+0x98 fl_lmops * const @"struct--lock_manager_operations.txt"
+0xa0 fl_u union (NULL) {
+nfs_fl @"struct--nfs_lock_info.txt"
+nfs4_fl @"struct--nfs4_lock_info.txt"
+afs struct (NULL) {
+0x0 link @"struct--list_head.txt"
+0x10 state "int"
+}
+}
+}

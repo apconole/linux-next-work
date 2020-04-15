@@ -1,0 +1,131 @@
+Version: 1.0
+File: include/linux/fs.h:384
+Symbol:
+Byte size 168
+struct address_space_operations {
+0x0 writepage * func (NULL) (
+(NULL) * @"struct--page.txt"
+(NULL) * @"struct--writeback_control.txt"
+)
+"int"
+0x8 readpage * func (NULL) (
+(NULL) * @"struct--file.txt"
+(NULL) * @"struct--page.txt"
+)
+"int"
+0x10 writepages * func (NULL) (
+(NULL) * @"struct--address_space.txt"
+(NULL) * @"struct--writeback_control.txt"
+)
+"int"
+0x18 set_page_dirty * func (NULL) (
+(NULL) * @"struct--page.txt"
+)
+"int"
+0x20 readpages * func (NULL) (
+(NULL) * @"struct--file.txt"
+(NULL) * @"struct--address_space.txt"
+(NULL) * @"struct--list_head.txt"
+(NULL) "unsigned int"
+)
+"int"
+0x28 write_begin * func (NULL) (
+(NULL) * @"struct--file.txt"
+(NULL) * @"struct--address_space.txt"
+(NULL) @"typedef--loff_t.txt"
+(NULL) "unsigned int"
+(NULL) "unsigned int"
+(NULL) * * @"struct--page.txt"
+(NULL) * * "void"
+)
+"int"
+0x30 write_end * func (NULL) (
+(NULL) * @"struct--file.txt"
+(NULL) * @"struct--address_space.txt"
+(NULL) @"typedef--loff_t.txt"
+(NULL) "unsigned int"
+(NULL) "unsigned int"
+(NULL) * @"struct--page.txt"
+(NULL) * "void"
+)
+"int"
+0x38 bmap * func (NULL) (
+(NULL) * @"struct--address_space.txt"
+(NULL) @"typedef--sector_t.txt"
+)
+@"typedef--sector_t.txt"
+0x40 invalidatepage * func (NULL) (
+(NULL) * @"struct--page.txt"
+(NULL) "long unsigned int"
+)
+"void"
+0x48 releasepage * func (NULL) (
+(NULL) * @"struct--page.txt"
+(NULL) @"typedef--gfp_t.txt"
+)
+"int"
+0x50 freepage * func (NULL) (
+(NULL) * @"struct--page.txt"
+)
+"void"
+0x58 direct_IO * func (NULL) (
+(NULL) "int"
+(NULL) * @"struct--kiocb.txt"
+(NULL) * const @"struct--iovec.txt"
+(NULL) @"typedef--loff_t.txt"
+(NULL) "long unsigned int"
+)
+@"typedef--ssize_t.txt"
+0x60 rh_reserved_get_xip_mem * func (NULL) (
+(NULL) * @"struct--address_space.txt"
+(NULL) "long unsigned int"
+(NULL) "int"
+(NULL) * * "void"
+(NULL) * "long unsigned int"
+)
+"int"
+0x68 migratepage * func (NULL) (
+(NULL) * @"struct--address_space.txt"
+(NULL) * @"struct--page.txt"
+(NULL) * @"struct--page.txt"
+(NULL) @"enum--migrate_mode.txt"
+)
+"int"
+0x70 launder_page * func (NULL) (
+(NULL) * @"struct--page.txt"
+)
+"int"
+0x78 is_partially_uptodate * func (NULL) (
+(NULL) * @"struct--page.txt"
+(NULL) * @"typedef--read_descriptor_t.txt"
+(NULL) "long unsigned int"
+)
+"int"
+0x80 is_dirty_writeback * func (NULL) (
+(NULL) * @"struct--page.txt"
+(NULL) * @"typedef--bool.txt"
+(NULL) * @"typedef--bool.txt"
+)
+"void"
+0x88 error_remove_page * func (NULL) (
+(NULL) * @"struct--address_space.txt"
+(NULL) * @"struct--page.txt"
+)
+"int"
+0x90 swap_activate * func (NULL) (
+(NULL) * @"struct--swap_info_struct.txt"
+(NULL) * @"struct--file.txt"
+(NULL) * @"typedef--sector_t.txt"
+)
+"int"
+0x98 swap_deactivate * func (NULL) (
+(NULL) * @"struct--file.txt"
+)
+"void"
+0xa0 invalidatepage_range * func (NULL) (
+(NULL) * @"struct--page.txt"
+(NULL) "unsigned int"
+(NULL) "unsigned int"
+)
+"void"
+}

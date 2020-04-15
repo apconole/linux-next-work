@@ -1,0 +1,8 @@
+Version: 1.0
+File: include/linux/sbitmap.h:30
+Symbol:
+Byte size 64
+struct sbitmap_word {
+0x0 word "long unsigned int"
+0x8 depth "long unsigned int"
+}

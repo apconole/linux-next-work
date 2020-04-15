@@ -1,0 +1,7 @@
+Version: 1.0
+File: drivers/base/core.c:1775
+Symbol:
+func root_device_unregister (
+dev * @"struct--device.txt"
+)
+"void"

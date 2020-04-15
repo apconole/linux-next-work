@@ -1,0 +1,6 @@
+Version: 1.0
+File: arch/powerpc/include/asm/page_64.h:43
+Symbol:
+Byte size 8
+typedef pte_basic_t
+"long unsigned int"

@@ -1,0 +1,9 @@
+Version: 1.0
+File: include/linux/key.h:86
+Symbol:
+Byte size 24
+struct keyring_index_key {
+0x0 type * @"<declarations>/struct--key_type.txt"
+0x8 description * const "char"
+0x10 desc_len @"typedef--size_t.txt"
+}

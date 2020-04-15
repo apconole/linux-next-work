@@ -1,0 +1,7 @@
+Version: 1.0
+File: fs/aio.c:738
+Symbol:
+func wait_on_sync_kiocb (
+iocb * @"struct--kiocb.txt"
+)
+@"typedef--ssize_t.txt"

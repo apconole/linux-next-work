@@ -1,0 +1,11 @@
+Version: 1.0
+File: net/socket.c:3450
+Symbol:
+func kernel_setsockopt (
+sock * @"struct--socket.txt"
+level "int"
+optname "int"
+optval * "char"
+optlen "unsigned int"
+)
+"int"

@@ -1,0 +1,9 @@
+Version: 1.0
+File: include/uapi/linux/ipmi.h:50
+Symbol:
+Byte size 40
+struct ipmi_addr {
+0x0 addr_type "int"
+0x4 channel "short int"
+0x6 data [32]"char"
+}

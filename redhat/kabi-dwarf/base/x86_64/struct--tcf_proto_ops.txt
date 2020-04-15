@@ -1,0 +1,64 @@
+Version: 1.0
+File: include/net/sch_generic.h:237
+Symbol:
+Byte size 112
+struct tcf_proto_ops {
+0x0 head @"struct--list_head.txt"
+0x10 kind [16]"char"
+0x20 classify * func (NULL) (
+(NULL) * @"struct--sk_buff.txt"
+(NULL) * const @"struct--tcf_proto.txt"
+(NULL) * @"struct--tcf_result.txt"
+)
+"int"
+0x28 init * func (NULL) (
+(NULL) * @"struct--tcf_proto.txt"
+)
+"int"
+0x30 destroy * func (NULL) (
+(NULL) * @"struct--tcf_proto.txt"
+)
+"void"
+0x38 get * func (NULL) (
+(NULL) * @"struct--tcf_proto.txt"
+(NULL) @"typedef--u32.txt"
+)
+* "void"
+0x40 change * func (NULL) (
+(NULL) * @"struct--net.txt"
+(NULL) * @"struct--sk_buff.txt"
+(NULL) * @"struct--tcf_proto.txt"
+(NULL) "long unsigned int"
+(NULL) @"typedef--u32.txt"
+(NULL) * * @"struct--nlattr.txt"
+(NULL) * * "void"
+(NULL) @"typedef--bool.txt"
+)
+"int"
+0x48 delete * func (NULL) (
+(NULL) * @"struct--tcf_proto.txt"
+(NULL) * "void"
+(NULL) * @"typedef--bool.txt"
+)
+"int"
+0x50 walk * func (NULL) (
+(NULL) * @"struct--tcf_proto.txt"
+(NULL) * @"struct--tcf_walker.txt"
+)
+"void"
+0x58 bind_class * func (NULL) (
+(NULL) * "void"
+(NULL) @"typedef--u32.txt"
+(NULL) "long unsigned int"
+)
+"void"
+0x60 dump * func (NULL) (
+(NULL) * @"struct--net.txt"
+(NULL) * @"struct--tcf_proto.txt"
+(NULL) * "void"
+(NULL) * @"struct--sk_buff.txt"
+(NULL) * @"struct--tcmsg.txt"
+)
+"int"
+0x68 owner * @"struct--module.txt"
+}

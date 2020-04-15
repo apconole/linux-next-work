@@ -1,0 +1,9 @@
+Version: 1.0
+File: include/linux/blkdev.h:283
+Symbol:
+Byte size 4
+typedef bsg_job_fn
+func (NULL) (
+(NULL) * @"<declarations>/struct--bsg_job.txt"
+)
+"int"

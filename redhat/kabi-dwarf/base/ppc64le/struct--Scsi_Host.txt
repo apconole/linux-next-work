@@ -1,0 +1,124 @@
+Version: 1.0
+File: include/scsi/scsi_host.h:597
+Symbol:
+Byte size 1888
+struct Scsi_Host {
+0x0 __devices @"struct--list_head.txt"
+0x10 __targets @"struct--list_head.txt"
+0x20 cmd_pool * @"struct--scsi_host_cmd_pool.txt"
+0x28 free_list_lock @"typedef--spinlock_t.txt"
+0x30 free_list @"struct--list_head.txt"
+0x40 starved_list @"struct--list_head.txt"
+0x50 default_lock @"typedef--spinlock_t.txt"
+0x58 host_lock * @"typedef--spinlock_t.txt"
+0x60 scan_mutex @"struct--mutex.txt"
+0x88 eh_cmd_q @"struct--list_head.txt"
+0x98 ehandler * @"struct--task_struct.txt"
+0xa0 eh_action * @"struct--completion.txt"
+0xa8 host_wait @"typedef--wait_queue_head_t.txt"
+0xc0 hostt * @"struct--scsi_host_template.txt"
+0xc8 transportt * @"struct--scsi_transport_template.txt"
+0xd0 (NULL) union (NULL) {
+bqt * @"struct--blk_queue_tag.txt"
+tag_set * @"struct--blk_mq_tag_set.txt"
+}
+0xd8 (NULL) union (NULL) {
+host_busy @"typedef--atomic_t.txt"
+__UNIQUE_ID_rh_kabi_hide55 struct (NULL) {
+0x0 host_busy "unsigned int"
+}
+(NULL) union (NULL) {
+}
+}
+0xdc host_failed "unsigned int"
+0xe0 host_eh_scheduled "unsigned int"
+0xe4 host_no "unsigned int"
+0xe8 eh_deadline "int"
+0xf0 last_reset "long unsigned int"
+0xf8 max_id "unsigned int"
+0xfc max_lun "unsigned int"
+0x100 max_channel "unsigned int"
+0x104 unique_id "unsigned int"
+0x108 max_cmd_len "short unsigned int"
+0x10c this_id "int"
+0x110 can_queue "int"
+0x114 cmd_per_lun "short int"
+0x116 sg_tablesize "short unsigned int"
+0x118 sg_prot_tablesize "short unsigned int"
+0x11a max_sectors "short unsigned int"
+0x120 dma_boundary "long unsigned int"
+0x128 cmd_serial_number "long unsigned int"
+0x130:0-2 active_mode "unsigned int"
+0x130:2-3 unchecked_isa_dma "unsigned int"
+0x130:3-4 use_clustering "unsigned int"
+0x130:4-5 use_blk_tcq "unsigned int"
+0x130:5-6 host_self_blocked "unsigned int"
+0x130:6-7 reverse_ordering "unsigned int"
+0x130:7-8 ordered_tag "unsigned int"
+0x131:0-1 tmf_in_progress "unsigned int"
+0x131:1-2 async_scan "unsigned int"
+0x131:2-3 eh_noresume "unsigned int"
+0x131:3-4 no_write_same "unsigned int"
+0x131:4-5 use_blk_mq "unsigned int"
+0x131:5-6 no_scsi2_lun_in_cdb "unsigned int"
+0x131:6-7 short_inquiry "unsigned int"
+0x131:7-8 use_cmd_list "unsigned int"
+0x132 work_q_name [20]"char"
+0x148 work_q * @"<declarations>/struct--workqueue_struct.txt"
+0x150 tmf_work_q * @"<declarations>/struct--workqueue_struct.txt"
+0x158 (NULL) union (NULL) {
+host_blocked @"typedef--atomic_t.txt"
+__UNIQUE_ID_rh_kabi_hide56 struct (NULL) {
+0x0 host_blocked "unsigned int"
+}
+(NULL) union (NULL) {
+}
+}
+0x15c max_host_blocked "unsigned int"
+0x160 prot_capabilities "unsigned int"
+0x164 prot_guard_type "unsigned char"
+0x168 uspace_req_q * @"struct--request_queue.txt"
+0x170 base "long unsigned int"
+0x178 io_port "long unsigned int"
+0x180 n_io_port "unsigned char"
+0x181 dma_channel "unsigned char"
+0x184 irq "unsigned int"
+0x188 shost_state @"enum--scsi_host_state.txt"
+0x190 shost_gendev @"struct--device.txt"
+0x440 shost_dev @"struct--device.txt"
+0x6f0 sht_legacy_list @"struct--list_head.txt"
+0x700 shost_data * "void"
+0x708 dma_dev * @"struct--device.txt"
+0x710 rh_reserved1 * func (NULL) (
+)
+"void"
+0x718 rh_reserved2 * func (NULL) (
+)
+"void"
+0x720 rh_reserved3 * func (NULL) (
+)
+"void"
+0x728 rh_reserved4 * func (NULL) (
+)
+"void"
+0x730 rh_reserved5 * func (NULL) (
+)
+"void"
+0x738 rh_reserved6 * func (NULL) (
+)
+"void"
+0x740 (NULL) union (NULL) {
+nr_hw_queues "unsigned int"
+__UNIQUE_ID_rh_kabi_hide57 struct (NULL) {
+0x0 scsi_mq_reserved1 "unsigned int"
+}
+(NULL) union (NULL) {
+}
+}
+0x744 scsi_mq_reserved2 "unsigned int"
+0x748 scsi_mq_reserved3 * "void"
+0x750 scsi_mq_reserved4 * "void"
+0x758 scsi_mq_reserved5 @"typedef--atomic_t.txt"
+0x75c scsi_mq_reserved6 @"typedef--atomic_t.txt"
+0x760 hostdata [0]"long unsigned int"
+}

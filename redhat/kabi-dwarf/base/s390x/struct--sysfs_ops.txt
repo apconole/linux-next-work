@@ -1,0 +1,24 @@
+Version: 1.0
+File: include/linux/sysfs.h:174
+Symbol:
+Byte size 24
+struct sysfs_ops {
+0x0 show * func (NULL) (
+(NULL) * @"struct--kobject.txt"
+(NULL) * @"struct--attribute.txt"
+(NULL) * "char"
+)
+@"typedef--ssize_t.txt"
+0x8 store * func (NULL) (
+(NULL) * @"struct--kobject.txt"
+(NULL) * @"struct--attribute.txt"
+(NULL) * const "char"
+(NULL) @"typedef--size_t.txt"
+)
+@"typedef--ssize_t.txt"
+0x10 rh_reserved_namespace * func (NULL) (
+(NULL) * @"struct--kobject.txt"
+(NULL) * const @"struct--attribute.txt"
+)
+* const "void"
+}

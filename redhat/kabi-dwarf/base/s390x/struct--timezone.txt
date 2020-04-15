@@ -1,0 +1,8 @@
+Version: 1.0
+File: include/uapi/linux/time.h:20
+Symbol:
+Byte size 8
+struct timezone {
+0x0 tz_minuteswest "int"
+0x4 tz_dsttime "int"
+}

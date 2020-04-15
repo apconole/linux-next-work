@@ -1,0 +1,8 @@
+Version: 1.0
+File: net/ethernet/eth.c:348
+Symbol:
+func eth_mac_addr (
+dev * @"struct--net_device.txt"
+p * "void"
+)
+"int"

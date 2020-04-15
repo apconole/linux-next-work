@@ -1,0 +1,11 @@
+Version: 1.0
+File: include/linux/efi.h:123
+Symbol:
+Byte size 28
+typedef efi_capsule_header_t
+struct (NULL) {
+0x0 guid @"typedef--efi_guid_t.txt"
+0x10 headersize @"typedef--u32.txt"
+0x14 flags @"typedef--u32.txt"
+0x18 imagesize @"typedef--u32.txt"
+}

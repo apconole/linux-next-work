@@ -1,0 +1,11 @@
+Version: 1.0
+File: include/linux/blk-mq.h:170
+Symbol:
+Byte size 40
+struct blk_mq_aux_ops {
+0x0 reinit_request * @"typedef--reinit_request_fn.txt"
+0x8 map_queues * @"typedef--map_queues_fn.txt"
+0x10 get_budget * @"typedef--get_budget_fn.txt"
+0x18 put_budget * @"typedef--put_budget_fn.txt"
+0x20 cleanup_rq * @"typedef--cleanup_rq_fn.txt"
+}

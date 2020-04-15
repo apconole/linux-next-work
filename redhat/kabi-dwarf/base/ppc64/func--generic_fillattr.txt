@@ -1,0 +1,8 @@
+Version: 1.0
+File: fs/stat.c:21
+Symbol:
+func generic_fillattr (
+inode * @"struct--inode.txt"
+stat * @"struct--kstat.txt"
+)
+"void"

@@ -1,0 +1,11 @@
+Version: 1.0
+File: include/linux/sysctl.h:161
+Symbol:
+Byte size 96
+struct ctl_table_set {
+0x0 is_seen * func (NULL) (
+(NULL) * @"struct--ctl_table_set.txt"
+)
+"int"
+0x8 dir @"struct--ctl_dir.txt"
+}

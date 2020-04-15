@@ -1,0 +1,9 @@
+Version: 1.0
+File: include/acpi/acpi_bus.h:287
+Symbol:
+Byte size 168
+struct acpi_device_power {
+0x0 state "int"
+0x4 flags @"struct--acpi_device_power_flags.txt"
+0x8 states [5]@"struct--acpi_device_power_state.txt"
+}

@@ -1,0 +1,9 @@
+Version: 1.0
+File: net/core/dev.c:8621
+Symbol:
+func netdev_increment_features (
+all @"typedef--netdev_features_t.txt"
+one @"typedef--netdev_features_t.txt"
+mask @"typedef--netdev_features_t.txt"
+)
+@"typedef--netdev_features_t.txt"

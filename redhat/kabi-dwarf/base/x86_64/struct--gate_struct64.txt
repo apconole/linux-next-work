@@ -1,0 +1,16 @@
+Version: 1.0
+File: arch/x86/include/asm/desc_defs.h:51
+Symbol:
+Byte size 16
+struct gate_struct64 {
+0x0 offset_low @"typedef--u16.txt"
+0x2 segment @"typedef--u16.txt"
+0x4:0-3 ist "unsigned int"
+0x4:3-8 zero0 "unsigned int"
+0x5:0-5 type "unsigned int"
+0x5:5-7 dpl "unsigned int"
+0x5:7-8 p "unsigned int"
+0x6 offset_middle @"typedef--u16.txt"
+0x8 offset_high @"typedef--u32.txt"
+0xc zero1 @"typedef--u32.txt"
+}

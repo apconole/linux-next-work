@@ -1,0 +1,89 @@
+Version: 1.0
+File: include/net/fib_rules.h:45
+Symbol:
+Byte size 192
+struct fib_rules_ops {
+0x0 family "int"
+0x8 list @"struct--list_head.txt"
+0x18 rule_size "int"
+0x1c addr_size "int"
+0x20 unresolved_rules "int"
+0x24 nr_goto_rules "int"
+0x28 action * func (NULL) (
+(NULL) * @"struct--fib_rule.txt"
+(NULL) * @"struct--flowi.txt"
+(NULL) "int"
+(NULL) * @"struct--fib_lookup_arg.txt"
+)
+"int"
+0x30 match * func (NULL) (
+(NULL) * @"struct--fib_rule.txt"
+(NULL) * @"struct--flowi.txt"
+(NULL) "int"
+)
+"int"
+0x38 configure * func (NULL) (
+(NULL) * @"struct--fib_rule.txt"
+(NULL) * @"struct--sk_buff.txt"
+(NULL) * @"struct--fib_rule_hdr.txt"
+(NULL) * * @"struct--nlattr.txt"
+)
+"int"
+0x40 (NULL) union (NULL) {
+delete * func (NULL) (
+(NULL) * @"struct--fib_rule.txt"
+)
+"int"
+__UNIQUE_ID_rh_kabi_hide87 struct (NULL) {
+0x0 delete * func (NULL) (
+(NULL) * @"struct--fib_rule.txt"
+)
+"void"
+}
+(NULL) union (NULL) {
+}
+}
+0x48 compare * func (NULL) (
+(NULL) * @"struct--fib_rule.txt"
+(NULL) * @"struct--fib_rule_hdr.txt"
+(NULL) * * @"struct--nlattr.txt"
+)
+"int"
+0x50 fill * func (NULL) (
+(NULL) * @"struct--fib_rule.txt"
+(NULL) * @"struct--sk_buff.txt"
+(NULL) * @"struct--fib_rule_hdr.txt"
+)
+"int"
+0x58 (NULL) union (NULL) {
+rh_reserved_default_pref * "void"
+__UNIQUE_ID_rh_kabi_hide88 struct (NULL) {
+0x0 default_pref * func (NULL) (
+(NULL) * @"struct--fib_rules_ops.txt"
+)
+@"typedef--u32.txt"
+}
+(NULL) union (NULL) {
+}
+}
+0x60 nlmsg_payload * func (NULL) (
+(NULL) * @"struct--fib_rule.txt"
+)
+@"typedef--size_t.txt"
+0x68 flush_cache * func (NULL) (
+(NULL) * @"struct--fib_rules_ops.txt"
+)
+"void"
+0x70 nlgroup "int"
+0x78 policy * const @"struct--nla_policy.txt"
+0x80 rules_list @"struct--list_head.txt"
+0x90 owner * @"struct--module.txt"
+0x98 fro_net * @"struct--net.txt"
+0xa0 rcu @"struct--callback_head.txt"
+0xb0 fib_rules_seq "unsigned int"
+0xb8 suppress * func (NULL) (
+(NULL) * @"struct--fib_rule.txt"
+(NULL) * @"struct--fib_lookup_arg.txt"
+)
+@"typedef--bool.txt"
+}

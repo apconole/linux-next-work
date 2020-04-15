@@ -1,0 +1,8 @@
+Version: 1.0
+File: block/partition-generic.c:58
+Symbol:
+func __bdevname (
+dev @"typedef--dev_t.txt"
+buffer * "char"
+)
+* const "char"

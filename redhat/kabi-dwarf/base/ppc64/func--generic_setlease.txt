@@ -1,0 +1,10 @@
+Version: 1.0
+File: fs/locks.c:1674
+Symbol:
+func generic_setlease (
+filp * @"struct--file.txt"
+arg "long int"
+flp * * @"struct--file_lock.txt"
+priv * * "void"
+)
+"int"

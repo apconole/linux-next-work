@@ -1,0 +1,12 @@
+Version: 1.0
+File: kernel/stop_machine.c:606
+Symbol:
+func stop_machine (
+fn * func (NULL) (
+(NULL) * "void"
+)
+"int"
+data * "void"
+cpus * const @"struct--cpumask.txt"
+)
+"int"

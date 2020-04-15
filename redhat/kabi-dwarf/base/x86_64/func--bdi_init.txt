@@ -1,0 +1,7 @@
+Version: 1.0
+File: mm/backing-dev.c:439
+Symbol:
+func bdi_init (
+bdi * @"struct--backing_dev_info.txt"
+)
+"int"

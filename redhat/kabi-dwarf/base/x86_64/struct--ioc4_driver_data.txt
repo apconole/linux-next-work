@@ -1,0 +1,14 @@
+Version: 1.0
+File: include/linux/ioc4.h:155
+Symbol:
+Byte size 72
+struct ioc4_driver_data {
+0x0 idd_list @"struct--list_head.txt"
+0x10 idd_bar0 "long unsigned int"
+0x18 idd_pdev * @"struct--pci_dev.txt"
+0x20 idd_pci_id * const @"struct--pci_device_id.txt"
+0x28 idd_misc_regs * @"struct--ioc4_misc_regs.txt"
+0x30 count_period "long unsigned int"
+0x38 idd_serial_data * "void"
+0x40 idd_variant "unsigned int"
+}

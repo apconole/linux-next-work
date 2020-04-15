@@ -1,0 +1,9 @@
+Version: 1.0
+File: fs/namei.c:3899
+Symbol:
+func vfs_unlink (
+dir * @"struct--inode.txt"
+dentry * @"struct--dentry.txt"
+delegated_inode * * @"struct--inode.txt"
+)
+"int"

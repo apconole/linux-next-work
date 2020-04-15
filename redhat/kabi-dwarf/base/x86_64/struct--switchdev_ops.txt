@@ -1,0 +1,34 @@
+Version: 1.0
+File: include/net/switchdev.h:142
+Symbol:
+Byte size 40
+struct switchdev_ops {
+0x0 switchdev_port_attr_get * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+(NULL) * @"struct--switchdev_attr.txt"
+)
+"int"
+0x8 switchdev_port_attr_set * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+(NULL) * const @"struct--switchdev_attr.txt"
+(NULL) * @"struct--switchdev_trans.txt"
+)
+"int"
+0x10 switchdev_port_obj_add * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+(NULL) * const @"struct--switchdev_obj.txt"
+(NULL) * @"struct--switchdev_trans.txt"
+)
+"int"
+0x18 switchdev_port_obj_del * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+(NULL) * const @"struct--switchdev_obj.txt"
+)
+"int"
+0x20 switchdev_port_obj_dump * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+(NULL) * @"struct--switchdev_obj.txt"
+(NULL) * @"typedef--switchdev_obj_dump_cb_t.txt"
+)
+"int"
+}

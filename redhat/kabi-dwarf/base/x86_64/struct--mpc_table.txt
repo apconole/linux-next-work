@@ -1,0 +1,17 @@
+Version: 1.0
+File: arch/x86/include/asm/mpspec_def.h:36
+Symbol:
+Byte size 44
+struct mpc_table {
+0x0 signature [4]"char"
+0x4 length "short unsigned int"
+0x6 spec "char"
+0x7 checksum "char"
+0x8 oem [8]"char"
+0x10 productid [12]"char"
+0x1c oemptr "unsigned int"
+0x20 oemsize "short unsigned int"
+0x22 oemcount "short unsigned int"
+0x24 lapic "unsigned int"
+0x28 reserved "unsigned int"
+}

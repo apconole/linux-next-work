@@ -1,0 +1,10 @@
+Version: 1.0
+File: include/linux/blkdev.h:1724
+Symbol:
+typedef integrity_set_tag_fn
+func (NULL) (
+(NULL) * "void"
+(NULL) * "void"
+(NULL) "unsigned int"
+)
+"void"

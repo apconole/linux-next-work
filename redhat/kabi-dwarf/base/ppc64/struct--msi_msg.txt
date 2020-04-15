@@ -1,0 +1,9 @@
+Version: 1.0
+File: include/linux/msi.h:11
+Symbol:
+Byte size 12
+struct msi_msg {
+0x0 address_lo @"typedef--u32.txt"
+0x4 address_hi @"typedef--u32.txt"
+0x8 data @"typedef--u32.txt"
+}

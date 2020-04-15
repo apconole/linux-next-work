@@ -1,0 +1,24 @@
+Version: 1.0
+File: include/linux/netpoll.h:23
+Symbol:
+Byte size 136
+struct netpoll {
+0x0 dev * @"struct--net_device.txt"
+0x8 dev_name [16]"char"
+0x18 name * const "char"
+0x20 rx_hook * func (NULL) (
+(NULL) * @"struct--netpoll.txt"
+(NULL) "int"
+(NULL) * "char"
+(NULL) "int"
+)
+"void"
+0x28 local_ip @"union--inet_addr.txt"
+0x38 remote_ip @"union--inet_addr.txt"
+0x48 ipv6 @"typedef--bool.txt"
+0x4a local_port @"typedef--u16.txt"
+0x4c remote_port @"typedef--u16.txt"
+0x4e remote_mac [6]@"typedef--u8.txt"
+0x58 rx @"struct--list_head.txt"
+0x68 cleanup_work @"struct--work_struct.txt"
+}

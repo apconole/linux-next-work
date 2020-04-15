@@ -1,0 +1,20 @@
+Version: 1.0
+File: include/net/request_sock.h:50
+Symbol:
+Byte size 168
+struct request_sock {
+0x0 __req_common @"struct--sock_common.txt"
+0x70 dl_next * @"struct--request_sock.txt"
+0x78 mss @"typedef--u16.txt"
+0x7a num_retrans @"typedef--u8.txt"
+0x7b:0-1 cookie_ts @"typedef--u8.txt"
+0x7b:1-8 num_timeout @"typedef--u8.txt"
+0x7c window_clamp @"typedef--u32.txt"
+0x80 rcv_wnd @"typedef--u32.txt"
+0x84 ts_recent @"typedef--u32.txt"
+0x88 expires "long unsigned int"
+0x90 rsk_ops * const @"struct--request_sock_ops.txt"
+0x98 sk * @"struct--sock.txt"
+0xa0 secid @"typedef--u32.txt"
+0xa4 peer_secid @"typedef--u32.txt"
+}

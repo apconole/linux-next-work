@@ -1,0 +1,9 @@
+Version: 1.0
+File: include/scsi/fcoe_sysfs.h:46
+Symbol:
+Byte size 4
+enum fip_conn_type {
+FIP_CONN_TYPE_UNKNOWN = 0x0
+FIP_CONN_TYPE_FABRIC = 0x1
+FIP_CONN_TYPE_VN2VN = 0x2
+}

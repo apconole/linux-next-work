@@ -1,0 +1,26 @@
+Version: 1.0
+File: arch/x86/include/asm/processor.h:566
+Symbol:
+Byte size 184
+struct thread_struct {
+0x0 tls_array [3]@"struct--desc_struct.txt"
+0x18 sp0 "long unsigned int"
+0x20 sp "long unsigned int"
+0x28 usersp "long unsigned int"
+0x30 es "short unsigned int"
+0x32 ds "short unsigned int"
+0x34 fsindex "short unsigned int"
+0x36 gsindex "short unsigned int"
+0x38 fs "long unsigned int"
+0x40 gs "long unsigned int"
+0x48 ptrace_bps [4]* @"struct--perf_event.txt"
+0x68 debugreg6 "long unsigned int"
+0x70 ptrace_dr7 "long unsigned int"
+0x78 cr2 "long unsigned int"
+0x80 trap_nr "long unsigned int"
+0x88 error_code "long unsigned int"
+0x90 fpu @"struct--fpu.txt"
+0xa0 io_bitmap_ptr * "long unsigned int"
+0xa8 iopl "long unsigned int"
+0xb0 io_bitmap_max "unsigned int"
+}

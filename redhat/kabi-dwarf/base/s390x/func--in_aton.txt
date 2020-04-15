@@ -1,0 +1,7 @@
+Version: 1.0
+File: net/core/utils.c:59
+Symbol:
+func in_aton (
+str * const "char"
+)
+@"typedef--__be32.txt"

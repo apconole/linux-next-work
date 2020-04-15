@@ -1,0 +1,7 @@
+Version: 1.0
+File: kernel/timer.c:1123
+Symbol:
+func del_timer_sync (
+timer * @"struct--timer_list.txt"
+)
+"int"

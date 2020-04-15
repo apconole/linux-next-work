@@ -1,0 +1,19 @@
+Version: 1.0
+File: include/linux/blktrace_api.h:13
+Symbol:
+Byte size 96
+struct blk_trace {
+0x0 trace_state "int"
+0x8 rchan * @"struct--rchan.txt"
+0x10 sequence * "long unsigned int"
+0x18 msg_data * "unsigned char"
+0x20 act_mask @"typedef--u16.txt"
+0x28 start_lba @"typedef--u64.txt"
+0x30 end_lba @"typedef--u64.txt"
+0x38 pid @"typedef--u32.txt"
+0x3c dev @"typedef--u32.txt"
+0x40 dir * @"struct--dentry.txt"
+0x48 dropped_file * @"struct--dentry.txt"
+0x50 msg_file * @"struct--dentry.txt"
+0x58 dropped @"typedef--atomic_t.txt"
+}

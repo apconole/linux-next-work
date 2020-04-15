@@ -1,0 +1,10 @@
+Version: 1.0
+File: include/linux/pci_hotplug.h:85
+Symbol:
+Byte size 4
+struct hotplug_slot_info {
+0x0 power_status @"typedef--u8.txt"
+0x1 attention_status @"typedef--u8.txt"
+0x2 latch_status @"typedef--u8.txt"
+0x3 adapter_status @"typedef--u8.txt"
+}

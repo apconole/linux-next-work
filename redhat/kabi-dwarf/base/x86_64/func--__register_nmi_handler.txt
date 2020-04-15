@@ -1,0 +1,8 @@
+Version: 1.0
+File: arch/x86/kernel/nmi.c:137
+Symbol:
+func __register_nmi_handler (
+type "unsigned int"
+action * @"struct--nmiaction.txt"
+)
+"int"

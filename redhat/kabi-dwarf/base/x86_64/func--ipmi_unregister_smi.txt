@@ -1,0 +1,7 @@
+Version: 1.0
+File: drivers/char/ipmi/ipmi_msghandler.c:3667
+Symbol:
+func ipmi_unregister_smi (
+intf @"typedef--ipmi_smi_t.txt"
+)
+"int"

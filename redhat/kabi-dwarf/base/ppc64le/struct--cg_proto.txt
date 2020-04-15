@@ -1,0 +1,23 @@
+Version: 1.0
+File: include/net/sock.h:1110
+Symbol:
+Byte size 56
+struct cg_proto {
+0x0 enter_memory_pressure * func (NULL) (
+(NULL) * @"struct--sock.txt"
+)
+"void"
+0x8 (NULL) union (NULL) {
+memory_allocated * @"struct--page_counter.txt"
+__UNIQUE_ID_rh_kabi_hide87 struct (NULL) {
+0x0 memory_allocated * @"<declarations>/struct--res_counter.txt"
+}
+(NULL) union (NULL) {
+}
+}
+0x10 rh_reserved_sockets_allocated * @"struct--percpu_counter.txt"
+0x18 memory_pressure * "int"
+0x20 sysctl_mem * "long int"
+0x28 flags "long unsigned int"
+0x30 memcg * @"<declarations>/struct--mem_cgroup.txt"
+}

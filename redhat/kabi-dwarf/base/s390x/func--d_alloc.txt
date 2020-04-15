@@ -1,0 +1,8 @@
+Version: 1.0
+File: fs/dcache.c:1780
+Symbol:
+func d_alloc (
+parent * @"struct--dentry.txt"
+name * const @"struct--qstr.txt"
+)
+* @"struct--dentry.txt"

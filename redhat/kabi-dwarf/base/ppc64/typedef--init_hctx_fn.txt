@@ -1,0 +1,11 @@
+Version: 1.0
+File: include/linux/blk-mq.h:156
+Symbol:
+Byte size 4
+typedef init_hctx_fn
+func (NULL) (
+(NULL) * @"struct--blk_mq_hw_ctx.txt"
+(NULL) * "void"
+(NULL) "unsigned int"
+)
+"int"

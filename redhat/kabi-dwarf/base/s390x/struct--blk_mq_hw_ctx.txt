@@ -1,0 +1,81 @@
+Version: 1.0
+File: include/linux/blk-mq.h:24
+Symbol:
+Byte size 1280
+struct blk_mq_hw_ctx {
+0x0 (NULL) struct (NULL) {
+0x0 lock @"typedef--spinlock_t.txt"
+0x8 dispatch @"struct--list_head.txt"
+}
+0x100 state "long unsigned int"
+0x108 (NULL) union (NULL) {
+delay_work @"struct--delayed_work.txt"
+__UNIQUE_ID_rh_kabi_hide45 struct (NULL) {
+0x0 delayed_work @"struct--delayed_work.txt"
+}
+(NULL) union (NULL) {
+}
+}
+0x188 flags "long unsigned int"
+0x190 queue * @"struct--request_queue.txt"
+0x198 queue_num "unsigned int"
+0x1a0 driver_data * "void"
+0x1a8 nr_ctx "unsigned int"
+0x1b0 ctxs * * @"struct--blk_mq_ctx.txt"
+0x1b8 (NULL) union (NULL) {
+wait_index @"typedef--atomic_t.txt"
+__UNIQUE_ID_rh_kabi_hide46 struct (NULL) {
+0x0 nr_ctx_map "unsigned int"
+}
+(NULL) union (NULL) {
+}
+}
+0x1c0 (NULL) union (NULL) {
+padding1 * "long unsigned int"
+__UNIQUE_ID_rh_kabi_hide47 struct (NULL) {
+0x0 ctx_map * "long unsigned int"
+}
+(NULL) union (NULL) {
+}
+}
+0x1c8 (NULL) union (NULL) {
+padding2 * * @"struct--request.txt"
+__UNIQUE_ID_rh_kabi_hide48 struct (NULL) {
+0x0 rqs * * @"struct--request.txt"
+}
+(NULL) union (NULL) {
+}
+}
+0x1d0 (NULL) union (NULL) {
+padding3 @"struct--list_head.txt"
+__UNIQUE_ID_rh_kabi_hide49 struct (NULL) {
+0x0 page_list @"struct--list_head.txt"
+}
+(NULL) union (NULL) {
+}
+}
+0x1e0 tags * @"struct--blk_mq_tags.txt"
+0x1e8 queued "long unsigned int"
+0x1f0 run "long unsigned int"
+0x1f8 dispatched [10]"long unsigned int"
+0x248 queue_depth "unsigned int"
+0x24c numa_node "unsigned int"
+0x250 rh_reserved_cmd_size "unsigned int"
+0x258 cpu_notifier @"struct--blk_mq_cpu_notifier.txt"
+0x278 kobj @"struct--kobject.txt"
+0x2b8 run_work @"struct--delayed_work.txt"
+0x338 cpumask @"typedef--cpumask_var_t.txt"
+0x358 next_cpu "int"
+0x35c next_cpu_batch "int"
+0x360 ctx_map @"struct--sbitmap.txt"
+0x378 nr_active @"typedef--atomic_t.txt"
+0x380 fq * @"struct--blk_flush_queue.txt"
+0x388 queue_rq_srcu @"struct--srcu_struct.txt"
+0x460 dispatch_wait @"typedef--wait_queue_t.txt"
+0x488 sched_data * "void"
+0x490 sched_tags * @"struct--blk_mq_tags.txt"
+0x498 dispatch_from * @"struct--blk_mq_ctx.txt"
+0x4a0 debugfs_dir * @"struct--dentry.txt"
+0x4a8 sched_debugfs_dir * @"struct--dentry.txt"
+0x4b0 dispatch_busy "int"
+}

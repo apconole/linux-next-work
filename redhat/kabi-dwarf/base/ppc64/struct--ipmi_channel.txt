@@ -1,0 +1,8 @@
+Version: 1.0
+File: drivers/char/ipmi/ipmi_msghandler.c:277
+Symbol:
+Byte size 2
+struct ipmi_channel {
+0x0 medium "unsigned char"
+0x1 protocol "unsigned char"
+}

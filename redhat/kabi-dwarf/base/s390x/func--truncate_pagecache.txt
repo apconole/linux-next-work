@@ -1,0 +1,8 @@
+Version: 1.0
+File: mm/truncate.c:783
+Symbol:
+func truncate_pagecache (
+inode * @"struct--inode.txt"
+newsize @"typedef--loff_t.txt"
+)
+"void"

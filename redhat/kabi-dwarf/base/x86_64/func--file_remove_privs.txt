@@ -1,0 +1,7 @@
+Version: 1.0
+File: fs/inode.c:1781
+Symbol:
+func file_remove_privs (
+file * @"struct--file.txt"
+)
+"int"

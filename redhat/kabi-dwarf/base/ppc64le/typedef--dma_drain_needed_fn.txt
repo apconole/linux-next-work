@@ -1,0 +1,9 @@
+Version: 1.0
+File: include/linux/blkdev.h:281
+Symbol:
+Byte size 4
+typedef dma_drain_needed_fn
+func (NULL) (
+(NULL) * @"struct--request.txt"
+)
+"int"

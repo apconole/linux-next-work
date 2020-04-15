@@ -1,0 +1,15 @@
+Version: 1.0
+File: include/net/inet_hashtables.h:117
+Symbol:
+Byte size 640
+struct inet_hashinfo {
+0x0 ehash * @"struct--inet_ehash_bucket.txt"
+0x8 ehash_locks * @"typedef--spinlock_t.txt"
+0x10 ehash_mask "unsigned int"
+0x14 ehash_locks_mask "unsigned int"
+0x18 bhash * @"struct--inet_bind_hashbucket.txt"
+0x20 bhash_size "unsigned int"
+0x28 bind_bucket_cachep * @"struct--kmem_cache.txt"
+0x40 listening_hash [32]@"struct--inet_listen_hashbucket.txt"
+0x240 bsockets @"typedef--atomic_t.txt"
+}

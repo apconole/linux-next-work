@@ -1,0 +1,7 @@
+Version: 1.0
+File: net/core/sock.c:2720
+Symbol:
+Byte size 256
+struct prot_inuse {
+0x0 val [64]"int"
+}

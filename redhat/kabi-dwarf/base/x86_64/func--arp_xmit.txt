@@ -1,0 +1,7 @@
+Version: 1.0
+File: net/ipv4/arp.c:723
+Symbol:
+func arp_xmit (
+skb * @"struct--sk_buff.txt"
+)
+"void"

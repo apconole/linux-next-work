@@ -1,0 +1,11 @@
+Version: 1.0
+File: include/linux/memremap.h:17
+Symbol:
+Byte size 40
+struct vmem_altmap {
+0x0 base_pfn const "long unsigned int"
+0x8 reserve const "long unsigned int"
+0x10 free "long unsigned int"
+0x18 align "long unsigned int"
+0x20 alloc "long unsigned int"
+}

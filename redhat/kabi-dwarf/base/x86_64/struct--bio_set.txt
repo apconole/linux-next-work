@@ -1,0 +1,16 @@
+Version: 1.0
+File: include/linux/bio.h:574
+Symbol:
+Byte size 112
+struct bio_set {
+0x0 bio_slab * @"struct--kmem_cache.txt"
+0x8 front_pad "unsigned int"
+0x10 bio_pool * @"typedef--mempool_t.txt"
+0x18 bvec_pool * @"typedef--mempool_t.txt"
+0x20 bio_integrity_pool * @"typedef--mempool_t.txt"
+0x28 bvec_integrity_pool * @"typedef--mempool_t.txt"
+0x30 rescue_lock @"typedef--spinlock_t.txt"
+0x38 rescue_list @"struct--bio_list.txt"
+0x48 rescue_work @"struct--work_struct.txt"
+0x68 rescue_workqueue * @"<declarations>/struct--workqueue_struct.txt"
+}

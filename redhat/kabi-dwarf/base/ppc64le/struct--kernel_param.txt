@@ -1,0 +1,15 @@
+Version: 1.0
+File: include/linux/moduleparam.h:48
+Symbol:
+Byte size 32
+struct kernel_param {
+0x0 name * const "char"
+0x8 ops * const @"struct--kernel_param_ops.txt"
+0x10 perm @"typedef--u16.txt"
+0x12 level @"typedef--s16.txt"
+0x18 (NULL) union (NULL) {
+arg * "void"
+str * const @"struct--kparam_string.txt"
+arr * const @"struct--kparam_array.txt"
+}
+}

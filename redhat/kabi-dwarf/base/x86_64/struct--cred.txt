@@ -1,0 +1,31 @@
+Version: 1.0
+File: include/linux/cred.h:105
+Symbol:
+Byte size 168
+struct cred {
+0x0 usage @"typedef--atomic_t.txt"
+0x4 uid @"typedef--kuid_t.txt"
+0x8 gid @"typedef--kgid_t.txt"
+0xc suid @"typedef--kuid_t.txt"
+0x10 sgid @"typedef--kgid_t.txt"
+0x14 euid @"typedef--kuid_t.txt"
+0x18 egid @"typedef--kgid_t.txt"
+0x1c fsuid @"typedef--kuid_t.txt"
+0x20 fsgid @"typedef--kgid_t.txt"
+0x24 securebits "unsigned int"
+0x28 cap_inheritable @"typedef--kernel_cap_t.txt"
+0x30 cap_permitted @"typedef--kernel_cap_t.txt"
+0x38 cap_effective @"typedef--kernel_cap_t.txt"
+0x40 cap_bset @"typedef--kernel_cap_t.txt"
+0x48 jit_keyring "unsigned char"
+0x50 session_keyring * @"struct--key.txt"
+0x58 process_keyring * @"struct--key.txt"
+0x60 thread_keyring * @"struct--key.txt"
+0x68 request_key_auth * @"struct--key.txt"
+0x70 security * "void"
+0x78 user * @"struct--user_struct.txt"
+0x80 user_ns * @"struct--user_namespace.txt"
+0x88 group_info * @"struct--group_info.txt"
+0x90 rcu @"struct--callback_head.txt"
+0xa0 cap_ambient @"typedef--kernel_cap_t.txt"
+}

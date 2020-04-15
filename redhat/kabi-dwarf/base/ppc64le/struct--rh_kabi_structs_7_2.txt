@@ -1,0 +1,7 @@
+Version: 1.0
+File: kernel/rh_kabi.c:20
+Symbol:
+Byte size 8
+struct rh_kabi_structs_7_2 {
+0x0 nf_hook_state * @"struct--nf_hook_state.txt"
+}

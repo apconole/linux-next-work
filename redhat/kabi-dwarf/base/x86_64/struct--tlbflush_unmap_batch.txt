@@ -1,0 +1,9 @@
+Version: 1.0
+File: include/linux/sched.h:1346
+Symbol:
+Byte size 648
+struct tlbflush_unmap_batch {
+0x0 cpumask @"struct--cpumask.txt"
+0x280 flush_required @"typedef--bool.txt"
+0x281 writable @"typedef--bool.txt"
+}

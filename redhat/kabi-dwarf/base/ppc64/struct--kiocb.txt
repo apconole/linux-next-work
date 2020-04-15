@@ -1,0 +1,31 @@
+Version: 1.0
+File: include/linux/aio.h:32
+Symbol:
+Byte size 168
+struct kiocb {
+0x0 ki_users @"typedef--atomic_t.txt"
+0x8 ki_filp * @"struct--file.txt"
+0x10 ki_ctx * @"struct--kioctx.txt"
+0x18 ki_cancel * @"typedef--kiocb_cancel_fn.txt"
+0x20 ki_dtor * func (NULL) (
+(NULL) * @"struct--kiocb.txt"
+)
+"void"
+0x28 ki_obj union (NULL) {
+user * "void"
+tsk * @"struct--task_struct.txt"
+}
+0x30 ki_user_data @"typedef--__u64.txt"
+0x38 ki_pos @"typedef--loff_t.txt"
+0x40 private * "void"
+0x48 ki_opcode "short unsigned int"
+0x50 ki_nbytes @"typedef--size_t.txt"
+0x58 ki_buf * "char"
+0x60 ki_left @"typedef--size_t.txt"
+0x68 ki_inline_vec @"struct--iovec.txt"
+0x78 ki_iovec * @"struct--iovec.txt"
+0x80 ki_nr_segs "long unsigned int"
+0x88 ki_cur_seg "long unsigned int"
+0x90 ki_list @"struct--list_head.txt"
+0xa0 ki_eventfd * @"<declarations>/struct--eventfd_ctx.txt"
+}

@@ -1,0 +1,15 @@
+Version: 1.0
+File: include/linux/fs.h:960
+Symbol:
+Byte size 16
+struct file_lock_operations {
+0x0 fl_copy_lock * func (NULL) (
+(NULL) * @"struct--file_lock.txt"
+(NULL) * @"struct--file_lock.txt"
+)
+"void"
+0x8 fl_release_private * func (NULL) (
+(NULL) * @"struct--file_lock.txt"
+)
+"void"
+}

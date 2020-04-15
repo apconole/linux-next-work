@@ -1,0 +1,58 @@
+Version: 1.0
+File: include/linux/device.h:108
+Symbol:
+Byte size 168
+struct bus_type {
+0x0 name * const "char"
+0x8 dev_name * const "char"
+0x10 dev_root * @"struct--device.txt"
+0x18 bus_attrs * @"struct--bus_attribute.txt"
+0x20 dev_attrs * @"struct--device_attribute.txt"
+0x28 drv_attrs * @"struct--driver_attribute.txt"
+0x30 bus_groups * * const @"struct--attribute_group.txt"
+0x38 dev_groups * * const @"struct--attribute_group.txt"
+0x40 drv_groups * * const @"struct--attribute_group.txt"
+0x48 match * func (NULL) (
+(NULL) * @"struct--device.txt"
+(NULL) * @"struct--device_driver.txt"
+)
+"int"
+0x50 uevent * func (NULL) (
+(NULL) * @"struct--device.txt"
+(NULL) * @"struct--kobj_uevent_env.txt"
+)
+"int"
+0x58 probe * func (NULL) (
+(NULL) * @"struct--device.txt"
+)
+"int"
+0x60 remove * func (NULL) (
+(NULL) * @"struct--device.txt"
+)
+"int"
+0x68 shutdown * func (NULL) (
+(NULL) * @"struct--device.txt"
+)
+"void"
+0x70 online * func (NULL) (
+(NULL) * @"struct--device.txt"
+)
+"int"
+0x78 offline * func (NULL) (
+(NULL) * @"struct--device.txt"
+)
+"int"
+0x80 suspend * func (NULL) (
+(NULL) * @"struct--device.txt"
+(NULL) @"typedef--pm_message_t.txt"
+)
+"int"
+0x88 resume * func (NULL) (
+(NULL) * @"struct--device.txt"
+)
+"int"
+0x90 pm * const @"struct--dev_pm_ops.txt"
+0x98 iommu_ops * @"<declarations>/struct--iommu_ops.txt"
+0xa0 p * @"struct--subsys_private.txt"
+0xa8 lock_key @"struct--lock_class_key.txt"
+}

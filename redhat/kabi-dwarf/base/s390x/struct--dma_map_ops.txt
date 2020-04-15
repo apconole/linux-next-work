@@ -1,0 +1,137 @@
+Version: 1.0
+File: include/linux/dma-mapping.h:23
+Symbol:
+Byte size 152
+struct dma_map_ops {
+0x0 alloc * func (NULL) (
+(NULL) * @"struct--device.txt"
+(NULL) @"typedef--size_t.txt"
+(NULL) * @"typedef--dma_addr_t.txt"
+(NULL) @"typedef--gfp_t.txt"
+(NULL) * @"struct--dma_attrs.txt"
+)
+* "void"
+0x8 free * func (NULL) (
+(NULL) * @"struct--device.txt"
+(NULL) @"typedef--size_t.txt"
+(NULL) * "void"
+(NULL) @"typedef--dma_addr_t.txt"
+(NULL) * @"struct--dma_attrs.txt"
+)
+"void"
+0x10 mmap * func (NULL) (
+(NULL) * @"struct--device.txt"
+(NULL) * @"struct--vm_area_struct.txt"
+(NULL) * "void"
+(NULL) @"typedef--dma_addr_t.txt"
+(NULL) @"typedef--size_t.txt"
+(NULL) * @"struct--dma_attrs.txt"
+)
+"int"
+0x18 get_sgtable * func (NULL) (
+(NULL) * @"struct--device.txt"
+(NULL) * @"struct--sg_table.txt"
+(NULL) * "void"
+(NULL) @"typedef--dma_addr_t.txt"
+(NULL) @"typedef--size_t.txt"
+(NULL) * @"struct--dma_attrs.txt"
+)
+"int"
+0x20 map_page * func (NULL) (
+(NULL) * @"struct--device.txt"
+(NULL) * @"struct--page.txt"
+(NULL) "long unsigned int"
+(NULL) @"typedef--size_t.txt"
+(NULL) @"enum--dma_data_direction.txt"
+(NULL) * @"struct--dma_attrs.txt"
+)
+@"typedef--dma_addr_t.txt"
+0x28 unmap_page * func (NULL) (
+(NULL) * @"struct--device.txt"
+(NULL) @"typedef--dma_addr_t.txt"
+(NULL) @"typedef--size_t.txt"
+(NULL) @"enum--dma_data_direction.txt"
+(NULL) * @"struct--dma_attrs.txt"
+)
+"void"
+0x30 map_sg * func (NULL) (
+(NULL) * @"struct--device.txt"
+(NULL) * @"struct--scatterlist.txt"
+(NULL) "int"
+(NULL) @"enum--dma_data_direction.txt"
+(NULL) * @"struct--dma_attrs.txt"
+)
+"int"
+0x38 unmap_sg * func (NULL) (
+(NULL) * @"struct--device.txt"
+(NULL) * @"struct--scatterlist.txt"
+(NULL) "int"
+(NULL) @"enum--dma_data_direction.txt"
+(NULL) * @"struct--dma_attrs.txt"
+)
+"void"
+0x40 sync_single_for_cpu * func (NULL) (
+(NULL) * @"struct--device.txt"
+(NULL) @"typedef--dma_addr_t.txt"
+(NULL) @"typedef--size_t.txt"
+(NULL) @"enum--dma_data_direction.txt"
+)
+"void"
+0x48 sync_single_for_device * func (NULL) (
+(NULL) * @"struct--device.txt"
+(NULL) @"typedef--dma_addr_t.txt"
+(NULL) @"typedef--size_t.txt"
+(NULL) @"enum--dma_data_direction.txt"
+)
+"void"
+0x50 sync_sg_for_cpu * func (NULL) (
+(NULL) * @"struct--device.txt"
+(NULL) * @"struct--scatterlist.txt"
+(NULL) "int"
+(NULL) @"enum--dma_data_direction.txt"
+)
+"void"
+0x58 sync_sg_for_device * func (NULL) (
+(NULL) * @"struct--device.txt"
+(NULL) * @"struct--scatterlist.txt"
+(NULL) "int"
+(NULL) @"enum--dma_data_direction.txt"
+)
+"void"
+0x60 mapping_error * func (NULL) (
+(NULL) * @"struct--device.txt"
+(NULL) @"typedef--dma_addr_t.txt"
+)
+"int"
+0x68 dma_supported * func (NULL) (
+(NULL) * @"struct--device.txt"
+(NULL) @"typedef--u64.txt"
+)
+"int"
+0x70 set_dma_mask * func (NULL) (
+(NULL) * @"struct--device.txt"
+(NULL) @"typedef--u64.txt"
+)
+"int"
+0x78 is_phys "int"
+0x80 map_resource * func (NULL) (
+(NULL) * @"struct--device.txt"
+(NULL) @"typedef--phys_addr_t.txt"
+(NULL) @"typedef--size_t.txt"
+(NULL) @"enum--dma_data_direction.txt"
+(NULL) * @"struct--dma_attrs.txt"
+)
+@"typedef--dma_addr_t.txt"
+0x88 unmap_resource * func (NULL) (
+(NULL) * @"struct--device.txt"
+(NULL) @"typedef--dma_addr_t.txt"
+(NULL) @"typedef--size_t.txt"
+(NULL) @"enum--dma_data_direction.txt"
+(NULL) * @"struct--dma_attrs.txt"
+)
+"void"
+0x90 max_mapping_size * func (NULL) (
+(NULL) * @"struct--device.txt"
+)
+@"typedef--size_t.txt"
+}

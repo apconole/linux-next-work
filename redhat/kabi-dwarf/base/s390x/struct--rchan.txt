@@ -1,0 +1,20 @@
+Version: 1.0
+File: include/linux/relay.h:56
+Symbol:
+Byte size 2408
+struct rchan {
+0x0 version @"typedef--u32.txt"
+0x8 subbuf_size @"typedef--size_t.txt"
+0x10 n_subbufs @"typedef--size_t.txt"
+0x18 alloc_size @"typedef--size_t.txt"
+0x20 cb * @"struct--rchan_callbacks.txt"
+0x28 kref @"struct--kref.txt"
+0x30 private_data * "void"
+0x38 last_toobig @"typedef--size_t.txt"
+0x40 buf [256]* @"struct--rchan_buf.txt"
+0x840 is_global "int"
+0x848 list @"struct--list_head.txt"
+0x858 parent * @"struct--dentry.txt"
+0x860 has_base_filename "int"
+0x864 base_filename [255]"char"
+}

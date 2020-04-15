@@ -1,0 +1,32 @@
+Version: 1.0
+File: include/linux/pci.h:503
+Symbol:
+Byte size 952
+struct pci_bus {
+0x0 node @"struct--list_head.txt"
+0x10 parent * @"struct--pci_bus.txt"
+0x18 children @"struct--list_head.txt"
+0x28 devices @"struct--list_head.txt"
+0x38 self * @"struct--pci_dev.txt"
+0x40 slots @"struct--list_head.txt"
+0x50 resource [4]* @"struct--resource.txt"
+0x70 resources @"struct--list_head.txt"
+0x80 busn_res @"struct--resource.txt"
+0xb8 ops * @"struct--pci_ops.txt"
+0xc0 msi * @"struct--msi_chip.txt"
+0xc8 sysdata * "void"
+0xd0 procdir * @"<declarations>/struct--proc_dir_entry.txt"
+0xd8 number "unsigned char"
+0xd9 primary "unsigned char"
+0xda max_bus_speed "unsigned char"
+0xdb cur_bus_speed "unsigned char"
+0xdc name [48]"char"
+0x10c bridge_ctl "short unsigned int"
+0x10e bus_flags @"typedef--pci_bus_flags_t.txt"
+0x110 bridge * @"struct--device.txt"
+0x118 dev @"struct--device.txt"
+0x398 legacy_io * @"struct--bin_attribute.txt"
+0x3a0 legacy_mem * @"struct--bin_attribute.txt"
+0x3a8:0-1 is_added "unsigned int"
+0x3b0 pci_bus_rh * @"struct--pci_bus_rh.txt"
+}

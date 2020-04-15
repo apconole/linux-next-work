@@ -1,0 +1,10 @@
+Version: 1.0
+File: kernel/sched/core.c:3854
+Symbol:
+func __wake_up (
+q * @"typedef--wait_queue_head_t.txt"
+mode "unsigned int"
+nr_exclusive "int"
+key * "void"
+)
+"void"

@@ -1,0 +1,8 @@
+Version: 1.0
+File: fs/dcache.c:2432
+Symbol:
+func d_lookup (
+parent * const @"struct--dentry.txt"
+name * const @"struct--qstr.txt"
+)
+* @"struct--dentry.txt"

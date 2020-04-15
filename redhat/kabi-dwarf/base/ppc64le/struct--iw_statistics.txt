@@ -1,0 +1,10 @@
+Version: 1.0
+File: include/uapi/linux/wireless.h:887
+Symbol:
+Byte size 32
+struct iw_statistics {
+0x0 status @"typedef--__u16.txt"
+0x2 qual @"struct--iw_quality.txt"
+0x8 discard @"struct--iw_discarded.txt"
+0x1c miss @"struct--iw_missed.txt"
+}

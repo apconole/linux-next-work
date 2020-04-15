@@ -1,0 +1,5 @@
+Version: 1.0
+File: arch/x86/kernel/acpi/boot.c:52
+Symbol:
+Byte size 4
+var acpi_disabled "int"

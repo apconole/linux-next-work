@@ -1,0 +1,8 @@
+Version: 1.0
+File: include/linux/blkdev.h:266
+Symbol:
+typedef request_fn_proc
+func (NULL) (
+(NULL) * @"struct--request_queue.txt"
+)
+"void"

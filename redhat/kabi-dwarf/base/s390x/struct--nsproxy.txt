@@ -1,0 +1,12 @@
+Version: 1.0
+File: include/linux/nsproxy.h:25
+Symbol:
+Byte size 48
+struct nsproxy {
+0x0 count @"typedef--atomic_t.txt"
+0x8 uts_ns * @"struct--uts_namespace.txt"
+0x10 ipc_ns * @"<declarations>/struct--ipc_namespace.txt"
+0x18 mnt_ns * @"struct--mnt_namespace.txt"
+0x20 pid_ns * @"struct--pid_namespace.txt"
+0x28 net_ns * @"struct--net.txt"
+}

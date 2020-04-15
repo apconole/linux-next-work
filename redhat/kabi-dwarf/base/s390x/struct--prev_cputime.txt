@@ -1,0 +1,5 @@
+Version: 1.0
+File: include/linux/sched.h:489
+Symbol:
+struct prev_cputime {
+}

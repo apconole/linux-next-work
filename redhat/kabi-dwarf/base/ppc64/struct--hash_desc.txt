@@ -1,0 +1,8 @@
+Version: 1.0
+File: include/linux/crypto.h:216
+Symbol:
+Byte size 16
+struct hash_desc {
+0x0 tfm * @"struct--crypto_hash.txt"
+0x8 flags @"typedef--u32.txt"
+}

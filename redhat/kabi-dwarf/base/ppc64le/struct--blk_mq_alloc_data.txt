@@ -1,0 +1,11 @@
+Version: 1.0
+File: block/blk-mq.h:129
+Symbol:
+Byte size 32
+struct blk_mq_alloc_data {
+0x0 q * @"struct--request_queue.txt"
+0x8 flags "unsigned int"
+0xc shallow_depth "unsigned int"
+0x10 ctx * @"struct--blk_mq_ctx.txt"
+0x18 hctx * @"struct--blk_mq_hw_ctx.txt"
+}

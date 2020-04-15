@@ -1,0 +1,12 @@
+Version: 1.0
+File: drivers/char/ipmi/ipmi_msghandler.c:3460
+Symbol:
+func ipmi_register_smi (
+handlers * @"struct--ipmi_smi_handlers.txt"
+send_info * "void"
+device_id * @"struct--ipmi_device_id.txt"
+si_dev * @"struct--device.txt"
+sysfs_name * const "char"
+slave_addr "unsigned char"
+)
+"int"

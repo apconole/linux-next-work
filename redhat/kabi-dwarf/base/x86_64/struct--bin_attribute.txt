@@ -1,0 +1,34 @@
+Version: 1.0
+File: include/linux/sysfs.h:120
+Symbol:
+Byte size 56
+struct bin_attribute {
+0x0 attr @"struct--attribute.txt"
+0x10 size @"typedef--size_t.txt"
+0x18 private * "void"
+0x20 read * func (NULL) (
+(NULL) * @"struct--file.txt"
+(NULL) * @"struct--kobject.txt"
+(NULL) * @"struct--bin_attribute.txt"
+(NULL) * "char"
+(NULL) @"typedef--loff_t.txt"
+(NULL) @"typedef--size_t.txt"
+)
+@"typedef--ssize_t.txt"
+0x28 write * func (NULL) (
+(NULL) * @"struct--file.txt"
+(NULL) * @"struct--kobject.txt"
+(NULL) * @"struct--bin_attribute.txt"
+(NULL) * "char"
+(NULL) @"typedef--loff_t.txt"
+(NULL) @"typedef--size_t.txt"
+)
+@"typedef--ssize_t.txt"
+0x30 mmap * func (NULL) (
+(NULL) * @"struct--file.txt"
+(NULL) * @"struct--kobject.txt"
+(NULL) * @"struct--bin_attribute.txt"
+(NULL) * @"struct--vm_area_struct.txt"
+)
+"int"
+}

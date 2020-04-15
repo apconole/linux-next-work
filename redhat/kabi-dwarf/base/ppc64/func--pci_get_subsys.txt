@@ -1,0 +1,11 @@
+Version: 1.0
+File: drivers/pci/search.c:303
+Symbol:
+func pci_get_subsys (
+vendor "unsigned int"
+device "unsigned int"
+ss_vendor "unsigned int"
+ss_device "unsigned int"
+from * @"struct--pci_dev.txt"
+)
+* @"struct--pci_dev.txt"

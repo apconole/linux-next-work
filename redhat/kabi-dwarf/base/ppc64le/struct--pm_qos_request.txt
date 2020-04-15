@@ -1,0 +1,9 @@
+Version: 1.0
+File: include/linux/pm_qos.h:43
+Symbol:
+Byte size 176
+struct pm_qos_request {
+0x0 node @"struct--plist_node.txt"
+0x28 pm_qos_class "int"
+0x30 work @"struct--delayed_work.txt"
+}

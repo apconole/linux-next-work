@@ -1,0 +1,7 @@
+Version: 1.0
+File: fs/dcache.c:2072
+Symbol:
+func d_make_root (
+root_inode * @"struct--inode.txt"
+)
+* @"struct--dentry.txt"

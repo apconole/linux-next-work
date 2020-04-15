@@ -1,0 +1,7 @@
+Version: 1.0
+File: drivers/base/platform.c:297
+Symbol:
+func platform_device_add (
+pdev * @"struct--platform_device.txt"
+)
+"int"

@@ -1,0 +1,16 @@
+Version: 1.0
+File: arch/powerpc/include/asm/mmu-hash64.h:529
+Symbol:
+Byte size 56
+struct subpage_prot_table {
+0x0 maxaddr "long unsigned int"
+0x8 (NULL) union (NULL) {
+rh_kabi * @"struct--protptrs_kabi.txt"
+__UNIQUE_ID_rh_kabi_hide0 struct (NULL) {
+0x0 protptrs [2]* * "unsigned int"
+}
+(NULL) union (NULL) {
+}
+}
+0x18 low_prot [4]* "unsigned int"
+}

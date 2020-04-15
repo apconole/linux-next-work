@@ -1,0 +1,8 @@
+Version: 1.0
+File: include/net/flow.h:62
+Symbol:
+Byte size 24
+struct flowi_extended {
+0x0 flowic_tun_key @"struct--flowi_tunnel.txt"
+0x8 rh_reserved [4]@"typedef--u32.txt"
+}

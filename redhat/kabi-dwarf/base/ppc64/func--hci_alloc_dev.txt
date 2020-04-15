@@ -1,0 +1,6 @@
+Version: 1.0
+File: net/bluetooth/hci_core.c:2925
+Symbol:
+func hci_alloc_dev (
+)
+* @"struct--hci_dev.txt"

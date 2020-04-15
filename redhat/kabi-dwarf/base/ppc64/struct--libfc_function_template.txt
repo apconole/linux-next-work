@@ -1,0 +1,211 @@
+Version: 1.0
+File: include/scsi/libfc.h:452
+Symbol:
+Byte size 272
+struct libfc_function_template {
+0x0 frame_send * func (NULL) (
+(NULL) * @"struct--fc_lport.txt"
+(NULL) * @"struct--fc_frame.txt"
+)
+"int"
+0x8 elsct_send * func (NULL) (
+(NULL) * @"struct--fc_lport.txt"
+(NULL) @"typedef--u32.txt"
+(NULL) * @"struct--fc_frame.txt"
+(NULL) "unsigned int"
+(NULL) * func (NULL) (
+(NULL) * @"struct--fc_seq.txt"
+(NULL) * @"struct--fc_frame.txt"
+(NULL) * "void"
+)
+"void"
+(NULL) * "void"
+(NULL) @"typedef--u32.txt"
+)
+* @"struct--fc_seq.txt"
+0x10 exch_seq_send * func (NULL) (
+(NULL) * @"struct--fc_lport.txt"
+(NULL) * @"struct--fc_frame.txt"
+(NULL) * func (NULL) (
+(NULL) * @"struct--fc_seq.txt"
+(NULL) * @"struct--fc_frame.txt"
+(NULL) * "void"
+)
+"void"
+(NULL) * func (NULL) (
+(NULL) * @"struct--fc_seq.txt"
+(NULL) * "void"
+)
+"void"
+(NULL) * "void"
+(NULL) "unsigned int"
+)
+* @"struct--fc_seq.txt"
+0x18 ddp_setup * func (NULL) (
+(NULL) * @"struct--fc_lport.txt"
+(NULL) @"typedef--u16.txt"
+(NULL) * @"struct--scatterlist.txt"
+(NULL) "unsigned int"
+)
+"int"
+0x20 ddp_done * func (NULL) (
+(NULL) * @"struct--fc_lport.txt"
+(NULL) @"typedef--u16.txt"
+)
+"int"
+0x28 ddp_target * func (NULL) (
+(NULL) * @"struct--fc_lport.txt"
+(NULL) @"typedef--u16.txt"
+(NULL) * @"struct--scatterlist.txt"
+(NULL) "unsigned int"
+)
+"int"
+0x30 get_lesb * func (NULL) (
+(NULL) * @"struct--fc_lport.txt"
+(NULL) * @"struct--fc_els_lesb.txt"
+)
+"void"
+0x38 seq_send * func (NULL) (
+(NULL) * @"struct--fc_lport.txt"
+(NULL) * @"struct--fc_seq.txt"
+(NULL) * @"struct--fc_frame.txt"
+)
+"int"
+0x40 seq_els_rsp_send * func (NULL) (
+(NULL) * @"struct--fc_frame.txt"
+(NULL) @"enum--fc_els_cmd.txt"
+(NULL) * @"struct--fc_seq_els_data.txt"
+)
+"void"
+0x48 seq_exch_abort * func (NULL) (
+(NULL) * const @"struct--fc_seq.txt"
+(NULL) "unsigned int"
+)
+"int"
+0x50 exch_done * func (NULL) (
+(NULL) * @"struct--fc_seq.txt"
+)
+"void"
+0x58 seq_start_next * func (NULL) (
+(NULL) * @"struct--fc_seq.txt"
+)
+* @"struct--fc_seq.txt"
+0x60 seq_set_resp * func (NULL) (
+(NULL) * @"struct--fc_seq.txt"
+(NULL) * func (NULL) (
+(NULL) * @"struct--fc_seq.txt"
+(NULL) * @"struct--fc_frame.txt"
+(NULL) * "void"
+)
+"void"
+(NULL) * "void"
+)
+"void"
+0x68 seq_assign * func (NULL) (
+(NULL) * @"struct--fc_lport.txt"
+(NULL) * @"struct--fc_frame.txt"
+)
+* @"struct--fc_seq.txt"
+0x70 seq_release * func (NULL) (
+(NULL) * @"struct--fc_seq.txt"
+)
+"void"
+0x78 exch_mgr_reset * func (NULL) (
+(NULL) * @"struct--fc_lport.txt"
+(NULL) @"typedef--u32.txt"
+(NULL) @"typedef--u32.txt"
+)
+"void"
+0x80 rport_flush_queue * func (NULL) (
+)
+"void"
+0x88 lport_recv * func (NULL) (
+(NULL) * @"struct--fc_lport.txt"
+(NULL) * @"struct--fc_frame.txt"
+)
+"void"
+0x90 lport_reset * func (NULL) (
+(NULL) * @"struct--fc_lport.txt"
+)
+"int"
+0x98 lport_set_port_id * func (NULL) (
+(NULL) * @"struct--fc_lport.txt"
+(NULL) @"typedef--u32.txt"
+(NULL) * @"struct--fc_frame.txt"
+)
+"void"
+0xa0 rport_create * func (NULL) (
+(NULL) * @"struct--fc_lport.txt"
+(NULL) @"typedef--u32.txt"
+)
+* @"struct--fc_rport_priv.txt"
+0xa8 rport_login * func (NULL) (
+(NULL) * @"struct--fc_rport_priv.txt"
+)
+"int"
+0xb0 rport_logoff * func (NULL) (
+(NULL) * @"struct--fc_rport_priv.txt"
+)
+"int"
+0xb8 rport_recv_req * func (NULL) (
+(NULL) * @"struct--fc_lport.txt"
+(NULL) * @"struct--fc_frame.txt"
+)
+"void"
+0xc0 rport_lookup * func (NULL) (
+(NULL) * const @"struct--fc_lport.txt"
+(NULL) @"typedef--u32.txt"
+)
+* @"struct--fc_rport_priv.txt"
+0xc8 rport_destroy * func (NULL) (
+(NULL) * @"struct--kref.txt"
+)
+"void"
+0xd0 rport_event_callback * func (NULL) (
+(NULL) * @"struct--fc_lport.txt"
+(NULL) * @"struct--fc_rport_priv.txt"
+(NULL) @"enum--fc_rport_event.txt"
+)
+"void"
+0xd8 fcp_cmd_send * func (NULL) (
+(NULL) * @"struct--fc_lport.txt"
+(NULL) * @"struct--fc_fcp_pkt.txt"
+(NULL) * func (NULL) (
+(NULL) * @"struct--fc_seq.txt"
+(NULL) * @"struct--fc_frame.txt"
+(NULL) * "void"
+)
+"void"
+)
+"int"
+0xe0 fcp_cleanup * func (NULL) (
+(NULL) * @"struct--fc_lport.txt"
+)
+"void"
+0xe8 fcp_abort_io * func (NULL) (
+(NULL) * @"struct--fc_lport.txt"
+)
+"void"
+0xf0 disc_recv_req * func (NULL) (
+(NULL) * @"struct--fc_lport.txt"
+(NULL) * @"struct--fc_frame.txt"
+)
+"void"
+0xf8 disc_start * func (NULL) (
+(NULL) * func (NULL) (
+(NULL) * @"struct--fc_lport.txt"
+(NULL) @"enum--fc_disc_event.txt"
+)
+"void"
+(NULL) * @"struct--fc_lport.txt"
+)
+"void"
+0x100 disc_stop * func (NULL) (
+(NULL) * @"struct--fc_lport.txt"
+)
+"void"
+0x108 disc_stop_final * func (NULL) (
+(NULL) * @"struct--fc_lport.txt"
+)
+"void"
+}

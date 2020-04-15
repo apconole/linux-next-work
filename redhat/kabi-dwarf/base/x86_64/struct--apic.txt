@@ -1,0 +1,173 @@
+Version: 1.0
+File: arch/x86/include/asm/apic.h:295
+Symbol:
+Byte size 344
+struct apic {
+0x0 name * "char"
+0x8 probe * func (NULL) (
+)
+"int"
+0x10 acpi_madt_oem_check * func (NULL) (
+(NULL) * "char"
+(NULL) * "char"
+)
+"int"
+0x18 apic_id_valid * func (NULL) (
+(NULL) "int"
+)
+"int"
+0x20 apic_id_registered * func (NULL) (
+)
+"int"
+0x28 irq_delivery_mode @"typedef--u32.txt"
+0x2c irq_dest_mode @"typedef--u32.txt"
+0x30 target_cpus * func (NULL) (
+)
+* const @"struct--cpumask.txt"
+0x38 disable_esr "int"
+0x3c dest_logical "int"
+0x40 check_apicid_used * func (NULL) (
+(NULL) * @"typedef--physid_mask_t.txt"
+(NULL) "int"
+)
+"long unsigned int"
+0x48 check_apicid_present * func (NULL) (
+(NULL) "int"
+)
+"long unsigned int"
+0x50 vector_allocation_domain * func (NULL) (
+(NULL) "int"
+(NULL) * @"struct--cpumask.txt"
+(NULL) * const @"struct--cpumask.txt"
+)
+"void"
+0x58 init_apic_ldr * func (NULL) (
+)
+"void"
+0x60 ioapic_phys_id_map * func (NULL) (
+(NULL) * @"typedef--physid_mask_t.txt"
+(NULL) * @"typedef--physid_mask_t.txt"
+)
+"void"
+0x68 setup_apic_routing * func (NULL) (
+)
+"void"
+0x70 multi_timer_check * func (NULL) (
+(NULL) "int"
+(NULL) "int"
+)
+"int"
+0x78 cpu_present_to_apicid * func (NULL) (
+(NULL) "int"
+)
+"int"
+0x80 apicid_to_cpu_present * func (NULL) (
+(NULL) "int"
+(NULL) * @"typedef--physid_mask_t.txt"
+)
+"void"
+0x88 setup_portio_remap * func (NULL) (
+)
+"void"
+0x90 check_phys_apicid_present * func (NULL) (
+(NULL) "int"
+)
+"int"
+0x98 enable_apic_mode * func (NULL) (
+)
+"void"
+0xa0 phys_pkg_id * func (NULL) (
+(NULL) "int"
+(NULL) "int"
+)
+"int"
+0xa8 mps_oem_check * func (NULL) (
+(NULL) * @"struct--mpc_table.txt"
+(NULL) * "char"
+(NULL) * "char"
+)
+"int"
+0xb0 get_apic_id * func (NULL) (
+(NULL) "long unsigned int"
+)
+"unsigned int"
+0xb8 set_apic_id * func (NULL) (
+(NULL) "unsigned int"
+)
+"long unsigned int"
+0xc0 apic_id_mask "long unsigned int"
+0xc8 cpu_mask_to_apicid_and * func (NULL) (
+(NULL) * const @"struct--cpumask.txt"
+(NULL) * const @"struct--cpumask.txt"
+(NULL) * "unsigned int"
+)
+"int"
+0xd0 send_IPI_mask * func (NULL) (
+(NULL) * const @"struct--cpumask.txt"
+(NULL) "int"
+)
+"void"
+0xd8 send_IPI_mask_allbutself * func (NULL) (
+(NULL) * const @"struct--cpumask.txt"
+(NULL) "int"
+)
+"void"
+0xe0 send_IPI_allbutself * func (NULL) (
+(NULL) "int"
+)
+"void"
+0xe8 send_IPI_all * func (NULL) (
+(NULL) "int"
+)
+"void"
+0xf0 send_IPI_self * func (NULL) (
+(NULL) "int"
+)
+"void"
+0xf8 wakeup_secondary_cpu * func (NULL) (
+(NULL) "int"
+(NULL) "long unsigned int"
+)
+"int"
+0x100 trampoline_phys_low "int"
+0x104 trampoline_phys_high "int"
+0x108 wait_for_init_deassert * func (NULL) (
+(NULL) * @"typedef--atomic_t.txt"
+)
+"void"
+0x110 smp_callin_clear_local_apic * func (NULL) (
+)
+"void"
+0x118 inquire_remote_apic * func (NULL) (
+(NULL) "int"
+)
+"void"
+0x120 read * func (NULL) (
+(NULL) @"typedef--u32.txt"
+)
+@"typedef--u32.txt"
+0x128 write * func (NULL) (
+(NULL) @"typedef--u32.txt"
+(NULL) @"typedef--u32.txt"
+)
+"void"
+0x130 eoi_write * func (NULL) (
+(NULL) @"typedef--u32.txt"
+(NULL) @"typedef--u32.txt"
+)
+"void"
+0x138 icr_read * func (NULL) (
+)
+@"typedef--u64.txt"
+0x140 icr_write * func (NULL) (
+(NULL) @"typedef--u32.txt"
+(NULL) @"typedef--u32.txt"
+)
+"void"
+0x148 wait_icr_idle * func (NULL) (
+)
+"void"
+0x150 safe_wait_icr_idle * func (NULL) (
+)
+@"typedef--u32.txt"
+}

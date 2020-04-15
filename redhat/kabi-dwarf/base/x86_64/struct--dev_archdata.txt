@@ -1,0 +1,8 @@
+Version: 1.0
+File: arch/x86/include/asm/device.h:4
+Symbol:
+Byte size 16
+struct dev_archdata {
+0x0 rh_reserved_dma_ops * @"struct--dma_map_ops.txt"
+0x8 iommu * "void"
+}

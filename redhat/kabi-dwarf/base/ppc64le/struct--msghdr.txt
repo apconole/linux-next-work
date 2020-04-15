@@ -1,0 +1,13 @@
+Version: 1.0
+File: include/linux/socket.h:47
+Symbol:
+Byte size 56
+struct msghdr {
+0x0 msg_name * "void"
+0x8 msg_namelen "int"
+0x10 msg_iov * @"struct--iovec.txt"
+0x18 msg_iovlen @"typedef--__kernel_size_t.txt"
+0x20 msg_control * "void"
+0x28 msg_controllen @"typedef--__kernel_size_t.txt"
+0x30 msg_flags "unsigned int"
+}

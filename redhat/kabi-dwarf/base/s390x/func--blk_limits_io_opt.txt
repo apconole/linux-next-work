@@ -1,0 +1,8 @@
+Version: 1.0
+File: block/blk-settings.c:495
+Symbol:
+func blk_limits_io_opt (
+limits * @"struct--queue_limits.txt"
+opt "unsigned int"
+)
+"void"

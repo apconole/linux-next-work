@@ -1,0 +1,22 @@
+Version: 1.0
+File: include/linux/crypto.h:414
+Symbol:
+Byte size 16
+struct compress_tfm {
+0x0 cot_compress * func (NULL) (
+(NULL) * @"struct--crypto_tfm.txt"
+(NULL) * const @"typedef--u8.txt"
+(NULL) "unsigned int"
+(NULL) * @"typedef--u8.txt"
+(NULL) * "unsigned int"
+)
+"int"
+0x8 cot_decompress * func (NULL) (
+(NULL) * @"struct--crypto_tfm.txt"
+(NULL) * const @"typedef--u8.txt"
+(NULL) "unsigned int"
+(NULL) * @"typedef--u8.txt"
+(NULL) * "unsigned int"
+)
+"int"
+}

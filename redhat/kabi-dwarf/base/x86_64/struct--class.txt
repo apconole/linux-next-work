@@ -1,0 +1,47 @@
+Version: 1.0
+File: include/linux/device.h:376
+Symbol:
+Byte size 136
+struct class {
+0x0 name * const "char"
+0x8 owner * @"struct--module.txt"
+0x10 class_attrs * @"struct--class_attribute.txt"
+0x18 dev_attrs * @"struct--device_attribute.txt"
+0x20 dev_groups * * const @"struct--attribute_group.txt"
+0x28 dev_bin_attrs * @"struct--bin_attribute.txt"
+0x30 dev_kobj * @"struct--kobject.txt"
+0x38 dev_uevent * func (NULL) (
+(NULL) * @"struct--device.txt"
+(NULL) * @"struct--kobj_uevent_env.txt"
+)
+"int"
+0x40 devnode * func (NULL) (
+(NULL) * @"struct--device.txt"
+(NULL) * @"typedef--umode_t.txt"
+)
+* "char"
+0x48 class_release * func (NULL) (
+(NULL) * @"struct--class.txt"
+)
+"void"
+0x50 dev_release * func (NULL) (
+(NULL) * @"struct--device.txt"
+)
+"void"
+0x58 suspend * func (NULL) (
+(NULL) * @"struct--device.txt"
+(NULL) @"typedef--pm_message_t.txt"
+)
+"int"
+0x60 resume * func (NULL) (
+(NULL) * @"struct--device.txt"
+)
+"int"
+0x68 ns_type * const @"struct--kobj_ns_type_operations.txt"
+0x70 namespace * func (NULL) (
+(NULL) * @"struct--device.txt"
+)
+* const "void"
+0x78 pm * const @"struct--dev_pm_ops.txt"
+0x80 p * @"struct--subsys_private.txt"
+}

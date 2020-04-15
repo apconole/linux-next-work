@@ -1,0 +1,36 @@
+Version: 1.0
+File: include/scsi/libfc.h:196
+Symbol:
+Byte size 344
+struct fc_rport_priv {
+0x0 local_port * @"struct--fc_lport.txt"
+0x8 rport * @"struct--fc_rport.txt"
+0x10 kref @"struct--kref.txt"
+0x14 rp_state @"enum--fc_rport_state.txt"
+0x18 ids @"struct--fc_rport_identifiers.txt"
+0x30 flags @"typedef--u16.txt"
+0x32 max_seq @"typedef--u16.txt"
+0x34 disc_id @"typedef--u16.txt"
+0x36 maxframe_size @"typedef--u16.txt"
+0x38 retries "unsigned int"
+0x3c major_retries "unsigned int"
+0x40 e_d_tov "unsigned int"
+0x44 r_a_tov "unsigned int"
+0x48 rp_mutex @"struct--mutex.txt"
+0x70 retry_work @"struct--delayed_work.txt"
+0xf0 event @"enum--fc_rport_event.txt"
+0xf8 ops * @"struct--fc_rport_operations.txt"
+0x100 peers @"struct--list_head.txt"
+0x110 event_work @"struct--work_struct.txt"
+0x130 supported_classes @"typedef--u32.txt"
+0x134 prli_count @"typedef--u16.txt"
+0x138 rcu @"struct--callback_head.txt"
+0x148 sp_features @"typedef--u16.txt"
+0x14a spp_type @"typedef--u8.txt"
+0x150 lld_event_callback * func (NULL) (
+(NULL) * @"struct--fc_lport.txt"
+(NULL) * @"struct--fc_rport_priv.txt"
+(NULL) @"enum--fc_rport_event.txt"
+)
+"void"
+}

@@ -1,0 +1,8 @@
+Version: 1.0
+File: arch/s390/lib/string.c:132
+Symbol:
+func strcat (
+dest * "char"
+src * const "char"
+)
+* "char"

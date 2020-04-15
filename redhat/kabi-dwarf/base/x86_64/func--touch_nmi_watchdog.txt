@@ -1,0 +1,6 @@
+Version: 1.0
+File: kernel/watchdog.c:281
+Symbol:
+func touch_nmi_watchdog (
+)
+"void"

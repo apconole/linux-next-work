@@ -1,0 +1,10 @@
+Version: 1.0
+File: net/core/sock.c:1948
+Symbol:
+func sock_alloc_send_skb (
+sk * @"struct--sock.txt"
+size "long unsigned int"
+noblock "int"
+errcode * "int"
+)
+* @"struct--sk_buff.txt"

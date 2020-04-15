@@ -1,0 +1,12 @@
+Version: 1.0
+File: include/net/bluetooth/hci_core.h:128
+Symbol:
+Byte size 40
+struct hci_conn_hash {
+0x0 list @"struct--list_head.txt"
+0x10 acl_num "unsigned int"
+0x14 amp_num "unsigned int"
+0x18 sco_num "unsigned int"
+0x1c le_num "unsigned int"
+0x20 le_num_slave "unsigned int"
+}

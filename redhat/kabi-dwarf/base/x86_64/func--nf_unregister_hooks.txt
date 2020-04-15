@@ -1,0 +1,8 @@
+Version: 1.0
+File: net/netfilter/core.c:117
+Symbol:
+func nf_unregister_hooks (
+reg * @"struct--nf_hook_ops.txt"
+n "unsigned int"
+)
+"void"

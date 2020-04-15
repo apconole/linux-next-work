@@ -1,0 +1,33 @@
+Version: 1.0
+File: include/linux/sched.h:1184
+Symbol:
+Byte size 216
+struct sched_statistics {
+0x0 wait_start @"typedef--u64.txt"
+0x8 wait_max @"typedef--u64.txt"
+0x10 wait_count @"typedef--u64.txt"
+0x18 wait_sum @"typedef--u64.txt"
+0x20 iowait_count @"typedef--u64.txt"
+0x28 iowait_sum @"typedef--u64.txt"
+0x30 sleep_start @"typedef--u64.txt"
+0x38 sleep_max @"typedef--u64.txt"
+0x40 sum_sleep_runtime @"typedef--s64.txt"
+0x48 block_start @"typedef--u64.txt"
+0x50 block_max @"typedef--u64.txt"
+0x58 exec_max @"typedef--u64.txt"
+0x60 slice_max @"typedef--u64.txt"
+0x68 nr_migrations_cold @"typedef--u64.txt"
+0x70 nr_failed_migrations_affine @"typedef--u64.txt"
+0x78 nr_failed_migrations_running @"typedef--u64.txt"
+0x80 nr_failed_migrations_hot @"typedef--u64.txt"
+0x88 nr_forced_migrations @"typedef--u64.txt"
+0x90 nr_wakeups @"typedef--u64.txt"
+0x98 nr_wakeups_sync @"typedef--u64.txt"
+0xa0 nr_wakeups_migrate @"typedef--u64.txt"
+0xa8 nr_wakeups_local @"typedef--u64.txt"
+0xb0 nr_wakeups_remote @"typedef--u64.txt"
+0xb8 nr_wakeups_affine @"typedef--u64.txt"
+0xc0 nr_wakeups_affine_attempts @"typedef--u64.txt"
+0xc8 nr_wakeups_passive @"typedef--u64.txt"
+0xd0 nr_wakeups_idle @"typedef--u64.txt"
+}

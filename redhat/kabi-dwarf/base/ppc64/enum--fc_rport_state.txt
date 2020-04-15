@@ -1,0 +1,15 @@
+Version: 1.0
+File: include/scsi/libfc.h:101
+Symbol:
+Byte size 4
+enum fc_rport_state {
+RPORT_ST_INIT = 0x0
+RPORT_ST_FLOGI = 0x1
+RPORT_ST_PLOGI_WAIT = 0x2
+RPORT_ST_PLOGI = 0x3
+RPORT_ST_PRLI = 0x4
+RPORT_ST_RTV = 0x5
+RPORT_ST_READY = 0x6
+RPORT_ST_ADISC = 0x7
+RPORT_ST_DELETE = 0x8
+}

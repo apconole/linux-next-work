@@ -1,0 +1,7 @@
+Version: 1.0
+File: fs/quota/dquot.c:468
+Symbol:
+func dquot_release (
+dquot * @"struct--dquot.txt"
+)
+"int"

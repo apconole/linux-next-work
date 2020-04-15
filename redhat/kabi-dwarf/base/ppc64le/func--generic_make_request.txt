@@ -1,0 +1,7 @@
+Version: 1.0
+File: block/blk-core.c:2229
+Symbol:
+func generic_make_request (
+bio * @"struct--bio.txt"
+)
+"void"

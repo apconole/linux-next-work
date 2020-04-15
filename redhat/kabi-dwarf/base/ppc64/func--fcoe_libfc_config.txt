@@ -1,0 +1,10 @@
+Version: 1.0
+File: drivers/scsi/fcoe/fcoe_ctlr.c:2921
+Symbol:
+func fcoe_libfc_config (
+lport * @"struct--fc_lport.txt"
+fip * @"struct--fcoe_ctlr.txt"
+tt * const @"struct--libfc_function_template.txt"
+init_fcp "int"
+)
+"int"

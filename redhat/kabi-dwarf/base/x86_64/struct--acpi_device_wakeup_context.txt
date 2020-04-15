@@ -1,0 +1,8 @@
+Version: 1.0
+File: include/acpi/acpi_bus.h:323
+Symbol:
+Byte size 40
+struct acpi_device_wakeup_context {
+0x0 work @"struct--work_struct.txt"
+0x20 dev * @"struct--device.txt"
+}

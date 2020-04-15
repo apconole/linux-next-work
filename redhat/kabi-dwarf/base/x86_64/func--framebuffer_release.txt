@@ -1,0 +1,7 @@
+Version: 1.0
+File: drivers/video/fbsysfs.c:81
+Symbol:
+func framebuffer_release (
+info * @"struct--fb_info.txt"
+)
+"void"

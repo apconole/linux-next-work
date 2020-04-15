@@ -1,0 +1,8 @@
+Version: 1.0
+File: include/linux/skbuff.h:399
+Symbol:
+Byte size 16
+struct skb_shared_hwtstamps {
+0x0 hwtstamp @"typedef--ktime_t.txt"
+0x8 syststamp @"typedef--ktime_t.txt"
+}

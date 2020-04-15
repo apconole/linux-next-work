@@ -1,0 +1,13 @@
+Version: 1.0
+File: include/linux/fsnotify_backend.h:270
+Symbol:
+Byte size 24
+struct fsnotify_mark_connector {
+0x0 lock @"typedef--spinlock_t.txt"
+0x4 type "unsigned int"
+0x8 (NULL) union (NULL) {
+obj * @"typedef--fsnotify_connp_t.txt"
+destroy_next * @"struct--fsnotify_mark_connector.txt"
+}
+0x10 list @"struct--hlist_head.txt"
+}

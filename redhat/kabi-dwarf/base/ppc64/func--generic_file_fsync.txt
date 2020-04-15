@@ -1,0 +1,10 @@
+Version: 1.0
+File: fs/libfs.c:981
+Symbol:
+func generic_file_fsync (
+file * @"struct--file.txt"
+start @"typedef--loff_t.txt"
+end @"typedef--loff_t.txt"
+datasync "int"
+)
+"int"

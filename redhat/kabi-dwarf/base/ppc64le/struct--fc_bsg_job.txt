@@ -1,0 +1,24 @@
+Version: 1.0
+File: include/scsi/scsi_transport_fc.h:644
+Symbol:
+Byte size 120
+struct fc_bsg_job {
+0x0 shost * @"struct--Scsi_Host.txt"
+0x8 rport * @"struct--fc_rport.txt"
+0x10 dev * @"struct--device.txt"
+0x18 req * @"struct--request.txt"
+0x20 job_lock @"typedef--spinlock_t.txt"
+0x24 state_flags "unsigned int"
+0x28 ref_cnt "unsigned int"
+0x30 job_done * func (NULL) (
+(NULL) * @"struct--fc_bsg_job.txt"
+)
+"void"
+0x38 request * @"struct--fc_bsg_request.txt"
+0x40 reply * @"struct--fc_bsg_reply.txt"
+0x48 request_len "unsigned int"
+0x4c reply_len "unsigned int"
+0x50 request_payload @"struct--fc_bsg_buffer.txt"
+0x60 reply_payload @"struct--fc_bsg_buffer.txt"
+0x70 dd_data * "void"
+}

@@ -1,0 +1,10 @@
+Version: 1.0
+File: arch/x86/include/asm/hw_breakpoint.h:13
+Symbol:
+Byte size 24
+struct arch_hw_breakpoint {
+0x0 address "long unsigned int"
+0x8 len @"typedef--u8.txt"
+0x9 type @"typedef--u8.txt"
+0x10 mask "long unsigned int"
+}

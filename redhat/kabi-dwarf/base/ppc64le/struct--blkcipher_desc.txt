@@ -1,0 +1,9 @@
+Version: 1.0
+File: include/linux/crypto.h:202
+Symbol:
+Byte size 24
+struct blkcipher_desc {
+0x0 tfm * @"struct--crypto_blkcipher.txt"
+0x8 info * "void"
+0x10 flags @"typedef--u32.txt"
+}

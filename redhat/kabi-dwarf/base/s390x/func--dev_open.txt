@@ -1,0 +1,7 @@
+Version: 1.0
+File: net/core/dev.c:1388
+Symbol:
+func dev_open (
+dev * @"struct--net_device.txt"
+)
+"int"

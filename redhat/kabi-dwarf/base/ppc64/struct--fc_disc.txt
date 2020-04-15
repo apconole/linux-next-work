@@ -1,0 +1,22 @@
+Version: 1.0
+File: include/scsi/libfc.h:782
+Symbol:
+Byte size 232
+struct fc_disc {
+0x0 retry_count "unsigned char"
+0x1 pending "unsigned char"
+0x2 requested "unsigned char"
+0x4 seq_count "short unsigned int"
+0x6 buf_len "unsigned char"
+0x8 disc_id @"typedef--u16.txt"
+0x10 rports @"struct--list_head.txt"
+0x20 priv * "void"
+0x28 disc_mutex @"struct--mutex.txt"
+0x50 partial_buf @"struct--fc_gpn_ft_resp.txt"
+0x60 disc_work @"struct--delayed_work.txt"
+0xe0 disc_callback * func (NULL) (
+(NULL) * @"struct--fc_lport.txt"
+(NULL) @"enum--fc_disc_event.txt"
+)
+"void"
+}

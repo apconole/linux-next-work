@@ -1,0 +1,12 @@
+Version: 1.0
+File: include/linux/dynamic_debug.h:9
+Symbol:
+Byte size 40
+struct _ddebug {
+0x0 modname * const "char"
+0x8 function * const "char"
+0x10 filename * const "char"
+0x18 format * const "char"
+0x20:0-18 lineno "unsigned int"
+0x22:2-10 flags "unsigned int"
+}

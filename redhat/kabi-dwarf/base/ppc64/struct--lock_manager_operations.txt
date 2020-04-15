@@ -1,0 +1,34 @@
+Version: 1.0
+File: include/linux/fs.h:965
+Symbol:
+Byte size 48
+struct lock_manager_operations {
+0x0 lm_compare_owner * func (NULL) (
+(NULL) * @"struct--file_lock.txt"
+(NULL) * @"struct--file_lock.txt"
+)
+"int"
+0x8 lm_owner_key * func (NULL) (
+(NULL) * @"struct--file_lock.txt"
+)
+"long unsigned int"
+0x10 lm_notify * func (NULL) (
+(NULL) * @"struct--file_lock.txt"
+)
+"void"
+0x18 lm_grant * func (NULL) (
+(NULL) * @"struct--file_lock.txt"
+(NULL) * @"struct--file_lock.txt"
+(NULL) "int"
+)
+"int"
+0x20 lm_break * func (NULL) (
+(NULL) * @"struct--file_lock.txt"
+)
+"void"
+0x28 lm_change * func (NULL) (
+(NULL) * * @"struct--file_lock.txt"
+(NULL) "int"
+)
+"int"
+}

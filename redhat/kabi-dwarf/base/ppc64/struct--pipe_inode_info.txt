@@ -1,0 +1,22 @@
+Version: 1.0
+File: include/linux/pipe_fs_i.h:47
+Symbol:
+Byte size 144
+struct pipe_inode_info {
+0x0 mutex @"struct--mutex.txt"
+0x28 wait @"typedef--wait_queue_head_t.txt"
+0x40 nrbufs "unsigned int"
+0x44 curbuf "unsigned int"
+0x48 buffers "unsigned int"
+0x4c readers "unsigned int"
+0x50 writers "unsigned int"
+0x54 files "unsigned int"
+0x58 waiting_writers "unsigned int"
+0x5c r_counter "unsigned int"
+0x60 w_counter "unsigned int"
+0x68 tmp_page * @"struct--page.txt"
+0x70 fasync_readers * @"struct--fasync_struct.txt"
+0x78 fasync_writers * @"struct--fasync_struct.txt"
+0x80 bufs * @"struct--pipe_buffer.txt"
+0x88 user * @"struct--user_struct.txt"
+}

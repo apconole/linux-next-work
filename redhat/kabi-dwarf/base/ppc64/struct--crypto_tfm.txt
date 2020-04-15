@@ -1,0 +1,22 @@
+Version: 1.0
+File: include/linux/crypto.h:437
+Symbol:
+Byte size 88
+struct crypto_tfm {
+0x0 crt_flags @"typedef--u32.txt"
+0x8 crt_u union (NULL) {
+ablkcipher @"struct--ablkcipher_tfm.txt"
+aead @"struct--aead_tfm.txt"
+blkcipher @"struct--blkcipher_tfm.txt"
+cipher @"struct--cipher_tfm.txt"
+hash @"struct--hash_tfm.txt"
+compress @"struct--compress_tfm.txt"
+rng @"struct--rng_tfm.txt"
+}
+0x48 exit * func (NULL) (
+(NULL) * @"struct--crypto_tfm.txt"
+)
+"void"
+0x50 __crt_alg * @"struct--crypto_alg.txt"
+0x58 __crt_ctx [0]* "void"
+}

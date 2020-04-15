@@ -1,0 +1,4 @@
+Version: 1.0
+File: arch/x86/kernel/paravirt.c:424
+Symbol:
+var pv_mmu_ops @"struct--pv_mmu_ops.txt"

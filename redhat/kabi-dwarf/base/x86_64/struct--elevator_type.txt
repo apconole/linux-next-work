@@ -1,0 +1,15 @@
+Version: 1.0
+File: include/linux/elevator.h:173
+Symbol:
+Byte size 248
+struct elevator_type {
+0x0 icq_cache * @"struct--kmem_cache.txt"
+0x8 ops @"struct--elevator_ops.txt"
+0xa0 icq_size @"typedef--size_t.txt"
+0xa8 icq_align @"typedef--size_t.txt"
+0xb0 elevator_attrs * @"struct--elv_fs_entry.txt"
+0xb8 elevator_name [16]"char"
+0xc8 elevator_owner * @"struct--module.txt"
+0xd0 icq_cache_name [21]"char"
+0xe8 list @"struct--list_head.txt"
+}

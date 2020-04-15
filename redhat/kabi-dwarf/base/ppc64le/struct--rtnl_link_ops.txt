@@ -1,0 +1,226 @@
+Version: 1.0
+File: include/net/rtnetlink.h:63
+Symbol:
+Byte size 264
+struct rtnl_link_ops {
+0x0 list @"struct--list_head.txt"
+0x10 kind * const "char"
+0x18 priv_size @"typedef--size_t.txt"
+0x20 setup * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+)
+"void"
+0x28 maxtype "int"
+0x30 (NULL) union (NULL) {
+policy_rh74 * const @"struct--nla_policy_rh74.txt"
+__UNIQUE_ID_rh_kabi_hide70 struct (NULL) {
+0x0 policy * const @"struct--nla_policy.txt"
+}
+(NULL) union (NULL) {
+}
+}
+0x38 validate * func (NULL) (
+(NULL) * * @"struct--nlattr.txt"
+(NULL) * * @"struct--nlattr.txt"
+)
+"int"
+0x40 newlink * func (NULL) (
+(NULL) * @"struct--net.txt"
+(NULL) * @"struct--net_device.txt"
+(NULL) * * @"struct--nlattr.txt"
+(NULL) * * @"struct--nlattr.txt"
+)
+"int"
+0x48 changelink * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+(NULL) * * @"struct--nlattr.txt"
+(NULL) * * @"struct--nlattr.txt"
+)
+"int"
+0x50 dellink * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+(NULL) * @"struct--list_head.txt"
+)
+"void"
+0x58 get_size * func (NULL) (
+(NULL) * const @"struct--net_device.txt"
+)
+@"typedef--size_t.txt"
+0x60 fill_info * func (NULL) (
+(NULL) * @"struct--sk_buff.txt"
+(NULL) * const @"struct--net_device.txt"
+)
+"int"
+0x68 get_xstats_size * func (NULL) (
+(NULL) * const @"struct--net_device.txt"
+)
+@"typedef--size_t.txt"
+0x70 fill_xstats * func (NULL) (
+(NULL) * @"struct--sk_buff.txt"
+(NULL) * const @"struct--net_device.txt"
+)
+"int"
+0x78 get_num_tx_queues * func (NULL) (
+)
+"unsigned int"
+0x80 get_num_rx_queues * func (NULL) (
+)
+"unsigned int"
+0x88 (NULL) union (NULL) {
+get_link_net * func (NULL) (
+(NULL) * const @"struct--net_device.txt"
+)
+* @"struct--net.txt"
+__UNIQUE_ID_rh_kabi_hide71 struct (NULL) {
+0x0 rh_reserved1 * func (NULL) (
+)
+"void"
+}
+(NULL) union (NULL) {
+}
+}
+0x90 (NULL) union (NULL) {
+slave_maxtype "int"
+__UNIQUE_ID_rh_kabi_hide72 struct (NULL) {
+0x0 rh_reserved2 * func (NULL) (
+)
+"void"
+}
+(NULL) union (NULL) {
+}
+}
+0x98 (NULL) union (NULL) {
+slave_policy_rh74 * const @"struct--nla_policy_rh74.txt"
+__UNIQUE_ID_rh_kabi_hide73 struct (NULL) {
+0x0 rh_reserved3 * func (NULL) (
+)
+"void"
+}
+(NULL) union (NULL) {
+}
+}
+0xa0 (NULL) union (NULL) {
+slave_validate * func (NULL) (
+(NULL) * * @"struct--nlattr.txt"
+(NULL) * * @"struct--nlattr.txt"
+)
+"int"
+__UNIQUE_ID_rh_kabi_hide74 struct (NULL) {
+0x0 rh_reserved4 * func (NULL) (
+)
+"void"
+}
+(NULL) union (NULL) {
+}
+}
+0xa8 (NULL) union (NULL) {
+slave_changelink * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+(NULL) * @"struct--net_device.txt"
+(NULL) * * @"struct--nlattr.txt"
+(NULL) * * @"struct--nlattr.txt"
+)
+"int"
+__UNIQUE_ID_rh_kabi_hide75 struct (NULL) {
+0x0 rh_reserved5 * func (NULL) (
+)
+"void"
+}
+(NULL) union (NULL) {
+}
+}
+0xb0 (NULL) union (NULL) {
+get_slave_size * func (NULL) (
+(NULL) * const @"struct--net_device.txt"
+(NULL) * const @"struct--net_device.txt"
+)
+@"typedef--size_t.txt"
+__UNIQUE_ID_rh_kabi_hide76 struct (NULL) {
+0x0 rh_reserved6 * func (NULL) (
+)
+"void"
+}
+(NULL) union (NULL) {
+}
+}
+0xb8 (NULL) union (NULL) {
+fill_slave_info * func (NULL) (
+(NULL) * @"struct--sk_buff.txt"
+(NULL) * const @"struct--net_device.txt"
+(NULL) * const @"struct--net_device.txt"
+)
+"int"
+__UNIQUE_ID_rh_kabi_hide77 struct (NULL) {
+0x0 rh_reserved7 * func (NULL) (
+)
+"void"
+}
+(NULL) union (NULL) {
+}
+}
+0xc0 (NULL) union (NULL) {
+get_linkxstats_size * func (NULL) (
+(NULL) * const @"struct--net_device.txt"
+(NULL) "int"
+)
+@"typedef--size_t.txt"
+__UNIQUE_ID_rh_kabi_hide78 struct (NULL) {
+0x0 rh_reserved8 * func (NULL) (
+)
+"void"
+}
+(NULL) union (NULL) {
+}
+}
+0xc8 (NULL) union (NULL) {
+fill_linkxstats * func (NULL) (
+(NULL) * @"struct--sk_buff.txt"
+(NULL) * const @"struct--net_device.txt"
+(NULL) * "int"
+(NULL) "int"
+)
+"int"
+__UNIQUE_ID_rh_kabi_hide79 struct (NULL) {
+0x0 rh_reserved9 * func (NULL) (
+)
+"void"
+}
+(NULL) union (NULL) {
+}
+}
+0xd0 (NULL) union (NULL) {
+policy * const @"struct--nla_policy.txt"
+__UNIQUE_ID_rh_kabi_hide80 struct (NULL) {
+0x0 rh_reserved10 * func (NULL) (
+)
+"void"
+}
+(NULL) union (NULL) {
+}
+}
+0xd8 (NULL) union (NULL) {
+slave_policy * const @"struct--nla_policy.txt"
+__UNIQUE_ID_rh_kabi_hide81 struct (NULL) {
+0x0 rh_reserved11 * func (NULL) (
+)
+"void"
+}
+(NULL) union (NULL) {
+}
+}
+0xe0 rh_reserved12 * func (NULL) (
+)
+"void"
+0xe8 rh_reserved13 * func (NULL) (
+)
+"void"
+0xf0 rh_reserved14 * func (NULL) (
+)
+"void"
+0xf8 rh_reserved15 * func (NULL) (
+)
+"void"
+0x100 rh_reserved16 * func (NULL) (
+)
+"void"
+}

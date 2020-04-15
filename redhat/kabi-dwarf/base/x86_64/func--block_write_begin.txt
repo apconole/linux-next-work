@@ -1,0 +1,12 @@
+Version: 1.0
+File: fs/buffer.c:2046
+Symbol:
+func block_write_begin (
+mapping * @"struct--address_space.txt"
+pos @"typedef--loff_t.txt"
+len "unsigned int"
+flags "unsigned int"
+pagep * * @"struct--page.txt"
+get_block * @"typedef--get_block_t.txt"
+)
+"int"

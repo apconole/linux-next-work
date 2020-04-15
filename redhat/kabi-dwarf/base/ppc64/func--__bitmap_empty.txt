@@ -1,0 +1,8 @@
+Version: 1.0
+File: lib/bitmap.c:47
+Symbol:
+func __bitmap_empty (
+bitmap * const "long unsigned int"
+bits "int"
+)
+"int"

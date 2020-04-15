@@ -1,0 +1,36 @@
+Version: 1.0
+File: include/linux/swap.h:243
+Symbol:
+Byte size 10512
+struct swap_info_struct {
+0x0 flags "long unsigned int"
+0x8 prio "short int"
+0xa type "signed char"
+0xb next "signed char"
+0xc max "unsigned int"
+0x10 swap_map * "unsigned char"
+0x18 lowest_bit "unsigned int"
+0x1c highest_bit "unsigned int"
+0x20 pages "unsigned int"
+0x24 inuse_pages "unsigned int"
+0x28 cluster_next "unsigned int"
+0x2c cluster_nr "unsigned int"
+0x30 rh_reserved_lowest_alloc "unsigned int"
+0x34 rh_reserved_highest_alloc "unsigned int"
+0x38 curr_swap_extent * @"struct--swap_extent.txt"
+0x40 first_swap_extent @"struct--swap_extent.txt"
+0x68 bdev * @"struct--block_device.txt"
+0x70 swap_file * @"struct--file.txt"
+0x78 old_block_size "unsigned int"
+0x80 frontswap_map * "long unsigned int"
+0x88 frontswap_pages @"typedef--atomic_t.txt"
+0x8c lock @"typedef--spinlock_t.txt"
+0x90 list @"struct--plist_node.txt"
+0xb8 avail_lists [256]@"struct--plist_node.txt"
+0x28b8 cluster_info * @"struct--swap_cluster_info.txt"
+0x28c0 free_clusters @"struct--swap_cluster_list.txt"
+0x28d0 discard_work @"struct--work_struct.txt"
+0x28f0 discard_clusters @"struct--swap_cluster_list.txt"
+0x2900 percpu_cluster * @"struct--percpu_cluster.txt"
+0x2908 cont_lock @"typedef--spinlock_t.txt"
+}

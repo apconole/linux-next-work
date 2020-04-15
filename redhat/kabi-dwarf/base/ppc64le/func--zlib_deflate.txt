@@ -1,0 +1,8 @@
+Version: 1.0
+File: lib/zlib_deflate/deflate.c:412
+Symbol:
+func zlib_deflate (
+strm @"typedef--z_streamp.txt"
+flush "int"
+)
+"int"

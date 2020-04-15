@@ -1,0 +1,15 @@
+Version: 1.0
+File: include/linux/ipmi.h:67
+Symbol:
+Byte size 16
+struct ipmi_user_hndl {
+0x0 ipmi_recv_hndl * func (NULL) (
+(NULL) * @"struct--ipmi_recv_msg.txt"
+(NULL) * "void"
+)
+"void"
+0x8 ipmi_watchdog_pretimeout * func (NULL) (
+(NULL) * "void"
+)
+"void"
+}

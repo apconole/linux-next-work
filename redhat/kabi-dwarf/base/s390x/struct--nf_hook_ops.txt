@@ -1,0 +1,18 @@
+Version: 1.0
+File: include/linux/netfilter.h:95
+Symbol:
+Byte size 96
+struct nf_hook_ops {
+0x0 list @"struct--list_head.txt"
+0x10 hook * @"typedef--nf_hookfn.txt"
+0x18 owner * @"struct--module.txt"
+0x20 priv * "void"
+0x28 pf @"typedef--u_int8_t.txt"
+0x2c hooknum "unsigned int"
+0x30 priority "int"
+0x38 __rht_reserved1 "long unsigned int"
+0x40 __rht_reserved2 "long unsigned int"
+0x48 __rht_reserved3 "long unsigned int"
+0x50 __rht_reserved4 "long unsigned int"
+0x58 __rht_reserved5 "long unsigned int"
+}

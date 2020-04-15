@@ -1,0 +1,25 @@
+Version: 1.0
+File: drivers/pci/pci.h:275
+Symbol:
+Byte size 184
+struct pci_sriov {
+0x0 pos "int"
+0x4 nres "int"
+0x8 cap @"typedef--u32.txt"
+0xc ctrl @"typedef--u16.txt"
+0xe total_VFs @"typedef--u16.txt"
+0x10 initial_VFs @"typedef--u16.txt"
+0x12 num_VFs @"typedef--u16.txt"
+0x14 offset @"typedef--u16.txt"
+0x16 stride @"typedef--u16.txt"
+0x18 pgsz @"typedef--u32.txt"
+0x1c link @"typedef--u8.txt"
+0x1e driver_max_VFs @"typedef--u16.txt"
+0x20 dev * @"struct--pci_dev.txt"
+0x28 self * @"struct--pci_dev.txt"
+0x30 lock @"struct--mutex.txt"
+0x58 mtask @"struct--work_struct.txt"
+0x78 mstate * @"typedef--u8.txt"
+0x80 barsz [6]@"typedef--resource_size_t.txt"
+0xb0 max_VF_buses @"typedef--u8.txt"
+}

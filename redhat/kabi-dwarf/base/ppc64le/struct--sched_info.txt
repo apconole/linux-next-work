@@ -1,0 +1,10 @@
+Version: 1.0
+File: include/linux/sched.h:826
+Symbol:
+Byte size 32
+struct sched_info {
+0x0 pcount "long unsigned int"
+0x8 run_delay "long long unsigned int"
+0x10 last_arrival "long long unsigned int"
+0x18 last_queued "long long unsigned int"
+}

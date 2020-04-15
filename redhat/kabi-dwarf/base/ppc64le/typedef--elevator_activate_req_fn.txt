@@ -1,0 +1,9 @@
+Version: 1.0
+File: include/linux/elevator.h:45
+Symbol:
+typedef elevator_activate_req_fn
+func (NULL) (
+(NULL) * @"struct--request_queue.txt"
+(NULL) * @"struct--request.txt"
+)
+"void"

@@ -1,0 +1,11 @@
+Version: 1.0
+File: include/linux/efi.h:515
+Symbol:
+typedef efi_reset_system_t
+func (NULL) (
+(NULL) "int"
+(NULL) @"typedef--efi_status_t.txt"
+(NULL) "long unsigned int"
+(NULL) * @"typedef--efi_char16_t.txt"
+)
+"void"

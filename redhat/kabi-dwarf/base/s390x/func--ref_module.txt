@@ -1,0 +1,8 @@
+Version: 1.0
+File: kernel/module.c:771
+Symbol:
+func ref_module (
+a * @"struct--module.txt"
+b * @"struct--module.txt"
+)
+"int"

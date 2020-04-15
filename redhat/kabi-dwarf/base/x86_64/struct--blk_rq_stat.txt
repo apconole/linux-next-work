@@ -1,0 +1,12 @@
+Version: 1.0
+File: include/linux/blk_types.h:339
+Symbol:
+Byte size 40
+struct blk_rq_stat {
+0x0 mean @"typedef--s64.txt"
+0x8 min @"typedef--u64.txt"
+0x10 max @"typedef--u64.txt"
+0x18 nr_samples @"typedef--s32.txt"
+0x1c nr_batch @"typedef--s32.txt"
+0x20 batch @"typedef--u64.txt"
+}

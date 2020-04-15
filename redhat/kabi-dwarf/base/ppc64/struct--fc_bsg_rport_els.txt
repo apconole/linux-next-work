@@ -1,0 +1,7 @@
+Version: 1.0
+File: include/uapi/scsi/scsi_bsg_fc.h:245
+Symbol:
+Byte size 1
+struct fc_bsg_rport_els {
+0x0 els_code @"typedef--uint8_t.txt"
+}

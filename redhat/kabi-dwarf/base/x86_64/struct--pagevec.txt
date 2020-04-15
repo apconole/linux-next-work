@@ -1,0 +1,9 @@
+Version: 1.0
+File: include/linux/pagevec.h:17
+Symbol:
+Byte size 128
+struct pagevec {
+0x0 nr "long unsigned int"
+0x8 cold "long unsigned int"
+0x10 pages [14]* @"struct--page.txt"
+}

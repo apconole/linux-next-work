@@ -1,0 +1,9 @@
+Version: 1.0
+File: include/linux/elevator.h:46
+Symbol:
+typedef elevator_deactivate_req_fn
+func (NULL) (
+(NULL) * @"struct--request_queue.txt"
+(NULL) * @"struct--request.txt"
+)
+"void"

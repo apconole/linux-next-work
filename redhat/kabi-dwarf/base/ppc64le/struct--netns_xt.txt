@@ -1,0 +1,11 @@
+Version: 1.0
+File: include/net/netns/x_tables.h:9
+Symbol:
+Byte size 240
+struct netns_xt {
+0x0 tables [13]@"struct--list_head.txt"
+0xd0 notrack_deprecated_warning @"typedef--bool.txt"
+0xd8 broute_table * @"<declarations>/struct--ebt_table.txt"
+0xe0 frame_filter * @"<declarations>/struct--ebt_table.txt"
+0xe8 frame_nat * @"<declarations>/struct--ebt_table.txt"
+}

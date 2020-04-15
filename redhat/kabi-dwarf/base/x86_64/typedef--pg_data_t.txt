@@ -1,0 +1,5 @@
+Version: 1.0
+File: include/linux/mmzone.h:833
+Symbol:
+typedef pg_data_t
+@"struct--pglist_data.txt"

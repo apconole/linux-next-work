@@ -1,0 +1,6 @@
+Version: 1.0
+File: include/acpi/actypes.h:409
+Symbol:
+Byte size 8
+typedef acpi_string
+* "char"

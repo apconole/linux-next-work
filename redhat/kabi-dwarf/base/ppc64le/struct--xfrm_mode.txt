@@ -1,0 +1,30 @@
+Version: 1.0
+File: include/net/xfrm.h:391
+Symbol:
+Byte size 56
+struct xfrm_mode {
+0x0 input2 * func (NULL) (
+(NULL) * @"struct--xfrm_state.txt"
+(NULL) * @"struct--sk_buff.txt"
+)
+"int"
+0x8 input * func (NULL) (
+(NULL) * @"struct--xfrm_state.txt"
+(NULL) * @"struct--sk_buff.txt"
+)
+"int"
+0x10 output2 * func (NULL) (
+(NULL) * @"struct--xfrm_state.txt"
+(NULL) * @"struct--sk_buff.txt"
+)
+"int"
+0x18 output * func (NULL) (
+(NULL) * @"struct--xfrm_state.txt"
+(NULL) * @"struct--sk_buff.txt"
+)
+"int"
+0x20 afinfo * @"struct--xfrm_state_afinfo.txt"
+0x28 owner * @"struct--module.txt"
+0x30 encap "unsigned int"
+0x34 flags "int"
+}

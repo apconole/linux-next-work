@@ -1,0 +1,20 @@
+Version: 1.0
+File: include/linux/kobject.h:112
+Symbol:
+Byte size 40
+struct kobj_type {
+0x0 release * func (NULL) (
+(NULL) * @"struct--kobject.txt"
+)
+"void"
+0x8 sysfs_ops * const @"struct--sysfs_ops.txt"
+0x10 default_attrs * * @"struct--attribute.txt"
+0x18 child_ns_type * func (NULL) (
+(NULL) * @"struct--kobject.txt"
+)
+* const @"struct--kobj_ns_type_operations.txt"
+0x20 namespace * func (NULL) (
+(NULL) * @"struct--kobject.txt"
+)
+* const "void"
+}

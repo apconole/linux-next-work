@@ -1,0 +1,7 @@
+Version: 1.0
+File: drivers/char/ipmi/ipmi_msghandler.c:1245
+Symbol:
+func ipmi_destroy_user (
+user @"typedef--ipmi_user_t.txt"
+)
+"int"

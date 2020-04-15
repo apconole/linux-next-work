@@ -1,0 +1,10 @@
+Version: 1.0
+File: net/core/skbuff.c:1365
+Symbol:
+func skb_copy_expand (
+skb * const @"struct--sk_buff.txt"
+newheadroom "int"
+newtailroom "int"
+gfp_mask @"typedef--gfp_t.txt"
+)
+* @"struct--sk_buff.txt"

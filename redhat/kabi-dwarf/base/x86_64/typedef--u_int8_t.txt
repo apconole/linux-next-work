@@ -1,0 +1,5 @@
+Version: 1.0
+File: include/linux/types.h:97
+Symbol:
+typedef u_int8_t
+@"typedef--__u8.txt"

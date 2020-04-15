@@ -1,0 +1,21 @@
+Version: 1.0
+File: include/net/netns/nftables.h:8
+Symbol:
+Byte size 120
+struct netns_nftables {
+0x0 af_info @"struct--list_head.txt"
+0x10 commit_list @"struct--list_head.txt"
+0x20 ipv4 * @"<declarations>/struct--nft_af_info.txt"
+0x28 ipv6 * @"<declarations>/struct--nft_af_info.txt"
+0x30 inet * @"<declarations>/struct--nft_af_info.txt"
+0x38 arp * @"<declarations>/struct--nft_af_info.txt"
+0x40 bridge * @"<declarations>/struct--nft_af_info.txt"
+0x48 gencursor @"typedef--u8.txt"
+0x49 genctr @"typedef--u8.txt"
+0x4c base_seq "unsigned int"
+0x50 __rht_reserved1 "unsigned int"
+0x58 __rht_reserved2 "long unsigned int"
+0x60 __rht_reserved3 "long unsigned int"
+0x68 __rht_reserved4 "long unsigned int"
+0x70 __rht_reserved5 "long unsigned int"
+}

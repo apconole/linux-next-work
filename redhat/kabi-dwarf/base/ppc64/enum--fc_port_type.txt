@@ -1,0 +1,14 @@
+Version: 1.0
+File: include/scsi/scsi_transport_fc.h:57
+Symbol:
+Byte size 4
+enum fc_port_type {
+FC_PORTTYPE_UNKNOWN = 0x0
+FC_PORTTYPE_OTHER = 0x1
+FC_PORTTYPE_NOTPRESENT = 0x2
+FC_PORTTYPE_NPORT = 0x3
+FC_PORTTYPE_NLPORT = 0x4
+FC_PORTTYPE_LPORT = 0x5
+FC_PORTTYPE_PTP = 0x6
+FC_PORTTYPE_NPIV = 0x7
+}

@@ -1,0 +1,40 @@
+Version: 1.0
+File: arch/powerpc/include/asm/iommu.h:161
+Symbol:
+Byte size 48
+struct iommu_table_group_ops {
+0x0 get_table_size * func (NULL) (
+(NULL) @"typedef--__u32.txt"
+(NULL) @"typedef--__u64.txt"
+(NULL) @"typedef--__u32.txt"
+)
+"long unsigned int"
+0x8 create_table * func (NULL) (
+(NULL) * @"struct--iommu_table_group.txt"
+(NULL) "int"
+(NULL) @"typedef--__u32.txt"
+(NULL) @"typedef--__u64.txt"
+(NULL) @"typedef--__u32.txt"
+(NULL) * * @"struct--iommu_table.txt"
+)
+"long int"
+0x10 set_window * func (NULL) (
+(NULL) * @"struct--iommu_table_group.txt"
+(NULL) "int"
+(NULL) * @"struct--iommu_table.txt"
+)
+"long int"
+0x18 unset_window * func (NULL) (
+(NULL) * @"struct--iommu_table_group.txt"
+(NULL) "int"
+)
+"long int"
+0x20 take_ownership * func (NULL) (
+(NULL) * @"struct--iommu_table_group.txt"
+)
+"void"
+0x28 release_ownership * func (NULL) (
+(NULL) * @"struct--iommu_table_group.txt"
+)
+"void"
+}

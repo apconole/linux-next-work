@@ -1,0 +1,7 @@
+Version: 1.0
+File: include/net/genetlink.h:16
+Symbol:
+Byte size 16
+struct genl_multicast_group {
+0x0 name [16]"char"
+}

@@ -1,0 +1,14 @@
+Version: 1.0
+File: include/linux/elevator.h:201
+Symbol:
+Byte size 656
+struct elevator_queue {
+0x0 type * @"struct--elevator_type.txt"
+0x8 elevator_data * "void"
+0x10 kobj @"struct--kobject.txt"
+0x50 sysfs_lock @"struct--mutex.txt"
+0x78:0-1 registered "unsigned int"
+0x80 hash [64]@"struct--hlist_head.txt"
+0x280 aux * @"struct--elevator_type_aux.txt"
+0x288 uses_mq "unsigned int"
+}

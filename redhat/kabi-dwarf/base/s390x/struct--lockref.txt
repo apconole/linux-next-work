@@ -1,0 +1,13 @@
+Version: 1.0
+File: include/linux/lockref.h:21
+Symbol:
+Byte size 8
+struct lockref {
+0x0 (NULL) union (NULL) {
+lock_count @"typedef--__u64.txt"
+(NULL) struct (NULL) {
+0x0 lock @"typedef--spinlock_t.txt"
+0x4 count "unsigned int"
+}
+}
+}

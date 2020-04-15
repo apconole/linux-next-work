@@ -1,0 +1,9 @@
+Version: 1.0
+File: mm/page-writeback.c:1797
+Symbol:
+func tag_pages_for_writeback (
+mapping * @"struct--address_space.txt"
+start "long unsigned int"
+end "long unsigned int"
+)
+"void"

@@ -1,0 +1,5 @@
+Version: 1.0
+File: include/uapi/linux/dqblk_xfs.h:152
+Symbol:
+typedef fs_qfilestat_t
+@"struct--fs_qfilestat.txt"

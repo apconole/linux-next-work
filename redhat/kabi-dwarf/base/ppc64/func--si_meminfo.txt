@@ -1,0 +1,7 @@
+Version: 1.0
+File: mm/page_alloc.c:3837
+Symbol:
+func si_meminfo (
+val * @"struct--sysinfo.txt"
+)
+"void"

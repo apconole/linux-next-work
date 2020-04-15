@@ -1,0 +1,15 @@
+Version: 1.0
+File: include/acpi/acpi_bus.h:275
+Symbol:
+Byte size 32
+struct acpi_device_power_state {
+0x0 flags struct (NULL) {
+0x0:0-1 valid @"typedef--u8.txt"
+0x0:1-2 os_accessible @"typedef--u8.txt"
+0x0:2-3 explicit_set @"typedef--u8.txt"
+0x1:0-6 reserved @"typedef--u8.txt"
+}
+0x4 power "int"
+0x8 latency "int"
+0x10 resources @"struct--list_head.txt"
+}

@@ -1,0 +1,8 @@
+Version: 1.0
+File: block/blk-settings.c:72
+Symbol:
+func blk_queue_merge_bvec (
+q * @"struct--request_queue.txt"
+mbfn * @"typedef--merge_bvec_fn.txt"
+)
+"void"

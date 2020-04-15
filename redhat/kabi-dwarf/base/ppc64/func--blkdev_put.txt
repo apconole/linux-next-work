@@ -1,0 +1,8 @@
+Version: 1.0
+File: fs/block_dev.c:1558
+Symbol:
+func blkdev_put (
+bdev * @"struct--block_device.txt"
+mode @"typedef--fmode_t.txt"
+)
+"void"

@@ -1,0 +1,9 @@
+Version: 1.0
+File: include/scsi/scsi_transport_fc.h:634
+Symbol:
+Byte size 16
+struct fc_bsg_buffer {
+0x0 payload_len "unsigned int"
+0x4 sg_cnt "int"
+0x8 sg_list * @"struct--scatterlist.txt"
+}

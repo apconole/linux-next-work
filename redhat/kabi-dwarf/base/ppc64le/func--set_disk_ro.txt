@@ -1,0 +1,8 @@
+Version: 1.0
+File: block/genhd.c:1481
+Symbol:
+func set_disk_ro (
+disk * @"struct--gendisk.txt"
+flag "int"
+)
+"void"

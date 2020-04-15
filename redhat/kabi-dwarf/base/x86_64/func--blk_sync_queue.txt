@@ -1,0 +1,7 @@
+Version: 1.0
+File: block/blk-core.c:252
+Symbol:
+func blk_sync_queue (
+q * @"struct--request_queue.txt"
+)
+"void"

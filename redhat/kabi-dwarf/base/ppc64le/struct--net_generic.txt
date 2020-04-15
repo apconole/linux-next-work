@@ -1,0 +1,9 @@
+Version: 1.0
+File: include/net/netns/generic.h:27
+Symbol:
+Byte size 24
+struct net_generic {
+0x0 len "unsigned int"
+0x8 rcu @"struct--callback_head.txt"
+0x18 ptr [0]* "void"
+}

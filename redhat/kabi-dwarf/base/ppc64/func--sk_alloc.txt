@@ -1,0 +1,10 @@
+Version: 1.0
+File: net/core/sock.c:1433
+Symbol:
+func sk_alloc (
+net * @"struct--net.txt"
+family "int"
+priority @"typedef--gfp_t.txt"
+prot * @"struct--proto.txt"
+)
+* @"struct--sock.txt"

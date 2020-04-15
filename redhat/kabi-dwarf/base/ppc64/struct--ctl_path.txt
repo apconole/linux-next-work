@@ -1,0 +1,7 @@
+Version: 1.0
+File: include/linux/sysctl.h:174
+Symbol:
+Byte size 8
+struct ctl_path {
+0x0 procname * const "char"
+}

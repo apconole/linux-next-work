@@ -1,0 +1,11 @@
+Version: 1.0
+File: block/blk-map.c:314
+Symbol:
+func blk_rq_map_kern (
+q * @"struct--request_queue.txt"
+rq * @"struct--request.txt"
+kbuf * "void"
+len "unsigned int"
+gfp_mask @"typedef--gfp_t.txt"
+)
+"int"

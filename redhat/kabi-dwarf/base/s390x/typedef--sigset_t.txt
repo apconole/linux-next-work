@@ -1,0 +1,8 @@
+Version: 1.0
+File: arch/s390/include/asm/signal.h:22
+Symbol:
+Byte size 8
+typedef sigset_t
+struct (NULL) {
+0x0 sig [1]"long unsigned int"
+}

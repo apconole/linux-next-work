@@ -1,0 +1,8 @@
+Version: 1.0
+File: net/core/skbuff.c:1550
+Symbol:
+func ___pskb_trim (
+skb * @"struct--sk_buff.txt"
+len "unsigned int"
+)
+"int"

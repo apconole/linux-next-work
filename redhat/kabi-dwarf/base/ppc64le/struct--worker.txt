@@ -1,0 +1,22 @@
+Version: 1.0
+File: kernel/workqueue_internal.h:24
+Symbol:
+Byte size 128
+struct worker {
+0x0 (NULL) union (NULL) {
+entry @"struct--list_head.txt"
+hentry @"struct--hlist_node.txt"
+}
+0x10 current_work * @"struct--work_struct.txt"
+0x18 current_func @"typedef--work_func_t.txt"
+0x20 current_pwq * @"struct--pool_workqueue.txt"
+0x28 desc_valid @"typedef--bool.txt"
+0x30 scheduled @"struct--list_head.txt"
+0x40 task * @"struct--task_struct.txt"
+0x48 pool * @"struct--worker_pool.txt"
+0x50 last_active "long unsigned int"
+0x58 flags "unsigned int"
+0x5c id "int"
+0x60 desc [24]"char"
+0x78 rescue_wq * @"struct--workqueue_struct.txt"
+}

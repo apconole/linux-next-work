@@ -1,0 +1,7 @@
+Version: 1.0
+File: fs/bio.c:547
+Symbol:
+func bio_put (
+bio * @"struct--bio.txt"
+)
+"void"

@@ -1,0 +1,7 @@
+Version: 1.0
+File: arch/powerpc/kernel/time.c:386
+Symbol:
+func __delay (
+loops "long unsigned int"
+)
+"void"

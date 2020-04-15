@@ -1,0 +1,54 @@
+Version: 1.0
+File: include/net/dst.h:35
+Symbol:
+Byte size 168
+struct dst_entry {
+0x0 callback_head @"struct--callback_head.txt"
+0x10 child * @"struct--dst_entry.txt"
+0x18 dev * @"struct--net_device.txt"
+0x20 ops * @"struct--dst_ops.txt"
+0x28 _metrics "long unsigned int"
+0x30 expires "long unsigned int"
+0x38 path * @"struct--dst_entry.txt"
+0x40 from * @"struct--dst_entry.txt"
+0x48 xfrm * @"struct--xfrm_state.txt"
+0x50 input * func (NULL) (
+(NULL) * @"struct--sk_buff.txt"
+)
+"int"
+0x58 (NULL) union (NULL) {
+output * func (NULL) (
+(NULL) * @"struct--sock.txt"
+(NULL) * @"struct--sk_buff.txt"
+)
+"int"
+__UNIQUE_ID_rh_kabi_hide82 struct (NULL) {
+0x0 output * func (NULL) (
+(NULL) * @"struct--sk_buff.txt"
+)
+"int"
+}
+(NULL) union (NULL) {
+}
+}
+0x60 flags "short unsigned int"
+0x62 rh_reserved_pending_confirm "short unsigned int"
+0x64 error "short int"
+0x66 obsolete "short int"
+0x68 header_len "short unsigned int"
+0x6a trailer_len "short unsigned int"
+0x6c tclassid @"typedef--__u32.txt"
+0x70 __pad_to_align_refcnt [2]"long int"
+0x80 __refcnt @"typedef--atomic_t.txt"
+0x84 __use "int"
+0x88 lastuse "long unsigned int"
+0x90 (NULL) union (NULL) {
+next * @"struct--dst_entry.txt"
+rt_next * @"struct--rtable.txt"
+rt6_next * @"struct--rt6_info.txt"
+dn_next * @"<declarations>/struct--dn_route.txt"
+}
+0x98 lwtstate * @"struct--lwtunnel_state.txt"
+0xa0 rh_reserved3 @"typedef--u32.txt"
+0xa4 rh_reserved4 @"typedef--u32.txt"
+}

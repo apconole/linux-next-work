@@ -1,0 +1,15 @@
+Version: 1.0
+File: block/blk.h:23
+Symbol:
+Byte size 88
+struct blk_flush_queue {
+0x0:0-1 flush_queue_delayed "unsigned int"
+0x0:1-2 flush_pending_idx "unsigned int"
+0x0:2-3 flush_running_idx "unsigned int"
+0x8 flush_pending_since "long unsigned int"
+0x10 flush_queue [2]@"struct--list_head.txt"
+0x30 flush_data_in_flight @"struct--list_head.txt"
+0x40 flush_rq * @"struct--request.txt"
+0x48 orig_rq * @"struct--request.txt"
+0x50 mq_flush_lock @"typedef--spinlock_t.txt"
+}

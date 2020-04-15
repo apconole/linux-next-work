@@ -1,0 +1,8 @@
+Version: 1.0
+File: mm/mmap.c:2868
+Symbol:
+func vm_munmap (
+start "long unsigned int"
+len @"typedef--size_t.txt"
+)
+"int"

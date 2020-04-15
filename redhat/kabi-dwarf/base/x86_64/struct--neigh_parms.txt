@@ -1,0 +1,25 @@
+Version: 1.0
+File: include/net/neighbour.h:67
+Symbol:
+Byte size 144
+struct neigh_parms {
+0x0 net * @"struct--net.txt"
+0x8 dev * @"struct--net_device.txt"
+0x10 next * @"struct--neigh_parms.txt"
+0x18 neigh_setup * func (NULL) (
+(NULL) * @"struct--neighbour.txt"
+)
+"int"
+0x20 neigh_cleanup * func (NULL) (
+(NULL) * @"struct--neighbour.txt"
+)
+"void"
+0x28 tbl * @"struct--neigh_table.txt"
+0x30 sysctl_table * "void"
+0x38 dead "int"
+0x3c refcnt @"typedef--atomic_t.txt"
+0x40 callback_head @"struct--callback_head.txt"
+0x50 reachable_time "int"
+0x54 data [12]"int"
+0x88 data_state [1]"long unsigned int"
+}

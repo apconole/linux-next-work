@@ -1,0 +1,15 @@
+Version: 1.0
+File: include/linux/shrinker.h:30
+Symbol:
+Byte size 48
+struct shrinker {
+0x0 shrink * func (NULL) (
+(NULL) * @"struct--shrinker.txt"
+(NULL) * @"struct--shrink_control.txt"
+)
+"int"
+0x8 seeks "int"
+0x10 batch "long int"
+0x18 list @"struct--list_head.txt"
+0x28 nr_in_batch @"typedef--atomic_long_t.txt"
+}

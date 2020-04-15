@@ -1,0 +1,17 @@
+Version: 1.0
+File: include/linux/ipmi_smi.h:44
+Symbol:
+Byte size 592
+struct ipmi_smi_msg {
+0x0 link @"struct--list_head.txt"
+0x10 msgid "long int"
+0x18 user_data * "void"
+0x20 data_size "int"
+0x24 data [272]"unsigned char"
+0x134 rsp_size "int"
+0x138 rsp [272]"unsigned char"
+0x248 done * func (NULL) (
+(NULL) * @"struct--ipmi_smi_msg.txt"
+)
+"void"
+}

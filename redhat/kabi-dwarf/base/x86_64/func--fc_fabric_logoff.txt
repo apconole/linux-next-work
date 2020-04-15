@@ -1,0 +1,7 @@
+Version: 1.0
+File: drivers/scsi/libfc/fc_lport.c:619
+Symbol:
+func fc_fabric_logoff (
+lport * @"struct--fc_lport.txt"
+)
+"int"

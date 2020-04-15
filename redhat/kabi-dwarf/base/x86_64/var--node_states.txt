@@ -1,0 +1,4 @@
+Version: 1.0
+File: mm/page_alloc.c:97
+Symbol:
+var node_states [5]@"typedef--nodemask_t.txt"

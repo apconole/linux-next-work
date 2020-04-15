@@ -1,0 +1,7 @@
+Version: 1.0
+File: include/linux/skbuff.h:248
+Symbol:
+Byte size 4
+struct nf_conntrack {
+0x0 use @"typedef--atomic_t.txt"
+}

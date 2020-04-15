@@ -1,0 +1,9 @@
+Version: 1.0
+File: include/linux/buffer_head.h:52
+Symbol:
+typedef bh_end_io_t
+func (NULL) (
+(NULL) * @"struct--buffer_head.txt"
+(NULL) "int"
+)
+"void"

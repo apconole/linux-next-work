@@ -1,0 +1,17 @@
+Version: 1.0
+File: include/uapi/linux/dqblk_xfs.h:154
+Symbol:
+Byte size 80
+struct fs_quota_stat {
+0x0 qs_version @"typedef--__s8.txt"
+0x2 qs_flags @"typedef--__u16.txt"
+0x4 qs_pad @"typedef--__s8.txt"
+0x8 qs_uquota @"typedef--fs_qfilestat_t.txt"
+0x20 qs_gquota @"typedef--fs_qfilestat_t.txt"
+0x38 qs_incoredqs @"typedef--__u32.txt"
+0x3c qs_btimelimit @"typedef--__s32.txt"
+0x40 qs_itimelimit @"typedef--__s32.txt"
+0x44 qs_rtbtimelimit @"typedef--__s32.txt"
+0x48 qs_bwarnlimit @"typedef--__u16.txt"
+0x4a qs_iwarnlimit @"typedef--__u16.txt"
+}

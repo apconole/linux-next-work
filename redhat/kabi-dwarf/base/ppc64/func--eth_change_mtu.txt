@@ -1,0 +1,8 @@
+Version: 1.0
+File: net/ethernet/eth.c:368
+Symbol:
+func eth_change_mtu (
+dev * @"struct--net_device.txt"
+new_mtu "int"
+)
+"int"

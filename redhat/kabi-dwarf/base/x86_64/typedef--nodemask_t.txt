@@ -1,0 +1,8 @@
+Version: 1.0
+File: include/linux/nodemask.h:106
+Symbol:
+Byte size 128
+typedef nodemask_t
+struct (NULL) {
+0x0 bits [16]"long unsigned int"
+}

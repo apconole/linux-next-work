@@ -1,0 +1,18 @@
+Version: 1.0
+File: block/blk-mq.h:11
+Symbol:
+Byte size 768
+struct blk_mq_ctx {
+0x0 (NULL) struct (NULL) {
+0x0 lock @"typedef--spinlock_t.txt"
+0x8 rq_list @"struct--list_head.txt"
+}
+0x100 cpu "unsigned int"
+0x104 index_hw "unsigned int"
+0x108 rh_reserved_ipi_redirect "unsigned int"
+0x110 rq_dispatched [2]"long unsigned int"
+0x120 rq_merged "long unsigned int"
+0x200 rq_completed [2]"long unsigned int"
+0x210 queue * @"struct--request_queue.txt"
+0x218 kobj @"struct--kobject.txt"
+}

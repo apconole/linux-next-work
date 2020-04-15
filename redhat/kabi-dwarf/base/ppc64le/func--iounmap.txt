@@ -1,0 +1,7 @@
+Version: 1.0
+File: arch/powerpc/mm/pgtable_64.c:338
+Symbol:
+func iounmap (
+token * volatile "void"
+)
+"void"

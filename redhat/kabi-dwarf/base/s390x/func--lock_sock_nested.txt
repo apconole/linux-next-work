@@ -1,0 +1,8 @@
+Version: 1.0
+File: net/core/sock.c:2493
+Symbol:
+func lock_sock_nested (
+sk * @"struct--sock.txt"
+subclass "int"
+)
+"void"

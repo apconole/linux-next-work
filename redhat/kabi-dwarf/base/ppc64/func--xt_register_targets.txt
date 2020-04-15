@@ -1,0 +1,8 @@
+Version: 1.0
+File: net/netfilter/x_tables.c:98
+Symbol:
+func xt_register_targets (
+target * @"struct--xt_target.txt"
+n "unsigned int"
+)
+"int"

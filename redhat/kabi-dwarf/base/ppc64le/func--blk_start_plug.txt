@@ -1,0 +1,7 @@
+Version: 1.0
+File: block/blk-core.c:3426
+Symbol:
+func blk_start_plug (
+plug * @"struct--blk_plug.txt"
+)
+"void"

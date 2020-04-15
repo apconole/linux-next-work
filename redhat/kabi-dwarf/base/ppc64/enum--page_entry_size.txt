@@ -1,0 +1,9 @@
+Version: 1.0
+File: include/linux/mm.h:340
+Symbol:
+Byte size 4
+enum page_entry_size {
+PE_SIZE_PTE = 0x0
+PE_SIZE_PMD = 0x1
+PE_SIZE_PUD = 0x2
+}

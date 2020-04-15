@@ -1,0 +1,97 @@
+Version: 1.0
+File: include/linux/cgroup.h:443
+Symbol:
+Byte size 200
+struct cftype {
+0x0 name [64]"char"
+0x40 private "int"
+0x44 mode @"typedef--umode_t.txt"
+0x48 max_write_len @"typedef--size_t.txt"
+0x50 flags "unsigned int"
+0x58 open * func (NULL) (
+(NULL) * @"struct--inode.txt"
+(NULL) * @"struct--file.txt"
+)
+"int"
+0x60 read * func (NULL) (
+(NULL) * @"struct--cgroup.txt"
+(NULL) * @"struct--cftype.txt"
+(NULL) * @"struct--file.txt"
+(NULL) * "char"
+(NULL) @"typedef--size_t.txt"
+(NULL) * @"typedef--loff_t.txt"
+)
+@"typedef--ssize_t.txt"
+0x68 read_u64 * func (NULL) (
+(NULL) * @"struct--cgroup.txt"
+(NULL) * @"struct--cftype.txt"
+)
+@"typedef--u64.txt"
+0x70 read_s64 * func (NULL) (
+(NULL) * @"struct--cgroup.txt"
+(NULL) * @"struct--cftype.txt"
+)
+@"typedef--s64.txt"
+0x78 read_map * func (NULL) (
+(NULL) * @"struct--cgroup.txt"
+(NULL) * @"struct--cftype.txt"
+(NULL) * @"struct--cgroup_map_cb.txt"
+)
+"int"
+0x80 read_seq_string * func (NULL) (
+(NULL) * @"struct--cgroup.txt"
+(NULL) * @"struct--cftype.txt"
+(NULL) * @"struct--seq_file.txt"
+)
+"int"
+0x88 write * func (NULL) (
+(NULL) * @"struct--cgroup.txt"
+(NULL) * @"struct--cftype.txt"
+(NULL) * @"struct--file.txt"
+(NULL) * const "char"
+(NULL) @"typedef--size_t.txt"
+(NULL) * @"typedef--loff_t.txt"
+)
+@"typedef--ssize_t.txt"
+0x90 write_u64 * func (NULL) (
+(NULL) * @"struct--cgroup.txt"
+(NULL) * @"struct--cftype.txt"
+(NULL) @"typedef--u64.txt"
+)
+"int"
+0x98 write_s64 * func (NULL) (
+(NULL) * @"struct--cgroup.txt"
+(NULL) * @"struct--cftype.txt"
+(NULL) @"typedef--s64.txt"
+)
+"int"
+0xa0 write_string * func (NULL) (
+(NULL) * @"struct--cgroup.txt"
+(NULL) * @"struct--cftype.txt"
+(NULL) * const "char"
+)
+"int"
+0xa8 trigger * func (NULL) (
+(NULL) * @"struct--cgroup.txt"
+(NULL) "unsigned int"
+)
+"int"
+0xb0 release * func (NULL) (
+(NULL) * @"struct--inode.txt"
+(NULL) * @"struct--file.txt"
+)
+"int"
+0xb8 register_event * func (NULL) (
+(NULL) * @"struct--cgroup.txt"
+(NULL) * @"struct--cftype.txt"
+(NULL) * @"<declarations>/struct--eventfd_ctx.txt"
+(NULL) * const "char"
+)
+"int"
+0xc0 unregister_event * func (NULL) (
+(NULL) * @"struct--cgroup.txt"
+(NULL) * @"struct--cftype.txt"
+(NULL) * @"<declarations>/struct--eventfd_ctx.txt"
+)
+"void"
+}

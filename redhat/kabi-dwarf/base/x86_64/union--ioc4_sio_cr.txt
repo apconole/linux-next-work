@@ -1,0 +1,15 @@
+Version: 1.0
+File: include/linux/ioc4.h:79
+Symbol:
+Byte size 4
+union ioc4_sio_cr {
+raw @"typedef--uint32_t.txt"
+fields struct (NULL) {
+0x0:0-4 cmd_pulse @"typedef--uint32_t.txt"
+0x0:4-7 arb_diag @"typedef--uint32_t.txt"
+0x0:7-8 sio_diag_idle @"typedef--uint32_t.txt"
+0x1:0-1 ata_diag_idle @"typedef--uint32_t.txt"
+0x1:1-2 ata_diag_active @"typedef--uint32_t.txt"
+0x1:2-24 reserved @"typedef--uint32_t.txt"
+}
+}

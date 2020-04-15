@@ -1,0 +1,8 @@
+Version: 1.0
+File: block/blk-core.c:2338
+Symbol:
+func submit_bio (
+rw "int"
+bio * @"struct--bio.txt"
+)
+"void"

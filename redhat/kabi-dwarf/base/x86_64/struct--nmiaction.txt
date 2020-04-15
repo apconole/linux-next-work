@@ -1,0 +1,10 @@
+Version: 1.0
+File: arch/x86/include/asm/nmi.h:38
+Symbol:
+Byte size 40
+struct nmiaction {
+0x0 list @"struct--list_head.txt"
+0x10 handler @"typedef--nmi_handler_t.txt"
+0x18 flags "long unsigned int"
+0x20 name * const "char"
+}

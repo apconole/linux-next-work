@@ -1,0 +1,191 @@
+Version: 1.0
+File: include/scsi/scsi_device.h:89
+Symbol:
+Byte size 1880
+struct scsi_device {
+0x0 host * @"struct--Scsi_Host.txt"
+0x8 request_queue * @"struct--request_queue.txt"
+0x10 siblings @"struct--list_head.txt"
+0x20 same_target_siblings @"struct--list_head.txt"
+0x30 (NULL) union (NULL) {
+device_busy @"typedef--atomic_t.txt"
+__UNIQUE_ID_rh_kabi_hide32 struct (NULL) {
+0x0 device_busy "unsigned int"
+}
+(NULL) union (NULL) {
+}
+}
+0x34 list_lock @"typedef--spinlock_t.txt"
+0x38 cmd_list @"struct--list_head.txt"
+0x48 starved_entry @"struct--list_head.txt"
+0x58 current_cmnd * @"struct--scsi_cmnd.txt"
+0x60 queue_depth "short unsigned int"
+0x62 max_queue_depth "short unsigned int"
+0x64 last_queue_full_depth "short unsigned int"
+0x66 last_queue_full_count "short unsigned int"
+0x68 last_queue_full_time "long unsigned int"
+0x70 queue_ramp_up_period "long unsigned int"
+0x78 last_queue_ramp_up "long unsigned int"
+0x80 id "unsigned int"
+0x84 lun "unsigned int"
+0x88 channel "unsigned int"
+0x8c manufacturer "unsigned int"
+0x90 sector_size "unsigned int"
+0x98 hostdata * "void"
+0xa0 type "char"
+0xa1 scsi_level "char"
+0xa2 inq_periph_qual "char"
+0xa3 inquiry_len "unsigned char"
+0xa8 inquiry * "unsigned char"
+0xb0 vendor * const "char"
+0xb8 model * const "char"
+0xc0 rev * const "char"
+0xc8 current_tag "unsigned char"
+0xd0 sdev_target * @"struct--scsi_target.txt"
+0xd8 sdev_bflags "unsigned int"
+0xdc eh_timeout "unsigned int"
+0xe0:0-1 writeable "unsigned int"
+0xe0:1-2 removable "unsigned int"
+0xe0:2-3 changed "unsigned int"
+0xe0:3-4 busy "unsigned int"
+0xe0:4-5 lockable "unsigned int"
+0xe0:5-6 locked "unsigned int"
+0xe0:6-7 borken "unsigned int"
+0xe0:7-8 disconnect "unsigned int"
+0xe1:0-1 soft_reset "unsigned int"
+0xe1:1-2 sdtr "unsigned int"
+0xe1:2-3 wdtr "unsigned int"
+0xe1:3-4 ppr "unsigned int"
+0xe1:4-5 tagged_supported "unsigned int"
+0xe1:5-6 simple_tags "unsigned int"
+0xe1:6-7 ordered_tags "unsigned int"
+0xe1:7-8 was_reset "unsigned int"
+0xe2:0-1 expecting_cc_ua "unsigned int"
+0xe2:1-2 use_10_for_rw "unsigned int"
+0xe2:2-3 use_10_for_ms "unsigned int"
+0xe2:3-4 no_report_opcodes "unsigned int"
+0xe2:4-5 no_write_same "unsigned int"
+0xe2:5-6 use_16_for_rw "unsigned int"
+0xe2:6-7 skip_ms_page_8 "unsigned int"
+0xe2:7-8 skip_ms_page_3f "unsigned int"
+0xe3:0-1 skip_vpd_pages "unsigned int"
+0xe3:1-2 use_192_bytes_for_3f "unsigned int"
+0xe3:2-3 no_start_on_add "unsigned int"
+0xe3:3-4 allow_restart "unsigned int"
+0xe3:4-5 manage_start_stop "unsigned int"
+0xe3:5-6 start_stop_pwr_cond "unsigned int"
+0xe3:6-7 no_uld_attach "unsigned int"
+0xe3:7-8 select_no_atn "unsigned int"
+0xe4:0-1 fix_capacity "unsigned int"
+0xe4:1-2 guess_capacity "unsigned int"
+0xe4:2-3 retry_hwerror "unsigned int"
+0xe4:3-4 last_sector_bug "unsigned int"
+0xe4:4-5 no_read_disc_info "unsigned int"
+0xe4:5-6 no_read_capacity_16 "unsigned int"
+0xe4:6-7 try_rc_10_first "unsigned int"
+0xe4:7-8 is_visible "unsigned int"
+0xe5:0-1 wce_default_on "unsigned int"
+0xe5:1-2 no_dif "unsigned int"
+0xe5:2-3 broken_fua "unsigned int"
+0xe5:3-4 vpd_reserved "unsigned int"
+0xe5:4-5 xcopy_reserved "unsigned int"
+0xe5:5-6 lun_in_cdb "unsigned int"
+0xe5:6-7 try_vpd_pages "unsigned int"
+0xe5:7-8 unmap_limit_for_ws "unsigned int"
+0xe6:0-1 offline_already "unsigned int"
+0xe8 disk_events_disable_depth @"typedef--atomic_t.txt"
+0xf0 supported_events [1]"long unsigned int"
+0xf8 pending_events [1]"long unsigned int"
+0x100 event_list @"struct--list_head.txt"
+0x110 event_work @"struct--work_struct.txt"
+0x130 (NULL) union (NULL) {
+device_blocked @"typedef--atomic_t.txt"
+__UNIQUE_ID_rh_kabi_hide33 struct (NULL) {
+0x0 device_blocked "unsigned int"
+}
+(NULL) union (NULL) {
+}
+}
+0x134 max_device_blocked "unsigned int"
+0x138 iorequest_cnt @"typedef--atomic_t.txt"
+0x13c iodone_cnt @"typedef--atomic_t.txt"
+0x140 ioerr_cnt @"typedef--atomic_t.txt"
+0x148 sdev_gendev @"struct--device.txt"
+0x3f8 sdev_dev @"struct--device.txt"
+0x6a8 ew @"struct--execute_work.txt"
+0x6c8 requeue_work @"struct--work_struct.txt"
+0x6e8 scsi_dh_data * @"struct--scsi_dh_data.txt"
+0x6f0 sdev_state @"enum--scsi_device_state.txt"
+0x6f8 (NULL) union (NULL) {
+vpd_pg83 * "unsigned char"
+__UNIQUE_ID_rh_kabi_hide34 struct (NULL) {
+0x0 vpd_reserved1 * "void"
+}
+(NULL) union (NULL) {
+}
+}
+0x700 (NULL) union (NULL) {
+vpd_pg83_len "int"
+__UNIQUE_ID_rh_kabi_hide35 struct (NULL) {
+0x0 vpd_reserved2 * "void"
+}
+(NULL) union (NULL) {
+}
+}
+0x708 (NULL) union (NULL) {
+vpd_pg80 * "unsigned char"
+__UNIQUE_ID_rh_kabi_hide36 struct (NULL) {
+0x0 vpd_reserved3 * "void"
+}
+(NULL) union (NULL) {
+}
+}
+0x710 (NULL) union (NULL) {
+vpd_pg80_len "int"
+__UNIQUE_ID_rh_kabi_hide37 struct (NULL) {
+0x0 vpd_reserved4 * "void"
+}
+(NULL) union (NULL) {
+}
+}
+0x718 vpd_reserved5 "char"
+0x719 vpd_reserved6 "char"
+0x71a vpd_reserved7 "char"
+0x71b vpd_reserved8 "char"
+0x71c (NULL) union (NULL) {
+inquiry_lock @"typedef--spinlock_t.txt"
+__UNIQUE_ID_rh_kabi_hide38 struct (NULL) {
+0x0 vpd_reserved9 @"typedef--spinlock_t.txt"
+}
+(NULL) union (NULL) {
+}
+}
+0x720 (NULL) union (NULL) {
+quiesced_by * @"struct--task_struct.txt"
+__UNIQUE_ID_rh_kabi_hide39 struct (NULL) {
+0x0 rh_reserved1 * func (NULL) (
+)
+"void"
+}
+(NULL) union (NULL) {
+}
+}
+0x728 rh_reserved2 * func (NULL) (
+)
+"void"
+0x730 rh_reserved3 * func (NULL) (
+)
+"void"
+0x738 rh_reserved4 * func (NULL) (
+)
+"void"
+0x740 rh_reserved5 * func (NULL) (
+)
+"void"
+0x748 rh_reserved6 * func (NULL) (
+)
+"void"
+0x750 scsi_mq_reserved1 @"typedef--atomic_t.txt"
+0x754 scsi_mq_reserved2 @"typedef--atomic_t.txt"
+0x758 sdev_data [0]"long unsigned int"
+}

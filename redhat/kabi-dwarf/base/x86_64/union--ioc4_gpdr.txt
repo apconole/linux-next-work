@@ -1,0 +1,11 @@
+Version: 1.0
+File: include/linux/ioc4.h:113
+Symbol:
+Byte size 4
+union ioc4_gpdr {
+raw @"typedef--uint32_t.txt"
+fields struct (NULL) {
+0x0:0-8 gen_pin @"typedef--uint32_t.txt"
+0x1:0-24 reserved @"typedef--uint32_t.txt"
+}
+}

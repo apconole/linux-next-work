@@ -1,0 +1,6 @@
+Version: 1.0
+File: kernel/signal.c:160
+Symbol:
+func recalc_sigpending (
+)
+"void"

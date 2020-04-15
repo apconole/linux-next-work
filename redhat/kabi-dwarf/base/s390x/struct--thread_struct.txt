@@ -1,0 +1,22 @@
+Version: 1.0
+File: arch/s390/include/asm/processor.h:83
+Symbol:
+Byte size 600
+struct thread_struct {
+0x0 fp_regs @"typedef--s390_fp_regs.txt"
+0x88 acrs [16]"unsigned int"
+0xc8 ksp "long unsigned int"
+0xd0 mm_segment @"typedef--mm_segment_t.txt"
+0xd8 gmap_addr "long unsigned int"
+0xe0 per_user @"struct--per_regs.txt"
+0xf8 per_event @"struct--per_event.txt"
+0x110 per_flags "long unsigned int"
+0x118 pfault_wait "long unsigned int"
+0x120 list @"struct--list_head.txt"
+0x130 ri_cb * @"struct--runtime_instr_cb.txt"
+0x138 ri_signum "int"
+0x13c trap_tdb [256]"unsigned char"
+0x240 vxrs * @"typedef--__vector128.txt"
+0x248 gs_cb * @"struct--gs_cb.txt"
+0x250 gs_bc_cb * @"struct--gs_cb.txt"
+}

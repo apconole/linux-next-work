@@ -1,0 +1,8 @@
+Version: 1.0
+File: arch/x86/include/asm/processor.h:473
+Symbol:
+Byte size 16
+struct bndcsr {
+0x0 bndcfgu @"typedef--u64.txt"
+0x8 bndstatus @"typedef--u64.txt"
+}

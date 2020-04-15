@@ -1,0 +1,6 @@
+Version: 1.0
+File: fs/fs_struct.c:154
+Symbol:
+func current_umask (
+)
+"int"

@@ -1,0 +1,8 @@
+Version: 1.0
+File: arch/x86/lib/usercopy_64.c:50
+Symbol:
+func clear_user (
+to * "void"
+n "long unsigned int"
+)
+"long unsigned int"

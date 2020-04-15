@@ -1,0 +1,7 @@
+Version: 1.0
+File: block/genhd.c:727
+Symbol:
+func del_gendisk (
+disk * @"struct--gendisk.txt"
+)
+"void"

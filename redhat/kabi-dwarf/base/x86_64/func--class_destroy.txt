@@ -1,0 +1,7 @@
+Version: 1.0
+File: drivers/base/class.c:273
+Symbol:
+func class_destroy (
+cls * @"struct--class.txt"
+)
+"void"

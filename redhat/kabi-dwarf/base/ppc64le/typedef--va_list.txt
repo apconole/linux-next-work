@@ -1,0 +1,5 @@
+Version: 1.0
+File: /usr/lib/gcc/ppc64le-redhat-linux/4.8.5/include/stdarg.h:98
+Symbol:
+typedef va_list
+@"typedef--__gnuc_va_list.txt"

@@ -1,0 +1,8 @@
+Version: 1.0
+File: drivers/base/class.c:165
+Symbol:
+func __class_register (
+cls * @"struct--class.txt"
+key * @"struct--lock_class_key.txt"
+)
+"int"

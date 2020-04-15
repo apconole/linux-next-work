@@ -1,0 +1,14 @@
+Version: 1.0
+File: block/blk-cgroup.h:47
+Symbol:
+Byte size 120
+struct blkcg {
+0x0 css @"struct--cgroup_subsys_state.txt"
+0x40 lock @"typedef--spinlock_t.txt"
+0x48 blkg_tree @"struct--radix_tree_root.txt"
+0x58 blkg_hint * @"struct--blkcg_gq.txt"
+0x60 blkg_list @"struct--hlist_head.txt"
+0x68 id @"typedef--uint64_t.txt"
+0x70 cfq_weight "unsigned int"
+0x74 cfq_leaf_weight "unsigned int"
+}

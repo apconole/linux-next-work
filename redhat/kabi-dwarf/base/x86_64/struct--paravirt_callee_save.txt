@@ -1,0 +1,7 @@
+Version: 1.0
+File: arch/x86/include/asm/paravirt_types.h:60
+Symbol:
+Byte size 8
+struct paravirt_callee_save {
+0x0 func * "void"
+}

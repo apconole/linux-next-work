@@ -1,0 +1,15 @@
+Version: 1.0
+File: include/linux/srcu.h:47
+Symbol:
+Byte size 216
+struct srcu_struct {
+0x0 completed "unsigned int"
+0x8 per_cpu_ref * @"struct--srcu_struct_array.txt"
+0x10 queue_lock @"typedef--spinlock_t.txt"
+0x14 running @"typedef--bool.txt"
+0x18 batch_queue @"struct--rcu_batch.txt"
+0x28 batch_check0 @"struct--rcu_batch.txt"
+0x38 batch_check1 @"struct--rcu_batch.txt"
+0x48 batch_done @"struct--rcu_batch.txt"
+0x58 work @"struct--delayed_work.txt"
+}

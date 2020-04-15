@@ -1,0 +1,7 @@
+Version: 1.0
+File: block/genhd.c:708
+Symbol:
+func add_disk (
+disk * @"struct--gendisk.txt"
+)
+"void"

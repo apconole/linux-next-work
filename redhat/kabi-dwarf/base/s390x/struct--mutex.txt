@@ -1,0 +1,18 @@
+Version: 1.0
+File: include/linux/mutex.h:51
+Symbol:
+Byte size 40
+struct mutex {
+0x0 count @"typedef--atomic_t.txt"
+0x4 wait_lock @"typedef--spinlock_t.txt"
+0x8 wait_list @"struct--list_head.txt"
+0x18 owner * @"struct--task_struct.txt"
+0x20 (NULL) union (NULL) {
+osq @"struct--optimistic_spin_queue.txt"
+__UNIQUE_ID_rh_kabi_hide2 struct (NULL) {
+0x0 spin_mlock * "void"
+}
+(NULL) union (NULL) {
+}
+}
+}

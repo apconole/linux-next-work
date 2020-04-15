@@ -1,0 +1,8 @@
+Version: 1.0
+File: include/linux/sbitmap.h:76
+Symbol:
+Byte size 128
+struct sbq_wait_state {
+0x0 wait_cnt @"typedef--atomic_t.txt"
+0x8 wait @"typedef--wait_queue_head_t.txt"
+}

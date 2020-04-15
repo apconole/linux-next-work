@@ -1,0 +1,9 @@
+Version: 1.0
+File: fs/inode.c:1961
+Symbol:
+func init_special_inode (
+inode * @"struct--inode.txt"
+mode @"typedef--umode_t.txt"
+rdev @"typedef--dev_t.txt"
+)
+"void"

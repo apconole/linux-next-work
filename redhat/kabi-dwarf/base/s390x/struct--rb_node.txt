@@ -1,0 +1,9 @@
+Version: 1.0
+File: include/linux/rbtree.h:36
+Symbol:
+Byte size 24
+struct rb_node {
+0x0 __rb_parent_color "long unsigned int"
+0x8 rb_right * @"struct--rb_node.txt"
+0x10 rb_left * @"struct--rb_node.txt"
+}

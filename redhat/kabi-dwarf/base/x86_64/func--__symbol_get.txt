@@ -1,0 +1,7 @@
+Version: 1.0
+File: kernel/module.c:2118
+Symbol:
+func __symbol_get (
+symbol * const "char"
+)
+* "void"

@@ -1,0 +1,8 @@
+Version: 1.0
+File: kernel/params.c:201
+Symbol:
+func param_get_long (
+buffer * "char"
+kp * const @"struct--kernel_param.txt"
+)
+"int"

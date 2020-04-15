@@ -1,0 +1,9 @@
+Version: 1.0
+File: drivers/scsi/fcoe/fcoe_ctlr.c:1871
+Symbol:
+func fcoe_ctlr_recv_flogi (
+fip * @"struct--fcoe_ctlr.txt"
+lport * @"struct--fc_lport.txt"
+fp * @"struct--fc_frame.txt"
+)
+"int"

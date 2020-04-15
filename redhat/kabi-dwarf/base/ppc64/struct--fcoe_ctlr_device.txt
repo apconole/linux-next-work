@@ -1,0 +1,19 @@
+Version: 1.0
+File: include/scsi/fcoe_sysfs.h:58
+Symbol:
+Byte size 864
+struct fcoe_ctlr_device {
+0x0 id @"typedef--u32.txt"
+0x8 dev @"struct--device.txt"
+0x2b8 f * @"struct--fcoe_sysfs_function_template.txt"
+0x2c0 fcfs @"struct--list_head.txt"
+0x2d0 work_q_name [20]"char"
+0x2e8 work_q * @"<declarations>/struct--workqueue_struct.txt"
+0x2f0 devloss_work_q_name [20]"char"
+0x308 devloss_work_q * @"<declarations>/struct--workqueue_struct.txt"
+0x310 lock @"struct--mutex.txt"
+0x338 fcf_dev_loss_tmo "int"
+0x33c mode @"enum--fip_conn_type.txt"
+0x340 enabled @"enum--ctlr_enabled_state.txt"
+0x344 lesb @"struct--fcoe_fc_els_lesb.txt"
+}

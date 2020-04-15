@@ -1,0 +1,8 @@
+Version: 1.0
+File: arch/x86/kernel/pci-dma.c:231
+Symbol:
+func dma_supported (
+dev * @"struct--device.txt"
+mask @"typedef--u64.txt"
+)
+"int"

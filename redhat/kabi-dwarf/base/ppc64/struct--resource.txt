@@ -1,0 +1,13 @@
+Version: 1.0
+File: include/linux/ioport.h:18
+Symbol:
+Byte size 56
+struct resource {
+0x0 start @"typedef--resource_size_t.txt"
+0x8 end @"typedef--resource_size_t.txt"
+0x10 name * const "char"
+0x18 flags "long unsigned int"
+0x20 parent * @"struct--resource.txt"
+0x28 sibling * @"struct--resource.txt"
+0x30 child * @"struct--resource.txt"
+}

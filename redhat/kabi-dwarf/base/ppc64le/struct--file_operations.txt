@@ -1,0 +1,187 @@
+Version: 1.0
+File: include/linux/fs.h:1765
+Symbol:
+Byte size 224
+struct file_operations {
+0x0 owner * @"struct--module.txt"
+0x8 llseek * func (NULL) (
+(NULL) * @"struct--file.txt"
+(NULL) @"typedef--loff_t.txt"
+(NULL) "int"
+)
+@"typedef--loff_t.txt"
+0x10 read * func (NULL) (
+(NULL) * @"struct--file.txt"
+(NULL) * "char"
+(NULL) @"typedef--size_t.txt"
+(NULL) * @"typedef--loff_t.txt"
+)
+@"typedef--ssize_t.txt"
+0x18 write * func (NULL) (
+(NULL) * @"struct--file.txt"
+(NULL) * const "char"
+(NULL) @"typedef--size_t.txt"
+(NULL) * @"typedef--loff_t.txt"
+)
+@"typedef--ssize_t.txt"
+0x20 aio_read * func (NULL) (
+(NULL) * @"struct--kiocb.txt"
+(NULL) * const @"struct--iovec.txt"
+(NULL) "long unsigned int"
+(NULL) @"typedef--loff_t.txt"
+)
+@"typedef--ssize_t.txt"
+0x28 aio_write * func (NULL) (
+(NULL) * @"struct--kiocb.txt"
+(NULL) * const @"struct--iovec.txt"
+(NULL) "long unsigned int"
+(NULL) @"typedef--loff_t.txt"
+)
+@"typedef--ssize_t.txt"
+0x30 readdir * func (NULL) (
+(NULL) * @"struct--file.txt"
+(NULL) * "void"
+(NULL) @"typedef--filldir_t.txt"
+)
+"int"
+0x38 poll * func (NULL) (
+(NULL) * @"struct--file.txt"
+(NULL) * @"struct--poll_table_struct.txt"
+)
+"unsigned int"
+0x40 unlocked_ioctl * func (NULL) (
+(NULL) * @"struct--file.txt"
+(NULL) "unsigned int"
+(NULL) "long unsigned int"
+)
+"long int"
+0x48 compat_ioctl * func (NULL) (
+(NULL) * @"struct--file.txt"
+(NULL) "unsigned int"
+(NULL) "long unsigned int"
+)
+"long int"
+0x50 mmap * func (NULL) (
+(NULL) * @"struct--file.txt"
+(NULL) * @"struct--vm_area_struct.txt"
+)
+"int"
+0x58 open * func (NULL) (
+(NULL) * @"struct--inode.txt"
+(NULL) * @"struct--file.txt"
+)
+"int"
+0x60 flush * func (NULL) (
+(NULL) * @"struct--file.txt"
+(NULL) @"typedef--fl_owner_t.txt"
+)
+"int"
+0x68 release * func (NULL) (
+(NULL) * @"struct--inode.txt"
+(NULL) * @"struct--file.txt"
+)
+"int"
+0x70 fsync * func (NULL) (
+(NULL) * @"struct--file.txt"
+(NULL) @"typedef--loff_t.txt"
+(NULL) @"typedef--loff_t.txt"
+(NULL) "int"
+)
+"int"
+0x78 aio_fsync * func (NULL) (
+(NULL) * @"struct--kiocb.txt"
+(NULL) "int"
+)
+"int"
+0x80 fasync * func (NULL) (
+(NULL) "int"
+(NULL) * @"struct--file.txt"
+(NULL) "int"
+)
+"int"
+0x88 lock * func (NULL) (
+(NULL) * @"struct--file.txt"
+(NULL) "int"
+(NULL) * @"struct--file_lock.txt"
+)
+"int"
+0x90 sendpage * func (NULL) (
+(NULL) * @"struct--file.txt"
+(NULL) * @"struct--page.txt"
+(NULL) "int"
+(NULL) @"typedef--size_t.txt"
+(NULL) * @"typedef--loff_t.txt"
+(NULL) "int"
+)
+@"typedef--ssize_t.txt"
+0x98 get_unmapped_area * func (NULL) (
+(NULL) * @"struct--file.txt"
+(NULL) "long unsigned int"
+(NULL) "long unsigned int"
+(NULL) "long unsigned int"
+(NULL) "long unsigned int"
+)
+"long unsigned int"
+0xa0 check_flags * func (NULL) (
+(NULL) "int"
+)
+"int"
+0xa8 flock * func (NULL) (
+(NULL) * @"struct--file.txt"
+(NULL) "int"
+(NULL) * @"struct--file_lock.txt"
+)
+"int"
+0xb0 splice_write * func (NULL) (
+(NULL) * @"struct--pipe_inode_info.txt"
+(NULL) * @"struct--file.txt"
+(NULL) * @"typedef--loff_t.txt"
+(NULL) @"typedef--size_t.txt"
+(NULL) "unsigned int"
+)
+@"typedef--ssize_t.txt"
+0xb8 splice_read * func (NULL) (
+(NULL) * @"struct--file.txt"
+(NULL) * @"typedef--loff_t.txt"
+(NULL) * @"struct--pipe_inode_info.txt"
+(NULL) @"typedef--size_t.txt"
+(NULL) "unsigned int"
+)
+@"typedef--ssize_t.txt"
+0xc0 (NULL) union (NULL) {
+setlease * func (NULL) (
+(NULL) * @"struct--file.txt"
+(NULL) "long int"
+(NULL) * * @"struct--file_lock.txt"
+(NULL) * * "void"
+)
+"int"
+__UNIQUE_ID_rh_kabi_hide24 struct (NULL) {
+0x0 setlease * func (NULL) (
+(NULL) * @"struct--file.txt"
+(NULL) "long int"
+(NULL) * * @"struct--file_lock.txt"
+)
+"int"
+}
+(NULL) union (NULL) {
+}
+}
+0xc8 fallocate * func (NULL) (
+(NULL) * @"struct--file.txt"
+(NULL) "int"
+(NULL) @"typedef--loff_t.txt"
+(NULL) @"typedef--loff_t.txt"
+)
+"long int"
+0xd0 show_fdinfo * func (NULL) (
+(NULL) * @"struct--seq_file.txt"
+(NULL) * @"struct--file.txt"
+)
+"int"
+0xd8 iterate * func (NULL) (
+(NULL) * @"struct--file.txt"
+(NULL) * @"struct--dir_context.txt"
+)
+"int"
+}

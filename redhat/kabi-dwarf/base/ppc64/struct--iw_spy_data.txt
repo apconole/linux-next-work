@@ -1,0 +1,12 @@
+Version: 1.0
+File: include/net/iw_handler.h:395
+Symbol:
+Byte size 100
+struct iw_spy_data {
+0x0 spy_number "int"
+0x4 spy_address [8][6]@"typedef--u_char.txt"
+0x34 spy_stat [8]@"struct--iw_quality.txt"
+0x54 spy_thr_low @"struct--iw_quality.txt"
+0x58 spy_thr_high @"struct--iw_quality.txt"
+0x5c spy_thr_under [8]@"typedef--u_char.txt"
+}

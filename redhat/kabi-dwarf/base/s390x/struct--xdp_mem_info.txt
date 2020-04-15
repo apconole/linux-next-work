@@ -1,0 +1,7 @@
+Version: 1.0
+File: include/net/xdp.h:49
+Symbol:
+Byte size 4
+struct xdp_mem_info {
+0x0 type @"typedef--u32.txt"
+}

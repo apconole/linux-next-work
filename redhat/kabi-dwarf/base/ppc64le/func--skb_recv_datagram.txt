@@ -1,0 +1,10 @@
+Version: 1.0
+File: net/core/datagram.c:292
+Symbol:
+func skb_recv_datagram (
+sk * @"struct--sock.txt"
+flags "unsigned int"
+noblock "int"
+err * "int"
+)
+* @"struct--sk_buff.txt"

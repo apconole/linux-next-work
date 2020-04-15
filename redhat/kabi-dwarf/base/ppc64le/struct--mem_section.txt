@@ -1,0 +1,10 @@
+Version: 1.0
+File: include/linux/mmzone.h:1208
+Symbol:
+Byte size 32
+struct mem_section {
+0x0 section_mem_map "long unsigned int"
+0x8 pageblock_flags * "long unsigned int"
+0x10 page_cgroup * @"<declarations>/struct--page_cgroup.txt"
+0x18 pad "long unsigned int"
+}

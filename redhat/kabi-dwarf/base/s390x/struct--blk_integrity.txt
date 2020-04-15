@@ -1,0 +1,16 @@
+Version: 1.0
+File: include/linux/blkdev.h:1727
+Symbol:
+Byte size 112
+struct blk_integrity {
+0x0 generate_fn * @"typedef--integrity_gen_fn.txt"
+0x8 verify_fn * @"typedef--integrity_vrfy_fn.txt"
+0x10 set_tag_fn * @"typedef--integrity_set_tag_fn.txt"
+0x18 get_tag_fn * @"typedef--integrity_get_tag_fn.txt"
+0x20 flags "short unsigned int"
+0x22 tuple_size "short unsigned int"
+0x24 sector_size "short unsigned int"
+0x26 tag_size "short unsigned int"
+0x28 name * const "char"
+0x30 kobj @"struct--kobject.txt"
+}

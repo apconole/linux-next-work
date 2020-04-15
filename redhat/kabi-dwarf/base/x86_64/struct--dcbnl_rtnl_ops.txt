@@ -1,0 +1,257 @@
+Version: 1.0
+File: include/net/dcbnl.h:46
+Symbol:
+Byte size 352
+struct dcbnl_rtnl_ops {
+0x0 ieee_getets * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+(NULL) * @"struct--ieee_ets.txt"
+)
+"int"
+0x8 ieee_setets * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+(NULL) * @"struct--ieee_ets.txt"
+)
+"int"
+0x10 ieee_getmaxrate * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+(NULL) * @"struct--ieee_maxrate.txt"
+)
+"int"
+0x18 ieee_setmaxrate * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+(NULL) * @"struct--ieee_maxrate.txt"
+)
+"int"
+0x20 ieee_getpfc * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+(NULL) * @"struct--ieee_pfc.txt"
+)
+"int"
+0x28 ieee_setpfc * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+(NULL) * @"struct--ieee_pfc.txt"
+)
+"int"
+0x30 ieee_getapp * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+(NULL) * @"struct--dcb_app.txt"
+)
+"int"
+0x38 ieee_setapp * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+(NULL) * @"struct--dcb_app.txt"
+)
+"int"
+0x40 ieee_delapp * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+(NULL) * @"struct--dcb_app.txt"
+)
+"int"
+0x48 ieee_peer_getets * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+(NULL) * @"struct--ieee_ets.txt"
+)
+"int"
+0x50 ieee_peer_getpfc * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+(NULL) * @"struct--ieee_pfc.txt"
+)
+"int"
+0x58 getstate * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+)
+@"typedef--u8.txt"
+0x60 setstate * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+(NULL) @"typedef--u8.txt"
+)
+@"typedef--u8.txt"
+0x68 getpermhwaddr * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+(NULL) * @"typedef--u8.txt"
+)
+"void"
+0x70 setpgtccfgtx * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+(NULL) "int"
+(NULL) @"typedef--u8.txt"
+(NULL) @"typedef--u8.txt"
+(NULL) @"typedef--u8.txt"
+(NULL) @"typedef--u8.txt"
+)
+"void"
+0x78 setpgbwgcfgtx * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+(NULL) "int"
+(NULL) @"typedef--u8.txt"
+)
+"void"
+0x80 setpgtccfgrx * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+(NULL) "int"
+(NULL) @"typedef--u8.txt"
+(NULL) @"typedef--u8.txt"
+(NULL) @"typedef--u8.txt"
+(NULL) @"typedef--u8.txt"
+)
+"void"
+0x88 setpgbwgcfgrx * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+(NULL) "int"
+(NULL) @"typedef--u8.txt"
+)
+"void"
+0x90 getpgtccfgtx * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+(NULL) "int"
+(NULL) * @"typedef--u8.txt"
+(NULL) * @"typedef--u8.txt"
+(NULL) * @"typedef--u8.txt"
+(NULL) * @"typedef--u8.txt"
+)
+"void"
+0x98 getpgbwgcfgtx * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+(NULL) "int"
+(NULL) * @"typedef--u8.txt"
+)
+"void"
+0xa0 getpgtccfgrx * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+(NULL) "int"
+(NULL) * @"typedef--u8.txt"
+(NULL) * @"typedef--u8.txt"
+(NULL) * @"typedef--u8.txt"
+(NULL) * @"typedef--u8.txt"
+)
+"void"
+0xa8 getpgbwgcfgrx * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+(NULL) "int"
+(NULL) * @"typedef--u8.txt"
+)
+"void"
+0xb0 setpfccfg * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+(NULL) "int"
+(NULL) @"typedef--u8.txt"
+)
+"void"
+0xb8 getpfccfg * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+(NULL) "int"
+(NULL) * @"typedef--u8.txt"
+)
+"void"
+0xc0 setall * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+)
+@"typedef--u8.txt"
+0xc8 getcap * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+(NULL) "int"
+(NULL) * @"typedef--u8.txt"
+)
+@"typedef--u8.txt"
+0xd0 getnumtcs * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+(NULL) "int"
+(NULL) * @"typedef--u8.txt"
+)
+"int"
+0xd8 setnumtcs * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+(NULL) "int"
+(NULL) @"typedef--u8.txt"
+)
+"int"
+0xe0 getpfcstate * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+)
+@"typedef--u8.txt"
+0xe8 setpfcstate * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+(NULL) @"typedef--u8.txt"
+)
+"void"
+0xf0 getbcncfg * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+(NULL) "int"
+(NULL) * @"typedef--u32.txt"
+)
+"void"
+0xf8 setbcncfg * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+(NULL) "int"
+(NULL) @"typedef--u32.txt"
+)
+"void"
+0x100 getbcnrp * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+(NULL) "int"
+(NULL) * @"typedef--u8.txt"
+)
+"void"
+0x108 setbcnrp * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+(NULL) "int"
+(NULL) @"typedef--u8.txt"
+)
+"void"
+0x110 setapp * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+(NULL) @"typedef--u8.txt"
+(NULL) @"typedef--u16.txt"
+(NULL) @"typedef--u8.txt"
+)
+@"typedef--u8.txt"
+0x118 getapp * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+(NULL) @"typedef--u8.txt"
+(NULL) @"typedef--u16.txt"
+)
+@"typedef--u8.txt"
+0x120 getfeatcfg * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+(NULL) "int"
+(NULL) * @"typedef--u8.txt"
+)
+@"typedef--u8.txt"
+0x128 setfeatcfg * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+(NULL) "int"
+(NULL) @"typedef--u8.txt"
+)
+@"typedef--u8.txt"
+0x130 getdcbx * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+)
+@"typedef--u8.txt"
+0x138 setdcbx * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+(NULL) @"typedef--u8.txt"
+)
+@"typedef--u8.txt"
+0x140 peer_getappinfo * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+(NULL) * @"struct--dcb_peer_app_info.txt"
+(NULL) * @"typedef--u16.txt"
+)
+"int"
+0x148 peer_getapptable * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+(NULL) * @"struct--dcb_app.txt"
+)
+"int"
+0x150 cee_peer_getpg * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+(NULL) * @"struct--cee_pg.txt"
+)
+"int"
+0x158 cee_peer_getpfc * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+(NULL) * @"struct--cee_pfc.txt"
+)
+"int"
+}

@@ -1,0 +1,8 @@
+Version: 1.0
+File: drivers/scsi/fcoe/fcoe_ctlr.c:148
+Symbol:
+func fcoe_ctlr_init (
+fip * @"struct--fcoe_ctlr.txt"
+mode @"enum--fip_state.txt"
+)
+"void"

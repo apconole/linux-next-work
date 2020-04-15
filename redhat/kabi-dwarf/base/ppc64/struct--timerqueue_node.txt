@@ -1,0 +1,8 @@
+Version: 1.0
+File: include/linux/timerqueue.h:8
+Symbol:
+Byte size 32
+struct timerqueue_node {
+0x0 node @"struct--rb_node.txt"
+0x18 expires @"typedef--ktime_t.txt"
+}

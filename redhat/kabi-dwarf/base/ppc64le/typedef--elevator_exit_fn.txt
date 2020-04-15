@@ -1,0 +1,8 @@
+Version: 1.0
+File: include/linux/elevator.h:50
+Symbol:
+typedef elevator_exit_fn
+func (NULL) (
+(NULL) * @"struct--elevator_queue.txt"
+)
+"void"

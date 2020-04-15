@@ -1,0 +1,18 @@
+Version: 1.0
+File: drivers/char/ipmi/ipmi_msghandler.c:312
+Symbol:
+Byte size 912
+struct bmc_device {
+0x0 pdev @"struct--platform_device.txt"
+0x2d0 intfs @"struct--list_head.txt"
+0x2e0 id @"struct--ipmi_device_id.txt"
+0x2f8 fetch_id @"struct--ipmi_device_id.txt"
+0x310 dyn_id_set "int"
+0x318 dyn_id_expiry "long unsigned int"
+0x320 dyn_mutex @"struct--mutex.txt"
+0x348 guid @"typedef--guid_t.txt"
+0x358 fetch_guid @"typedef--guid_t.txt"
+0x368 dyn_guid_set "int"
+0x36c usecount @"struct--kref.txt"
+0x370 remove_work @"struct--work_struct.txt"
+}

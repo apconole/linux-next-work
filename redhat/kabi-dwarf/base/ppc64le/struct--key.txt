@@ -1,0 +1,49 @@
+Version: 1.0
+File: include/linux/key.h:138
+Symbol:
+Byte size 184
+struct key {
+0x0 usage @"typedef--atomic_t.txt"
+0x4 serial @"typedef--key_serial_t.txt"
+0x8 (NULL) union (NULL) {
+graveyard_link @"struct--list_head.txt"
+serial_node @"struct--rb_node.txt"
+}
+0x20 sem @"struct--rw_semaphore.txt"
+0x40 user * @"<declarations>/struct--key_user.txt"
+0x48 security * "void"
+0x50 (NULL) union (NULL) {
+expiry @"typedef--time_t.txt"
+revoked_at @"typedef--time_t.txt"
+}
+0x58 last_used_at @"typedef--time_t.txt"
+0x60 uid @"typedef--kuid_t.txt"
+0x64 gid @"typedef--kgid_t.txt"
+0x68 perm @"typedef--key_perm_t.txt"
+0x6c quotalen "short unsigned int"
+0x6e datalen "short unsigned int"
+0x70 flags "long unsigned int"
+0x78 (NULL) union (NULL) {
+index_key @"struct--keyring_index_key.txt"
+(NULL) struct (NULL) {
+0x0 type * @"<declarations>/struct--key_type.txt"
+0x8 description * "char"
+}
+}
+0x90 type_data union (NULL) {
+link @"struct--list_head.txt"
+x [2]"long unsigned int"
+p [2]* "void"
+reject_error "int"
+}
+0xa0 (NULL) union (NULL) {
+payload union (NULL) {
+value "long unsigned int"
+rcudata * "void"
+data * "void"
+data2 [2]* "void"
+}
+keys @"struct--assoc_array.txt"
+}
+0xb0 state "short int"
+}

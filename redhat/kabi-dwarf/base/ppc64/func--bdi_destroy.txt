@@ -1,0 +1,7 @@
+Version: 1.0
+File: mm/backing-dev.c:482
+Symbol:
+func bdi_destroy (
+bdi * @"struct--backing_dev_info.txt"
+)
+"void"

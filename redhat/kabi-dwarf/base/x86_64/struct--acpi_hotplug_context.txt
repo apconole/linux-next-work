@@ -1,0 +1,21 @@
+Version: 1.0
+File: include/acpi/acpi_bus.h:153
+Symbol:
+Byte size 32
+struct acpi_hotplug_context {
+0x0 self * @"struct--acpi_device.txt"
+0x8 notify * func (NULL) (
+(NULL) * @"struct--acpi_device.txt"
+(NULL) @"typedef--u32.txt"
+)
+"int"
+0x10 uevent * func (NULL) (
+(NULL) * @"struct--acpi_device.txt"
+(NULL) @"typedef--u32.txt"
+)
+"void"
+0x18 fixup * func (NULL) (
+(NULL) * @"struct--acpi_device.txt"
+)
+"void"
+}

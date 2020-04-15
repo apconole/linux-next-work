@@ -1,0 +1,8 @@
+Version: 1.0
+File: include/uapi/linux/resource.h:42
+Symbol:
+Byte size 16
+struct rlimit {
+0x0 rlim_cur "long unsigned int"
+0x8 rlim_max "long unsigned int"
+}

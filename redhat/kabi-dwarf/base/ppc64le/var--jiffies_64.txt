@@ -1,0 +1,4 @@
+Version: 1.0
+File: kernel/timer.c:57
+Symbol:
+var jiffies_64 @"typedef--u64.txt"

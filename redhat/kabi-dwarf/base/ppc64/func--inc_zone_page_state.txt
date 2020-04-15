@@ -1,0 +1,8 @@
+Version: 1.0
+File: mm/vmstat.c:409
+Symbol:
+func inc_zone_page_state (
+page * @"struct--page.txt"
+item @"enum--zone_stat_item.txt"
+)
+"void"

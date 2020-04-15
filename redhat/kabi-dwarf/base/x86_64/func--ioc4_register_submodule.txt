@@ -1,0 +1,7 @@
+Version: 1.0
+File: drivers/misc/ioc4.c:63
+Symbol:
+func ioc4_register_submodule (
+is * @"struct--ioc4_submodule.txt"
+)
+"int"

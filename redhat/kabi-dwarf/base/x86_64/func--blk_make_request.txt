@@ -1,0 +1,9 @@
+Version: 1.0
+File: block/blk-core.c:1498
+Symbol:
+func blk_make_request (
+q * @"struct--request_queue.txt"
+bio * @"struct--bio.txt"
+gfp_mask @"typedef--gfp_t.txt"
+)
+* @"struct--request.txt"

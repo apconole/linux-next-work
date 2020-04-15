@@ -1,0 +1,7 @@
+Version: 1.0
+File: include/linux/swap.h:135
+Symbol:
+Byte size 8
+struct reclaim_state {
+0x0 reclaimed_slab "long unsigned int"
+}

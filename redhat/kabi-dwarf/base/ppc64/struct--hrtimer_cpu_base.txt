@@ -1,0 +1,24 @@
+Version: 1.0
+File: include/linux/hrtimer.h:183
+Symbol:
+Byte size 360
+struct hrtimer_cpu_base {
+0x0 lock @"typedef--raw_spinlock_t.txt"
+0x4 active_bases "unsigned int"
+0x8 clock_was_set "unsigned int"
+0x10 expires_next @"typedef--ktime_t.txt"
+0x18 hres_active "int"
+0x1c hang_detected "int"
+0x20 nr_events "long unsigned int"
+0x28 nr_retries "long unsigned int"
+0x30 nr_hangs "long unsigned int"
+0x38 max_hang_time @"typedef--ktime_t.txt"
+0x40 clock_base [4]@"struct--hrtimer_clock_base.txt"
+0x140 cpu "int"
+0x144 in_hrtirq "int"
+0x148 migration_enabled @"typedef--bool.txt"
+0x149 nohz_active @"typedef--bool.txt"
+0x150 next_timer * @"struct--hrtimer.txt"
+0x158 seq @"typedef--seqcount_t.txt"
+0x160 running * @"struct--hrtimer.txt"
+}

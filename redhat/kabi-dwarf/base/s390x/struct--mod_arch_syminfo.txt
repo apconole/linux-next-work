@@ -1,0 +1,10 @@
+Version: 1.0
+File: arch/s390/include/asm/module.h:10
+Symbol:
+Byte size 24
+struct mod_arch_syminfo {
+0x0 got_offset "long unsigned int"
+0x8 plt_offset "long unsigned int"
+0x10 got_initialized "int"
+0x14 plt_initialized "int"
+}

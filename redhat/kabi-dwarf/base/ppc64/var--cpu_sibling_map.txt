@@ -1,0 +1,4 @@
+Version: 1.0
+File: arch/powerpc/kernel/smp.c:75
+Symbol:
+var cpu_sibling_map @"typedef--cpumask_var_t.txt"

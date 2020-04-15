@@ -1,0 +1,18 @@
+Version: 1.0
+File: include/linux/phy.h:294
+Symbol:
+Byte size 4
+enum phy_state {
+PHY_DOWN = 0x0
+PHY_STARTING = 0x1
+PHY_READY = 0x2
+PHY_PENDING = 0x3
+PHY_UP = 0x4
+PHY_AN = 0x5
+PHY_RUNNING = 0x6
+PHY_NOLINK = 0x7
+PHY_FORCING = 0x8
+PHY_CHANGELINK = 0x9
+PHY_HALTED = 0xa
+PHY_RESUMING = 0xb
+}

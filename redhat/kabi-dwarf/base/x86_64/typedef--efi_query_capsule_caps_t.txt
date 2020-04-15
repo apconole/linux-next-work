@@ -1,0 +1,11 @@
+Version: 1.0
+File: include/linux/efi.h:528
+Symbol:
+typedef efi_query_capsule_caps_t
+func (NULL) (
+(NULL) * * @"typedef--efi_capsule_header_t.txt"
+(NULL) "long unsigned int"
+(NULL) * @"typedef--u64.txt"
+(NULL) * "int"
+)
+@"typedef--efi_status_t.txt"

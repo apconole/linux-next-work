@@ -1,0 +1,21 @@
+Version: 1.0
+File: include/linux/slab.h:373
+Symbol:
+Byte size 80
+struct memcg_cache_params {
+0x0 is_root_cache @"typedef--bool.txt"
+0x8 (NULL) union (NULL) {
+(NULL) struct (NULL) {
+0x0 memcg_caches [0]* @"struct--kmem_cache.txt"
+0x0 callback_head @"struct--callback_head.txt"
+}
+(NULL) struct (NULL) {
+0x0 memcg * @"<declarations>/struct--mem_cgroup.txt"
+0x8 list @"struct--list_head.txt"
+0x18 root_cache * @"struct--kmem_cache.txt"
+0x20 rh_reserved_dead @"typedef--bool.txt"
+0x24 nr_pages @"typedef--atomic_t.txt"
+0x28 rh_reserved_destroy @"struct--work_struct.txt"
+}
+}
+}

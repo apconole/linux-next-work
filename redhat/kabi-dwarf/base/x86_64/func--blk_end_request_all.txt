@@ -1,0 +1,8 @@
+Version: 1.0
+File: block/blk-core.c:3098
+Symbol:
+func blk_end_request_all (
+rq * @"struct--request.txt"
+error "int"
+)
+"void"

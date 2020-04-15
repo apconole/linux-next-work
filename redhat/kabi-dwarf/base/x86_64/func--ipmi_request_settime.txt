@@ -1,0 +1,14 @@
+Version: 1.0
+File: drivers/char/ipmi/ipmi_msghandler.c:2175
+Symbol:
+func ipmi_request_settime (
+user @"typedef--ipmi_user_t.txt"
+addr * @"struct--ipmi_addr.txt"
+msgid "long int"
+msg * @"struct--kernel_ipmi_msg.txt"
+user_msg_data * "void"
+priority "int"
+retries "int"
+retry_time_ms "unsigned int"
+)
+"int"

@@ -1,0 +1,12 @@
+Version: 1.0
+File: include/scsi/fc/fc_fcoe.h:84
+Symbol:
+Byte size 24
+struct fcoe_fc_els_lesb {
+0x0 lesb_link_fail @"typedef--__be32.txt"
+0x4 lesb_vlink_fail @"typedef--__be32.txt"
+0x8 lesb_miss_fka @"typedef--__be32.txt"
+0xc lesb_symb_err @"typedef--__be32.txt"
+0x10 lesb_err_block @"typedef--__be32.txt"
+0x14 lesb_fcs_error @"typedef--__be32.txt"
+}

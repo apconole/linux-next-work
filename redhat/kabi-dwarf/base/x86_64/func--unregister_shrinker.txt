@@ -1,0 +1,7 @@
+Version: 1.0
+File: mm/vmscan.c:226
+Symbol:
+func unregister_shrinker (
+shrinker * @"struct--shrinker.txt"
+)
+"void"

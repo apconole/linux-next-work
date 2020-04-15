@@ -1,0 +1,26 @@
+Version: 1.0
+File: include/linux/blk-mq.h:11
+Symbol:
+Byte size 32
+struct blk_mq_cpu_notifier {
+0x0 list @"struct--list_head.txt"
+0x10 data * "void"
+0x18 (NULL) union (NULL) {
+notify * func (NULL) (
+(NULL) * "void"
+(NULL) "long unsigned int"
+(NULL) "unsigned int"
+)
+"int"
+__UNIQUE_ID_rh_kabi_hide44 struct (NULL) {
+0x0 notify * func (NULL) (
+(NULL) * "void"
+(NULL) "long unsigned int"
+(NULL) "unsigned int"
+)
+"void"
+}
+(NULL) union (NULL) {
+}
+}
+}

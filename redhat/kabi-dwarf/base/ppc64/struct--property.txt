@@ -1,0 +1,13 @@
+Version: 1.0
+File: include/linux/of.h:36
+Symbol:
+Byte size 104
+struct property {
+0x0 name * "char"
+0x8 length "int"
+0x10 value * "void"
+0x18 next * @"struct--property.txt"
+0x20 _flags "long unsigned int"
+0x28 unique_id "unsigned int"
+0x30 attr @"struct--bin_attribute.txt"
+}

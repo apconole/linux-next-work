@@ -1,0 +1,8 @@
+Version: 1.0
+File: lib/zlib_inflate/inflate.c:63
+Symbol:
+func zlib_inflateInit2 (
+strm @"typedef--z_streamp.txt"
+windowBits "int"
+)
+"int"

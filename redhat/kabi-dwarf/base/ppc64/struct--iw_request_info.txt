@@ -1,0 +1,8 @@
+Version: 1.0
+File: include/net/iw_handler.h:303
+Symbol:
+Byte size 4
+struct iw_request_info {
+0x0 cmd @"typedef--__u16.txt"
+0x2 flags @"typedef--__u16.txt"
+}

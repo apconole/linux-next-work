@@ -1,0 +1,7 @@
+Version: 1.0
+File: mm/page-writeback.c:2138
+Symbol:
+func __set_page_dirty_nobuffers (
+page * @"struct--page.txt"
+)
+"int"

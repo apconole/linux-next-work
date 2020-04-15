@@ -1,0 +1,6 @@
+Version: 1.0
+File: include/asm-generic/int-ll64.h:24
+Symbol:
+Byte size 8
+typedef s64
+"long long int"

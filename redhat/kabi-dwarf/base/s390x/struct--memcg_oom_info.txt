@@ -1,0 +1,10 @@
+Version: 1.0
+File: include/linux/sched.h:1838
+Symbol:
+Byte size 24
+struct memcg_oom_info {
+0x0 memcg * @"<declarations>/struct--mem_cgroup.txt"
+0x8 gfp_mask @"typedef--gfp_t.txt"
+0xc order "int"
+0x10:0-1 may_oom "unsigned int"
+}

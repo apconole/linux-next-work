@@ -1,0 +1,35 @@
+Version: 1.0
+File: include/scsi/scsi_transport_fc.h:418
+Symbol:
+Byte size 232
+struct fc_host_statistics {
+0x0 seconds_since_last_reset @"typedef--u64.txt"
+0x8 tx_frames @"typedef--u64.txt"
+0x10 tx_words @"typedef--u64.txt"
+0x18 rx_frames @"typedef--u64.txt"
+0x20 rx_words @"typedef--u64.txt"
+0x28 lip_count @"typedef--u64.txt"
+0x30 nos_count @"typedef--u64.txt"
+0x38 error_frames @"typedef--u64.txt"
+0x40 dumped_frames @"typedef--u64.txt"
+0x48 link_failure_count @"typedef--u64.txt"
+0x50 loss_of_sync_count @"typedef--u64.txt"
+0x58 loss_of_signal_count @"typedef--u64.txt"
+0x60 prim_seq_protocol_err_count @"typedef--u64.txt"
+0x68 invalid_tx_word_count @"typedef--u64.txt"
+0x70 invalid_crc_count @"typedef--u64.txt"
+0x78 fcp_input_requests @"typedef--u64.txt"
+0x80 fcp_output_requests @"typedef--u64.txt"
+0x88 fcp_control_requests @"typedef--u64.txt"
+0x90 fcp_input_megabytes @"typedef--u64.txt"
+0x98 fcp_output_megabytes @"typedef--u64.txt"
+0xa0 fcp_packet_alloc_failures @"typedef--u64.txt"
+0xa8 fcp_packet_aborts @"typedef--u64.txt"
+0xb0 fcp_frame_alloc_failures @"typedef--u64.txt"
+0xb8 fc_no_free_exch @"typedef--u64.txt"
+0xc0 fc_no_free_exch_xid @"typedef--u64.txt"
+0xc8 fc_xid_not_found @"typedef--u64.txt"
+0xd0 fc_xid_busy @"typedef--u64.txt"
+0xd8 fc_seq_not_found @"typedef--u64.txt"
+0xe0 fc_non_bls_resp @"typedef--u64.txt"
+}

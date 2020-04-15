@@ -1,0 +1,44 @@
+Version: 1.0
+File: include/net/genetlink.h:46
+Symbol:
+Byte size 152
+struct genl_family {
+0x0 (NULL) union (NULL) {
+id "int"
+__UNIQUE_ID_rh_kabi_hide95 struct (NULL) {
+0x0 id "unsigned int"
+}
+(NULL) union (NULL) {
+}
+}
+0x4 hdrsize "unsigned int"
+0x8 name [16]"char"
+0x18 version "unsigned int"
+0x1c maxattr "unsigned int"
+0x20 netnsok @"typedef--bool.txt"
+0x21 parallel_ops @"typedef--bool.txt"
+0x28 pre_doit * func (NULL) (
+(NULL) * const @"struct--genl_ops.txt"
+(NULL) * @"struct--sk_buff.txt"
+(NULL) * @"struct--genl_info.txt"
+)
+"int"
+0x30 post_doit * func (NULL) (
+(NULL) * const @"struct--genl_ops.txt"
+(NULL) * @"struct--sk_buff.txt"
+(NULL) * @"struct--genl_info.txt"
+)
+"void"
+0x38 attrbuf * * @"struct--nlattr.txt"
+0x40 ops * const @"struct--genl_ops.txt"
+0x48 mcgrps * const @"struct--genl_multicast_group.txt"
+0x50 n_ops "unsigned int"
+0x54 n_mcgrps "unsigned int"
+0x58 mcgrp_offset "unsigned int"
+0x60 rh_reserved_family_list @"struct--list_head.txt"
+0x70 module * @"struct--module.txt"
+0x78 rh_reserved1 "long unsigned int"
+0x80 rh_reserved2 "long unsigned int"
+0x88 rh_reserved3 "long unsigned int"
+0x90 rh_reserved4 "long unsigned int"
+}

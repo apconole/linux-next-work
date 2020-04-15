@@ -1,0 +1,25 @@
+Version: 1.0
+File: fs/proc/internal.h:38
+Symbol:
+Byte size 136
+struct proc_dir_entry {
+0x0 low_ino "unsigned int"
+0x4 mode @"typedef--umode_t.txt"
+0x8 nlink @"typedef--nlink_t.txt"
+0xc uid @"typedef--kuid_t.txt"
+0x10 gid @"typedef--kgid_t.txt"
+0x18 size @"typedef--loff_t.txt"
+0x20 proc_iops * const @"struct--inode_operations.txt"
+0x28 proc_fops * const @"struct--file_operations.txt"
+0x30 parent * @"struct--proc_dir_entry.txt"
+0x38 subdir @"struct--rb_root.txt"
+0x40 subdir_node @"struct--rb_node.txt"
+0x58 data * "void"
+0x60 count @"typedef--atomic_t.txt"
+0x64 in_use @"typedef--atomic_t.txt"
+0x68 pde_unload_completion * @"struct--completion.txt"
+0x70 pde_openers @"struct--list_head.txt"
+0x80 pde_unload_lock @"typedef--spinlock_t.txt"
+0x84 namelen @"typedef--u8.txt"
+0x85 name [0]"char"
+}

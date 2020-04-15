@@ -1,0 +1,9 @@
+Version: 1.0
+File: include/linux/blkdev.h:287
+Symbol:
+Byte size 4
+enum blk_eh_timer_return {
+BLK_EH_NOT_HANDLED = 0x0
+BLK_EH_HANDLED = 0x1
+BLK_EH_RESET_TIMER = 0x2
+}

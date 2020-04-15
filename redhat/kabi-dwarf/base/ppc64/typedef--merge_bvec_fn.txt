@@ -1,0 +1,11 @@
+Version: 1.0
+File: include/linux/blkdev.h:278
+Symbol:
+Byte size 4
+typedef merge_bvec_fn
+func (NULL) (
+(NULL) * @"struct--request_queue.txt"
+(NULL) * @"struct--bvec_merge_data.txt"
+(NULL) * @"struct--bio_vec.txt"
+)
+"int"

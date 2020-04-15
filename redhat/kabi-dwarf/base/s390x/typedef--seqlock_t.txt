@@ -1,0 +1,9 @@
+Version: 1.0
+File: include/linux/seqlock.h:405
+Symbol:
+Byte size 8
+typedef seqlock_t
+struct (NULL) {
+0x0 seqcount @"struct--seqcount.txt"
+0x4 lock @"typedef--spinlock_t.txt"
+}

@@ -1,0 +1,7 @@
+Version: 1.0
+File: drivers/base/driver.c:146
+Symbol:
+func driver_register (
+drv * @"struct--device_driver.txt"
+)
+"int"

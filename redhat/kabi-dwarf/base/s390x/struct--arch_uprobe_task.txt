@@ -1,0 +1,5 @@
+Version: 1.0
+File: arch/s390/include/asm/uprobes.h:30
+Symbol:
+struct arch_uprobe_task {
+}

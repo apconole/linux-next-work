@@ -1,0 +1,14 @@
+Version: 1.0
+File: include/net/inet_frag.h:6
+Symbol:
+Byte size 256
+struct netns_frags {
+0x0 nqueues "int"
+0x8 lru_list @"struct--list_head.txt"
+0x18 lru_lock @"typedef--spinlock_t.txt"
+0x80 rh_reserved_mem @"struct--percpu_counter.txt"
+0xa8 timeout "int"
+0xac high_thresh "int"
+0xb0 low_thresh "int"
+0xb4 mem @"typedef--atomic_t.txt"
+}

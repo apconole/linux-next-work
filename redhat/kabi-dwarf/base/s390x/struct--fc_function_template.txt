@@ -1,0 +1,151 @@
+Version: 1.0
+File: include/scsi/scsi_transport_fc.h:676
+Symbol:
+Byte size 224
+struct fc_function_template {
+0x0 get_rport_dev_loss_tmo * func (NULL) (
+(NULL) * @"struct--fc_rport.txt"
+)
+"void"
+0x8 set_rport_dev_loss_tmo * func (NULL) (
+(NULL) * @"struct--fc_rport.txt"
+(NULL) @"typedef--u32.txt"
+)
+"void"
+0x10 get_starget_node_name * func (NULL) (
+(NULL) * @"struct--scsi_target.txt"
+)
+"void"
+0x18 get_starget_port_name * func (NULL) (
+(NULL) * @"struct--scsi_target.txt"
+)
+"void"
+0x20 get_starget_port_id * func (NULL) (
+(NULL) * @"struct--scsi_target.txt"
+)
+"void"
+0x28 get_host_port_id * func (NULL) (
+(NULL) * @"struct--Scsi_Host.txt"
+)
+"void"
+0x30 get_host_port_type * func (NULL) (
+(NULL) * @"struct--Scsi_Host.txt"
+)
+"void"
+0x38 get_host_port_state * func (NULL) (
+(NULL) * @"struct--Scsi_Host.txt"
+)
+"void"
+0x40 get_host_active_fc4s * func (NULL) (
+(NULL) * @"struct--Scsi_Host.txt"
+)
+"void"
+0x48 get_host_speed * func (NULL) (
+(NULL) * @"struct--Scsi_Host.txt"
+)
+"void"
+0x50 get_host_fabric_name * func (NULL) (
+(NULL) * @"struct--Scsi_Host.txt"
+)
+"void"
+0x58 get_host_symbolic_name * func (NULL) (
+(NULL) * @"struct--Scsi_Host.txt"
+)
+"void"
+0x60 set_host_system_hostname * func (NULL) (
+(NULL) * @"struct--Scsi_Host.txt"
+)
+"void"
+0x68 get_fc_host_stats * func (NULL) (
+(NULL) * @"struct--Scsi_Host.txt"
+)
+* @"struct--fc_host_statistics.txt"
+0x70 reset_fc_host_stats * func (NULL) (
+(NULL) * @"struct--Scsi_Host.txt"
+)
+"void"
+0x78 issue_fc_host_lip * func (NULL) (
+(NULL) * @"struct--Scsi_Host.txt"
+)
+"int"
+0x80 dev_loss_tmo_callbk * func (NULL) (
+(NULL) * @"struct--fc_rport.txt"
+)
+"void"
+0x88 terminate_rport_io * func (NULL) (
+(NULL) * @"struct--fc_rport.txt"
+)
+"void"
+0x90 set_vport_symbolic_name * func (NULL) (
+(NULL) * @"struct--fc_vport.txt"
+)
+"void"
+0x98 vport_create * func (NULL) (
+(NULL) * @"struct--fc_vport.txt"
+(NULL) @"typedef--bool.txt"
+)
+"int"
+0xa0 vport_disable * func (NULL) (
+(NULL) * @"struct--fc_vport.txt"
+(NULL) @"typedef--bool.txt"
+)
+"int"
+0xa8 vport_delete * func (NULL) (
+(NULL) * @"struct--fc_vport.txt"
+)
+"int"
+0xb0 tsk_mgmt_response * func (NULL) (
+(NULL) * @"struct--Scsi_Host.txt"
+(NULL) @"typedef--u64.txt"
+(NULL) @"typedef--u64.txt"
+(NULL) "int"
+)
+"int"
+0xb8 it_nexus_response * func (NULL) (
+(NULL) * @"struct--Scsi_Host.txt"
+(NULL) @"typedef--u64.txt"
+(NULL) "int"
+)
+"int"
+0xc0 bsg_request * func (NULL) (
+(NULL) * @"struct--fc_bsg_job.txt"
+)
+"int"
+0xc8 bsg_timeout * func (NULL) (
+(NULL) * @"struct--fc_bsg_job.txt"
+)
+"int"
+0xd0 dd_fcrport_size @"typedef--u32.txt"
+0xd4 dd_fcvport_size @"typedef--u32.txt"
+0xd8 dd_bsg_size @"typedef--u32.txt"
+0xdc:0-1 show_rport_maxframe_size "long unsigned int"
+0xdc:1-2 show_rport_supported_classes "long unsigned int"
+0xdc:2-3 show_rport_dev_loss_tmo "long unsigned int"
+0xdc:3-4 show_starget_node_name "long unsigned int"
+0xdc:4-5 show_starget_port_name "long unsigned int"
+0xdc:5-6 show_starget_port_id "long unsigned int"
+0xdc:6-7 show_host_node_name "long unsigned int"
+0xdc:7-8 show_host_port_name "long unsigned int"
+0xdd:0-1 show_host_permanent_port_name "long unsigned int"
+0xdd:1-2 show_host_supported_classes "long unsigned int"
+0xdd:2-3 show_host_supported_fc4s "long unsigned int"
+0xdd:3-4 show_host_supported_speeds "long unsigned int"
+0xdd:4-5 show_host_maxframe_size "long unsigned int"
+0xdd:5-6 show_host_serial_number "long unsigned int"
+0xdd:6-7 show_host_manufacturer "long unsigned int"
+0xdd:7-8 show_host_model "long unsigned int"
+0xde:0-1 show_host_model_description "long unsigned int"
+0xde:1-2 show_host_hardware_version "long unsigned int"
+0xde:2-3 show_host_driver_version "long unsigned int"
+0xde:3-4 show_host_firmware_version "long unsigned int"
+0xde:4-5 show_host_optionrom_version "long unsigned int"
+0xde:5-6 show_host_port_id "long unsigned int"
+0xde:6-7 show_host_port_type "long unsigned int"
+0xde:7-8 show_host_port_state "long unsigned int"
+0xdf:0-1 show_host_active_fc4s "long unsigned int"
+0xdf:1-2 show_host_speed "long unsigned int"
+0xdf:2-3 show_host_fabric_name "long unsigned int"
+0xdf:3-4 show_host_symbolic_name "long unsigned int"
+0xdf:4-5 show_host_system_hostname "long unsigned int"
+0xdf:5-6 disable_target_scan "long unsigned int"
+}

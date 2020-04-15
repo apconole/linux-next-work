@@ -1,0 +1,18 @@
+Version: 1.0
+File: include/linux/netdevice.h:2057
+Symbol:
+Byte size 200
+struct net_device_extended {
+0x0 ndisc_ops * const @"struct--ndisc_ops.txt"
+0x8 min_mtu "unsigned int"
+0xc max_mtu "unsigned int"
+0x10 ptype_all @"struct--list_head.txt"
+0x20 ptype_specific @"struct--list_head.txt"
+0x30 needs_free_netdev @"typedef--bool.txt"
+0x38 priv_destructor * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+)
+"void"
+0x40 miniq_egress * @"struct--mini_Qdisc.txt"
+0x48 qdisc_hash [16]@"struct--hlist_head.txt"
+}

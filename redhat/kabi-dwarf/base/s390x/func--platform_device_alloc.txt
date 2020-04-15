@@ -1,0 +1,8 @@
+Version: 1.0
+File: drivers/base/platform.c:201
+Symbol:
+func platform_device_alloc (
+name * const "char"
+id "int"
+)
+* @"struct--platform_device.txt"

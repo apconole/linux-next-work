@@ -1,0 +1,9 @@
+Version: 1.0
+File: lib/string.c:836
+Symbol:
+func memmove (
+dest * "void"
+src * const "void"
+count @"typedef--size_t.txt"
+)
+* "void"

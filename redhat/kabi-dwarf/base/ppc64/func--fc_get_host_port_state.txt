@@ -1,0 +1,7 @@
+Version: 1.0
+File: drivers/scsi/libfc/fc_lport.c:267
+Symbol:
+func fc_get_host_port_state (
+shost * @"struct--Scsi_Host.txt"
+)
+"void"

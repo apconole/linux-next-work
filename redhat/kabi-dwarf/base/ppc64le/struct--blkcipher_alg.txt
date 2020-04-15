@@ -1,0 +1,30 @@
+Version: 1.0
+File: include/linux/crypto.h:255
+Symbol:
+Byte size 48
+struct blkcipher_alg {
+0x0 setkey * func (NULL) (
+(NULL) * @"struct--crypto_tfm.txt"
+(NULL) * const @"typedef--u8.txt"
+(NULL) "unsigned int"
+)
+"int"
+0x8 encrypt * func (NULL) (
+(NULL) * @"struct--blkcipher_desc.txt"
+(NULL) * @"struct--scatterlist.txt"
+(NULL) * @"struct--scatterlist.txt"
+(NULL) "unsigned int"
+)
+"int"
+0x10 decrypt * func (NULL) (
+(NULL) * @"struct--blkcipher_desc.txt"
+(NULL) * @"struct--scatterlist.txt"
+(NULL) * @"struct--scatterlist.txt"
+(NULL) "unsigned int"
+)
+"int"
+0x18 geniv * const "char"
+0x20 min_keysize "unsigned int"
+0x24 max_keysize "unsigned int"
+0x28 ivsize "unsigned int"
+}

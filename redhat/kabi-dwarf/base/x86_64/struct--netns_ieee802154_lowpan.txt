@@ -1,0 +1,8 @@
+Version: 1.0
+File: include/net/netns/ieee802154_6lowpan.h:16
+Symbol:
+Byte size 192
+struct netns_ieee802154_lowpan {
+0x0 sysctl @"struct--netns_sysctl_lowpan.txt"
+0x40 frags @"struct--netns_frags.txt"
+}

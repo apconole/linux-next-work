@@ -1,0 +1,11 @@
+Version: 1.0
+File: include/linux/hrtimer.h:33
+Symbol:
+Byte size 4
+enum hrtimer_mode {
+HRTIMER_MODE_ABS = 0x0
+HRTIMER_MODE_REL = 0x1
+HRTIMER_MODE_PINNED = 0x2
+HRTIMER_MODE_ABS_PINNED = 0x2
+HRTIMER_MODE_REL_PINNED = 0x3
+}

@@ -1,0 +1,13 @@
+Version: 1.0
+File: include/linux/memremap.h:81
+Symbol:
+Byte size 8
+typedef dev_page_fault_t
+* func (NULL) (
+(NULL) * @"struct--vm_area_struct.txt"
+(NULL) "long unsigned int"
+(NULL) * @"struct--page.txt"
+(NULL) "unsigned int"
+(NULL) * @"typedef--pmd_t.txt"
+)
+"int"

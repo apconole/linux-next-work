@@ -1,0 +1,33 @@
+Version: 1.0
+File: include/linux/kernfs.h:152
+Symbol:
+Byte size 40
+struct kernfs_syscall_ops {
+0x0 remount_fs * func (NULL) (
+(NULL) * @"struct--kernfs_root.txt"
+(NULL) * "int"
+(NULL) * "char"
+)
+"int"
+0x8 show_options * func (NULL) (
+(NULL) * @"struct--seq_file.txt"
+(NULL) * @"struct--kernfs_root.txt"
+)
+"int"
+0x10 mkdir * func (NULL) (
+(NULL) * @"struct--kernfs_node.txt"
+(NULL) * const "char"
+(NULL) @"typedef--umode_t.txt"
+)
+"int"
+0x18 rmdir * func (NULL) (
+(NULL) * @"struct--kernfs_node.txt"
+)
+"int"
+0x20 rename * func (NULL) (
+(NULL) * @"struct--kernfs_node.txt"
+(NULL) * @"struct--kernfs_node.txt"
+(NULL) * const "char"
+)
+"int"
+}

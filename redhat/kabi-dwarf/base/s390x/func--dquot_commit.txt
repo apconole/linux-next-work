@@ -1,0 +1,7 @@
+Version: 1.0
+File: fs/quota/dquot.c:441
+Symbol:
+func dquot_commit (
+dquot * @"struct--dquot.txt"
+)
+"int"

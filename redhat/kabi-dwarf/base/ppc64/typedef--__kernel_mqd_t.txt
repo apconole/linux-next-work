@@ -1,0 +1,6 @@
+Version: 1.0
+File: include/uapi/linux/posix_types.h:33
+Symbol:
+Byte size 4
+typedef __kernel_mqd_t
+"int"

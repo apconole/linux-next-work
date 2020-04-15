@@ -1,0 +1,30 @@
+Version: 1.0
+File: include/net/ip6_fib.h:101
+Symbol:
+Byte size 512
+struct rt6_info {
+0x0 dst @"struct--dst_entry.txt"
+0xa8 rt6i_table * @"struct--fib6_table.txt"
+0xb0 rt6i_node * @"struct--fib6_node.txt"
+0xb8 rt6i_gateway @"struct--in6_addr.txt"
+0xc8 rt6i_siblings @"struct--list_head.txt"
+0xd8 rt6i_nsiblings "unsigned int"
+0xdc rt6i_ref @"typedef--atomic_t.txt"
+0xe0 rt6i_nh_flags "unsigned int"
+0x100 rt6i_dst @"struct--rt6key.txt"
+0x114 rt6i_flags @"typedef--u32.txt"
+0x118 rt6i_src @"struct--rt6key.txt"
+0x12c rt6i_prefsrc @"struct--rt6key.txt"
+0x140 rt6i_metric @"typedef--u32.txt"
+0x148 rt6i_idev * @"struct--inet6_dev.txt"
+0x150 rh_reserved__rt6i_peer "long unsigned int"
+0x158 rh_reserved_rt6i_genid @"typedef--u32.txt"
+0x15c rt6i_nfheader_len "short unsigned int"
+0x15e rt6i_protocol @"typedef--u8.txt"
+0x160 rt6i_pmtu @"typedef--u32.txt"
+0x168 rt6i_uncached @"struct--list_head.txt"
+0x178 rt6i_uncached_list * @"struct--uncached_list.txt"
+0x180 rt6i_pcpu * * @"struct--rt6_info.txt"
+0x188 last_probe "long unsigned int"
+0x190 rh_reserved [3]@"typedef--u64.txt"
+}

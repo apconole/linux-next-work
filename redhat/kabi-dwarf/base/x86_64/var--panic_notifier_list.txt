@@ -1,0 +1,4 @@
+Version: 1.0
+File: kernel/panic.c:42
+Symbol:
+var panic_notifier_list @"struct--atomic_notifier_head.txt"

@@ -1,0 +1,10 @@
+Version: 1.0
+File: include/linux/netdevice.h:255
+Symbol:
+Byte size 48
+struct hh_cache {
+0x0 hh_len @"typedef--u16.txt"
+0x2 __pad @"typedef--u16.txt"
+0x4 hh_lock @"typedef--seqlock_t.txt"
+0x10 hh_data [4]"long unsigned int"
+}

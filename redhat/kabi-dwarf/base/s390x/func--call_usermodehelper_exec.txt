@@ -1,0 +1,8 @@
+Version: 1.0
+File: kernel/kmod.c:561
+Symbol:
+func call_usermodehelper_exec (
+sub_info * @"struct--subprocess_info.txt"
+wait "int"
+)
+"int"

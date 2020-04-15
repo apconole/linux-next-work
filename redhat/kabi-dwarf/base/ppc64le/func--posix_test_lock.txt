@@ -1,0 +1,8 @@
+Version: 1.0
+File: fs/locks.c:743
+Symbol:
+func posix_test_lock (
+filp * @"struct--file.txt"
+fl * @"struct--file_lock.txt"
+)
+"void"

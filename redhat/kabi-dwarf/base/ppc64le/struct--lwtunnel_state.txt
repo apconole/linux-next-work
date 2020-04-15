@@ -1,0 +1,20 @@
+Version: 1.0
+File: include/net/lwtunnel.h:17
+Symbol:
+Byte size 32
+struct lwtunnel_state {
+0x0 type @"typedef--__u16.txt"
+0x2 flags @"typedef--__u16.txt"
+0x4 refcnt @"typedef--atomic_t.txt"
+0x8 orig_output * func (NULL) (
+(NULL) * @"struct--sock.txt"
+(NULL) * @"struct--sk_buff.txt"
+)
+"int"
+0x10 orig_input * func (NULL) (
+(NULL) * @"struct--sk_buff.txt"
+)
+"int"
+0x18 len "int"
+0x1c data [0]@"typedef--__u8.txt"
+}

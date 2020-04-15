@@ -1,0 +1,8 @@
+Version: 1.0
+File: block/partition-generic.c:46
+Symbol:
+func bdevname (
+bdev * @"struct--block_device.txt"
+buf * "char"
+)
+* const "char"

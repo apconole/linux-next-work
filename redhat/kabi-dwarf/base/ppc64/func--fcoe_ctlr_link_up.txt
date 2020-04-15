@@ -1,0 +1,7 @@
+Version: 1.0
+File: drivers/scsi/fcoe/fcoe_ctlr.c:447
+Symbol:
+func fcoe_ctlr_link_up (
+fip * @"struct--fcoe_ctlr.txt"
+)
+"void"

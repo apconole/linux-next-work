@@ -1,0 +1,16 @@
+Version: 1.0
+File: include/net/bluetooth/hci_sock.h:95
+Symbol:
+Byte size 40
+struct hci_dev_stats {
+0x0 err_rx @"typedef--__u32.txt"
+0x4 err_tx @"typedef--__u32.txt"
+0x8 cmd_tx @"typedef--__u32.txt"
+0xc evt_rx @"typedef--__u32.txt"
+0x10 acl_tx @"typedef--__u32.txt"
+0x14 acl_rx @"typedef--__u32.txt"
+0x18 sco_tx @"typedef--__u32.txt"
+0x1c sco_rx @"typedef--__u32.txt"
+0x20 byte_rx @"typedef--__u32.txt"
+0x24 byte_tx @"typedef--__u32.txt"
+}

@@ -1,0 +1,10 @@
+Version: 1.0
+File: arch/powerpc/include/asm/iommu.h:90
+Symbol:
+Byte size 128
+struct iommu_pool {
+0x0 start "long unsigned int"
+0x8 end "long unsigned int"
+0x10 hint "long unsigned int"
+0x18 lock @"typedef--spinlock_t.txt"
+}

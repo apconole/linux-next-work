@@ -1,0 +1,29 @@
+Version: 1.0
+File: arch/powerpc/include/asm/pci-bridge.h:187
+Symbol:
+Byte size 160
+struct pci_dn {
+0x0 flags "int"
+0x4 busno "int"
+0x8 devfn "int"
+0xc vendor_id "int"
+0x10 device_id "int"
+0x14 class_code "int"
+0x18 parent * @"struct--pci_dn.txt"
+0x20 phb * @"struct--pci_controller.txt"
+0x28 table_group * @"struct--iommu_table_group.txt"
+0x30 node * @"struct--device_node.txt"
+0x38 pci_ext_config_space "int"
+0x40 pcidev * @"struct--pci_dev.txt"
+0x48 edev * @"struct--eeh_dev.txt"
+0x50 pe_number "int"
+0x54 vf_index "int"
+0x58 vfs_expanded @"typedef--u16.txt"
+0x5a num_vfs @"typedef--u16.txt"
+0x60 pe_num_map * "int"
+0x68 m64_single_mode @"typedef--bool.txt"
+0x70 m64_map * [6]"int"
+0x78 mps "int"
+0x80 child_list @"struct--list_head.txt"
+0x90 list @"struct--list_head.txt"
+}

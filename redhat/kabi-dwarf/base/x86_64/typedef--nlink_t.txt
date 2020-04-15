@@ -1,0 +1,5 @@
+Version: 1.0
+File: include/linux/types.h:19
+Symbol:
+typedef nlink_t
+@"typedef--__u32.txt"

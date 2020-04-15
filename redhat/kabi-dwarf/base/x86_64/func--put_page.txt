@@ -1,0 +1,7 @@
+Version: 1.0
+File: mm/swap.c:266
+Symbol:
+func put_page (
+page * @"struct--page.txt"
+)
+"void"

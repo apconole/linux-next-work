@@ -1,0 +1,15 @@
+Version: 1.0
+File: arch/x86/include/asm/paravirt_types.h:91
+Symbol:
+Byte size 24
+struct pv_lazy_ops {
+0x0 enter * func (NULL) (
+)
+"void"
+0x8 leave * func (NULL) (
+)
+"void"
+0x10 flush * func (NULL) (
+)
+"void"
+}

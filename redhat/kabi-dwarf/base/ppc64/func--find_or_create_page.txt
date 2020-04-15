@@ -1,0 +1,9 @@
+Version: 1.0
+File: mm/filemap.c:1121
+Symbol:
+func find_or_create_page (
+mapping * @"struct--address_space.txt"
+index "long unsigned int"
+gfp_mask @"typedef--gfp_t.txt"
+)
+* @"struct--page.txt"

@@ -1,0 +1,17 @@
+Version: 1.0
+File: include/linux/ioc4.h:50
+Symbol:
+Byte size 4
+union ioc4_sio_int {
+raw @"typedef--uint32_t.txt"
+fields [4]struct (NULL) {
+0x0:0-1 tx_mt @"typedef--uint8_t.txt"
+0x0:1-2 rx_full @"typedef--uint8_t.txt"
+0x0:2-3 rx_high @"typedef--uint8_t.txt"
+0x0:3-4 rx_timer @"typedef--uint8_t.txt"
+0x0:4-5 delta_dcd @"typedef--uint8_t.txt"
+0x0:5-6 delta_cts @"typedef--uint8_t.txt"
+0x0:6-7 intr_pass @"typedef--uint8_t.txt"
+0x0:7-8 tx_explicit @"typedef--uint8_t.txt"
+}
+}

@@ -1,0 +1,9 @@
+Version: 1.0
+File: net/socket.c:3480
+Symbol:
+func kernel_sock_ioctl (
+sock * @"struct--socket.txt"
+cmd "int"
+arg "long unsigned int"
+)
+"int"

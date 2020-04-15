@@ -1,0 +1,18 @@
+Version: 1.0
+File: include/net/flow.h:253
+Symbol:
+Byte size 24
+struct flow_cache_ops {
+0x0 get * func (NULL) (
+(NULL) * @"struct--flow_cache_object.txt"
+)
+* @"struct--flow_cache_object.txt"
+0x8 check * func (NULL) (
+(NULL) * @"struct--flow_cache_object.txt"
+)
+"int"
+0x10 delete * func (NULL) (
+(NULL) * @"struct--flow_cache_object.txt"
+)
+"void"
+}

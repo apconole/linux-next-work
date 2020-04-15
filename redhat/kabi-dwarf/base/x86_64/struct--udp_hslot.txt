@@ -1,0 +1,16 @@
+Version: 1.0
+File: include/net/udp.h:61
+Symbol:
+Byte size 16
+struct udp_hslot {
+0x0 (NULL) union (NULL) {
+head @"struct--hlist_head.txt"
+__UNIQUE_ID_rh_kabi_hide102 struct (NULL) {
+0x0 head @"struct--hlist_nulls_head.txt"
+}
+(NULL) union (NULL) {
+}
+}
+0x8 count "int"
+0xc lock @"typedef--spinlock_t.txt"
+}

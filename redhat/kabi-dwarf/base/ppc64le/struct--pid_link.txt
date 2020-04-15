@@ -1,0 +1,8 @@
+Version: 1.0
+File: include/linux/pid.h:69
+Symbol:
+Byte size 24
+struct pid_link {
+0x0 node @"struct--hlist_node.txt"
+0x10 pid * @"struct--pid.txt"
+}

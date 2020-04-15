@@ -1,0 +1,10 @@
+Version: 1.0
+File: include/scsi/scsi_device.h:293
+Symbol:
+Byte size 24
+struct scsi_dh_data {
+0x0 scsi_dh * @"struct--scsi_device_handler.txt"
+0x8 sdev * @"struct--scsi_device.txt"
+0x10 kref @"struct--kref.txt"
+0x14 rh_reserved_buf [0]"char"
+}

@@ -1,0 +1,13 @@
+Version: 1.0
+File: include/linux/cgroup.h:423
+Symbol:
+Byte size 16
+struct cgroup_map_cb {
+0x0 fill * func (NULL) (
+(NULL) * @"struct--cgroup_map_cb.txt"
+(NULL) * const "char"
+(NULL) @"typedef--u64.txt"
+)
+"int"
+0x8 state * "void"
+}

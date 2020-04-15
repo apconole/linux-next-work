@@ -1,0 +1,7 @@
+Version: 1.0
+File: net/core/skbuff.c:2547
+Symbol:
+func skb_queue_purge (
+list * @"struct--sk_buff_head.txt"
+)
+"void"

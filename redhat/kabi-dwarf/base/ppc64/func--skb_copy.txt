@@ -1,0 +1,8 @@
+Version: 1.0
+File: net/core/skbuff.c:1150
+Symbol:
+func skb_copy (
+skb * const @"struct--sk_buff.txt"
+gfp_mask @"typedef--gfp_t.txt"
+)
+* @"struct--sk_buff.txt"

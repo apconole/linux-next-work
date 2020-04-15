@@ -1,0 +1,21 @@
+Version: 1.0
+File: kernel/sched/sched.h:505
+Symbol:
+Byte size 104
+struct dl_rq {
+0x0 rb_root @"struct--rb_root.txt"
+0x8 rb_leftmost * @"struct--rb_node.txt"
+0x10 dl_nr_running "long unsigned int"
+0x18 earliest_dl struct (NULL) {
+0x0 curr @"typedef--u64.txt"
+0x8 next @"typedef--u64.txt"
+}
+0x28 dl_nr_migratory "long unsigned int"
+0x30 overloaded "int"
+0x38 pushable_dl_tasks_root @"struct--rb_root.txt"
+0x40 pushable_dl_tasks_leftmost * @"struct--rb_node.txt"
+0x48 running_bw @"typedef--u64.txt"
+0x50 this_bw @"typedef--u64.txt"
+0x58 extra_bw @"typedef--u64.txt"
+0x60 bw_ratio @"typedef--u64.txt"
+}

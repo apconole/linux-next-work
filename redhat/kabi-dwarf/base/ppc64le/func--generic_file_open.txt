@@ -1,0 +1,8 @@
+Version: 1.0
+File: fs/open.c:1122
+Symbol:
+func generic_file_open (
+inode * @"struct--inode.txt"
+filp * @"struct--file.txt"
+)
+"int"

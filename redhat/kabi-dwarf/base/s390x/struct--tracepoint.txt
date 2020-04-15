@@ -1,0 +1,15 @@
+Version: 1.0
+File: include/linux/tracepoint.h:30
+Symbol:
+Byte size 56
+struct tracepoint {
+0x0 name * const "char"
+0x8 key @"struct--static_key.txt"
+0x20 regfunc * func (NULL) (
+)
+"void"
+0x28 unregfunc * func (NULL) (
+)
+"void"
+0x30 funcs * @"struct--tracepoint_func.txt"
+}

@@ -1,0 +1,10 @@
+Version: 1.0
+File: kernel/sched/sched.h:141
+Symbol:
+Byte size 120
+struct rt_bandwidth {
+0x0 rt_runtime_lock @"typedef--raw_spinlock_t.txt"
+0x8 rt_period @"typedef--ktime_t.txt"
+0x10 rt_runtime @"typedef--u64.txt"
+0x18 rt_period_timer @"struct--hrtimer.txt"
+}

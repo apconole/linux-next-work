@@ -1,0 +1,8 @@
+Version: 1.0
+File: fs/proc/proc_sysctl.c:1569
+Symbol:
+func register_sysctl_paths (
+path * const @"struct--ctl_path.txt"
+table * @"struct--ctl_table.txt"
+)
+* @"struct--ctl_table_header.txt"

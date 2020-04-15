@@ -1,0 +1,21 @@
+Version: 1.0
+File: arch/x86/include/asm/hardirq.h:36
+Symbol:
+Byte size 64
+typedef irq_cpustat_t
+struct (NULL) {
+0x0 __softirq_pending "unsigned int"
+0x4 __nmi_count "unsigned int"
+0x8 apic_timer_irqs "unsigned int"
+0xc irq_spurious_count "unsigned int"
+0x10 icr_read_retry_count "unsigned int"
+0x14 kvm_posted_intr_ipis "unsigned int"
+0x18 x86_platform_ipis "unsigned int"
+0x1c apic_perf_irqs "unsigned int"
+0x20 apic_irq_work_irqs "unsigned int"
+0x24 irq_resched_count "unsigned int"
+0x28 irq_call_count "unsigned int"
+0x2c irq_tlb_count "unsigned int"
+0x30 irq_thermal_count "unsigned int"
+0x34 irq_threshold_count "unsigned int"
+}

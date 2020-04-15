@@ -1,0 +1,10 @@
+Version: 1.0
+File: include/linux/elevator.h:48
+Symbol:
+Byte size 4
+typedef elevator_init_fn
+func (NULL) (
+(NULL) * @"struct--request_queue.txt"
+(NULL) * @"struct--elevator_type.txt"
+)
+"int"

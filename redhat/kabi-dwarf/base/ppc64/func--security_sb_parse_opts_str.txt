@@ -1,0 +1,8 @@
+Version: 1.0
+File: security/security.c:342
+Symbol:
+func security_sb_parse_opts_str (
+options * "char"
+opts * @"struct--security_mnt_opts.txt"
+)
+"int"

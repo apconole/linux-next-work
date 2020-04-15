@@ -1,0 +1,7 @@
+Version: 1.0
+File: fs/bio.c:2142
+Symbol:
+func bioset_free (
+bs * @"struct--bio_set.txt"
+)
+"void"

@@ -1,0 +1,14 @@
+Version: 1.0
+File: net/ipv4/arp.c:350
+Symbol:
+func arp_send (
+type "int"
+ptype "int"
+dest_ip @"typedef--__be32.txt"
+dev * @"struct--net_device.txt"
+src_ip @"typedef--__be32.txt"
+dest_hw * const "unsigned char"
+src_hw * const "unsigned char"
+target_hw * const "unsigned char"
+)
+"void"

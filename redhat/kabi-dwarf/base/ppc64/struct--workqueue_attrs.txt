@@ -1,0 +1,9 @@
+Version: 1.0
+File: include/linux/workqueue.h:139
+Symbol:
+Byte size 272
+struct workqueue_attrs {
+0x0 nice "int"
+0x8 cpumask @"typedef--cpumask_var_t.txt"
+0x108 no_numa @"typedef--bool.txt"
+}

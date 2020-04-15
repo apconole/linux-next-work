@@ -1,0 +1,9 @@
+Version: 1.0
+File: fs/buffer.c:2917
+Symbol:
+func block_write_full_page (
+page * @"struct--page.txt"
+get_block * @"typedef--get_block_t.txt"
+wbc * @"struct--writeback_control.txt"
+)
+"int"

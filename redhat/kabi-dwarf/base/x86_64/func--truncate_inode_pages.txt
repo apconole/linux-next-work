@@ -1,0 +1,8 @@
+Version: 1.0
+File: mm/truncate.c:487
+Symbol:
+func truncate_inode_pages (
+mapping * @"struct--address_space.txt"
+lstart @"typedef--loff_t.txt"
+)
+"void"

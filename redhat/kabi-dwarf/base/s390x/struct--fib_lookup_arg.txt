@@ -1,0 +1,10 @@
+Version: 1.0
+File: include/net/fib_rules.h:37
+Symbol:
+Byte size 32
+struct fib_lookup_arg {
+0x0 lookup_ptr * "void"
+0x8 result * "void"
+0x10 rule * @"struct--fib_rule.txt"
+0x18 flags "int"
+}

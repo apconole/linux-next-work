@@ -1,0 +1,9 @@
+Version: 1.0
+File: include/linux/blkdev.h:267
+Symbol:
+typedef make_request_fn
+func (NULL) (
+(NULL) * @"struct--request_queue.txt"
+(NULL) * @"struct--bio.txt"
+)
+"void"

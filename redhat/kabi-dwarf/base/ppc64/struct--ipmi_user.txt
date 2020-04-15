@@ -1,0 +1,13 @@
+Version: 1.0
+File: drivers/char/ipmi/ipmi_msghandler.c:201
+Symbol:
+Byte size 56
+struct ipmi_user {
+0x0 link @"struct--list_head.txt"
+0x10 valid "int"
+0x14 refcount @"struct--kref.txt"
+0x18 handler * const @"struct--ipmi_user_hndl.txt"
+0x20 handler_data * "void"
+0x28 intf @"typedef--ipmi_smi_t.txt"
+0x30 gets_events "int"
+}

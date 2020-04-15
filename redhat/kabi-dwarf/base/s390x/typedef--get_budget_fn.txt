@@ -1,0 +1,8 @@
+Version: 1.0
+File: include/linux/blk-mq.h:147
+Symbol:
+typedef get_budget_fn
+func (NULL) (
+(NULL) * @"struct--blk_mq_hw_ctx.txt"
+)
+@"typedef--bool.txt"

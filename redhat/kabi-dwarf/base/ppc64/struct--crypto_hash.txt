@@ -1,0 +1,7 @@
+Version: 1.0
+File: include/linux/crypto.h:478
+Symbol:
+Byte size 88
+struct crypto_hash {
+0x0 base @"struct--crypto_tfm.txt"
+}

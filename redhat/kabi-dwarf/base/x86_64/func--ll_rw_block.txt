@@ -1,0 +1,9 @@
+Version: 1.0
+File: fs/buffer.c:3125
+Symbol:
+func ll_rw_block (
+rw "int"
+nr "int"
+bhs * * @"struct--buffer_head.txt"
+)
+"void"

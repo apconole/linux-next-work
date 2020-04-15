@@ -1,0 +1,17 @@
+Version: 1.0
+File: include/linux/iocontext.h:97
+Symbol:
+Byte size 104
+struct io_context {
+0x0 refcount @"typedef--atomic_long_t.txt"
+0x8 active_ref @"typedef--atomic_t.txt"
+0xc nr_tasks @"typedef--atomic_t.txt"
+0x10 lock @"typedef--spinlock_t.txt"
+0x14 ioprio "short unsigned int"
+0x18 nr_batch_requests "int"
+0x20 last_waited "long unsigned int"
+0x28 icq_tree @"struct--radix_tree_root.txt"
+0x38 icq_hint * @"struct--io_cq.txt"
+0x40 icq_list @"struct--hlist_head.txt"
+0x48 release_work @"struct--work_struct.txt"
+}

@@ -1,0 +1,8 @@
+Version: 1.0
+File: mm/bounce.c:256
+Symbol:
+func blk_queue_bounce (
+q * @"struct--request_queue.txt"
+bio_orig * * @"struct--bio.txt"
+)
+"void"

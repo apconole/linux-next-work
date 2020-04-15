@@ -1,0 +1,22 @@
+Version: 1.0
+File: include/linux/pci.h:645
+Symbol:
+Byte size 16
+struct pci_ops {
+0x0 read * func (NULL) (
+(NULL) * @"struct--pci_bus.txt"
+(NULL) "unsigned int"
+(NULL) "int"
+(NULL) "int"
+(NULL) * @"typedef--u32.txt"
+)
+"int"
+0x8 write * func (NULL) (
+(NULL) * @"struct--pci_bus.txt"
+(NULL) "unsigned int"
+(NULL) "int"
+(NULL) "int"
+(NULL) @"typedef--u32.txt"
+)
+"int"
+}

@@ -1,0 +1,19 @@
+Version: 1.0
+File: include/linux/blk-mq.h:105
+Symbol:
+Byte size 120
+struct blk_mq_tag_set {
+0x0 ops * const @"struct--blk_mq_ops.txt"
+0x8 nr_hw_queues "unsigned int"
+0xc queue_depth "unsigned int"
+0x10 reserved_tags "unsigned int"
+0x14 cmd_size "unsigned int"
+0x18 numa_node "int"
+0x1c timeout "unsigned int"
+0x20 flags "unsigned int"
+0x28 driver_data * "void"
+0x30 tags * * @"struct--blk_mq_tags.txt"
+0x38 tag_list_lock @"struct--mutex.txt"
+0x60 tag_list @"struct--list_head.txt"
+0x70 mq_map * "unsigned int"
+}

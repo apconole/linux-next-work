@@ -1,0 +1,7 @@
+Version: 1.0
+File: mm/page-writeback.c:2213
+Symbol:
+func set_page_dirty (
+page * @"struct--page.txt"
+)
+"int"

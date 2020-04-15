@@ -1,0 +1,8 @@
+Version: 1.0
+File: include/linux/perf_event.h:97
+Symbol:
+Byte size 8
+struct perf_branch_stack {
+0x0 nr @"typedef--__u64.txt"
+0x8 entries [0]@"struct--perf_branch_entry.txt"
+}

@@ -1,0 +1,11 @@
+Version: 1.0
+File: net/ipv6/ip6_checksum.c:7
+Symbol:
+func csum_ipv6_magic (
+saddr * const @"struct--in6_addr.txt"
+daddr * const @"struct--in6_addr.txt"
+len @"typedef--__u32.txt"
+proto "short unsigned int"
+csum @"typedef--__wsum.txt"
+)
+@"typedef--__sum16.txt"

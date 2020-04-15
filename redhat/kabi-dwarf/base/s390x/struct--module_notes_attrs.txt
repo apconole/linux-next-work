@@ -1,0 +1,9 @@
+Version: 1.0
+File: kernel/module.c:1507
+Symbol:
+Byte size 16
+struct module_notes_attrs {
+0x0 dir * @"struct--kobject.txt"
+0x8 notes "unsigned int"
+0x10 attrs [0]@"struct--bin_attribute.txt"
+}

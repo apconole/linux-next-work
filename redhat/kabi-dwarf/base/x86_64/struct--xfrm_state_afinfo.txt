@@ -1,0 +1,90 @@
+Version: 1.0
+File: include/net/xfrm.h:321
+Symbol:
+Byte size 2200
+struct xfrm_state_afinfo {
+0x0 family "unsigned int"
+0x4 proto "unsigned int"
+0x8 eth_proto @"typedef--__be16.txt"
+0x10 owner * @"struct--module.txt"
+0x18 type_map [256]* const @"struct--xfrm_type.txt"
+0x818 mode_map [5]* @"struct--xfrm_mode.txt"
+0x840 init_flags * func (NULL) (
+(NULL) * @"struct--xfrm_state.txt"
+)
+"int"
+0x848 init_tempsel * func (NULL) (
+(NULL) * @"struct--xfrm_selector.txt"
+(NULL) * const @"struct--flowi.txt"
+)
+"void"
+0x850 init_temprop * func (NULL) (
+(NULL) * @"struct--xfrm_state.txt"
+(NULL) * const @"struct--xfrm_tmpl.txt"
+(NULL) * const @"typedef--xfrm_address_t.txt"
+(NULL) * const @"typedef--xfrm_address_t.txt"
+)
+"void"
+0x858 tmpl_sort * func (NULL) (
+(NULL) * * @"struct--xfrm_tmpl.txt"
+(NULL) * * @"struct--xfrm_tmpl.txt"
+(NULL) "int"
+)
+"int"
+0x860 state_sort * func (NULL) (
+(NULL) * * @"struct--xfrm_state.txt"
+(NULL) * * @"struct--xfrm_state.txt"
+(NULL) "int"
+)
+"int"
+0x868 (NULL) union (NULL) {
+output * func (NULL) (
+(NULL) * @"struct--sock.txt"
+(NULL) * @"struct--sk_buff.txt"
+)
+"int"
+__UNIQUE_ID_rh_kabi_hide99 struct (NULL) {
+0x0 output * func (NULL) (
+(NULL) * @"struct--sk_buff.txt"
+)
+"int"
+}
+(NULL) union (NULL) {
+}
+}
+0x870 (NULL) union (NULL) {
+output_finish * func (NULL) (
+(NULL) * @"struct--sock.txt"
+(NULL) * @"struct--sk_buff.txt"
+)
+"int"
+__UNIQUE_ID_rh_kabi_hide100 struct (NULL) {
+0x0 output_finish * func (NULL) (
+(NULL) * @"struct--sk_buff.txt"
+)
+"int"
+}
+(NULL) union (NULL) {
+}
+}
+0x878 extract_input * func (NULL) (
+(NULL) * @"struct--xfrm_state.txt"
+(NULL) * @"struct--sk_buff.txt"
+)
+"int"
+0x880 extract_output * func (NULL) (
+(NULL) * @"struct--xfrm_state.txt"
+(NULL) * @"struct--sk_buff.txt"
+)
+"int"
+0x888 transport_finish * func (NULL) (
+(NULL) * @"struct--sk_buff.txt"
+(NULL) "int"
+)
+"int"
+0x890 local_error * func (NULL) (
+(NULL) * @"struct--sk_buff.txt"
+(NULL) @"typedef--u32.txt"
+)
+"void"
+}

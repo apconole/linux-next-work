@@ -1,0 +1,5 @@
+Version: 1.0
+File: include/linux/zlib.h:101
+Symbol:
+typedef z_stream
+@"struct--z_stream_s.txt"

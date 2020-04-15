@@ -1,0 +1,7 @@
+Version: 1.0
+File: lib/zlib_deflate/deflate.c:550
+Symbol:
+func zlib_deflateEnd (
+strm @"typedef--z_streamp.txt"
+)
+"int"

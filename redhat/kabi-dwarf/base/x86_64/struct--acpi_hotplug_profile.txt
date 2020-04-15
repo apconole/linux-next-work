@@ -1,0 +1,17 @@
+Version: 1.0
+File: include/acpi/acpi_bus.h:123
+Symbol:
+Byte size 88
+struct acpi_hotplug_profile {
+0x0 kobj @"struct--kobject.txt"
+0x40 scan_dependent * func (NULL) (
+(NULL) * @"struct--acpi_device.txt"
+)
+"int"
+0x48 notify_online * func (NULL) (
+(NULL) * @"struct--acpi_device.txt"
+)
+"void"
+0x50:0-1 enabled @"typedef--bool.txt"
+0x50:1-2 demand_offline @"typedef--bool.txt"
+}

@@ -1,0 +1,8 @@
+Version: 1.0
+File: include/linux/mod_devicetable.h:190
+Symbol:
+Byte size 24
+struct acpi_device_id {
+0x0 id [9]@"typedef--__u8.txt"
+0x10 driver_data @"typedef--kernel_ulong_t.txt"
+}

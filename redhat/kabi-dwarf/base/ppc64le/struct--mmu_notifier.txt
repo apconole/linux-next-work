@@ -1,0 +1,8 @@
+Version: 1.0
+File: include/linux/mmu_notifier.h:215
+Symbol:
+Byte size 24
+struct mmu_notifier {
+0x0 hlist @"struct--hlist_node.txt"
+0x10 ops * const @"struct--mmu_notifier_ops.txt"
+}

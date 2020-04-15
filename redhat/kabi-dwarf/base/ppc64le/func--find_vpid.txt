@@ -1,0 +1,7 @@
+Version: 1.0
+File: kernel/pid.c:370
+Symbol:
+func find_vpid (
+nr "int"
+)
+* @"struct--pid.txt"

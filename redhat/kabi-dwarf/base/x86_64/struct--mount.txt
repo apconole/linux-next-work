@@ -1,0 +1,44 @@
+Version: 1.0
+File: fs/mount.h:33
+Symbol:
+Byte size 384
+struct mount {
+0x0 mnt_hash @"struct--hlist_node.txt"
+0x10 mnt_parent * @"struct--mount.txt"
+0x18 mnt_mountpoint * @"struct--dentry.txt"
+0x20 mnt @"struct--vfsmount.txt"
+0x38 (NULL) union (NULL) {
+mnt_rcu @"struct--callback_head.txt"
+mnt_llist @"struct--llist_node.txt"
+}
+0x48 mnt_pcp * @"struct--mnt_pcp.txt"
+0x50 mnt_mounts @"struct--list_head.txt"
+0x60 mnt_child @"struct--list_head.txt"
+0x70 mnt_instance @"struct--list_head.txt"
+0x80 mnt_devname * const "char"
+0x88 mnt_list @"struct--list_head.txt"
+0x98 mnt_expire @"struct--list_head.txt"
+0xa8 mnt_share @"struct--list_head.txt"
+0xb8 mnt_slave_list @"struct--list_head.txt"
+0xc8 mnt_slave @"struct--list_head.txt"
+0xd8 mnt_master * @"struct--mount.txt"
+0xe0 mnt_ns * @"struct--mnt_namespace.txt"
+0xe8 mnt_mp * @"struct--mountpoint.txt"
+0xf0 mnt_mp_list @"struct--hlist_node.txt"
+0x100 (NULL) union (NULL) {
+mnt_fsnotify_marks * @"struct--fsnotify_mark_connector.txt"
+__UNIQUE_ID_rh_kabi_hide42 struct (NULL) {
+0x0 mnt_fsnotify_marks @"struct--hlist_head.txt"
+}
+(NULL) union (NULL) {
+}
+}
+0x108 mnt_fsnotify_mask @"typedef--__u32.txt"
+0x10c mnt_id "int"
+0x110 mnt_group_id "int"
+0x114 mnt_expiry_mark "int"
+0x118 mnt_pins @"struct--hlist_head.txt"
+0x120 mnt_umount @"struct--fs_pin.txt"
+0x168 mnt_ex_mountpoint * @"struct--dentry.txt"
+0x170 mnt_umounting @"struct--list_head.txt"
+}

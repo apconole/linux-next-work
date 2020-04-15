@@ -1,0 +1,9 @@
+Version: 1.0
+File: include/linux/security.h:174
+Symbol:
+Byte size 24
+struct security_mnt_opts {
+0x0 mnt_opts * * "char"
+0x8 mnt_opts_flags * "int"
+0x10 num_mnt_opts "int"
+}

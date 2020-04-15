@@ -1,0 +1,7 @@
+Version: 1.0
+File: net/core/skbuff.c:2527
+Symbol:
+func skb_dequeue_tail (
+list * @"struct--sk_buff_head.txt"
+)
+* @"struct--sk_buff.txt"

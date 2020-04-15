@@ -1,0 +1,12 @@
+Version: 1.0
+File: lib/zlib_deflate/deflate.c:167
+Symbol:
+func zlib_deflateInit2 (
+strm @"typedef--z_streamp.txt"
+level "int"
+method "int"
+windowBits "int"
+memLevel "int"
+strategy "int"
+)
+"int"

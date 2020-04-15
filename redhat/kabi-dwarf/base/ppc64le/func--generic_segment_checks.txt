@@ -1,0 +1,10 @@
+Version: 1.0
+File: mm/filemap.c:2006
+Symbol:
+func generic_segment_checks (
+iov * const @"struct--iovec.txt"
+nr_segs * "long unsigned int"
+count * @"typedef--size_t.txt"
+access_flags "int"
+)
+"int"

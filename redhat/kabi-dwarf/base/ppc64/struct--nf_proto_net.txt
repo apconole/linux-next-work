@@ -1,0 +1,9 @@
+Version: 1.0
+File: include/net/netns/conntrack.h:20
+Symbol:
+Byte size 24
+struct nf_proto_net {
+0x0 ctl_table_header * @"struct--ctl_table_header.txt"
+0x8 ctl_table * @"struct--ctl_table.txt"
+0x10 users "unsigned int"
+}

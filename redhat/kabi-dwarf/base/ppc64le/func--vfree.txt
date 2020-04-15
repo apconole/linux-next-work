@@ -1,0 +1,7 @@
+Version: 1.0
+File: mm/vmalloc.c:1532
+Symbol:
+func vfree (
+addr * const "void"
+)
+"void"

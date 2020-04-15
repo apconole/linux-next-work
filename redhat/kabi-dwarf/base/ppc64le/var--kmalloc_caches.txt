@@ -1,0 +1,5 @@
+Version: 1.0
+File: mm/slab_common.c:417
+Symbol:
+Byte size 144
+var kmalloc_caches [18]* @"struct--kmem_cache.txt"

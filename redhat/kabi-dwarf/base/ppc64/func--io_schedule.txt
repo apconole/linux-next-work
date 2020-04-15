@@ -1,0 +1,6 @@
+Version: 1.0
+File: kernel/sched/core.c:5664
+Symbol:
+func io_schedule (
+)
+"void"

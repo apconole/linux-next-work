@@ -1,0 +1,8 @@
+Version: 1.0
+File: mm/filemap.c:714
+Symbol:
+func wait_on_page_bit (
+page * @"struct--page.txt"
+bit_nr "int"
+)
+"void"

@@ -1,0 +1,9 @@
+Version: 1.0
+File: mm/slub.c:2640
+Symbol:
+func kmalloc_order_trace (
+size @"typedef--size_t.txt"
+flags @"typedef--gfp_t.txt"
+order "unsigned int"
+)
+* "void"

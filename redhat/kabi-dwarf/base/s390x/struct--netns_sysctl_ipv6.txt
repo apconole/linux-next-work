@@ -1,0 +1,21 @@
+Version: 1.0
+File: include/net/netns/ipv6.h:13
+Symbol:
+Byte size 80
+struct netns_sysctl_ipv6 {
+0x0 hdr * @"struct--ctl_table_header.txt"
+0x8 route_hdr * @"struct--ctl_table_header.txt"
+0x10 icmp_hdr * @"struct--ctl_table_header.txt"
+0x18 frags_hdr * @"struct--ctl_table_header.txt"
+0x20 xfrm6_hdr * @"struct--ctl_table_header.txt"
+0x28 bindv6only "int"
+0x2c flush_delay "int"
+0x30 ip6_rt_max_size "int"
+0x34 ip6_rt_gc_min_interval "int"
+0x38 ip6_rt_gc_timeout "int"
+0x3c ip6_rt_gc_interval "int"
+0x40 ip6_rt_gc_elasticity "int"
+0x44 ip6_rt_mtu_expires "int"
+0x48 ip6_rt_min_advmss "int"
+0x4c icmpv6_time "int"
+}

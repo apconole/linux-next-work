@@ -1,0 +1,19 @@
+Version: 1.0
+File: include/linux/cgroup.h:331
+Symbol:
+Byte size 4704
+struct cgroupfs_root {
+0x0 sb * @"struct--super_block.txt"
+0x8 subsys_mask "long unsigned int"
+0x10 hierarchy_id "int"
+0x18 actual_subsys_mask "long unsigned int"
+0x20 subsys_list @"struct--list_head.txt"
+0x30 top_cgroup @"struct--cgroup.txt"
+0x1c0 number_of_cgroups "int"
+0x1c8 root_list @"struct--list_head.txt"
+0x1d8 allcg_list @"struct--list_head.txt"
+0x1e8 flags "long unsigned int"
+0x1f0 cgroup_ida @"struct--ida.txt"
+0x220 release_agent_path [4096]"char"
+0x1220 name [64]"char"
+}

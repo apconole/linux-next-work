@@ -1,0 +1,8 @@
+Version: 1.0
+File: arch/powerpc/include/asm/local.h:10
+Symbol:
+Byte size 8
+typedef local_t
+struct (NULL) {
+0x0 a @"typedef--atomic_long_t.txt"
+}

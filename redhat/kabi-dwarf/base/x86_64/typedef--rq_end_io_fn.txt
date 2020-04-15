@@ -1,0 +1,9 @@
+Version: 1.0
+File: include/linux/blkdev.h:57
+Symbol:
+typedef rq_end_io_fn
+func (NULL) (
+(NULL) * @"struct--request.txt"
+(NULL) "int"
+)
+"void"

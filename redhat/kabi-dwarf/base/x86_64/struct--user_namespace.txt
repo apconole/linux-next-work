@@ -1,0 +1,25 @@
+Version: 1.0
+File: include/linux/user_namespace.h:47
+Symbol:
+Byte size 488
+struct user_namespace {
+0x0 uid_map @"struct--uid_gid_map.txt"
+0x40 gid_map @"struct--uid_gid_map.txt"
+0x80 projid_map @"struct--uid_gid_map.txt"
+0xc0 count @"typedef--atomic_t.txt"
+0xc8 parent * @"struct--user_namespace.txt"
+0xd0 owner @"typedef--kuid_t.txt"
+0xd4 group @"typedef--kgid_t.txt"
+0xd8 proc_inum "unsigned int"
+0xdc rh_reserved_may_mount_sysfs @"typedef--bool.txt"
+0xdd rh_reserved_may_mount_proc @"typedef--bool.txt"
+0xe0 persistent_keyring_register * @"struct--key.txt"
+0xe8 persistent_keyring_register_sem @"struct--rw_semaphore.txt"
+0x108 level "int"
+0x110 flags "long unsigned int"
+0x118 work @"struct--work_struct.txt"
+0x138 set @"struct--ctl_table_set.txt"
+0x198 sysctls * @"struct--ctl_table_header.txt"
+0x1a0 ucounts * @"struct--ucounts.txt"
+0x1a8 ucount_max [16]"int"
+}

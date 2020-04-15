@@ -1,0 +1,13 @@
+Version: 1.0
+File: include/linux/net.h:107
+Symbol:
+Byte size 48
+struct socket {
+0x0 state @"typedef--socket_state.txt"
+0x4 type "short int"
+0x8 flags "long unsigned int"
+0x10 wq * @"struct--socket_wq.txt"
+0x18 file * @"struct--file.txt"
+0x20 sk * @"struct--sock.txt"
+0x28 ops * const @"struct--proto_ops.txt"
+}

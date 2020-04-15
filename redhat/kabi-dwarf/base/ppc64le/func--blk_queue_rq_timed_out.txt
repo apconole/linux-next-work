@@ -1,0 +1,8 @@
+Version: 1.0
+File: block/blk-settings.c:90
+Symbol:
+func blk_queue_rq_timed_out (
+q * @"struct--request_queue.txt"
+fn * @"typedef--rq_timed_out_fn.txt"
+)
+"void"

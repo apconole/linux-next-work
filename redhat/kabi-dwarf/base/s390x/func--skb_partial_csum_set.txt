@@ -1,0 +1,9 @@
+Version: 1.0
+File: net/core/skbuff.c:3951
+Symbol:
+func skb_partial_csum_set (
+skb * @"struct--sk_buff.txt"
+start @"typedef--u16.txt"
+off @"typedef--u16.txt"
+)
+@"typedef--bool.txt"

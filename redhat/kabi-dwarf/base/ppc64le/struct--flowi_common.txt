@@ -1,0 +1,14 @@
+Version: 1.0
+File: include/net/flow.h:21
+Symbol:
+Byte size 20
+struct flowi_common {
+0x0 flowic_oif "int"
+0x4 flowic_iif "int"
+0x8 flowic_mark @"typedef--__u32.txt"
+0xc flowic_tos @"typedef--__u8.txt"
+0xd flowic_scope @"typedef--__u8.txt"
+0xe flowic_proto @"typedef--__u8.txt"
+0xf flowic_flags @"typedef--__u8.txt"
+0x10 flowic_secid @"typedef--__u32.txt"
+}

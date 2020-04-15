@@ -1,0 +1,8 @@
+Version: 1.0
+File: include/linux/shrinker.h:8
+Symbol:
+Byte size 16
+struct shrink_control {
+0x0 gfp_mask @"typedef--gfp_t.txt"
+0x8 nr_to_scan "long unsigned int"
+}

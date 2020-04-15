@@ -1,0 +1,29 @@
+Version: 1.0
+File: include/linux/fs.h:449
+Symbol:
+Byte size 176
+struct address_space {
+0x0 host * @"struct--inode.txt"
+0x8 page_tree @"struct--radix_tree_root.txt"
+0x18 tree_lock @"typedef--spinlock_t.txt"
+0x1c (NULL) union (NULL) {
+i_mmap_writable @"typedef--atomic_t.txt"
+__UNIQUE_ID_rh_kabi_hide21 struct (NULL) {
+0x0 i_mmap_writable "unsigned int"
+}
+(NULL) union (NULL) {
+}
+}
+0x20 i_mmap @"struct--rb_root.txt"
+0x28 i_mmap_nonlinear @"struct--list_head.txt"
+0x38 i_mmap_mutex @"struct--mutex.txt"
+0x60 nrpages "long unsigned int"
+0x68 nrexceptional "long unsigned int"
+0x70 writeback_index "long unsigned int"
+0x78 a_ops * const @"struct--address_space_operations.txt"
+0x80 flags "long unsigned int"
+0x88 backing_dev_info * @"struct--backing_dev_info.txt"
+0x90 private_lock @"typedef--spinlock_t.txt"
+0x98 private_list @"struct--list_head.txt"
+0xa8 private_data * "void"
+}

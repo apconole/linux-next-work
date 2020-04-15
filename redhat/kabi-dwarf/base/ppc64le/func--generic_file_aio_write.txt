@@ -1,0 +1,10 @@
+Version: 1.0
+File: mm/filemap.c:3187
+Symbol:
+func generic_file_aio_write (
+iocb * @"struct--kiocb.txt"
+iov * const @"struct--iovec.txt"
+nr_segs "long unsigned int"
+pos @"typedef--loff_t.txt"
+)
+@"typedef--ssize_t.txt"

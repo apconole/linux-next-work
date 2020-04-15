@@ -1,0 +1,45 @@
+Version: 1.0
+File: include/linux/perf_event.h:119
+Symbol:
+Byte size 200
+struct hw_perf_event {
+0x0 (NULL) union (NULL) {
+(NULL) struct (NULL) {
+0x0 config @"typedef--u64.txt"
+0x8 last_tag @"typedef--u64.txt"
+0x10 config_base "long unsigned int"
+0x18 event_base "long unsigned int"
+0x20 event_base_rdpmc "int"
+0x24 idx "int"
+0x28 last_cpu "int"
+0x2c flags "int"
+0x30 extra_reg @"struct--hw_perf_event_extra.txt"
+0x48 branch_reg @"struct--hw_perf_event_extra.txt"
+}
+(NULL) struct (NULL) {
+0x0 hrtimer @"struct--hrtimer.txt"
+}
+(NULL) struct (NULL) {
+0x0 rh_reserved_tp_target * @"struct--task_struct.txt"
+0x8 tp_list @"struct--list_head.txt"
+}
+(NULL) struct (NULL) {
+0x0 rh_reserved_bp_target * @"struct--task_struct.txt"
+0x8 info @"struct--arch_hw_breakpoint.txt"
+0x20 bp_list @"struct--list_head.txt"
+}
+}
+0x60 state "int"
+0x68 prev_count @"typedef--local64_t.txt"
+0x70 sample_period @"typedef--u64.txt"
+0x78 last_period @"typedef--u64.txt"
+0x80 period_left @"typedef--local64_t.txt"
+0x88 interrupts_seq @"typedef--u64.txt"
+0x90 interrupts @"typedef--u64.txt"
+0x98 freq_time_stamp @"typedef--u64.txt"
+0xa0 freq_count_stamp @"typedef--u64.txt"
+0xa8 constraint * @"<declarations>/struct--event_constraint.txt"
+0xb0 target * @"struct--task_struct.txt"
+0xb8 addr_filters * "void"
+0xc0 addr_filters_gen "long unsigned int"
+}

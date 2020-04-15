@@ -1,0 +1,6 @@
+Version: 1.0
+File: include/linux/efi.h:45
+Symbol:
+Byte size 8
+typedef efi_handle_t
+* "void"

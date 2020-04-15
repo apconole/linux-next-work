@@ -1,0 +1,7 @@
+Version: 1.0
+File: lib/list_debug.c:44
+Symbol:
+func __list_del_entry (
+entry * @"struct--list_head.txt"
+)
+"void"

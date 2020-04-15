@@ -1,0 +1,28 @@
+Version: 1.0
+File: include/linux/radix-tree.h:94
+Symbol:
+Byte size 576
+struct radix_tree_node {
+0x0 (NULL) union (NULL) {
+(NULL) struct (NULL) {
+0x0 shift "unsigned char"
+0x1 offset "unsigned char"
+}
+__UNIQUE_ID_rh_kabi_hide20 struct (NULL) {
+0x0 path "unsigned int"
+}
+(NULL) union (NULL) {
+}
+}
+0x4 count "unsigned int"
+0x8 (NULL) union (NULL) {
+(NULL) struct (NULL) {
+0x0 parent * @"struct--radix_tree_node.txt"
+0x8 private_data * "void"
+}
+callback_head @"struct--callback_head.txt"
+}
+0x18 private_list @"struct--list_head.txt"
+0x28 slots [64]* "void"
+0x228 tags [3][1]"long unsigned int"
+}

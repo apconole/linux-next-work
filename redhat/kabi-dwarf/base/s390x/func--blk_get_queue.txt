@@ -1,0 +1,7 @@
+Version: 1.0
+File: block/blk-core.c:1022
+Symbol:
+func blk_get_queue (
+q * @"struct--request_queue.txt"
+)
+@"typedef--bool.txt"

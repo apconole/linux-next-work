@@ -1,0 +1,4 @@
+Version: 1.0
+File: arch/x86/kernel/paravirt.c:353
+Symbol:
+var pv_cpu_ops @"struct--pv_cpu_ops.txt"

@@ -1,0 +1,9 @@
+Version: 1.0
+File: fs/aio.c:926
+Symbol:
+func aio_complete (
+iocb * @"struct--kiocb.txt"
+res "long int"
+res2 "long int"
+)
+"void"

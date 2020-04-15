@@ -1,0 +1,8 @@
+Version: 1.0
+File: mm/page-writeback.c:2426
+Symbol:
+func mapping_tagged (
+mapping * @"struct--address_space.txt"
+tag "int"
+)
+"int"

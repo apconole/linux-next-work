@@ -1,0 +1,8 @@
+Version: 1.0
+File: include/scsi/libfc.h:281
+Symbol:
+Byte size 8
+struct fc_seq_els_data {
+0x0 reason @"enum--fc_els_rjt_reason.txt"
+0x4 explan @"enum--fc_els_rjt_explan.txt"
+}

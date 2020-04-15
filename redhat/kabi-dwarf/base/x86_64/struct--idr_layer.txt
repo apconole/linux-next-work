@@ -1,0 +1,12 @@
+Version: 1.0
+File: include/linux/idr.h:30
+Symbol:
+Byte size 2112
+struct idr_layer {
+0x0 prefix "int"
+0x8 bitmap [4]"long unsigned int"
+0x28 ary [256]* @"struct--idr_layer.txt"
+0x828 count "int"
+0x82c layer "int"
+0x830 callback_head @"struct--callback_head.txt"
+}

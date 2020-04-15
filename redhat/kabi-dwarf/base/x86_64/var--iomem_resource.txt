@@ -1,0 +1,4 @@
+Version: 1.0
+File: kernel/resource.c:37
+Symbol:
+var iomem_resource @"struct--resource.txt"

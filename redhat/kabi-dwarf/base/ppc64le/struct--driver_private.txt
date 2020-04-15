@@ -1,0 +1,11 @@
+Version: 1.0
+File: drivers/base/base.h:46
+Symbol:
+Byte size 152
+struct driver_private {
+0x0 kobj @"struct--kobject.txt"
+0x40 klist_devices @"struct--klist.txt"
+0x68 knode_bus @"struct--klist_node.txt"
+0x88 mkobj * @"struct--module_kobject.txt"
+0x90 driver * @"struct--device_driver.txt"
+}

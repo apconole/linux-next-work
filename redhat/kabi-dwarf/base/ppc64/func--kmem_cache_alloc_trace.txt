@@ -1,0 +1,9 @@
+Version: 1.0
+File: mm/slub.c:2632
+Symbol:
+func kmem_cache_alloc_trace (
+s * @"struct--kmem_cache.txt"
+gfpflags @"typedef--gfp_t.txt"
+size @"typedef--size_t.txt"
+)
+* "void"

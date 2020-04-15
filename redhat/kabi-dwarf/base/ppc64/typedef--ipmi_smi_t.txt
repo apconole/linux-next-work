@@ -1,0 +1,6 @@
+Version: 1.0
+File: include/linux/ipmi_smi.h:29
+Symbol:
+Byte size 8
+typedef ipmi_smi_t
+* @"struct--ipmi_smi.txt"

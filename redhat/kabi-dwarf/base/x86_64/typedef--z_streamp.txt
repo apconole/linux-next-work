@@ -1,0 +1,6 @@
+Version: 1.0
+File: include/linux/zlib.h:103
+Symbol:
+Byte size 8
+typedef z_streamp
+* @"typedef--z_stream.txt"

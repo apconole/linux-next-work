@@ -1,0 +1,15 @@
+Version: 1.0
+File: include/linux/memremap.h:99
+Symbol:
+Byte size 152
+struct dev_pagemap {
+0x0 page_fault @"typedef--dev_page_fault_t.txt"
+0x8 page_free @"typedef--dev_page_free_t.txt"
+0x10 altmap @"struct--vmem_altmap.txt"
+0x38 altmap_valid @"typedef--bool.txt"
+0x40 res @"struct--resource.txt"
+0x78 ref * @"struct--percpu_ref.txt"
+0x80 dev * @"struct--device.txt"
+0x88 data * "void"
+0x90 type @"enum--memory_type.txt"
+}

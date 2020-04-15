@@ -1,0 +1,10 @@
+Version: 1.0
+File: include/linux/memremap.h:86
+Symbol:
+Byte size 8
+typedef dev_page_free_t
+* func (NULL) (
+(NULL) * @"struct--page.txt"
+(NULL) * "void"
+)
+"void"

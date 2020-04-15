@@ -1,0 +1,18 @@
+Version: 1.0
+File: include/linux/zlib.h:84
+Symbol:
+Byte size 96
+struct z_stream_s {
+0x0 next_in * const @"typedef--Byte.txt"
+0x8 avail_in @"typedef--uLong.txt"
+0x10 total_in @"typedef--uLong.txt"
+0x18 next_out * @"typedef--Byte.txt"
+0x20 avail_out @"typedef--uLong.txt"
+0x28 total_out @"typedef--uLong.txt"
+0x30 msg * "char"
+0x38 state * @"<declarations>/struct--internal_state.txt"
+0x40 workspace * "void"
+0x48 data_type "int"
+0x50 adler @"typedef--uLong.txt"
+0x58 reserved @"typedef--uLong.txt"
+}

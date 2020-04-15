@@ -1,0 +1,14 @@
+Version: 1.0
+File: drivers/scsi/libfc/fc_exch.c:2290
+Symbol:
+func fc_exch_mgr_alloc (
+lport * @"struct--fc_lport.txt"
+class @"enum--fc_class.txt"
+min_xid @"typedef--u16.txt"
+max_xid @"typedef--u16.txt"
+match * func (NULL) (
+(NULL) * @"struct--fc_frame.txt"
+)
+@"typedef--bool.txt"
+)
+* @"struct--fc_exch_mgr.txt"

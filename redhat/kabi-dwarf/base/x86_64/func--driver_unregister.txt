@@ -1,0 +1,7 @@
+Version: 1.0
+File: drivers/base/driver.c:186
+Symbol:
+func driver_unregister (
+drv * @"struct--device_driver.txt"
+)
+"void"

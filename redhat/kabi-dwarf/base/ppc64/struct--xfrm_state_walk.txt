@@ -1,0 +1,13 @@
+Version: 1.0
+File: include/net/xfrm.h:120
+Symbol:
+Byte size 24
+struct xfrm_state_walk {
+0x0 all @"struct--list_head.txt"
+0x10 state @"typedef--u8.txt"
+0x11 (NULL) union (NULL) {
+dying @"typedef--u8.txt"
+proto @"typedef--u8.txt"
+}
+0x14 seq @"typedef--u32.txt"
+}

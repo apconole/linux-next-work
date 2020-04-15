@@ -1,0 +1,27 @@
+Version: 1.0
+File: include/linux/bpf.h:202
+Symbol:
+Byte size 200
+struct bpf_prog_aux {
+0x0 refcnt @"typedef--atomic_t.txt"
+0x4 used_map_cnt @"typedef--u32.txt"
+0x8 id @"typedef--u32.txt"
+0xc func_cnt @"typedef--u32.txt"
+0x10 func * * @"struct--bpf_prog.txt"
+0x18 jit_data * "void"
+0x20 max_ctx_offset @"typedef--u32.txt"
+0x24 stack_depth @"typedef--u32.txt"
+0x28 ksym_tnode @"struct--latch_tree_node.txt"
+0x58 ksym_lnode @"struct--list_head.txt"
+0x68 ops * const @"struct--bpf_prog_ops.txt"
+0x70 used_maps * * @"struct--bpf_map.txt"
+0x78 prog * @"struct--bpf_prog.txt"
+0x80 user * @"struct--user_struct.txt"
+0x88 load_time @"typedef--u64.txt"
+0x90 name [16]"char"
+0xa0 security * "void"
+0xa8 (NULL) union (NULL) {
+work @"struct--work_struct.txt"
+rcu @"struct--callback_head.txt"
+}
+}

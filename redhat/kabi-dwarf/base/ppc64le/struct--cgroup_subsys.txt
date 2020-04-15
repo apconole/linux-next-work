@@ -1,0 +1,87 @@
+Version: 1.0
+File: include/linux/cgroup.h:615
+Symbol:
+Byte size 248
+struct cgroup_subsys {
+0x0 css_alloc * func (NULL) (
+(NULL) * @"struct--cgroup.txt"
+)
+* @"struct--cgroup_subsys_state.txt"
+0x8 css_online * func (NULL) (
+(NULL) * @"struct--cgroup.txt"
+)
+"int"
+0x10 css_offline * func (NULL) (
+(NULL) * @"struct--cgroup.txt"
+)
+"void"
+0x18 css_free * func (NULL) (
+(NULL) * @"struct--cgroup.txt"
+)
+"void"
+0x20 can_attach * func (NULL) (
+(NULL) * @"struct--cgroup.txt"
+(NULL) * @"<declarations>/struct--cgroup_taskset.txt"
+)
+"int"
+0x28 cancel_attach * func (NULL) (
+(NULL) * @"struct--cgroup.txt"
+(NULL) * @"<declarations>/struct--cgroup_taskset.txt"
+)
+"void"
+0x30 attach * func (NULL) (
+(NULL) * @"struct--cgroup.txt"
+(NULL) * @"<declarations>/struct--cgroup_taskset.txt"
+)
+"void"
+0x38 (NULL) union (NULL) {
+fork * func (NULL) (
+(NULL) * @"struct--task_struct.txt"
+(NULL) * "void"
+)
+"void"
+__UNIQUE_ID_rh_kabi_hide42 struct (NULL) {
+0x0 fork * func (NULL) (
+(NULL) * @"struct--task_struct.txt"
+)
+"void"
+}
+(NULL) union (NULL) {
+}
+}
+0x40 exit * func (NULL) (
+(NULL) * @"struct--cgroup.txt"
+(NULL) * @"struct--cgroup.txt"
+(NULL) * @"struct--task_struct.txt"
+)
+"void"
+0x48 bind * func (NULL) (
+(NULL) * @"struct--cgroup.txt"
+)
+"void"
+0x50 subsys_id "int"
+0x54 disabled "int"
+0x58 early_init "int"
+0x5c rh_reserved_use_id @"typedef--bool.txt"
+0x5d broken_hierarchy @"typedef--bool.txt"
+0x5e warned_broken_hierarchy @"typedef--bool.txt"
+0x60 name * const "char"
+0x68 root * @"struct--cgroupfs_root.txt"
+0x70 sibling @"struct--list_head.txt"
+0x80 rh_reserved_idr @"struct--idr.txt"
+0xa8 rh_reserved_id_lock @"typedef--spinlock_t.txt"
+0xb0 cftsets @"struct--list_head.txt"
+0xc0 base_cftypes * @"struct--cftype.txt"
+0xc8 base_cftset @"struct--cftype_set.txt"
+0xe0 module * @"struct--module.txt"
+0xe8 can_fork * func (NULL) (
+(NULL) * @"struct--task_struct.txt"
+(NULL) * * "void"
+)
+"int"
+0xf0 cancel_fork * func (NULL) (
+(NULL) * @"struct--task_struct.txt"
+(NULL) * "void"
+)
+"void"
+}

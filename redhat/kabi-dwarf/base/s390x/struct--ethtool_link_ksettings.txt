@@ -1,0 +1,12 @@
+Version: 1.0
+File: include/linux/ethtool.h:112
+Symbol:
+Byte size 96
+struct ethtool_link_ksettings {
+0x0 base @"struct--ethtool_link_settings.txt"
+0x30 link_modes struct (NULL) {
+0x0 supported [2]"long unsigned int"
+0x10 advertising [2]"long unsigned int"
+0x20 lp_advertising [2]"long unsigned int"
+}
+}

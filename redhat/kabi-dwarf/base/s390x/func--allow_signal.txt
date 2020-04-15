@@ -1,0 +1,7 @@
+Version: 1.0
+File: kernel/exit.c:410
+Symbol:
+func allow_signal (
+sig "int"
+)
+"int"

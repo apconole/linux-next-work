@@ -1,0 +1,7 @@
+Version: 1.0
+File: fs/block_dev.c:630
+Symbol:
+func bdget (
+dev @"typedef--dev_t.txt"
+)
+* @"struct--block_device.txt"

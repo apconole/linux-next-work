@@ -1,0 +1,7 @@
+Version: 1.0
+File: mm/page-writeback.c:1612
+Symbol:
+func balance_dirty_pages_ratelimited (
+mapping * @"struct--address_space.txt"
+)
+"void"

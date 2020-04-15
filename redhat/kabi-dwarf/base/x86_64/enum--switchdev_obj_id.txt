@@ -1,0 +1,10 @@
+Version: 1.0
+File: include/net/switchdev.h:75
+Symbol:
+Byte size 4
+enum switchdev_obj_id {
+SWITCHDEV_OBJ_ID_UNDEFINED = 0x0
+SWITCHDEV_OBJ_ID_PORT_VLAN = 0x1
+SWITCHDEV_OBJ_ID_PORT_FDB = 0x2
+SWITCHDEV_OBJ_ID_PORT_MDB = 0x3
+}

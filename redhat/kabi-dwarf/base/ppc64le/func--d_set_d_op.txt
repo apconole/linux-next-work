@@ -1,0 +1,8 @@
+Version: 1.0
+File: fs/dcache.c:1844
+Symbol:
+func d_set_d_op (
+dentry * @"struct--dentry.txt"
+op * const @"struct--dentry_operations.txt"
+)
+"void"

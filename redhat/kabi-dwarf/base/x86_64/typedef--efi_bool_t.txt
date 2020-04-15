@@ -1,0 +1,5 @@
+Version: 1.0
+File: include/linux/efi.h:42
+Symbol:
+typedef efi_bool_t
+@"typedef--u8.txt"

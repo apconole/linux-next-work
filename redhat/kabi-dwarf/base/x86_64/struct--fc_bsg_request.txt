@@ -1,0 +1,16 @@
+Version: 1.0
+File: include/uapi/scsi/scsi_bsg_fc.h:281
+Symbol:
+Byte size 20
+struct fc_bsg_request {
+0x0 msgcode @"typedef--uint32_t.txt"
+0x4 rqst_data union (NULL) {
+h_addrport @"struct--fc_bsg_host_add_rport.txt"
+h_delrport @"struct--fc_bsg_host_del_rport.txt"
+h_els @"struct--fc_bsg_host_els.txt"
+h_ct @"struct--fc_bsg_host_ct.txt"
+h_vendor @"struct--fc_bsg_host_vendor.txt"
+r_els @"struct--fc_bsg_rport_els.txt"
+r_ct @"struct--fc_bsg_rport_ct.txt"
+}
+}

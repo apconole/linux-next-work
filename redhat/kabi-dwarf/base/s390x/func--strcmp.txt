@@ -1,0 +1,8 @@
+Version: 1.0
+File: arch/s390/lib/string.c:203
+Symbol:
+func strcmp (
+cs * const "char"
+ct * const "char"
+)
+"int"

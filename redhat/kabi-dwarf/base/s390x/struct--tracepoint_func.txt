@@ -1,0 +1,8 @@
+Version: 1.0
+File: include/linux/tracepoint.h:25
+Symbol:
+Byte size 16
+struct tracepoint_func {
+0x0 func * "void"
+0x8 data * "void"
+}

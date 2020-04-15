@@ -1,0 +1,7 @@
+Version: 1.0
+File: drivers/scsi/libfc/fc_lport.c:1830
+Symbol:
+func fc_lport_config (
+lport * @"struct--fc_lport.txt"
+)
+"int"

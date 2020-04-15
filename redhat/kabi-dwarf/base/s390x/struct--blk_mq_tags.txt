@@ -1,0 +1,14 @@
+Version: 1.0
+File: block/blk-mq-tag.h:12
+Symbol:
+Byte size 160
+struct blk_mq_tags {
+0x0 nr_tags "unsigned int"
+0x4 nr_reserved_tags "unsigned int"
+0x8 active_queues @"typedef--atomic_t.txt"
+0x10 bitmap_tags @"struct--sbitmap_queue.txt"
+0x48 breserved_tags @"struct--sbitmap_queue.txt"
+0x80 rqs * * @"struct--request.txt"
+0x88 static_rqs * * @"struct--request.txt"
+0x90 page_list @"struct--list_head.txt"
+}

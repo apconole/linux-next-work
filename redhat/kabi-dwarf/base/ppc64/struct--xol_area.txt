@@ -1,0 +1,11 @@
+Version: 1.0
+File: include/linux/uprobes.h:108
+Symbol:
+Byte size 56
+struct xol_area {
+0x0 wq @"typedef--wait_queue_head_t.txt"
+0x18 slot_count @"typedef--atomic_t.txt"
+0x20 bitmap * "long unsigned int"
+0x28 page * @"struct--page.txt"
+0x30 vaddr "long unsigned int"
+}

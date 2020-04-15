@@ -1,0 +1,6 @@
+Version: 1.0
+File: arch/powerpc/include/asm/mmu-hash64.h:549
+Symbol:
+Byte size 8
+typedef mm_context_id_t
+"long unsigned int"

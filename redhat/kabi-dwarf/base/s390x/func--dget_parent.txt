@@ -1,0 +1,7 @@
+Version: 1.0
+File: fs/dcache.c:809
+Symbol:
+func dget_parent (
+dentry * @"struct--dentry.txt"
+)
+* @"struct--dentry.txt"

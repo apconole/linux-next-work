@@ -1,0 +1,8 @@
+Version: 1.0
+File: include/linux/sched.h:498
+Symbol:
+Byte size 16
+struct cputime {
+0x0 utime @"typedef--cputime_t.txt"
+0x8 stime @"typedef--cputime_t.txt"
+}

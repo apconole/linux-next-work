@@ -1,0 +1,12 @@
+Version: 1.0
+File: drivers/scsi/libfc/fc_exch.c:68
+Symbol:
+Byte size 64
+struct fc_exch_pool {
+0x0 lock @"typedef--spinlock_t.txt"
+0x8 ex_list @"struct--list_head.txt"
+0x18 next_index @"typedef--u16.txt"
+0x1a total_exches @"typedef--u16.txt"
+0x1c left @"typedef--u16.txt"
+0x1e right @"typedef--u16.txt"
+}

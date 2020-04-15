@@ -1,0 +1,29 @@
+Version: 1.0
+File: include/linux/netdevice.h:180
+Symbol:
+Byte size 184
+struct net_device_stats {
+0x0 rx_packets "long unsigned int"
+0x8 tx_packets "long unsigned int"
+0x10 rx_bytes "long unsigned int"
+0x18 tx_bytes "long unsigned int"
+0x20 rx_errors "long unsigned int"
+0x28 tx_errors "long unsigned int"
+0x30 rx_dropped "long unsigned int"
+0x38 tx_dropped "long unsigned int"
+0x40 multicast "long unsigned int"
+0x48 collisions "long unsigned int"
+0x50 rx_length_errors "long unsigned int"
+0x58 rx_over_errors "long unsigned int"
+0x60 rx_crc_errors "long unsigned int"
+0x68 rx_frame_errors "long unsigned int"
+0x70 rx_fifo_errors "long unsigned int"
+0x78 rx_missed_errors "long unsigned int"
+0x80 tx_aborted_errors "long unsigned int"
+0x88 tx_carrier_errors "long unsigned int"
+0x90 tx_fifo_errors "long unsigned int"
+0x98 tx_heartbeat_errors "long unsigned int"
+0xa0 tx_window_errors "long unsigned int"
+0xa8 rx_compressed "long unsigned int"
+0xb0 tx_compressed "long unsigned int"
+}

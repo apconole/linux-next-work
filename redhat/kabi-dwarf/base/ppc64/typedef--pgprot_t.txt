@@ -1,0 +1,6 @@
+Version: 1.0
+File: arch/powerpc/include/asm/page.h:363
+Symbol:
+Byte size 8
+typedef pgprot_t
+"long unsigned int"

@@ -1,0 +1,7 @@
+Version: 1.0
+File: kernel/mutex.c:102
+Symbol:
+func mutex_lock (
+lock * @"struct--mutex.txt"
+)
+"void"

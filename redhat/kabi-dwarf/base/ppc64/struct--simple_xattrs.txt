@@ -1,0 +1,8 @@
+Version: 1.0
+File: include/linux/xattr.h:56
+Symbol:
+Byte size 24
+struct simple_xattrs {
+0x0 head @"struct--list_head.txt"
+0x10 lock @"typedef--spinlock_t.txt"
+}

@@ -1,0 +1,46 @@
+Version: 1.0
+File: include/scsi/fcoe_sysfs.h:30
+Symbol:
+Byte size 80
+struct fcoe_sysfs_function_template {
+0x0 get_fcoe_ctlr_link_fail * func (NULL) (
+(NULL) * @"struct--fcoe_ctlr_device.txt"
+)
+"void"
+0x8 get_fcoe_ctlr_vlink_fail * func (NULL) (
+(NULL) * @"struct--fcoe_ctlr_device.txt"
+)
+"void"
+0x10 get_fcoe_ctlr_miss_fka * func (NULL) (
+(NULL) * @"struct--fcoe_ctlr_device.txt"
+)
+"void"
+0x18 get_fcoe_ctlr_symb_err * func (NULL) (
+(NULL) * @"struct--fcoe_ctlr_device.txt"
+)
+"void"
+0x20 get_fcoe_ctlr_err_block * func (NULL) (
+(NULL) * @"struct--fcoe_ctlr_device.txt"
+)
+"void"
+0x28 get_fcoe_ctlr_fcs_error * func (NULL) (
+(NULL) * @"struct--fcoe_ctlr_device.txt"
+)
+"void"
+0x30 set_fcoe_ctlr_mode * func (NULL) (
+(NULL) * @"struct--fcoe_ctlr_device.txt"
+)
+"void"
+0x38 set_fcoe_ctlr_enabled * func (NULL) (
+(NULL) * @"struct--fcoe_ctlr_device.txt"
+)
+"int"
+0x40 get_fcoe_fcf_selected * func (NULL) (
+(NULL) * @"struct--fcoe_fcf_device.txt"
+)
+"void"
+0x48 get_fcoe_fcf_vlan_id * func (NULL) (
+(NULL) * @"struct--fcoe_fcf_device.txt"
+)
+"void"
+}

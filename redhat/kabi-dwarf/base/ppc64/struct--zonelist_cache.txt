@@ -1,0 +1,9 @@
+Version: 1.0
+File: include/linux/mmzone.h:699
+Symbol:
+Byte size 1640
+struct zonelist_cache {
+0x0 z_to_n [768]"short unsigned int"
+0x600 fullzones [12]"long unsigned int"
+0x660 last_full_zap "long unsigned int"
+}

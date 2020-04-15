@@ -1,0 +1,17 @@
+Version: 1.0
+File: include/linux/hrtimer.h:99
+Symbol:
+Byte size 96
+struct hrtimer {
+0x0 node @"struct--timerqueue_node.txt"
+0x20 _softexpires @"typedef--ktime_t.txt"
+0x28 function * func (NULL) (
+(NULL) * @"struct--hrtimer.txt"
+)
+@"enum--hrtimer_restart.txt"
+0x30 base * @"struct--hrtimer_clock_base.txt"
+0x38 state "long unsigned int"
+0x40 start_pid "int"
+0x48 start_site * "void"
+0x50 start_comm [16]"char"
+}

@@ -1,0 +1,7 @@
+Version: 1.0
+File: block/blk-core.c:723
+Symbol:
+func blk_alloc_queue (
+gfp_mask @"typedef--gfp_t.txt"
+)
+* @"struct--request_queue.txt"

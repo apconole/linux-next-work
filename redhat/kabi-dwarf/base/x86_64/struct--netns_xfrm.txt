@@ -1,0 +1,32 @@
+Version: 1.0
+File: include/net/netns/xfrm.h:34
+Symbol:
+Byte size 832
+struct netns_xfrm {
+0x0 state_all @"struct--list_head.txt"
+0x10 state_bydst * @"struct--hlist_head.txt"
+0x18 state_bysrc * @"struct--hlist_head.txt"
+0x20 state_byspi * @"struct--hlist_head.txt"
+0x28 state_hmask "unsigned int"
+0x2c state_num "unsigned int"
+0x30 state_hash_work @"struct--work_struct.txt"
+0x50 state_gc_list @"struct--hlist_head.txt"
+0x58 state_gc_work @"struct--work_struct.txt"
+0x78 rh_reserved_km_waitq @"typedef--wait_queue_head_t.txt"
+0x90 policy_all @"struct--list_head.txt"
+0xa0 policy_byidx * @"struct--hlist_head.txt"
+0xa8 policy_idx_hmask "unsigned int"
+0xb0 policy_inexact [6]@"struct--hlist_head.txt"
+0xe0 policy_bydst [6]@"struct--xfrm_policy_hash.txt"
+0x140 policy_count [6]"unsigned int"
+0x158 policy_hash_work @"struct--work_struct.txt"
+0x178 nlsk * @"struct--sock.txt"
+0x180 nlsk_stash * @"struct--sock.txt"
+0x188 sysctl_aevent_etime @"typedef--u32.txt"
+0x18c sysctl_aevent_rseqth @"typedef--u32.txt"
+0x190 sysctl_larval_drop "int"
+0x194 sysctl_acq_expires @"typedef--u32.txt"
+0x198 sysctl_hdr * @"struct--ctl_table_header.txt"
+0x1c0 xfrm4_dst_ops @"struct--dst_ops.txt"
+0x280 xfrm6_dst_ops @"struct--dst_ops.txt"
+}

@@ -1,0 +1,19 @@
+Version: 1.0
+File: include/linux/crypto.h:288
+Symbol:
+Byte size 24
+struct rng_alg {
+0x0 rng_make_random * func (NULL) (
+(NULL) * @"struct--crypto_rng.txt"
+(NULL) * @"typedef--u8.txt"
+(NULL) "unsigned int"
+)
+"int"
+0x8 rng_reset * func (NULL) (
+(NULL) * @"struct--crypto_rng.txt"
+(NULL) * @"typedef--u8.txt"
+(NULL) "unsigned int"
+)
+"int"
+0x10 seedsize "unsigned int"
+}

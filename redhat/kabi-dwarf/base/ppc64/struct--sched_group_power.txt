@@ -1,0 +1,13 @@
+Version: 1.0
+File: kernel/sched/sched.h:867
+Symbol:
+Byte size 32
+struct sched_group_power {
+0x0 ref @"typedef--atomic_t.txt"
+0x4 power "unsigned int"
+0x8 power_orig "unsigned int"
+0x10 next_update "long unsigned int"
+0x18 imbalance "int"
+0x1c nr_busy_cpus @"typedef--atomic_t.txt"
+0x20 cpumask [0]"long unsigned int"
+}

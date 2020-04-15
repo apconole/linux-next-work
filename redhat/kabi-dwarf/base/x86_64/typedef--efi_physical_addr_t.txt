@@ -1,0 +1,5 @@
+Version: 1.0
+File: include/linux/efi.h:44
+Symbol:
+typedef efi_physical_addr_t
+@"typedef--u64.txt"

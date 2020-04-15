@@ -1,0 +1,8 @@
+Version: 1.0
+File: include/uapi/scsi/scsi_bsg_fc.h:216
+Symbol:
+Byte size 8
+struct fc_bsg_host_vendor {
+0x0 vendor_id @"typedef--uint64_t.txt"
+0x8 vendor_cmd [0]@"typedef--uint32_t.txt"
+}

@@ -1,0 +1,22 @@
+Version: 1.0
+File: include/scsi/scsi_transport_fc.h:232
+Symbol:
+Byte size 872
+struct fc_vport {
+0x0 vport_state @"enum--fc_vport_state.txt"
+0x4 vport_last_state @"enum--fc_vport_state.txt"
+0x8 node_name @"typedef--u64.txt"
+0x10 port_name @"typedef--u64.txt"
+0x18 roles @"typedef--u32.txt"
+0x1c vport_id @"typedef--u32.txt"
+0x20 vport_type @"enum--fc_port_type.txt"
+0x24 symbolic_name [64]"char"
+0x68 dd_data * "void"
+0x70 shost * @"struct--Scsi_Host.txt"
+0x78 channel "unsigned int"
+0x7c number @"typedef--u32.txt"
+0x80 flags @"typedef--u8.txt"
+0x88 peers @"struct--list_head.txt"
+0x98 dev @"struct--device.txt"
+0x348 vport_delete_work @"struct--work_struct.txt"
+}

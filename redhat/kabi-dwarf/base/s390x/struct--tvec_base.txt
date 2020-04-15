@@ -1,0 +1,20 @@
+Version: 1.0
+File: kernel/timer.c:80
+Symbol:
+Byte size 8448
+struct tvec_base {
+0x0 lock @"typedef--spinlock_t.txt"
+0x8 running_timer * @"struct--timer_list.txt"
+0x10 timer_jiffies "long unsigned int"
+0x18 next_timer "long unsigned int"
+0x20 active_timers "long unsigned int"
+0x28 tv1 @"struct--tvec_root.txt"
+0x1028 tv2 @"struct--tvec.txt"
+0x1428 tv3 @"struct--tvec.txt"
+0x1828 tv4 @"struct--tvec.txt"
+0x1c28 tv5 @"struct--tvec.txt"
+0x2028 all_timers "long unsigned int"
+0x2030 cpu "int"
+0x2034 migration_enabled @"typedef--bool.txt"
+0x2035 nohz_active @"typedef--bool.txt"
+}

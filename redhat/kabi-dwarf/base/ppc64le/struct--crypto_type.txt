@@ -1,0 +1,50 @@
+Version: 1.0
+File: include/crypto/algapi.h:25
+Symbol:
+Byte size 80
+struct crypto_type {
+0x0 ctxsize * func (NULL) (
+(NULL) * @"struct--crypto_alg.txt"
+(NULL) @"typedef--u32.txt"
+(NULL) @"typedef--u32.txt"
+)
+"unsigned int"
+0x8 extsize * func (NULL) (
+(NULL) * @"struct--crypto_alg.txt"
+)
+"unsigned int"
+0x10 init * func (NULL) (
+(NULL) * @"struct--crypto_tfm.txt"
+(NULL) @"typedef--u32.txt"
+(NULL) @"typedef--u32.txt"
+)
+"int"
+0x18 init_tfm * func (NULL) (
+(NULL) * @"struct--crypto_tfm.txt"
+)
+"int"
+0x20 show * func (NULL) (
+(NULL) * @"struct--seq_file.txt"
+(NULL) * @"struct--crypto_alg.txt"
+)
+"void"
+0x28 report * func (NULL) (
+(NULL) * @"struct--sk_buff.txt"
+(NULL) * @"struct--crypto_alg.txt"
+)
+"int"
+0x30 lookup * func (NULL) (
+(NULL) * const "char"
+(NULL) @"typedef--u32.txt"
+(NULL) @"typedef--u32.txt"
+)
+* @"struct--crypto_alg.txt"
+0x38 free * func (NULL) (
+(NULL) * @"struct--crypto_instance.txt"
+)
+"void"
+0x40 type "unsigned int"
+0x44 maskclear "unsigned int"
+0x48 maskset "unsigned int"
+0x4c tfmsize "unsigned int"
+}

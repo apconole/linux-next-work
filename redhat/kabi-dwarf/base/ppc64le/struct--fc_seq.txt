@@ -1,0 +1,10 @@
+Version: 1.0
+File: include/scsi/libfc.h:379
+Symbol:
+Byte size 12
+struct fc_seq {
+0x0 id @"typedef--u8.txt"
+0x2 ssb_stat @"typedef--u16.txt"
+0x4 cnt @"typedef--u16.txt"
+0x8 rec_data @"typedef--u32.txt"
+}

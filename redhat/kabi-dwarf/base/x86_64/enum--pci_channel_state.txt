@@ -1,0 +1,9 @@
+Version: 1.0
+File: include/linux/pci.h:142
+Symbol:
+Byte size 4
+enum pci_channel_state {
+pci_channel_io_normal = 0x1
+pci_channel_io_frozen = 0x2
+pci_channel_io_perm_failure = 0x3
+}

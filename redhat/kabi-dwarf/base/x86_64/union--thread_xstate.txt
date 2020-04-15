@@ -1,0 +1,10 @@
+Version: 1.0
+File: arch/x86/include/asm/processor.h:509
+Symbol:
+Byte size 1088
+union thread_xstate {
+fsave @"struct--i387_fsave_struct.txt"
+fxsave @"struct--i387_fxsave_struct.txt"
+soft @"struct--i387_soft_struct.txt"
+xsave @"struct--xsave_struct.txt"
+}

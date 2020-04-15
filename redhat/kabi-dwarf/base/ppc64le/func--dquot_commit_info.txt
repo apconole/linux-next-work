@@ -1,0 +1,8 @@
+Version: 1.0
+File: fs/quota/dquot.c:1960
+Symbol:
+func dquot_commit_info (
+sb * @"struct--super_block.txt"
+type "int"
+)
+"int"

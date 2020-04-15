@@ -1,0 +1,8 @@
+Version: 1.0
+File: include/linux/sysctl.h:155
+Symbol:
+Byte size 88
+struct ctl_dir {
+0x0 header @"struct--ctl_table_header.txt"
+0x50 root @"struct--rb_root.txt"
+}

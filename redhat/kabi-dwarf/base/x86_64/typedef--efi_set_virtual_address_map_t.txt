@@ -1,0 +1,11 @@
+Version: 1.0
+File: include/linux/efi.h:517
+Symbol:
+typedef efi_set_virtual_address_map_t
+func (NULL) (
+(NULL) "long unsigned int"
+(NULL) "long unsigned int"
+(NULL) @"typedef--u32.txt"
+(NULL) * @"typedef--efi_memory_desc_t.txt"
+)
+@"typedef--efi_status_t.txt"

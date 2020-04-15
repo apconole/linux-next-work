@@ -1,0 +1,5 @@
+Version: 1.0
+File: arch/x86/kernel/setup_percpu.c:33
+Symbol:
+Byte size 8
+var this_cpu_off "long unsigned int"

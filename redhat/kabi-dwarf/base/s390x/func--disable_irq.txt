@@ -1,0 +1,7 @@
+Version: 1.0
+File: arch/s390/pci/pci.c:310
+Symbol:
+func disable_irq (
+irq "unsigned int"
+)
+"void"

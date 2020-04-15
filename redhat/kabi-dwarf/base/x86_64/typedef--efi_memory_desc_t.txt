@@ -1,0 +1,13 @@
+Version: 1.0
+File: include/linux/efi.h:116
+Symbol:
+Byte size 40
+typedef efi_memory_desc_t
+struct (NULL) {
+0x0 type @"typedef--u32.txt"
+0x4 pad @"typedef--u32.txt"
+0x8 phys_addr @"typedef--u64.txt"
+0x10 virt_addr @"typedef--u64.txt"
+0x18 num_pages @"typedef--u64.txt"
+0x20 attribute @"typedef--u64.txt"
+}

@@ -1,0 +1,12 @@
+Version: 1.0
+File: include/linux/percpu-refcount.h:87
+Symbol:
+Byte size 56
+struct percpu_ref {
+0x0 count @"typedef--atomic_long_t.txt"
+0x8 percpu_count_ptr "long unsigned int"
+0x10 release * @"typedef--percpu_ref_func_t.txt"
+0x18 confirm_switch * @"typedef--percpu_ref_func_t.txt"
+0x20:0-1 force_atomic @"typedef--bool.txt"
+0x28 rcu @"struct--callback_head.txt"
+}

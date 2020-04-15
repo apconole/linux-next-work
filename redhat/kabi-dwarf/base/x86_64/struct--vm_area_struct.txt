@@ -1,0 +1,54 @@
+Version: 1.0
+File: include/linux/mm_types.h:283
+Symbol:
+Byte size 216
+struct vm_area_struct {
+0x0 vm_start "long unsigned int"
+0x8 vm_end "long unsigned int"
+0x10 vm_next * @"struct--vm_area_struct.txt"
+0x18 vm_prev * @"struct--vm_area_struct.txt"
+0x20 vm_rb @"struct--rb_node.txt"
+0x38 rb_subtree_gap "long unsigned int"
+0x40 vm_mm * @"struct--mm_struct.txt"
+0x48 vm_page_prot @"typedef--pgprot_t.txt"
+0x50 vm_flags "long unsigned int"
+0x58 shared union (NULL) {
+linear struct (NULL) {
+0x0 rb @"struct--rb_node.txt"
+0x18 rb_subtree_last "long unsigned int"
+}
+nonlinear @"struct--list_head.txt"
+}
+0x78 anon_vma_chain @"struct--list_head.txt"
+0x88 anon_vma * @"struct--anon_vma.txt"
+0x90 vm_ops * const @"struct--vm_operations_struct.txt"
+0x98 vm_pgoff "long unsigned int"
+0xa0 vm_file * @"struct--file.txt"
+0xa8 vm_private_data * "void"
+0xb0 vm_policy * @"struct--mempolicy.txt"
+0xb8 (NULL) union (NULL) {
+vm_userfaultfd_ctx @"struct--vm_userfaultfd_ctx.txt"
+__UNIQUE_ID_rh_kabi_hide8 struct (NULL) {
+0x0 rh_reserved1 "long unsigned int"
+}
+(NULL) union (NULL) {
+}
+}
+0xc0 (NULL) union (NULL) {
+vm_flags2 "long unsigned int"
+__UNIQUE_ID_rh_kabi_hide9 struct (NULL) {
+0x0 rh_reserved2 "long unsigned int"
+}
+(NULL) union (NULL) {
+}
+}
+0xc8 (NULL) union (NULL) {
+swap_readahead_info @"typedef--atomic_long_t.txt"
+__UNIQUE_ID_rh_kabi_hide10 struct (NULL) {
+0x0 rh_reserved3 "long unsigned int"
+}
+(NULL) union (NULL) {
+}
+}
+0xd0 rh_reserved4 "long unsigned int"
+}

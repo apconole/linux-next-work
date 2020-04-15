@@ -1,0 +1,8 @@
+Version: 1.0
+File: include/linux/srcu.h:36
+Symbol:
+Byte size 32
+struct srcu_struct_array {
+0x0 c [2]"long unsigned int"
+0x10 seq [2]"long unsigned int"
+}

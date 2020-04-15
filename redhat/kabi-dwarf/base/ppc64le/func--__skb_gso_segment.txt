@@ -1,0 +1,9 @@
+Version: 1.0
+File: net/core/dev.c:2905
+Symbol:
+func __skb_gso_segment (
+skb * @"struct--sk_buff.txt"
+features @"typedef--netdev_features_t.txt"
+tx_path @"typedef--bool.txt"
+)
+* @"struct--sk_buff.txt"

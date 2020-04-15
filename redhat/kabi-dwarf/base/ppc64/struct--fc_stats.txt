@@ -1,0 +1,27 @@
+Version: 1.0
+File: include/scsi/libfc.h:250
+Symbol:
+Byte size 168
+struct fc_stats {
+0x0 SecondsSinceLastReset @"typedef--u64.txt"
+0x8 TxFrames @"typedef--u64.txt"
+0x10 TxWords @"typedef--u64.txt"
+0x18 RxFrames @"typedef--u64.txt"
+0x20 RxWords @"typedef--u64.txt"
+0x28 ErrorFrames @"typedef--u64.txt"
+0x30 DumpedFrames @"typedef--u64.txt"
+0x38 FcpPktAllocFails @"typedef--u64.txt"
+0x40 FcpPktAborts @"typedef--u64.txt"
+0x48 FcpFrameAllocFails @"typedef--u64.txt"
+0x50 LinkFailureCount @"typedef--u64.txt"
+0x58 LossOfSignalCount @"typedef--u64.txt"
+0x60 InvalidTxWordCount @"typedef--u64.txt"
+0x68 InvalidCRCCount @"typedef--u64.txt"
+0x70 InputRequests @"typedef--u64.txt"
+0x78 OutputRequests @"typedef--u64.txt"
+0x80 ControlRequests @"typedef--u64.txt"
+0x88 InputBytes @"typedef--u64.txt"
+0x90 OutputBytes @"typedef--u64.txt"
+0x98 VLinkFailureCount @"typedef--u64.txt"
+0xa0 MissDiscAdvCount @"typedef--u64.txt"
+}

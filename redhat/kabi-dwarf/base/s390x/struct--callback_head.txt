@@ -1,0 +1,11 @@
+Version: 1.0
+File: include/linux/types.h:218
+Symbol:
+Byte size 16
+struct callback_head {
+0x0 next * @"struct--callback_head.txt"
+0x8 func * func (NULL) (
+(NULL) * @"struct--callback_head.txt"
+)
+"void"
+}

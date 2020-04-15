@@ -1,0 +1,8 @@
+Version: 1.0
+File: drivers/scsi/libfc/fc_exch.c:2429
+Symbol:
+func fc_exch_recv (
+lport * @"struct--fc_lport.txt"
+fp * @"struct--fc_frame.txt"
+)
+"void"

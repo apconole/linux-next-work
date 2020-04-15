@@ -1,0 +1,8 @@
+Version: 1.0
+File: drivers/pci/msi.c:934
+Symbol:
+func pci_enable_msi_block (
+dev * @"struct--pci_dev.txt"
+nvec "int"
+)
+"int"

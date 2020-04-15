@@ -1,0 +1,7 @@
+Version: 1.0
+File: fs/dcache.c:920
+Symbol:
+func d_prune_aliases (
+inode * @"struct--inode.txt"
+)
+"void"

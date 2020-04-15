@@ -1,0 +1,74 @@
+Version: 1.0
+File: include/linux/blkdev.h:110
+Symbol:
+Byte size 384
+struct request {
+0x0 queuelist @"struct--list_head.txt"
+0x10 (NULL) union (NULL) {
+csd @"struct--call_single_data.txt"
+(NULL) union (NULL) {
+fifo_time "long unsigned int"
+__UNIQUE_ID_rh_kabi_hide34 struct (NULL) {
+0x0 mq_flush_work @"struct--work_struct.txt"
+}
+(NULL) union (NULL) {
+}
+}
+}
+0x38 q * @"struct--request_queue.txt"
+0x40 mq_ctx * @"struct--blk_mq_ctx.txt"
+0x48 cmd_flags @"typedef--u64.txt"
+0x50 cmd_type @"enum--rq_cmd_type_bits.txt"
+0x58 atomic_flags "long unsigned int"
+0x60 cpu "int"
+0x64 __data_len "unsigned int"
+0x68 __sector @"typedef--sector_t.txt"
+0x70 bio * @"struct--bio.txt"
+0x78 biotail * @"struct--bio.txt"
+0x80 (NULL) union (NULL) {
+hash @"struct--hlist_node.txt"
+ipi_list @"struct--list_head.txt"
+}
+0x90 (NULL) union (NULL) {
+rb_node @"struct--rb_node.txt"
+completion_data * "void"
+}
+0xa8 (NULL) union (NULL) {
+elv struct (NULL) {
+0x0 icq * @"struct--io_cq.txt"
+0x8 priv [2]* "void"
+}
+flush struct (NULL) {
+0x0 seq "unsigned int"
+0x8 list @"struct--list_head.txt"
+0x18 saved_end_io * @"typedef--rq_end_io_fn.txt"
+}
+}
+0xc8 rq_disk * @"struct--gendisk.txt"
+0xd0 part * @"struct--hd_struct.txt"
+0xd8 start_time "long unsigned int"
+0xe0 rl * @"struct--request_list.txt"
+0xe8 start_time_ns "long long unsigned int"
+0xf0 io_start_time_ns "long long unsigned int"
+0xf8 nr_phys_segments "short unsigned int"
+0xfa nr_integrity_segments "short unsigned int"
+0xfc ioprio "short unsigned int"
+0x100 special * "void"
+0x108 buffer * "char"
+0x110 tag "int"
+0x114 errors "int"
+0x118 __cmd [16]"unsigned char"
+0x128 cmd * "unsigned char"
+0x130 cmd_len "short unsigned int"
+0x134 extra_len "unsigned int"
+0x138 sense_len "unsigned int"
+0x13c resid_len "unsigned int"
+0x140 sense * "void"
+0x148 deadline "long unsigned int"
+0x150 timeout_list @"struct--list_head.txt"
+0x160 timeout "unsigned int"
+0x164 retries "int"
+0x168 end_io * @"typedef--rq_end_io_fn.txt"
+0x170 end_io_data * "void"
+0x178 next_rq * @"struct--request.txt"
+}

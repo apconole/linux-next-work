@@ -1,0 +1,9 @@
+Version: 1.0
+File: arch/s390/lib/string.c:183
+Symbol:
+func strncat (
+dest * "char"
+src * const "char"
+n @"typedef--size_t.txt"
+)
+* "char"

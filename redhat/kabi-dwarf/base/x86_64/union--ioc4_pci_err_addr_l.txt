@@ -1,0 +1,13 @@
+Version: 1.0
+File: include/linux/ioc4.h:33
+Symbol:
+Byte size 4
+union ioc4_pci_err_addr_l {
+raw @"typedef--uint32_t.txt"
+fields struct (NULL) {
+0x0:0-1 valid @"typedef--uint32_t.txt"
+0x0:1-5 master_id @"typedef--uint32_t.txt"
+0x0:5-6 mul_err @"typedef--uint32_t.txt"
+0x0:6-32 addr @"typedef--uint32_t.txt"
+}
+}

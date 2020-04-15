@@ -1,0 +1,37 @@
+Version: 1.0
+File: fs/aio.c:66
+Symbol:
+Byte size 1792
+struct kioctx {
+0x0 users @"typedef--atomic_t.txt"
+0x4 dead @"typedef--atomic_t.txt"
+0x8 user_id "long unsigned int"
+0x10 list @"struct--hlist_node.txt"
+0x20 max_reqs "unsigned int"
+0x24 nr_events "unsigned int"
+0x28 mmap_base "long unsigned int"
+0x30 mmap_size "long unsigned int"
+0x38 ring_pages * * @"struct--page.txt"
+0x40 nr_pages "long int"
+0x48 callback_head @"struct--callback_head.txt"
+0x58 rcu_work @"struct--work_struct.txt"
+0x100 (NULL) struct (NULL) {
+0x0 reqs_active @"typedef--atomic_t.txt"
+}
+0x200 (NULL) struct (NULL) {
+0x0 ctx_lock @"typedef--spinlock_t.txt"
+0x8 active_reqs @"struct--list_head.txt"
+}
+0x300 (NULL) struct (NULL) {
+0x0 ring_lock @"struct--mutex.txt"
+0x28 wait @"typedef--wait_queue_head_t.txt"
+}
+0x400 requests_done * @"struct--completion.txt"
+0x500 (NULL) struct (NULL) {
+0x0 tail "unsigned int"
+0x4 completed_events "unsigned int"
+0x8 completion_lock @"typedef--spinlock_t.txt"
+}
+0x600 internal_pages [8]* @"struct--page.txt"
+0x640 aio_ring_file * @"struct--file.txt"
+}

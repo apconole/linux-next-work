@@ -1,0 +1,16 @@
+Version: 1.0
+File: include/net/sch_generic.h:299
+Symbol:
+Byte size 88
+struct tcf_block {
+0x0 chain_list @"struct--list_head.txt"
+0x10 index @"typedef--u32.txt"
+0x14 refcnt "unsigned int"
+0x18 net * @"struct--net.txt"
+0x20 q * @"struct--Qdisc.txt"
+0x28 cb_list @"struct--list_head.txt"
+0x38 owner_list @"struct--list_head.txt"
+0x48 keep_dst @"typedef--bool.txt"
+0x4c offloadcnt "unsigned int"
+0x50 nooffloaddevcnt "unsigned int"
+}

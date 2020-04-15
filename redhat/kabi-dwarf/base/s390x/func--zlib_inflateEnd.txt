@@ -1,0 +1,7 @@
+Version: 1.0
+File: lib/zlib_inflate/inflate.c:757
+Symbol:
+func zlib_inflateEnd (
+strm @"typedef--z_streamp.txt"
+)
+"int"

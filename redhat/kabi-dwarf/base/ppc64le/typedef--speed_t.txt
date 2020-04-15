@@ -1,0 +1,6 @@
+Version: 1.0
+File: arch/powerpc/include/uapi/asm/termbits.h:12
+Symbol:
+Byte size 4
+typedef speed_t
+"unsigned int"

@@ -1,0 +1,7 @@
+Version: 1.0
+File: drivers/base/bus.c:1023
+Symbol:
+func bus_unregister (
+bus * @"struct--bus_type.txt"
+)
+"void"

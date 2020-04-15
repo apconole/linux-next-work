@@ -1,0 +1,10 @@
+Version: 1.0
+File: include/linux/mmzone.h:244
+Symbol:
+Byte size 64
+struct per_cpu_pages {
+0x0 count "int"
+0x4 high "int"
+0x8 batch "int"
+0x10 lists [3]@"struct--list_head.txt"
+}

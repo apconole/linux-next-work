@@ -1,0 +1,8 @@
+Version: 1.0
+File: drivers/scsi/libfc/fc_lport.c:667
+Symbol:
+func fc_set_mfs (
+lport * @"struct--fc_lport.txt"
+mfs @"typedef--u32.txt"
+)
+"int"

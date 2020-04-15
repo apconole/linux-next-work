@@ -1,0 +1,11 @@
+Version: 1.0
+File: include/linux/binfmts.h:58
+Symbol:
+Byte size 40
+struct coredump_params {
+0x0 siginfo * @"typedef--siginfo_t.txt"
+0x8 regs * @"struct--pt_regs.txt"
+0x10 file * @"struct--file.txt"
+0x18 limit "long unsigned int"
+0x20 mm_flags "long unsigned int"
+}

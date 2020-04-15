@@ -1,0 +1,14 @@
+Version: 1.0
+File: mm/gup.c:929
+Symbol:
+func get_user_pages (
+tsk * @"struct--task_struct.txt"
+mm * @"struct--mm_struct.txt"
+start "long unsigned int"
+nr_pages "long unsigned int"
+write "int"
+force "int"
+pages * * @"struct--page.txt"
+vmas * * @"struct--vm_area_struct.txt"
+)
+"long int"

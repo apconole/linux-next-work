@@ -1,0 +1,7 @@
+Version: 1.0
+File: kernel/module.c:863
+Symbol:
+func module_refcount (
+mod * @"struct--module.txt"
+)
+"long unsigned int"

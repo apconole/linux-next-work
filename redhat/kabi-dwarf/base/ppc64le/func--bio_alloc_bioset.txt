@@ -1,0 +1,9 @@
+Version: 1.0
+File: fs/bio.c:429
+Symbol:
+func bio_alloc_bioset (
+gfp_mask @"typedef--gfp_t.txt"
+nr_iovecs "int"
+bs * @"struct--bio_set.txt"
+)
+* @"struct--bio.txt"

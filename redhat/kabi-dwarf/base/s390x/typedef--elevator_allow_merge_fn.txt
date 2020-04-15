@@ -1,0 +1,11 @@
+Version: 1.0
+File: include/linux/elevator.h:22
+Symbol:
+Byte size 4
+typedef elevator_allow_merge_fn
+func (NULL) (
+(NULL) * @"struct--request_queue.txt"
+(NULL) * @"struct--request.txt"
+(NULL) * @"struct--bio.txt"
+)
+"int"

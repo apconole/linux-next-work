@@ -1,0 +1,9 @@
+Version: 1.0
+File: mm/truncate.c:660
+Symbol:
+func invalidate_inode_pages2_range (
+mapping * @"struct--address_space.txt"
+start "long unsigned int"
+end "long unsigned int"
+)
+"int"

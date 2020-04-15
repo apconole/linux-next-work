@@ -1,0 +1,22 @@
+Version: 1.0
+File: include/linux/netfilter/x_tables.h:30
+Symbol:
+Byte size 56
+struct xt_action_param {
+0x0 (NULL) union (NULL) {
+match * const @"struct--xt_match.txt"
+target * const @"struct--xt_target.txt"
+}
+0x8 (NULL) union (NULL) {
+matchinfo * const "void"
+targinfo * const "void"
+}
+0x10 in * const @"struct--net_device.txt"
+0x18 out * const @"struct--net_device.txt"
+0x20 fragoff "int"
+0x24 thoff "unsigned int"
+0x28 hooknum "unsigned int"
+0x2c family @"typedef--u_int8_t.txt"
+0x2d hotdrop @"typedef--bool.txt"
+0x30 net * @"struct--net.txt"
+}

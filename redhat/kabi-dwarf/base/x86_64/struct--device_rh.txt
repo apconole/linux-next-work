@@ -1,0 +1,16 @@
+Version: 1.0
+File: include/linux/device.h:879
+Symbol:
+Byte size 56
+struct device_rh {
+0x0 power @"struct--dev_pm_info_rh.txt"
+0x8 pins * @"struct--dev_pin_info.txt"
+0x10 fwnode * @"struct--fwnode_handle.txt"
+0x18 dma_ops * @"struct--dma_map_ops.txt"
+0x20 class_shutdown_pre * func (NULL) (
+(NULL) * @"struct--device.txt"
+)
+"int"
+0x28 dma_pfn_offset "long unsigned int"
+0x30:0-1 of_node_reused @"typedef--bool.txt"
+}

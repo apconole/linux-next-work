@@ -1,0 +1,16 @@
+Version: 1.0
+File: include/linux/namei.h:14
+Symbol:
+Byte size 152
+struct nameidata {
+0x0 path @"struct--path.txt"
+0x10 last @"struct--qstr.txt"
+0x20 root @"struct--path.txt"
+0x30 inode * @"struct--inode.txt"
+0x38 flags "unsigned int"
+0x3c seq "unsigned int"
+0x40 last_type "int"
+0x44 depth "unsigned int"
+0x48 saved_names [9]* "char"
+0x90 m_seq "unsigned int"
+}

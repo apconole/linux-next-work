@@ -1,0 +1,5 @@
+Version: 1.0
+File: mm/memory.c:101
+Symbol:
+Byte size 8
+var num_physpages "long unsigned int"

@@ -1,0 +1,14 @@
+Version: 1.0
+File: include/linux/blkdev.h:300
+Symbol:
+Byte size 40
+struct blk_queue_tag {
+0x0 tag_index * * @"struct--request.txt"
+0x8 tag_map * "long unsigned int"
+0x10 busy "int"
+0x14 max_depth "int"
+0x18 real_max_depth "int"
+0x1c refcnt @"typedef--atomic_t.txt"
+0x20 alloc_policy "int"
+0x24 next_tag "int"
+}

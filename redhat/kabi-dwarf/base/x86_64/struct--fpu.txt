@@ -1,0 +1,9 @@
+Version: 1.0
+File: arch/x86/include/asm/processor.h:516
+Symbol:
+Byte size 16
+struct fpu {
+0x0 last_cpu "unsigned int"
+0x4 has_fpu "unsigned int"
+0x8 state * @"union--thread_xstate.txt"
+}

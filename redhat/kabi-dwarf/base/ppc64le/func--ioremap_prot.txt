@@ -1,0 +1,9 @@
+Version: 1.0
+File: arch/powerpc/mm/pgtable_64.c:291
+Symbol:
+func ioremap_prot (
+addr @"typedef--phys_addr_t.txt"
+size "long unsigned int"
+flags "long unsigned int"
+)
+* "void"

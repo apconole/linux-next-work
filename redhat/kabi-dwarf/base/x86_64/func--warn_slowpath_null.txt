@@ -1,0 +1,8 @@
+Version: 1.0
+File: kernel/panic.c:580
+Symbol:
+func warn_slowpath_null (
+file * const "char"
+line "int"
+)
+"void"

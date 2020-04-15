@@ -1,0 +1,21 @@
+Version: 1.0
+File: kernel/audit.h:83
+Symbol:
+Byte size 104
+struct audit_names {
+0x0 list @"struct--list_head.txt"
+0x10 name * @"struct--filename.txt"
+0x18 name_len "int"
+0x20 ino "long unsigned int"
+0x28 dev @"typedef--dev_t.txt"
+0x2c mode @"typedef--umode_t.txt"
+0x30 uid @"typedef--kuid_t.txt"
+0x34 gid @"typedef--kgid_t.txt"
+0x38 rdev @"typedef--dev_t.txt"
+0x3c osid @"typedef--u32.txt"
+0x40 fcap @"struct--audit_cap_data.txt"
+0x60 fcap_ver "unsigned int"
+0x64 type "unsigned char"
+0x65 hidden @"typedef--bool.txt"
+0x66 should_free @"typedef--bool.txt"
+}

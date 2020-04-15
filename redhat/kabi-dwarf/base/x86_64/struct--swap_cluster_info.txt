@@ -1,0 +1,9 @@
+Version: 1.0
+File: include/linux/swap.h:212
+Symbol:
+Byte size 8
+struct swap_cluster_info {
+0x0 lock @"typedef--spinlock_t.txt"
+0x4:0-24 data "unsigned int"
+0x7:0-8 flags "unsigned int"
+}

@@ -1,0 +1,15 @@
+Version: 1.0
+File: include/linux/filter.h:454
+Symbol:
+Byte size 32
+struct sk_filter {
+0x0 refcnt @"typedef--atomic_t.txt"
+0x4 len "unsigned int"
+0x8 bpf_func * func (NULL) (
+(NULL) * const @"struct--sk_buff.txt"
+(NULL) * const @"struct--sock_filter.txt"
+)
+"unsigned int"
+0x10 rcu @"struct--callback_head.txt"
+0x20 insns [0]@"struct--sock_filter.txt"
+}

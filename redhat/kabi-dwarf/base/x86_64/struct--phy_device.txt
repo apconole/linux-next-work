@@ -1,0 +1,48 @@
+Version: 1.0
+File: include/linux/phy.h:351
+Symbol:
+Byte size 1064
+struct phy_device {
+0x0 drv * @"struct--phy_driver.txt"
+0x8 mdio_bus * @"struct--mii_bus.txt"
+0x10 mdio_dev @"struct--device.txt"
+0x2b0 phy_id @"typedef--u32.txt"
+0x2b4 c45_ids @"struct--phy_c45_device_ids.txt"
+0x2d8 is_c45 @"typedef--bool.txt"
+0x2d9 is_internal @"typedef--bool.txt"
+0x2da suspended @"typedef--bool.txt"
+0x2dc state @"enum--phy_state.txt"
+0x2e0 dev_flags @"typedef--u32.txt"
+0x2e4 interface @"typedef--phy_interface_t.txt"
+0x2e8 mdio_addr "int"
+0x2ec speed "int"
+0x2f0 duplex "int"
+0x2f4 pause "int"
+0x2f8 asym_pause "int"
+0x2fc link "int"
+0x300 interrupts @"typedef--u32.txt"
+0x304 supported @"typedef--u32.txt"
+0x308 advertising @"typedef--u32.txt"
+0x30c autoneg "int"
+0x310 link_timeout "int"
+0x314 irq "int"
+0x318 priv * "void"
+0x320 phy_queue @"struct--work_struct.txt"
+0x340 state_queue @"struct--delayed_work.txt"
+0x3c0 irq_disable @"typedef--atomic_t.txt"
+0x3c8 lock @"struct--mutex.txt"
+0x3f0 attached_dev * @"struct--net_device.txt"
+0x3f8 adjust_link * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+)
+"void"
+0x400 rh_reserved_adjust_state * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+)
+"void"
+0x408 lp_advertising @"typedef--u32.txt"
+0x40c mdix @"typedef--u8.txt"
+0x410 mdio_flags "int"
+0x418 mdio_pm_ops * const @"struct--dev_pm_ops.txt"
+0x420 eee_broken_modes @"typedef--u32.txt"
+}

@@ -1,0 +1,58 @@
+Version: 1.0
+File: include/linux/mm.h:351
+Symbol:
+Byte size 80
+struct vm_operations_struct {
+0x0 open * func (NULL) (
+(NULL) * @"struct--vm_area_struct.txt"
+)
+"void"
+0x8 close * func (NULL) (
+(NULL) * @"struct--vm_area_struct.txt"
+)
+"void"
+0x10 fault * func (NULL) (
+(NULL) * @"struct--vm_area_struct.txt"
+(NULL) * @"struct--vm_fault.txt"
+)
+"int"
+0x18 page_mkwrite * func (NULL) (
+(NULL) * @"struct--vm_area_struct.txt"
+(NULL) * @"struct--vm_fault.txt"
+)
+"int"
+0x20 access * func (NULL) (
+(NULL) * @"struct--vm_area_struct.txt"
+(NULL) "long unsigned int"
+(NULL) * "void"
+(NULL) "int"
+(NULL) "int"
+)
+"int"
+0x28 remap_pages * func (NULL) (
+(NULL) * @"struct--vm_area_struct.txt"
+(NULL) "long unsigned int"
+(NULL) "long unsigned int"
+(NULL) "long unsigned int"
+)
+"int"
+0x30 pfn_mkwrite * func (NULL) (
+(NULL) * @"struct--vm_area_struct.txt"
+(NULL) * @"struct--vm_fault.txt"
+)
+"int"
+0x38 huge_fault * func (NULL) (
+(NULL) * @"struct--vm_fault.txt"
+(NULL) @"enum--page_entry_size.txt"
+)
+"int"
+0x40 split * func (NULL) (
+(NULL) * @"struct--vm_area_struct.txt"
+(NULL) "long unsigned int"
+)
+"int"
+0x48 pagesize * func (NULL) (
+(NULL) * @"struct--vm_area_struct.txt"
+)
+"long unsigned int"
+}

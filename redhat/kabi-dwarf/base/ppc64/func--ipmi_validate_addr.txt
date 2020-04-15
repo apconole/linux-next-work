@@ -1,0 +1,8 @@
+Version: 1.0
+File: drivers/char/ipmi/ipmi_msghandler.c:862
+Symbol:
+func ipmi_validate_addr (
+addr * @"struct--ipmi_addr.txt"
+len "int"
+)
+"int"

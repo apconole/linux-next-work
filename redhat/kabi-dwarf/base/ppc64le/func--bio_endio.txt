@@ -1,0 +1,8 @@
+Version: 1.0
+File: fs/bio.c:1850
+Symbol:
+func bio_endio (
+bio * @"struct--bio.txt"
+error "int"
+)
+"void"

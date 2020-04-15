@@ -1,0 +1,7 @@
+Version: 1.0
+File: fs/block_dev.c:233
+Symbol:
+func fsync_bdev (
+bdev * @"struct--block_device.txt"
+)
+"int"

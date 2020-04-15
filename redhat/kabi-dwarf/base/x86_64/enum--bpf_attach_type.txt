@@ -1,0 +1,11 @@
+Version: 1.0
+File: include/uapi/linux/bpf.h:133
+Symbol:
+Byte size 4
+enum bpf_attach_type {
+BPF_CGROUP_INET_INGRESS = 0x0
+BPF_CGROUP_INET_EGRESS = 0x1
+BPF_CGROUP_INET_SOCK_CREATE = 0x2
+BPF_CGROUP_SOCK_OPS = 0x3
+__MAX_BPF_ATTACH_TYPE = 0x4
+}

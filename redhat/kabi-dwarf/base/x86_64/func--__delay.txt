@@ -1,0 +1,7 @@
+Version: 1.0
+File: arch/x86/lib/delay.c:106
+Symbol:
+func __delay (
+loops "long unsigned int"
+)
+"void"

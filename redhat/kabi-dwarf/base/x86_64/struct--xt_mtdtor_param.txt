@@ -1,0 +1,10 @@
+Version: 1.0
+File: include/linux/netfilter/x_tables.h:110
+Symbol:
+Byte size 32
+struct xt_mtdtor_param {
+0x0 net * @"struct--net.txt"
+0x8 match * const @"struct--xt_match.txt"
+0x10 matchinfo * "void"
+0x18 family @"typedef--u_int8_t.txt"
+}

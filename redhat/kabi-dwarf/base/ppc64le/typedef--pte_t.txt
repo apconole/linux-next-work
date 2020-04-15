@@ -1,0 +1,5 @@
+Version: 1.0
+File: arch/powerpc/include/asm/page.h:336
+Symbol:
+typedef pte_t
+@"typedef--pte_basic_t.txt"

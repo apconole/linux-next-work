@@ -1,0 +1,8 @@
+Version: 1.0
+File: mm/mmu_notifier.c:461
+Symbol:
+func mmu_notifier_unregister (
+mn * @"struct--mmu_notifier.txt"
+mm * @"struct--mm_struct.txt"
+)
+"void"

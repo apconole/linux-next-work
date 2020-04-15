@@ -1,0 +1,16 @@
+Version: 1.0
+File: include/scsi/libfcoe.h:63
+Symbol:
+Byte size 4
+enum fip_state {
+FIP_ST_DISABLED = 0x0
+FIP_ST_LINK_WAIT = 0x1
+FIP_ST_AUTO = 0x2
+FIP_ST_NON_FIP = 0x3
+FIP_ST_ENABLED = 0x4
+FIP_ST_VNMP_START = 0x5
+FIP_ST_VNMP_PROBE1 = 0x6
+FIP_ST_VNMP_PROBE2 = 0x7
+FIP_ST_VNMP_CLAIM = 0x8
+FIP_ST_VNMP_UP = 0x9
+}

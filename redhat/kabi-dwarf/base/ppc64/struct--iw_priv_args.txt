@@ -1,0 +1,10 @@
+Version: 1.0
+File: include/uapi/linux/wireless.h:1073
+Symbol:
+Byte size 24
+struct iw_priv_args {
+0x0 cmd @"typedef--__u32.txt"
+0x4 set_args @"typedef--__u16.txt"
+0x6 get_args @"typedef--__u16.txt"
+0x8 name [16]"char"
+}

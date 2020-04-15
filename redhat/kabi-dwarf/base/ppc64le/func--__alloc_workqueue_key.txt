@@ -1,0 +1,12 @@
+Version: 1.0
+File: kernel/workqueue.c:4460
+Symbol:
+func __alloc_workqueue_key (
+fmt * const "char"
+flags "unsigned int"
+max_active "int"
+key * @"struct--lock_class_key.txt"
+lock_name * const "char"
+(NULL) ...
+)
+* @"struct--workqueue_struct.txt"

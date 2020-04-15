@@ -1,0 +1,8 @@
+Version: 1.0
+File: drivers/char/random.c:1521
+Symbol:
+func get_random_bytes (
+buf * "void"
+nbytes "int"
+)
+"void"

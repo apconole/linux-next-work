@@ -1,0 +1,195 @@
+Version: 1.0
+File: include/net/sock.h:980
+Symbol:
+Byte size 408
+struct proto {
+0x0 close * func (NULL) (
+(NULL) * @"struct--sock.txt"
+(NULL) "long int"
+)
+"void"
+0x8 connect * func (NULL) (
+(NULL) * @"struct--sock.txt"
+(NULL) * @"struct--sockaddr.txt"
+(NULL) "int"
+)
+"int"
+0x10 disconnect * func (NULL) (
+(NULL) * @"struct--sock.txt"
+(NULL) "int"
+)
+"int"
+0x18 accept * func (NULL) (
+(NULL) * @"struct--sock.txt"
+(NULL) "int"
+(NULL) * "int"
+)
+* @"struct--sock.txt"
+0x20 ioctl * func (NULL) (
+(NULL) * @"struct--sock.txt"
+(NULL) "int"
+(NULL) "long unsigned int"
+)
+"int"
+0x28 init * func (NULL) (
+(NULL) * @"struct--sock.txt"
+)
+"int"
+0x30 destroy * func (NULL) (
+(NULL) * @"struct--sock.txt"
+)
+"void"
+0x38 shutdown * func (NULL) (
+(NULL) * @"struct--sock.txt"
+(NULL) "int"
+)
+"void"
+0x40 setsockopt * func (NULL) (
+(NULL) * @"struct--sock.txt"
+(NULL) "int"
+(NULL) "int"
+(NULL) * "char"
+(NULL) "unsigned int"
+)
+"int"
+0x48 getsockopt * func (NULL) (
+(NULL) * @"struct--sock.txt"
+(NULL) "int"
+(NULL) "int"
+(NULL) * "char"
+(NULL) * "int"
+)
+"int"
+0x50 compat_setsockopt * func (NULL) (
+(NULL) * @"struct--sock.txt"
+(NULL) "int"
+(NULL) "int"
+(NULL) * "char"
+(NULL) "unsigned int"
+)
+"int"
+0x58 compat_getsockopt * func (NULL) (
+(NULL) * @"struct--sock.txt"
+(NULL) "int"
+(NULL) "int"
+(NULL) * "char"
+(NULL) * "int"
+)
+"int"
+0x60 compat_ioctl * func (NULL) (
+(NULL) * @"struct--sock.txt"
+(NULL) "unsigned int"
+(NULL) "long unsigned int"
+)
+"int"
+0x68 sendmsg * func (NULL) (
+(NULL) * @"struct--kiocb.txt"
+(NULL) * @"struct--sock.txt"
+(NULL) * @"struct--msghdr.txt"
+(NULL) @"typedef--size_t.txt"
+)
+"int"
+0x70 recvmsg * func (NULL) (
+(NULL) * @"struct--kiocb.txt"
+(NULL) * @"struct--sock.txt"
+(NULL) * @"struct--msghdr.txt"
+(NULL) @"typedef--size_t.txt"
+(NULL) "int"
+(NULL) "int"
+(NULL) * "int"
+)
+"int"
+0x78 sendpage * func (NULL) (
+(NULL) * @"struct--sock.txt"
+(NULL) * @"struct--page.txt"
+(NULL) "int"
+(NULL) @"typedef--size_t.txt"
+(NULL) "int"
+)
+"int"
+0x80 bind * func (NULL) (
+(NULL) * @"struct--sock.txt"
+(NULL) * @"struct--sockaddr.txt"
+(NULL) "int"
+)
+"int"
+0x88 backlog_rcv * func (NULL) (
+(NULL) * @"struct--sock.txt"
+(NULL) * @"struct--sk_buff.txt"
+)
+"int"
+0x90 release_cb * func (NULL) (
+(NULL) * @"struct--sock.txt"
+)
+"void"
+0x98 mtu_reduced * func (NULL) (
+(NULL) * @"struct--sock.txt"
+)
+"void"
+0xa0 hash * func (NULL) (
+(NULL) * @"struct--sock.txt"
+)
+"void"
+0xa8 unhash * func (NULL) (
+(NULL) * @"struct--sock.txt"
+)
+"void"
+0xb0 rehash * func (NULL) (
+(NULL) * @"struct--sock.txt"
+)
+"void"
+0xb8 get_port * func (NULL) (
+(NULL) * @"struct--sock.txt"
+(NULL) "short unsigned int"
+)
+"int"
+0xc0 clear_sk * func (NULL) (
+(NULL) * @"struct--sock.txt"
+(NULL) "int"
+)
+"void"
+0xc8 inuse_idx "unsigned int"
+0xd0 stream_memory_free * func (NULL) (
+(NULL) * const @"struct--sock.txt"
+)
+@"typedef--bool.txt"
+0xd8 enter_memory_pressure * func (NULL) (
+(NULL) * @"struct--sock.txt"
+)
+"void"
+0xe0 memory_allocated * @"typedef--atomic_long_t.txt"
+0xe8 sockets_allocated * @"struct--percpu_counter.txt"
+0xf0 memory_pressure * "int"
+0xf8 sysctl_mem * "long int"
+0x100 sysctl_wmem * "int"
+0x108 sysctl_rmem * "int"
+0x110 max_header "int"
+0x114 no_autobind @"typedef--bool.txt"
+0x118 slab * @"struct--kmem_cache.txt"
+0x120 obj_size "unsigned int"
+0x124 slab_flags "int"
+0x128 orphan_count * @"struct--percpu_counter.txt"
+0x130 rsk_prot * @"struct--request_sock_ops.txt"
+0x138 twsk_prot * @"struct--timewait_sock_ops.txt"
+0x140 h union (NULL) {
+hashinfo * @"struct--inet_hashinfo.txt"
+udp_table * @"struct--udp_table.txt"
+raw_hash * @"<declarations>/struct--raw_hashinfo.txt"
+}
+0x148 owner * @"struct--module.txt"
+0x150 name [32]"char"
+0x170 node @"struct--list_head.txt"
+0x180 init_cgroup * func (NULL) (
+(NULL) * @"<declarations>/struct--mem_cgroup.txt"
+(NULL) * @"struct--cgroup_subsys.txt"
+)
+"int"
+0x188 destroy_cgroup * func (NULL) (
+(NULL) * @"<declarations>/struct--mem_cgroup.txt"
+)
+"void"
+0x190 proto_cgroup * func (NULL) (
+(NULL) * @"<declarations>/struct--mem_cgroup.txt"
+)
+* @"struct--cg_proto.txt"
+}

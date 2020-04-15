@@ -1,0 +1,10 @@
+Version: 1.0
+File: include/linux/blkdev.h:272
+Symbol:
+Byte size 32
+struct bvec_merge_data {
+0x0 bi_bdev * @"struct--block_device.txt"
+0x8 bi_sector @"typedef--sector_t.txt"
+0x10 bi_size "unsigned int"
+0x18 bi_rw "long unsigned int"
+}

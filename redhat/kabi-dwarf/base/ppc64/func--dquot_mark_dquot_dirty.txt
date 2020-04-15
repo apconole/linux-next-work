@@ -1,0 +1,7 @@
+Version: 1.0
+File: fs/quota/dquot.c:341
+Symbol:
+func dquot_mark_dquot_dirty (
+dquot * @"struct--dquot.txt"
+)
+"int"

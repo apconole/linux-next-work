@@ -1,0 +1,7 @@
+Version: 1.0
+File: drivers/scsi/scsi_transport_fc.c:2004
+Symbol:
+func scsi_is_fc_rport (
+dev * const @"struct--device.txt"
+)
+"int"

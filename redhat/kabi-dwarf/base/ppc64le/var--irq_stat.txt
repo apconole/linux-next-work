@@ -1,0 +1,4 @@
+Version: 1.0
+File: arch/powerpc/kernel/irq.c:81
+Symbol:
+var irq_stat @"typedef--irq_cpustat_t.txt"

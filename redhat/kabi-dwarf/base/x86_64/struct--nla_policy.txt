@@ -1,0 +1,9 @@
+Version: 1.0
+File: include/net/netlink.h:220
+Symbol:
+Byte size 16
+struct nla_policy {
+0x0 type @"typedef--u16.txt"
+0x2 len @"typedef--u16.txt"
+0x8 validation_data * "void"
+}

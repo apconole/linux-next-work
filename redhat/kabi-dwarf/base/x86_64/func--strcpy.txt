@@ -1,0 +1,8 @@
+Version: 1.0
+File: lib/string.c:101
+Symbol:
+func strcpy (
+dest * "char"
+src * const "char"
+)
+* "char"

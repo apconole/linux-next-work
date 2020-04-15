@@ -1,0 +1,10 @@
+Version: 1.0
+File: include/linux/blkdev.h:268
+Symbol:
+Byte size 4
+typedef prep_rq_fn
+func (NULL) (
+(NULL) * @"struct--request_queue.txt"
+(NULL) * @"struct--request.txt"
+)
+"int"

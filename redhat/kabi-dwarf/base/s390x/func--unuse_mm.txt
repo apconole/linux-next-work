@@ -1,0 +1,7 @@
+Version: 1.0
+File: mm/mmu_context.c:48
+Symbol:
+func unuse_mm (
+mm * @"struct--mm_struct.txt"
+)
+"void"

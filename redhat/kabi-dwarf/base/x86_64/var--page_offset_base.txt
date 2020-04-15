@@ -1,0 +1,5 @@
+Version: 1.0
+File: arch/x86/mm/kaslr.c:58
+Symbol:
+Byte size 8
+var page_offset_base "long unsigned int"

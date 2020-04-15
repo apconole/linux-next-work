@@ -1,0 +1,8 @@
+Version: 1.0
+File: include/linux/idr.h:214
+Symbol:
+Byte size 48
+struct ida {
+0x0 idr @"struct--idr.txt"
+0x28 free_bitmap * @"struct--ida_bitmap.txt"
+}

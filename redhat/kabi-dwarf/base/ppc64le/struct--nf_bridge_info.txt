@@ -1,0 +1,26 @@
+Version: 1.0
+File: include/linux/skbuff.h:254
+Symbol:
+Byte size 56
+struct nf_bridge_info {
+0x0 use @"typedef--atomic_t.txt"
+0x4:0-8 orig_proto enum (NULL) {
+BRNF_PROTO_UNCHANGED = 0x0
+BRNF_PROTO_8021Q = 0x1
+BRNF_PROTO_PPPOE = 0x2
+}
+0x5:0-1 pkt_otherhost @"typedef--u8.txt"
+0x5:1-2 in_prerouting @"typedef--u8.txt"
+0x5:2-3 bridged_dnat @"typedef--u8.txt"
+0x6 frag_max_size @"typedef--__u16.txt"
+0x8 physindev * @"struct--net_device.txt"
+0x10 physoutdev * @"struct--net_device.txt"
+0x18 (NULL) union (NULL) {
+(NULL) union (NULL) {
+ipv4_daddr @"typedef--__be32.txt"
+ipv6_daddr @"struct--in6_addr.txt"
+neigh_header [8]"char"
+}
+rh_unused [4]"long unsigned int"
+}
+}

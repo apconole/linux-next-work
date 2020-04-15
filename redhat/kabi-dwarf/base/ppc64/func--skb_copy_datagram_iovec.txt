@@ -1,0 +1,10 @@
+Version: 1.0
+File: net/core/datagram.c:393
+Symbol:
+func skb_copy_datagram_iovec (
+skb * const @"struct--sk_buff.txt"
+offset "int"
+to * @"struct--iovec.txt"
+len "int"
+)
+"int"

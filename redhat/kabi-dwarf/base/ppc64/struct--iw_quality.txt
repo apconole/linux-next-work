@@ -1,0 +1,10 @@
+Version: 1.0
+File: include/uapi/linux/wireless.h:712
+Symbol:
+Byte size 4
+struct iw_quality {
+0x0 qual @"typedef--__u8.txt"
+0x1 level @"typedef--__u8.txt"
+0x2 noise @"typedef--__u8.txt"
+0x3 updated @"typedef--__u8.txt"
+}

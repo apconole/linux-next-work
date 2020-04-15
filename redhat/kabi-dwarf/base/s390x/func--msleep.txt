@@ -1,0 +1,7 @@
+Version: 1.0
+File: kernel/timer.c:1718
+Symbol:
+func msleep (
+msecs "unsigned int"
+)
+"void"

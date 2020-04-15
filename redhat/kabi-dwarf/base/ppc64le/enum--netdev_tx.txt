@@ -1,0 +1,10 @@
+Version: 1.0
+File: include/linux/netdevice.h:127
+Symbol:
+Byte size 4
+enum netdev_tx {
+__NETDEV_TX_MIN = 0xffffffff80000000
+NETDEV_TX_OK = 0x0
+NETDEV_TX_BUSY = 0x10
+NETDEV_TX_LOCKED = 0x20
+}

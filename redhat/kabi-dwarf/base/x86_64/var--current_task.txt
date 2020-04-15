@@ -1,0 +1,5 @@
+Version: 1.0
+File: arch/x86/kernel/cpu/common.c:1511
+Symbol:
+Byte size 8
+var current_task * @"struct--task_struct.txt"

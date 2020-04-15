@@ -1,0 +1,7 @@
+Version: 1.0
+File: net/core/dev.c:4205
+Symbol:
+func netdev_rx_handler_unregister (
+dev * @"struct--net_device.txt"
+)
+"void"

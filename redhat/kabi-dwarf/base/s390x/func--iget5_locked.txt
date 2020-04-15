@@ -1,0 +1,19 @@
+Version: 1.0
+File: fs/inode.c:1138
+Symbol:
+func iget5_locked (
+sb * @"struct--super_block.txt"
+hashval "long unsigned int"
+test * func (NULL) (
+(NULL) * @"struct--inode.txt"
+(NULL) * "void"
+)
+"int"
+set * func (NULL) (
+(NULL) * @"struct--inode.txt"
+(NULL) * "void"
+)
+"int"
+data * "void"
+)
+* @"struct--inode.txt"

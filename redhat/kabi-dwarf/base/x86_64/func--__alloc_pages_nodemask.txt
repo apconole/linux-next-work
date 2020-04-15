@@ -1,0 +1,10 @@
+Version: 1.0
+File: mm/page_alloc.c:3395
+Symbol:
+func __alloc_pages_nodemask (
+gfp_mask @"typedef--gfp_t.txt"
+order "unsigned int"
+zonelist * @"struct--zonelist.txt"
+nodemask * @"typedef--nodemask_t.txt"
+)
+* @"struct--page.txt"

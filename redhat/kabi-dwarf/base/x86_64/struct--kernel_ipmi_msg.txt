@@ -1,0 +1,10 @@
+Version: 1.0
+File: include/uapi/linux/ipmi.h:140
+Symbol:
+Byte size 16
+struct kernel_ipmi_msg {
+0x0 netfn "unsigned char"
+0x1 cmd "unsigned char"
+0x2 data_len "short unsigned int"
+0x8 data * "unsigned char"
+}

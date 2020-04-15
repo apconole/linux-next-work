@@ -1,0 +1,29 @@
+Version: 1.0
+File: include/net/xfrm.h:527
+Symbol:
+Byte size 856
+struct xfrm_policy {
+0x0 xp_net * @"struct--net.txt"
+0x8 bydst @"struct--hlist_node.txt"
+0x18 byidx @"struct--hlist_node.txt"
+0x28 lock @"typedef--rwlock_t.txt"
+0x30 refcnt @"typedef--atomic_t.txt"
+0x38 timer @"struct--timer_list.txt"
+0x88 flo @"struct--flow_cache_object.txt"
+0x90 genid @"typedef--atomic_t.txt"
+0x94 priority @"typedef--u32.txt"
+0x98 index @"typedef--u32.txt"
+0x9c mark @"struct--xfrm_mark.txt"
+0xa4 selector @"struct--xfrm_selector.txt"
+0xe0 lft @"struct--xfrm_lifetime_cfg.txt"
+0x120 curlft @"struct--xfrm_lifetime_cur.txt"
+0x140 walk @"struct--xfrm_policy_walk_entry.txt"
+0x158 polq @"struct--xfrm_policy_queue.txt"
+0x1c8 type @"typedef--u8.txt"
+0x1c9 action @"typedef--u8.txt"
+0x1ca flags @"typedef--u8.txt"
+0x1cb xfrm_nr @"typedef--u8.txt"
+0x1cc family @"typedef--u16.txt"
+0x1d0 security * @"struct--xfrm_sec_ctx.txt"
+0x1d8 xfrm_vec [6]@"struct--xfrm_tmpl.txt"
+}

@@ -1,0 +1,23 @@
+Version: 1.0
+File: include/scsi/libfc.h:63
+Symbol:
+Byte size 4
+enum fc_lport_state {
+LPORT_ST_DISABLED = 0x0
+LPORT_ST_FLOGI = 0x1
+LPORT_ST_DNS = 0x2
+LPORT_ST_RNN_ID = 0x3
+LPORT_ST_RSNN_NN = 0x4
+LPORT_ST_RSPN_ID = 0x5
+LPORT_ST_RFT_ID = 0x6
+LPORT_ST_RFF_ID = 0x7
+LPORT_ST_FDMI = 0x8
+LPORT_ST_RHBA = 0x9
+LPORT_ST_RPA = 0xa
+LPORT_ST_DHBA = 0xb
+LPORT_ST_DPRT = 0xc
+LPORT_ST_SCR = 0xd
+LPORT_ST_READY = 0xe
+LPORT_ST_LOGO = 0xf
+LPORT_ST_RESET = 0x10
+}

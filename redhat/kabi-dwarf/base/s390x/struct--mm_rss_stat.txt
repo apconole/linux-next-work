@@ -1,0 +1,7 @@
+Version: 1.0
+File: include/linux/mm_types.h:396
+Symbol:
+Byte size 24
+struct mm_rss_stat {
+0x0 count [3]@"typedef--atomic_long_t.txt"
+}

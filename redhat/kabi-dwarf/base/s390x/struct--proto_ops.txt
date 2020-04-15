@@ -1,0 +1,160 @@
+Version: 1.0
+File: include/linux/net.h:130
+Symbol:
+Byte size 192
+struct proto_ops {
+0x0 family "int"
+0x8 owner * @"struct--module.txt"
+0x10 release * func (NULL) (
+(NULL) * @"struct--socket.txt"
+)
+"int"
+0x18 bind * func (NULL) (
+(NULL) * @"struct--socket.txt"
+(NULL) * @"struct--sockaddr.txt"
+(NULL) "int"
+)
+"int"
+0x20 connect * func (NULL) (
+(NULL) * @"struct--socket.txt"
+(NULL) * @"struct--sockaddr.txt"
+(NULL) "int"
+(NULL) "int"
+)
+"int"
+0x28 socketpair * func (NULL) (
+(NULL) * @"struct--socket.txt"
+(NULL) * @"struct--socket.txt"
+)
+"int"
+0x30 accept * func (NULL) (
+(NULL) * @"struct--socket.txt"
+(NULL) * @"struct--socket.txt"
+(NULL) "int"
+)
+"int"
+0x38 getname * func (NULL) (
+(NULL) * @"struct--socket.txt"
+(NULL) * @"struct--sockaddr.txt"
+(NULL) * "int"
+(NULL) "int"
+)
+"int"
+0x40 poll * func (NULL) (
+(NULL) * @"struct--file.txt"
+(NULL) * @"struct--socket.txt"
+(NULL) * @"struct--poll_table_struct.txt"
+)
+"unsigned int"
+0x48 ioctl * func (NULL) (
+(NULL) * @"struct--socket.txt"
+(NULL) "unsigned int"
+(NULL) "long unsigned int"
+)
+"int"
+0x50 compat_ioctl * func (NULL) (
+(NULL) * @"struct--socket.txt"
+(NULL) "unsigned int"
+(NULL) "long unsigned int"
+)
+"int"
+0x58 listen * func (NULL) (
+(NULL) * @"struct--socket.txt"
+(NULL) "int"
+)
+"int"
+0x60 shutdown * func (NULL) (
+(NULL) * @"struct--socket.txt"
+(NULL) "int"
+)
+"int"
+0x68 setsockopt * func (NULL) (
+(NULL) * @"struct--socket.txt"
+(NULL) "int"
+(NULL) "int"
+(NULL) * "char"
+(NULL) "unsigned int"
+)
+"int"
+0x70 getsockopt * func (NULL) (
+(NULL) * @"struct--socket.txt"
+(NULL) "int"
+(NULL) "int"
+(NULL) * "char"
+(NULL) * "int"
+)
+"int"
+0x78 compat_setsockopt * func (NULL) (
+(NULL) * @"struct--socket.txt"
+(NULL) "int"
+(NULL) "int"
+(NULL) * "char"
+(NULL) "unsigned int"
+)
+"int"
+0x80 compat_getsockopt * func (NULL) (
+(NULL) * @"struct--socket.txt"
+(NULL) "int"
+(NULL) "int"
+(NULL) * "char"
+(NULL) * "int"
+)
+"int"
+0x88 sendmsg * func (NULL) (
+(NULL) * @"struct--kiocb.txt"
+(NULL) * @"struct--socket.txt"
+(NULL) * @"struct--msghdr.txt"
+(NULL) @"typedef--size_t.txt"
+)
+"int"
+0x90 recvmsg * func (NULL) (
+(NULL) * @"struct--kiocb.txt"
+(NULL) * @"struct--socket.txt"
+(NULL) * @"struct--msghdr.txt"
+(NULL) @"typedef--size_t.txt"
+(NULL) "int"
+)
+"int"
+0x98 mmap * func (NULL) (
+(NULL) * @"struct--file.txt"
+(NULL) * @"struct--socket.txt"
+(NULL) * @"struct--vm_area_struct.txt"
+)
+"int"
+0xa0 sendpage * func (NULL) (
+(NULL) * @"struct--socket.txt"
+(NULL) * @"struct--page.txt"
+(NULL) "int"
+(NULL) @"typedef--size_t.txt"
+(NULL) "int"
+)
+@"typedef--ssize_t.txt"
+0xa8 splice_read * func (NULL) (
+(NULL) * @"struct--socket.txt"
+(NULL) * @"typedef--loff_t.txt"
+(NULL) * @"struct--pipe_inode_info.txt"
+(NULL) @"typedef--size_t.txt"
+(NULL) "unsigned int"
+)
+@"typedef--ssize_t.txt"
+0xb0 (NULL) union (NULL) {
+set_peek_off * func (NULL) (
+(NULL) * @"struct--sock.txt"
+(NULL) "int"
+)
+"int"
+__UNIQUE_ID_rh_kabi_hide25 struct (NULL) {
+0x0 set_peek_off * func (NULL) (
+(NULL) * @"struct--sock.txt"
+(NULL) "int"
+)
+"void"
+}
+(NULL) union (NULL) {
+}
+}
+0xb8 peek_len * func (NULL) (
+(NULL) * @"struct--socket.txt"
+)
+"int"
+}

@@ -1,0 +1,6 @@
+Version: 1.0
+File: arch/s390/include/uapi/asm/posix_types.h:15
+Symbol:
+Byte size 8
+typedef __kernel_size_t
+"long unsigned int"

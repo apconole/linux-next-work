@@ -1,0 +1,7 @@
+Version: 1.0
+File: kernel/spinlock.c:352
+Symbol:
+func _raw_write_unlock_bh (
+lock * @"typedef--rwlock_t.txt"
+)
+"void"

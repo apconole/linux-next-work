@@ -1,0 +1,27 @@
+Version: 1.0
+File: arch/x86/include/asm/paravirt_types.h:344
+Symbol:
+Byte size 48
+struct pv_lock_ops {
+0x0 lock_spinning @"struct--paravirt_callee_save.txt"
+0x8 unlock_kick * func (NULL) (
+(NULL) * @"<declarations>/struct--arch_spinlock.txt"
+(NULL) @"typedef--u16.txt"
+)
+"void"
+0x10 queued_spin_unlock @"struct--paravirt_callee_save.txt"
+0x18 queued_spin_lock_slowpath * func (NULL) (
+(NULL) * @"struct--qspinlock.txt"
+(NULL) @"typedef--u32.txt"
+)
+"void"
+0x20 wait * func (NULL) (
+(NULL) * @"typedef--u8.txt"
+(NULL) @"typedef--u8.txt"
+)
+"void"
+0x28 kick * func (NULL) (
+(NULL) "int"
+)
+"void"
+}

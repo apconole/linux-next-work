@@ -1,0 +1,8 @@
+Version: 1.0
+File: include/linux/timerqueue.h:13
+Symbol:
+Byte size 16
+struct timerqueue_head {
+0x0 head @"struct--rb_root.txt"
+0x8 next * @"struct--timerqueue_node.txt"
+}

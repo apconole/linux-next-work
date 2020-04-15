@@ -1,0 +1,8 @@
+Version: 1.0
+File: drivers/video/fbsysfs.c:39
+Symbol:
+func framebuffer_alloc (
+size @"typedef--size_t.txt"
+dev * @"struct--device.txt"
+)
+* @"struct--fb_info.txt"

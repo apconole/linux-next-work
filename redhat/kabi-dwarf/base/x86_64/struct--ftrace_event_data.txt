@@ -1,0 +1,8 @@
+Version: 1.0
+File: include/linux/ftrace_event.h:260
+Symbol:
+Byte size 16
+struct ftrace_event_data {
+0x0 data * "void"
+0x8 prog_array * @"struct--bpf_prog_array.txt"
+}

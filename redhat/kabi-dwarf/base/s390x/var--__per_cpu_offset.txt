@@ -1,0 +1,5 @@
+Version: 1.0
+File: mm/percpu.c:2930
+Symbol:
+Byte size 2048
+var __per_cpu_offset [256]"long unsigned int"

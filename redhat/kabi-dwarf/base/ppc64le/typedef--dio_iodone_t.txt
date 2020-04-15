@@ -1,0 +1,13 @@
+Version: 1.0
+File: include/linux/fs.h:71
+Symbol:
+typedef dio_iodone_t
+func (NULL) (
+(NULL) * @"struct--kiocb.txt"
+(NULL) @"typedef--loff_t.txt"
+(NULL) @"typedef--ssize_t.txt"
+(NULL) * "void"
+(NULL) "int"
+(NULL) @"typedef--bool.txt"
+)
+"void"

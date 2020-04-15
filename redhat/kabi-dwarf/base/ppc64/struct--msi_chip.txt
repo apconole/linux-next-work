@@ -1,0 +1,28 @@
+Version: 1.0
+File: include/linux/msi.h:84
+Symbol:
+Byte size 64
+struct msi_chip {
+0x0 owner * @"<declarations>/struct--module.txt"
+0x8 dev * @"struct--device.txt"
+0x10 of_node * @"struct--device_node.txt"
+0x18 list @"struct--list_head.txt"
+0x28 setup_irq * func (NULL) (
+(NULL) * @"struct--msi_chip.txt"
+(NULL) * @"struct--pci_dev.txt"
+(NULL) * @"struct--msi_desc.txt"
+)
+"int"
+0x30 teardown_irq * func (NULL) (
+(NULL) * @"struct--msi_chip.txt"
+(NULL) "unsigned int"
+)
+"void"
+0x38 check_device * func (NULL) (
+(NULL) * @"struct--msi_chip.txt"
+(NULL) * @"struct--pci_dev.txt"
+(NULL) "int"
+(NULL) "int"
+)
+"int"
+}

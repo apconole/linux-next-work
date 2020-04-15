@@ -1,0 +1,4 @@
+Version: 1.0
+File: arch/s390/kernel/irq.c:28
+Symbol:
+var irq_stat @"struct--irq_stat.txt"

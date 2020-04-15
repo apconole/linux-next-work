@@ -1,0 +1,8 @@
+Version: 1.0
+File: include/linux/efi.h:514
+Symbol:
+typedef efi_get_next_high_mono_count_t
+func (NULL) (
+(NULL) * @"typedef--u32.txt"
+)
+@"typedef--efi_status_t.txt"

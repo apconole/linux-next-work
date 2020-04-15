@@ -1,0 +1,14 @@
+Version: 1.0
+File: arch/powerpc/include/asm/iommu.h:189
+Symbol:
+Byte size 56
+struct iommu_table_group {
+0x0 tce32_start @"typedef--__u32.txt"
+0x4 tce32_size @"typedef--__u32.txt"
+0x8 pgsizes @"typedef--__u64.txt"
+0x10 max_dynamic_windows_supported @"typedef--__u32.txt"
+0x14 max_levels @"typedef--__u32.txt"
+0x18 group * @"<declarations>/struct--iommu_group.txt"
+0x20 tables [2]* @"struct--iommu_table.txt"
+0x30 ops * @"struct--iommu_table_group_ops.txt"
+}

@@ -1,0 +1,49 @@
+Version: 1.0
+File: include/linux/ipmi_smi.h:61
+Symbol:
+Byte size 80
+struct ipmi_smi_handlers {
+0x0 owner * @"struct--module.txt"
+0x8 start_processing * func (NULL) (
+(NULL) * "void"
+(NULL) @"typedef--ipmi_smi_t.txt"
+)
+"int"
+0x10 get_smi_info * func (NULL) (
+(NULL) * "void"
+(NULL) * @"struct--ipmi_smi_info.txt"
+)
+"int"
+0x18 sender * func (NULL) (
+(NULL) * "void"
+(NULL) * @"struct--ipmi_smi_msg.txt"
+(NULL) "int"
+)
+"void"
+0x20 request_events * func (NULL) (
+(NULL) * "void"
+)
+"void"
+0x28 set_run_to_completion * func (NULL) (
+(NULL) * "void"
+(NULL) "int"
+)
+"void"
+0x30 poll * func (NULL) (
+(NULL) * "void"
+)
+"void"
+0x38 set_maintenance_mode * func (NULL) (
+(NULL) * "void"
+(NULL) "int"
+)
+"void"
+0x40 inc_usecount * func (NULL) (
+(NULL) * "void"
+)
+"int"
+0x48 dec_usecount * func (NULL) (
+(NULL) * "void"
+)
+"void"
+}

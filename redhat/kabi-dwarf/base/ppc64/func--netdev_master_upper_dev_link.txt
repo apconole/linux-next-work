@@ -1,0 +1,8 @@
+Version: 1.0
+File: net/core/dev.c:6405
+Symbol:
+func netdev_master_upper_dev_link (
+dev * @"struct--net_device.txt"
+upper_dev * @"struct--net_device.txt"
+)
+"int"

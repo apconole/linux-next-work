@@ -1,0 +1,12 @@
+Version: 1.0
+File: include/linux/interrupt.h:647
+Symbol:
+Byte size 144
+struct tasklet_hrtimer {
+0x0 timer @"struct--hrtimer.txt"
+0x60 tasklet @"struct--tasklet_struct.txt"
+0x88 function * func (NULL) (
+(NULL) * @"struct--hrtimer.txt"
+)
+@"enum--hrtimer_restart.txt"
+}

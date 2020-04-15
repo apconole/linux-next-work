@@ -1,0 +1,7 @@
+Version: 1.0
+File: mm/filemap.c:836
+Symbol:
+func __lock_page (
+page * @"struct--page.txt"
+)
+"void"

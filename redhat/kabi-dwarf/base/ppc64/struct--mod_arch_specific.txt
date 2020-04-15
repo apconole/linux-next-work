@@ -1,0 +1,12 @@
+Version: 1.0
+File: arch/powerpc/include/asm/module.h:35
+Symbol:
+Byte size 40
+struct mod_arch_specific {
+0x0 stubs_section "unsigned int"
+0x4 toc_section "unsigned int"
+0x8 bug_list @"struct--list_head.txt"
+0x18 bug_table * @"struct--bug_entry.txt"
+0x20 num_bugs "unsigned int"
+0x24 toc_fixed @"typedef--bool.txt"
+}

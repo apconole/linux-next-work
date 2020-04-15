@@ -1,0 +1,8 @@
+Version: 1.0
+File: include/linux/module.h:220
+Symbol:
+Byte size 16
+struct module_ref {
+0x0 incs "long unsigned int"
+0x8 decs "long unsigned int"
+}

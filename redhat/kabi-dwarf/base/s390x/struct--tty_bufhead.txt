@@ -1,0 +1,12 @@
+Version: 1.0
+File: include/linux/tty.h:55
+Symbol:
+Byte size 72
+struct tty_bufhead {
+0x0 work @"struct--work_struct.txt"
+0x20 lock @"typedef--spinlock_t.txt"
+0x28 head * @"struct--tty_buffer.txt"
+0x30 tail * @"struct--tty_buffer.txt"
+0x38 free * @"struct--tty_buffer.txt"
+0x40 memory_used "int"
+}

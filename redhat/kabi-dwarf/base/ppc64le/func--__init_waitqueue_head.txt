@@ -1,0 +1,9 @@
+Version: 1.0
+File: kernel/wait.c:14
+Symbol:
+func __init_waitqueue_head (
+q * @"typedef--wait_queue_head_t.txt"
+name * const "char"
+key * @"struct--lock_class_key.txt"
+)
+"void"

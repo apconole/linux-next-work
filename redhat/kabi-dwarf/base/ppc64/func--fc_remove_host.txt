@@ -1,0 +1,7 @@
+Version: 1.0
+File: drivers/scsi/scsi_transport_fc.c:2446
+Symbol:
+func fc_remove_host (
+shost * @"struct--Scsi_Host.txt"
+)
+"void"

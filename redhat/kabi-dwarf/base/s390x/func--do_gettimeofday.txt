@@ -1,0 +1,7 @@
+Version: 1.0
+File: kernel/time/timekeeping.c:851
+Symbol:
+func do_gettimeofday (
+tv * @"struct--timeval.txt"
+)
+"void"

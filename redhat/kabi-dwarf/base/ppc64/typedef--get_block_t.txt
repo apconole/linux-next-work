@@ -1,0 +1,12 @@
+Version: 1.0
+File: include/linux/fs.h:69
+Symbol:
+Byte size 4
+typedef get_block_t
+func (NULL) (
+(NULL) * @"struct--inode.txt"
+(NULL) @"typedef--sector_t.txt"
+(NULL) * @"struct--buffer_head.txt"
+(NULL) "int"
+)
+"int"

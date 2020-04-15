@@ -1,0 +1,9 @@
+Version: 1.0
+File: drivers/scsi/libfc/fc_fcp.c:2179
+Symbol:
+func fc_change_queue_depth (
+sdev * @"struct--scsi_device.txt"
+qdepth "int"
+reason "int"
+)
+"int"

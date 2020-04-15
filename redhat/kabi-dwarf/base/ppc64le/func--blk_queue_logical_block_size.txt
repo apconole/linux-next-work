@@ -1,0 +1,8 @@
+Version: 1.0
+File: block/blk-settings.c:386
+Symbol:
+func blk_queue_logical_block_size (
+q * @"struct--request_queue.txt"
+size "short unsigned int"
+)
+"void"

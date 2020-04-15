@@ -1,0 +1,9 @@
+Version: 1.0
+File: include/uapi/linux/dqblk_xfs.h:148
+Symbol:
+Byte size 24
+struct fs_qfilestat {
+0x0 qfs_ino @"typedef--__u64.txt"
+0x8 qfs_nblks @"typedef--__u64.txt"
+0x10 qfs_nextents @"typedef--__u32.txt"
+}

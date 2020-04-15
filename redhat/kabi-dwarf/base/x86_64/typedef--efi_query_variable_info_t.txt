@@ -1,0 +1,11 @@
+Version: 1.0
+File: include/linux/efi.h:521
+Symbol:
+typedef efi_query_variable_info_t
+func (NULL) (
+(NULL) @"typedef--u32.txt"
+(NULL) * @"typedef--u64.txt"
+(NULL) * @"typedef--u64.txt"
+(NULL) * @"typedef--u64.txt"
+)
+@"typedef--efi_status_t.txt"

@@ -1,0 +1,8 @@
+Version: 1.0
+File: include/linux/phy.h:314
+Symbol:
+Byte size 36
+struct phy_c45_device_ids {
+0x0 devices_in_package @"typedef--u32.txt"
+0x4 device_ids [8]@"typedef--u32.txt"
+}

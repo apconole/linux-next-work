@@ -1,0 +1,8 @@
+Version: 1.0
+File: include/linux/fb.h:504
+Symbol:
+Byte size 8
+struct apertures_struct {
+0x0 count "unsigned int"
+0x8 ranges [0]@"struct--aperture.txt"
+}

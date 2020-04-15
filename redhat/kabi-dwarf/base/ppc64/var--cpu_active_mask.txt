@@ -1,0 +1,5 @@
+Version: 1.0
+File: kernel/cpu.c:1016
+Symbol:
+Byte size 8
+var cpu_active_mask const * const @"struct--cpumask.txt"

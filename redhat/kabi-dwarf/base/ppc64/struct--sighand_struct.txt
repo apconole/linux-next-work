@@ -1,0 +1,10 @@
+Version: 1.0
+File: include/linux/sched.h:458
+Symbol:
+Byte size 2088
+struct sighand_struct {
+0x0 count @"typedef--atomic_t.txt"
+0x8 action [64]@"struct--k_sigaction.txt"
+0x808 siglock @"typedef--spinlock_t.txt"
+0x810 signalfd_wqh @"typedef--wait_queue_head_t.txt"
+}

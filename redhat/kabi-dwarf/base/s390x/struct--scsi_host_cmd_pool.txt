@@ -1,0 +1,13 @@
+Version: 1.0
+File: drivers/scsi/scsi.c:136
+Symbol:
+Byte size 48
+struct scsi_host_cmd_pool {
+0x0 cmd_slab * @"struct--kmem_cache.txt"
+0x8 sense_slab * @"struct--kmem_cache.txt"
+0x10 users "unsigned int"
+0x18 cmd_name * "char"
+0x20 sense_name * "char"
+0x28 slab_flags "unsigned int"
+0x2c gfp_mask @"typedef--gfp_t.txt"
+}

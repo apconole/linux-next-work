@@ -1,0 +1,4 @@
+Version: 1.0
+File: mm/vmstat.c:95
+Symbol:
+var vm_stat [32]@"typedef--atomic_long_t.txt"

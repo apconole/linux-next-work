@@ -1,0 +1,5 @@
+Version: 1.0
+File: include/asm-generic/device.h:9
+Symbol:
+struct dev_archdata {
+}

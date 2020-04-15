@@ -1,0 +1,8 @@
+Version: 1.0
+File: include/linux/cgroup.h:190
+Symbol:
+Byte size 16
+struct cgroup_name {
+0x0 callback_head @"struct--callback_head.txt"
+0x10 name [0]"char"
+}

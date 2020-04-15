@@ -1,0 +1,8 @@
+Version: 1.0
+File: block/blk-settings.c:180
+Symbol:
+func blk_queue_make_request (
+q * @"struct--request_queue.txt"
+mfn * @"typedef--make_request_fn.txt"
+)
+"void"

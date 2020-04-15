@@ -1,0 +1,33 @@
+Version: 1.0
+File: include/linux/slub_def.h:68
+Symbol:
+Byte size 2248
+struct kmem_cache {
+0x0 cpu_slab * @"struct--kmem_cache_cpu.txt"
+0x8 flags "long unsigned int"
+0x10 min_partial "long unsigned int"
+0x18 size "int"
+0x1c object_size "int"
+0x20 offset "int"
+0x24 cpu_partial "int"
+0x28 oo @"struct--kmem_cache_order_objects.txt"
+0x30 max @"struct--kmem_cache_order_objects.txt"
+0x38 min @"struct--kmem_cache_order_objects.txt"
+0x40 allocflags @"typedef--gfp_t.txt"
+0x44 refcount "int"
+0x48 ctor * func (NULL) (
+(NULL) * "void"
+)
+"void"
+0x50 inuse "int"
+0x54 align "int"
+0x58 reserved "int"
+0x5c red_left_pad "int"
+0x60 name * const "char"
+0x68 list @"struct--list_head.txt"
+0x78 kobj @"struct--kobject.txt"
+0xb8 memcg_params * @"struct--memcg_cache_params.txt"
+0xc0 max_attr_size "int"
+0xc4 remote_node_defrag_ratio "int"
+0xc8 node [256]* @"struct--kmem_cache_node.txt"
+}

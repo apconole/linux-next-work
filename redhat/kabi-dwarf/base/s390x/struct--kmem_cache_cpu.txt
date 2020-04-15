@@ -1,0 +1,10 @@
+Version: 1.0
+File: include/linux/slub_def.h:46
+Symbol:
+Byte size 32
+struct kmem_cache_cpu {
+0x0 freelist * * "void"
+0x8 tid "long unsigned int"
+0x10 page * @"struct--page.txt"
+0x18 partial * @"struct--page.txt"
+}

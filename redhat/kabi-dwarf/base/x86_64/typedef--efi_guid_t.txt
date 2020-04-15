@@ -1,0 +1,8 @@
+Version: 1.0
+File: include/linux/efi.h:50
+Symbol:
+Byte size 16
+typedef efi_guid_t
+struct (NULL) {
+0x0 b [16]@"typedef--u8.txt"
+}

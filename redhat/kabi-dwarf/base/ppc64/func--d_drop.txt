@@ -1,0 +1,7 @@
+Version: 1.0
+File: fs/dcache.c:589
+Symbol:
+func d_drop (
+dentry * @"struct--dentry.txt"
+)
+"void"

@@ -1,0 +1,10 @@
+Version: 1.0
+File: include/scsi/scsi_transport_fc.h:295
+Symbol:
+Byte size 24
+struct fc_rport_identifiers {
+0x0 node_name @"typedef--u64.txt"
+0x8 port_name @"typedef--u64.txt"
+0x10 port_id @"typedef--u32.txt"
+0x14 roles @"typedef--u32.txt"
+}

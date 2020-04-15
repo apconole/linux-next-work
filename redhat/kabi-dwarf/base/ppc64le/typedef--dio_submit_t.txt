@@ -1,0 +1,11 @@
+Version: 1.0
+File: include/linux/fs.h:2985
+Symbol:
+typedef dio_submit_t
+func (NULL) (
+(NULL) "int"
+(NULL) * @"struct--bio.txt"
+(NULL) * @"struct--inode.txt"
+(NULL) @"typedef--loff_t.txt"
+)
+"void"

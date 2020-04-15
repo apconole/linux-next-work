@@ -1,0 +1,6 @@
+Version: 1.0
+File: include/uapi/scsi/scsi_bsg_fc.h:229
+Symbol:
+struct fc_bsg_host_vendor_reply {
+0x0 vendor_rsp [0]@"typedef--uint32_t.txt"
+}

@@ -1,0 +1,8 @@
+Version: 1.0
+File: include/linux/export.h:26
+Symbol:
+Byte size 16
+struct kernel_symbol {
+0x0 value "long unsigned int"
+0x8 name * const "char"
+}

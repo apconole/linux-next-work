@@ -1,0 +1,7 @@
+Version: 1.0
+File: drivers/char/ipmi/ipmi_msghandler.c:282
+Symbol:
+Byte size 32
+struct ipmi_channel_set {
+0x0 c [16]@"struct--ipmi_channel.txt"
+}

@@ -1,0 +1,15 @@
+Version: 1.0
+File: include/net/if_inet6.h:146
+Symbol:
+Byte size 72
+struct ifacaddr6 {
+0x0 aca_addr @"struct--in6_addr.txt"
+0x10 aca_idev * @"struct--inet6_dev.txt"
+0x18 aca_rt * @"struct--rt6_info.txt"
+0x20 aca_next * @"struct--ifacaddr6.txt"
+0x28 aca_users "int"
+0x2c aca_refcnt @"typedef--atomic_t.txt"
+0x30 aca_lock @"typedef--spinlock_t.txt"
+0x38 aca_cstamp "long unsigned int"
+0x40 aca_tstamp "long unsigned int"
+}

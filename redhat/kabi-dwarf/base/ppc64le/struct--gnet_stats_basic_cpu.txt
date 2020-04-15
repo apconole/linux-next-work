@@ -1,0 +1,8 @@
+Version: 1.0
+File: include/net/gen_stats.h:9
+Symbol:
+Byte size 12
+struct gnet_stats_basic_cpu {
+0x0 bstats @"struct--gnet_stats_basic_packed.txt"
+0xc syncp @"struct--u64_stats_sync.txt"
+}

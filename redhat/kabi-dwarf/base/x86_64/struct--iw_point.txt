@@ -1,0 +1,9 @@
+Version: 1.0
+File: include/uapi/linux/wireless.h:685
+Symbol:
+Byte size 16
+struct iw_point {
+0x0 pointer * "void"
+0x8 length @"typedef--__u16.txt"
+0xa flags @"typedef--__u16.txt"
+}

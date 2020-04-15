@@ -1,0 +1,29 @@
+Version: 1.0
+File: drivers/pci/pci.h:100
+Symbol:
+Byte size 32
+struct pci_vpd_ops {
+0x0 read * func (NULL) (
+(NULL) * @"struct--pci_dev.txt"
+(NULL) @"typedef--loff_t.txt"
+(NULL) @"typedef--size_t.txt"
+(NULL) * "void"
+)
+@"typedef--ssize_t.txt"
+0x8 write * func (NULL) (
+(NULL) * @"struct--pci_dev.txt"
+(NULL) @"typedef--loff_t.txt"
+(NULL) @"typedef--size_t.txt"
+(NULL) * const "void"
+)
+@"typedef--ssize_t.txt"
+0x10 rh_reserved_release * func (NULL) (
+(NULL) * @"struct--pci_dev.txt"
+)
+"void"
+0x18 set_size * func (NULL) (
+(NULL) * @"struct--pci_dev.txt"
+(NULL) @"typedef--size_t.txt"
+)
+"int"
+}

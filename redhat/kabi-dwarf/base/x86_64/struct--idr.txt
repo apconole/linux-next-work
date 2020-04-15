@@ -1,0 +1,13 @@
+Version: 1.0
+File: include/linux/idr.h:39
+Symbol:
+Byte size 40
+struct idr {
+0x0 hint * @"struct--idr_layer.txt"
+0x8 top * @"struct--idr_layer.txt"
+0x10 id_free * @"struct--idr_layer.txt"
+0x18 layers "int"
+0x1c id_free_cnt "int"
+0x20 cur "int"
+0x24 lock @"typedef--spinlock_t.txt"
+}

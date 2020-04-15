@@ -1,0 +1,11 @@
+Version: 1.0
+File: include/uapi/scsi/scsi_bsg_fc.h:190
+Symbol:
+Byte size 16
+struct fc_bsg_host_ct {
+0x0 reserved @"typedef--uint8_t.txt"
+0x1 port_id [3]@"typedef--uint8_t.txt"
+0x4 preamble_word0 @"typedef--uint32_t.txt"
+0x8 preamble_word1 @"typedef--uint32_t.txt"
+0xc preamble_word2 @"typedef--uint32_t.txt"
+}

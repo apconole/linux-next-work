@@ -1,0 +1,9 @@
+Version: 1.0
+File: fs/locks.c:1148
+Symbol:
+func posix_lock_file (
+filp * @"struct--file.txt"
+fl * @"struct--file_lock.txt"
+conflock * @"struct--file_lock.txt"
+)
+"int"

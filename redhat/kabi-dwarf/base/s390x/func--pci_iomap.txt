@@ -1,0 +1,9 @@
+Version: 1.0
+File: arch/s390/pci/pci.c:361
+Symbol:
+func pci_iomap (
+dev * @"struct--pci_dev.txt"
+bar "int"
+maxlen "long unsigned int"
+)
+* "void"

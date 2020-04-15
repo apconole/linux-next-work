@@ -1,0 +1,12 @@
+Version: 1.0
+File: include/linux/genhd.h:81
+Symbol:
+Byte size 80
+struct disk_stats {
+0x0 sectors [2]"long unsigned int"
+0x10 ios [2]"long unsigned int"
+0x20 merges [2]"long unsigned int"
+0x30 ticks [2]"long unsigned int"
+0x40 io_ticks "long unsigned int"
+0x48 time_in_queue "long unsigned int"
+}

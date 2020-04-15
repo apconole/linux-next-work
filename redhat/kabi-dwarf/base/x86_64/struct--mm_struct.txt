@@ -1,0 +1,127 @@
+Version: 1.0
+File: include/linux/mm_types.h:400
+Symbol:
+Byte size 1576
+struct mm_struct {
+0x0 mmap * @"struct--vm_area_struct.txt"
+0x8 mm_rb @"struct--rb_root.txt"
+0x10 mmap_cache * @"struct--vm_area_struct.txt"
+0x18 get_unmapped_area * func (NULL) (
+(NULL) * @"struct--file.txt"
+(NULL) "long unsigned int"
+(NULL) "long unsigned int"
+(NULL) "long unsigned int"
+(NULL) "long unsigned int"
+)
+"long unsigned int"
+0x20 unmap_area * func (NULL) (
+(NULL) * @"struct--mm_struct.txt"
+(NULL) "long unsigned int"
+)
+"void"
+0x28 mmap_base "long unsigned int"
+0x30 mmap_legacy_base "long unsigned int"
+0x38 task_size "long unsigned int"
+0x40 cached_hole_size "long unsigned int"
+0x48 free_area_cache "long unsigned int"
+0x50 highest_vm_end "long unsigned int"
+0x58 pgd * @"typedef--pgd_t.txt"
+0x60 mm_users @"typedef--atomic_t.txt"
+0x64 mm_count @"typedef--atomic_t.txt"
+0x68 nr_ptes @"typedef--atomic_long_t.txt"
+0x70 map_count "int"
+0x74 page_table_lock @"typedef--spinlock_t.txt"
+0x78 mmap_sem @"struct--rw_semaphore.txt"
+0x98 mmlist @"struct--list_head.txt"
+0xa8 hiwater_rss "long unsigned int"
+0xb0 hiwater_vm "long unsigned int"
+0xb8 total_vm "long unsigned int"
+0xc0 locked_vm "long unsigned int"
+0xc8 pinned_vm "long unsigned int"
+0xd0 shared_vm "long unsigned int"
+0xd8 exec_vm "long unsigned int"
+0xe0 stack_vm "long unsigned int"
+0xe8 def_flags "long unsigned int"
+0xf0 start_code "long unsigned int"
+0xf8 end_code "long unsigned int"
+0x100 start_data "long unsigned int"
+0x108 end_data "long unsigned int"
+0x110 start_brk "long unsigned int"
+0x118 brk "long unsigned int"
+0x120 start_stack "long unsigned int"
+0x128 arg_start "long unsigned int"
+0x130 arg_end "long unsigned int"
+0x138 env_start "long unsigned int"
+0x140 env_end "long unsigned int"
+0x148 saved_auxv [44]"long unsigned int"
+0x2a8 rss_stat @"struct--mm_rss_stat.txt"
+0x2c0 binfmt * @"struct--linux_binfmt.txt"
+0x2c8 cpu_vm_mask_var @"typedef--cpumask_var_t.txt"
+0x2d0 context @"typedef--mm_context_t.txt"
+0x310 flags "long unsigned int"
+0x318 core_state * @"struct--core_state.txt"
+0x320 ioctx_lock @"typedef--spinlock_t.txt"
+0x328 ioctx_list @"struct--hlist_head.txt"
+0x330 owner * @"struct--task_struct.txt"
+0x338 exe_file * @"struct--file.txt"
+0x340 mmu_notifier_mm * @"struct--mmu_notifier_mm.txt"
+0x348 cpumask_allocation @"struct--cpumask.txt"
+0x5c8 numa_next_scan "long unsigned int"
+0x5d0 numa_scan_offset "long unsigned int"
+0x5d8 numa_scan_seq "int"
+0x5dc tlb_flush_pending @"typedef--atomic_t.txt"
+0x5e0 uprobes_state @"struct--uprobes_state.txt"
+0x5e8 rh_reserved1 "long unsigned int"
+0x5f0 rh_reserved2 "long unsigned int"
+0x5f8 (NULL) union (NULL) {
+bd_addr * "void"
+__UNIQUE_ID_rh_kabi_hide11 struct (NULL) {
+0x0 rh_reserved3 "long unsigned int"
+}
+(NULL) union (NULL) {
+}
+}
+0x600 (NULL) union (NULL) {
+mm_shmempages @"typedef--atomic_long_t.txt"
+__UNIQUE_ID_rh_kabi_hide12 struct (NULL) {
+0x0 rh_reserved4 "long unsigned int"
+}
+(NULL) union (NULL) {
+}
+}
+0x608 (NULL) union (NULL) {
+hmm * @"<declarations>/struct--hmm.txt"
+__UNIQUE_ID_rh_kabi_hide13 struct (NULL) {
+0x0 rh_reserved5 "long unsigned int"
+}
+(NULL) union (NULL) {
+}
+}
+0x610 (NULL) union (NULL) {
+(NULL) struct (NULL) {
+0x0 pkey_allocation_map @"typedef--u16.txt"
+0x2 execute_only_pkey @"typedef--s16.txt"
+}
+__UNIQUE_ID_rh_kabi_hide14 struct (NULL) {
+0x0 rh_reserved6 "long unsigned int"
+}
+(NULL) union (NULL) {
+}
+}
+0x618 (NULL) union (NULL) {
+membarrier_state @"typedef--atomic_t.txt"
+__UNIQUE_ID_rh_kabi_hide15 struct (NULL) {
+0x0 rh_reserved7 "long unsigned int"
+}
+(NULL) union (NULL) {
+}
+}
+0x620 (NULL) union (NULL) {
+tlb_flush_batched @"typedef--bool.txt"
+__UNIQUE_ID_rh_kabi_hide16 struct (NULL) {
+0x0 rh_reserved8 "long unsigned int"
+}
+(NULL) union (NULL) {
+}
+}
+}

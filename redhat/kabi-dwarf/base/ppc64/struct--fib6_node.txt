@@ -1,0 +1,14 @@
+Version: 1.0
+File: include/net/ip6_fib.h:63
+Symbol:
+Byte size 48
+struct fib6_node {
+0x0 parent * @"struct--fib6_node.txt"
+0x8 left * @"struct--fib6_node.txt"
+0x10 right * @"struct--fib6_node.txt"
+0x18 leaf * @"struct--rt6_info.txt"
+0x20 fn_bit @"typedef--__u16.txt"
+0x22 fn_flags @"typedef--__u16.txt"
+0x24 fn_sernum @"typedef--__u32.txt"
+0x28 rr_ptr * @"struct--rt6_info.txt"
+}

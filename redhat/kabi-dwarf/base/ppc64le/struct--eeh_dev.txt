@@ -1,0 +1,32 @@
+Version: 1.0
+File: arch/powerpc/include/asm/eeh.h:132
+Symbol:
+Byte size 200
+struct eeh_dev {
+0x0 mode "int"
+0x4 class_code "int"
+0x8 config_addr "int"
+0xc pe_config_addr "int"
+0x10 config_space [16]@"typedef--u32.txt"
+0x50 rh_reserved_pcie_cap @"typedef--u8.txt"
+0x58 pe * @"struct--eeh_pe.txt"
+0x60 list @"struct--list_head.txt"
+0x70 phb * @"struct--pci_controller.txt"
+0x78 (NULL) union (NULL) {
+pdn * @"struct--pci_dn.txt"
+__UNIQUE_ID_rh_kabi_hide25 struct (NULL) {
+0x0 dn * @"struct--device_node.txt"
+}
+(NULL) union (NULL) {
+}
+}
+0x80 pdev * @"struct--pci_dev.txt"
+0x88 bus * @"struct--pci_bus.txt"
+0x90 pcix_cap "int"
+0x94 pcie_cap "int"
+0x98 aer_cap "int"
+0xa0 physfn * @"struct--pci_dev.txt"
+0xa8 af_cap "int"
+0xb0 rmv_list @"struct--list_head.txt"
+0xc0 in_error @"typedef--bool.txt"
+}

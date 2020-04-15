@@ -1,0 +1,8 @@
+Version: 1.0
+File: include/net/switchdev.h:29
+Symbol:
+Byte size 24
+struct switchdev_trans {
+0x0 item_list @"struct--list_head.txt"
+0x10 ph_prepare @"typedef--bool.txt"
+}

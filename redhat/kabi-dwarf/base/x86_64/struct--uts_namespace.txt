@@ -1,0 +1,11 @@
+Version: 1.0
+File: include/linux/utsname.h:22
+Symbol:
+Byte size 424
+struct uts_namespace {
+0x0 kref @"struct--kref.txt"
+0x4 name @"struct--new_utsname.txt"
+0x190 user_ns * @"struct--user_namespace.txt"
+0x198 proc_inum "unsigned int"
+0x1a0 ucounts * @"struct--ucounts.txt"
+}

@@ -1,0 +1,8 @@
+Version: 1.0
+File: drivers/char/ipmi/ipmi_msghandler.c:1445
+Symbol:
+func ipmi_set_gets_events (
+user @"typedef--ipmi_user_t.txt"
+val "int"
+)
+"int"

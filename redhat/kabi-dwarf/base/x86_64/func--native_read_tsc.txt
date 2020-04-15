@@ -1,0 +1,6 @@
+Version: 1.0
+File: arch/x86/kernel/tsc.c:341
+Symbol:
+func native_read_tsc (
+)
+"long long unsigned int"

@@ -1,0 +1,8 @@
+Version: 1.0
+File: net/core/skbuff.c:1328
+Symbol:
+func skb_realloc_headroom (
+skb * @"struct--sk_buff.txt"
+headroom "unsigned int"
+)
+* @"struct--sk_buff.txt"

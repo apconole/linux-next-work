@@ -1,0 +1,19 @@
+Version: 1.0
+File: arch/x86/include/asm/mmu.h:22
+Symbol:
+Byte size 64
+typedef mm_context_t
+struct (NULL) {
+0x0 (NULL) union (NULL) {
+ldt * @"struct--ldt_struct.txt"
+__UNIQUE_ID_rh_kabi_hide5 struct (NULL) {
+0x0 ldt * "void"
+}
+(NULL) union (NULL) {
+}
+}
+0x8 rh_reserved_size "int"
+0xc ia32_compat "short unsigned int"
+0x10 lock @"struct--mutex.txt"
+0x38 vdso * "void"
+}

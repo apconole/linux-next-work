@@ -1,0 +1,15 @@
+Version: 1.0
+File: arch/s390/include/asm/spinlock_types.h:12
+Symbol:
+Byte size 4
+typedef arch_spinlock_t
+struct (NULL) {
+0x0 (NULL) union (NULL) {
+lock "unsigned int"
+__UNIQUE_ID_rh_kabi_hide0 struct (NULL) {
+0x0 owner_cpu volatile "unsigned int"
+}
+(NULL) union (NULL) {
+}
+}
+}

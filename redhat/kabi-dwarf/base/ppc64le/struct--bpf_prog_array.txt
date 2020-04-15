@@ -1,0 +1,8 @@
+Version: 1.0
+File: include/linux/bpf.h:281
+Symbol:
+Byte size 16
+struct bpf_prog_array {
+0x0 rcu @"struct--callback_head.txt"
+0x10 progs [0]* @"struct--bpf_prog.txt"
+}

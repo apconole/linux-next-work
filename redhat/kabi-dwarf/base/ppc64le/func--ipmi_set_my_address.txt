@@ -1,0 +1,9 @@
+Version: 1.0
+File: drivers/char/ipmi/ipmi_msghandler.c:1338
+Symbol:
+func ipmi_set_my_address (
+user @"typedef--ipmi_user_t.txt"
+channel "unsigned int"
+address "unsigned char"
+)
+"int"

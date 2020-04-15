@@ -1,0 +1,6 @@
+Version: 1.0
+File: arch/powerpc/include/uapi/asm/termbits.h:13
+Symbol:
+Byte size 4
+typedef tcflag_t
+"unsigned int"

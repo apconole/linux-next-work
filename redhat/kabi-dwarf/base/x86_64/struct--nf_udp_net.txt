@@ -1,0 +1,8 @@
+Version: 1.0
+File: include/net/netns/conntrack.h:51
+Symbol:
+Byte size 32
+struct nf_udp_net {
+0x0 pn @"struct--nf_proto_net.txt"
+0x18 timeouts [2]"unsigned int"
+}

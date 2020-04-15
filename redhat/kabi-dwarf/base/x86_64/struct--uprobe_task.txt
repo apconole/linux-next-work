@@ -1,0 +1,13 @@
+Version: 1.0
+File: include/linux/uprobes.h:73
+Symbol:
+Byte size 64
+struct uprobe_task {
+0x0 state @"enum--uprobe_task_state.txt"
+0x8 autask @"struct--arch_uprobe_task.txt"
+0x18 return_instances * @"struct--return_instance.txt"
+0x20 depth "unsigned int"
+0x28 active_uprobe * @"<declarations>/struct--uprobe.txt"
+0x30 xol_vaddr "long unsigned int"
+0x38 vaddr "long unsigned int"
+}

@@ -1,0 +1,11 @@
+Version: 1.0
+File: include/linux/inetdevice.h:62
+Symbol:
+Byte size 192
+struct ipv4_devconf {
+0x0 sysctl * "void"
+0x8 data [26]"int"
+0x70 state [1]"long unsigned int"
+0x78 extra_data [16]"int"
+0xb8 extra_state [1]"long unsigned int"
+}

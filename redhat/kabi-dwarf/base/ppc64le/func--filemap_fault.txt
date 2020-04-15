@@ -1,0 +1,8 @@
+Version: 1.0
+File: mm/filemap.c:2255
+Symbol:
+func filemap_fault (
+vma * @"struct--vm_area_struct.txt"
+vmf * @"struct--vm_fault.txt"
+)
+"int"

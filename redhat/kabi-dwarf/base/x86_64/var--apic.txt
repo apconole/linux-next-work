@@ -1,0 +1,5 @@
+Version: 1.0
+File: arch/x86/kernel/apic/apic_flat_64.c:30
+Symbol:
+Byte size 8
+var apic * @"struct--apic.txt"

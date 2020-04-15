@@ -1,0 +1,8 @@
+Version: 1.0
+File: include/linux/mm_types.h:390
+Symbol:
+Byte size 16
+struct task_rss_stat {
+0x0 events "int"
+0x4 count [3]"int"
+}

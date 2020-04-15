@@ -1,0 +1,13 @@
+Version: 1.0
+File: kernel/audit.h:68
+Symbol:
+Byte size 32
+struct audit_cap_data {
+0x0 permitted @"typedef--kernel_cap_t.txt"
+0x8 inheritable @"typedef--kernel_cap_t.txt"
+0x10 (NULL) union (NULL) {
+fE "unsigned int"
+effective @"typedef--kernel_cap_t.txt"
+}
+0x18 ambient @"typedef--kernel_cap_t.txt"
+}

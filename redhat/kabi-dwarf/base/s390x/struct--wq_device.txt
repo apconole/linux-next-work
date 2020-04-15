@@ -1,0 +1,8 @@
+Version: 1.0
+File: kernel/workqueue.c:3328
+Symbol:
+Byte size 648
+struct wq_device {
+0x0 wq * @"struct--workqueue_struct.txt"
+0x8 dev @"struct--device.txt"
+}

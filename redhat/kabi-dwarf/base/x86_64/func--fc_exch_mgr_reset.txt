@@ -1,0 +1,9 @@
+Version: 1.0
+File: drivers/scsi/libfc/fc_exch.c:1844
+Symbol:
+func fc_exch_mgr_reset (
+lport * @"struct--fc_lport.txt"
+sid @"typedef--u32.txt"
+did @"typedef--u32.txt"
+)
+"void"

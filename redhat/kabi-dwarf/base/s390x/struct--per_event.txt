@@ -1,0 +1,9 @@
+Version: 1.0
+File: arch/s390/include/asm/ptrace.h:100
+Symbol:
+Byte size 24
+struct per_event {
+0x0 cause "short unsigned int"
+0x8 address "long unsigned int"
+0x10 paid "unsigned char"
+}

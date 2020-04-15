@@ -1,0 +1,12 @@
+Version: 1.0
+File: include/uapi/scsi/fc/fc_els.h:651
+Symbol:
+Byte size 24
+struct fc_els_lesb {
+0x0 lesb_link_fail @"typedef--__be32.txt"
+0x4 lesb_sync_loss @"typedef--__be32.txt"
+0x8 lesb_sig_loss @"typedef--__be32.txt"
+0xc lesb_prim_err @"typedef--__be32.txt"
+0x10 lesb_inv_word @"typedef--__be32.txt"
+0x14 lesb_inv_crc @"typedef--__be32.txt"
+}

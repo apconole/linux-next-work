@@ -1,0 +1,5 @@
+Version: 1.0
+File: include/asm-generic/cputime_nsecs.h:21
+Symbol:
+typedef cputime_t
+@"typedef--u64.txt"

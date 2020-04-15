@@ -1,0 +1,27 @@
+Version: 1.0
+File: include/linux/tty.h:192
+Symbol:
+Byte size 312
+struct tty_port {
+0x0 buf @"struct--tty_bufhead.txt"
+0x48 tty * @"struct--tty_struct.txt"
+0x50 itty * @"struct--tty_struct.txt"
+0x58 ops * const @"struct--tty_port_operations.txt"
+0x60 lock @"typedef--spinlock_t.txt"
+0x64 blocked_open "int"
+0x68 count "int"
+0x70 open_wait @"typedef--wait_queue_head_t.txt"
+0x88 rh_reserved_close_wait @"typedef--wait_queue_head_t.txt"
+0xa0 delta_msr_wait @"typedef--wait_queue_head_t.txt"
+0xb8 flags "long unsigned int"
+0xc0 iflags "long unsigned int"
+0xc8:0-1 console "unsigned char"
+0xc8:1-2 low_latency "unsigned char"
+0xd0 mutex @"struct--mutex.txt"
+0xf8 buf_mutex @"struct--mutex.txt"
+0x120 xmit_buf * "unsigned char"
+0x128 close_delay "unsigned int"
+0x12c closing_wait "unsigned int"
+0x130 drain_delay "int"
+0x134 kref @"struct--kref.txt"
+}

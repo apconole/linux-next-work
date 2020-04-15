@@ -1,0 +1,17 @@
+Version: 1.0
+File: include/linux/smp.h:22
+Symbol:
+Byte size 40
+struct call_single_data {
+0x0 (NULL) union (NULL) {
+llist @"struct--llist_node.txt"
+__UNIQUE_ID_rh_kabi_hide5 struct (NULL) {
+0x0 list @"struct--list_head.txt"
+}
+(NULL) union (NULL) {
+}
+}
+0x10 func @"typedef--smp_call_func_t.txt"
+0x18 info * "void"
+0x20 flags @"typedef--u16.txt"
+}

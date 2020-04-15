@@ -1,0 +1,11 @@
+Version: 1.0
+File: include/linux/crypto.h:154
+Symbol:
+Byte size 48
+struct crypto_async_request {
+0x0 list @"struct--list_head.txt"
+0x10 complete @"typedef--crypto_completion_t.txt"
+0x18 data * "void"
+0x20 tfm * @"struct--crypto_tfm.txt"
+0x28 flags @"typedef--u32.txt"
+}

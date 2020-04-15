@@ -1,0 +1,8 @@
+Version: 1.0
+File: include/linux/sched.h:1166
+Symbol:
+Byte size 16
+struct load_weight {
+0x0 weight "long unsigned int"
+0x8 inv_weight "long unsigned int"
+}

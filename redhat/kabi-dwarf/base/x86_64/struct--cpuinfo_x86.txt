@@ -1,0 +1,41 @@
+Version: 1.0
+File: arch/x86/include/asm/processor.h:97
+Symbol:
+Byte size 320
+struct cpuinfo_x86 {
+0x0 x86 @"typedef--__u8.txt"
+0x1 x86_vendor @"typedef--__u8.txt"
+0x2 x86_model @"typedef--__u8.txt"
+0x3 x86_mask @"typedef--__u8.txt"
+0x4 x86_tlbsize "int"
+0x8 x86_virt_bits @"typedef--__u8.txt"
+0x9 x86_phys_bits @"typedef--__u8.txt"
+0xa x86_coreid_bits @"typedef--__u8.txt"
+0xc extended_cpuid_level @"typedef--__u32.txt"
+0x10 cpuid_level "int"
+0x14 x86_capability [30]@"typedef--__u32.txt"
+0x8c x86_vendor_id [16]"char"
+0x9c x86_model_id [64]"char"
+0xdc x86_cache_size "int"
+0xe0 x86_cache_alignment "int"
+0xe4 x86_power "int"
+0xe8 loops_per_jiffy "long unsigned int"
+0xf0 x86_max_cores @"typedef--u16.txt"
+0xf2 apicid @"typedef--u16.txt"
+0xf4 initial_apicid @"typedef--u16.txt"
+0xf6 x86_clflush_size @"typedef--u16.txt"
+0xf8 booted_cores @"typedef--u16.txt"
+0xfa phys_proc_id @"typedef--u16.txt"
+0xfc cpu_core_id @"typedef--u16.txt"
+0xfe (NULL) union (NULL) {
+cu_id @"typedef--__u8.txt"
+__UNIQUE_ID_rh_kabi_hide0 struct (NULL) {
+0x0 compute_unit_id @"typedef--u8.txt"
+}
+(NULL) union (NULL) {
+}
+}
+0xff x86_cache_bits @"typedef--u8.txt"
+0x100 cpu_index @"typedef--u16.txt"
+0x104 microcode @"typedef--u32.txt"
+}

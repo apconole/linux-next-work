@@ -1,0 +1,7 @@
+Version: 1.0
+File: block/genhd.c:1456
+Symbol:
+func put_disk (
+disk * @"struct--gendisk.txt"
+)
+"void"

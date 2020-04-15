@@ -1,0 +1,6 @@
+Version: 1.0
+File: /usr/lib/gcc/ppc64-redhat-linux/4.8.5/include/stdarg.h:40
+Symbol:
+Byte size 8
+typedef __gnuc_va_list
+* "char"

@@ -1,0 +1,14 @@
+Version: 1.0
+File: include/linux/tty.h:32
+Symbol:
+Byte size 40
+struct tty_buffer {
+0x0 next * @"struct--tty_buffer.txt"
+0x8 char_buf_ptr * "char"
+0x10 flag_buf_ptr * "unsigned char"
+0x18 used "int"
+0x1c size "int"
+0x20 commit "int"
+0x24 read "int"
+0x28 data [0]"long unsigned int"
+}

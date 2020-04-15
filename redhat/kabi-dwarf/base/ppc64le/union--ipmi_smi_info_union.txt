@@ -1,0 +1,9 @@
+Version: 1.0
+File: include/linux/ipmi.h:272
+Symbol:
+Byte size 8
+union ipmi_smi_info_union {
+acpi_info struct (NULL) {
+0x0 acpi_handle * "void"
+}
+}

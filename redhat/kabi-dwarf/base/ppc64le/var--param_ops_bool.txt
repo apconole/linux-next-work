@@ -1,0 +1,4 @@
+Version: 1.0
+File: kernel/params.c:264
+Symbol:
+var param_ops_bool @"struct--kernel_param_ops.txt"

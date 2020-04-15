@@ -1,0 +1,7 @@
+Version: 1.0
+File: net/core/sock.c:2509
+Symbol:
+func release_sock (
+sk * @"struct--sock.txt"
+)
+"void"

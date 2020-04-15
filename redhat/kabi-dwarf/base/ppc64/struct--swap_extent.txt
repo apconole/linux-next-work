@@ -1,0 +1,10 @@
+Version: 1.0
+File: include/linux/swap.h:154
+Symbol:
+Byte size 40
+struct swap_extent {
+0x0 list @"struct--list_head.txt"
+0x10 start_page "long unsigned int"
+0x18 nr_pages "long unsigned int"
+0x20 start_block @"typedef--sector_t.txt"
+}

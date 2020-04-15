@@ -1,0 +1,25 @@
+Version: 1.0
+File: kernel/sched/sched.h:250
+Symbol:
+Byte size 768
+struct task_group {
+0x0 css @"struct--cgroup_subsys_state.txt"
+0x40 se * * @"struct--sched_entity.txt"
+0x48 cfs_rq * * @"struct--cfs_rq.txt"
+0x50 shares "long unsigned int"
+0x58 load_weight @"typedef--atomic_t.txt"
+0x60 rh_reserved_load_avg @"typedef--atomic64_t.txt"
+0x68 rh_reserved_runnable_avg @"typedef--atomic_t.txt"
+0x70 rt_se * * @"struct--sched_rt_entity.txt"
+0x78 rt_rq * * @"struct--rt_rq.txt"
+0x80 rt_bandwidth @"struct--rt_bandwidth.txt"
+0xf8 rcu @"struct--callback_head.txt"
+0x108 list @"struct--list_head.txt"
+0x118 parent * @"struct--task_group.txt"
+0x120 siblings @"struct--list_head.txt"
+0x130 children @"struct--list_head.txt"
+0x140 autogroup * @"struct--autogroup.txt"
+0x148 cfs_bandwidth @"struct--cfs_bandwidth.txt"
+0x280 load_avg @"typedef--atomic64_t.txt"
+0x288 runnable_avg @"typedef--atomic_t.txt"
+}

@@ -1,0 +1,48 @@
+Version: 1.0
+File: include/linux/mm_types.h:45
+Symbol:
+Byte size 64
+struct page {
+0x0 flags "long unsigned int"
+0x8 mapping * @"struct--address_space.txt"
+0x10 (NULL) struct (NULL) {
+0x0 (NULL) union (NULL) {
+index "long unsigned int"
+freelist * "void"
+rh_reserved_pfmemalloc @"typedef--bool.txt"
+thp_mmu_gather @"typedef--atomic_t.txt"
+}
+0x8 (NULL) union (NULL) {
+counters "long unsigned int"
+(NULL) struct (NULL) {
+0x0 (NULL) union (NULL) {
+_mapcount @"typedef--atomic_t.txt"
+(NULL) struct (NULL) {
+0x0:0-16 inuse "unsigned int"
+0x2:0-15 objects "unsigned int"
+0x3:7-8 frozen "unsigned int"
+}
+units "int"
+}
+0x4 _count @"typedef--atomic_t.txt"
+}
+}
+}
+0x20 (NULL) union (NULL) {
+lru @"struct--list_head.txt"
+pgmap * @"struct--dev_pagemap.txt"
+(NULL) struct (NULL) {
+0x0 next * @"struct--page.txt"
+0x8 pages "int"
+0xc pobjects "int"
+}
+list @"struct--list_head.txt"
+slab_page * @"<declarations>/struct--slab.txt"
+}
+0x30 (NULL) union (NULL) {
+private "long unsigned int"
+ptl @"typedef--spinlock_t.txt"
+slab_cache * @"struct--kmem_cache.txt"
+first_page * @"struct--page.txt"
+}
+}

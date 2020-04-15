@@ -1,0 +1,9 @@
+Version: 1.0
+File: include/net/netns/conntrack.h:102
+Symbol:
+Byte size 24
+struct ct_pcpu {
+0x0 lock @"typedef--spinlock_t.txt"
+0x8 unconfirmed @"struct--hlist_nulls_head.txt"
+0x10 dying @"struct--hlist_nulls_head.txt"
+}

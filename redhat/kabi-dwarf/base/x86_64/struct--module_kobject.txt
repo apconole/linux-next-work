@@ -1,0 +1,10 @@
+Version: 1.0
+File: include/linux/module.h:40
+Symbol:
+Byte size 88
+struct module_kobject {
+0x0 kobj @"struct--kobject.txt"
+0x40 mod * @"struct--module.txt"
+0x48 drivers_dir * @"struct--kobject.txt"
+0x50 mp * @"<declarations>/struct--module_param_attrs.txt"
+}

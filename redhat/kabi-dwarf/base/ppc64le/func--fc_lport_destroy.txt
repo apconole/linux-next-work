@@ -1,0 +1,7 @@
+Version: 1.0
+File: drivers/scsi/libfc/fc_lport.c:645
+Symbol:
+func fc_lport_destroy (
+lport * @"struct--fc_lport.txt"
+)
+"int"

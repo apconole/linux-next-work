@@ -1,0 +1,13 @@
+Version: 1.0
+File: drivers/char/ipmi/ipmi_msghandler.c:239
+Symbol:
+Byte size 48
+struct seq_table {
+0x0:0-1 inuse "unsigned int"
+0x0:1-2 broadcast "unsigned int"
+0x8 timeout "long unsigned int"
+0x10 orig_timeout "long unsigned int"
+0x18 retries_left "unsigned int"
+0x20 seqid "long int"
+0x28 recv_msg * @"struct--ipmi_recv_msg.txt"
+}

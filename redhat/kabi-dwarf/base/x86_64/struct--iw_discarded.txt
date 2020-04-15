@@ -1,0 +1,11 @@
+Version: 1.0
+File: include/uapi/linux/wireless.h:728
+Symbol:
+Byte size 20
+struct iw_discarded {
+0x0 nwid @"typedef--__u32.txt"
+0x4 code @"typedef--__u32.txt"
+0x8 fragment @"typedef--__u32.txt"
+0xc retries @"typedef--__u32.txt"
+0x10 misc @"typedef--__u32.txt"
+}

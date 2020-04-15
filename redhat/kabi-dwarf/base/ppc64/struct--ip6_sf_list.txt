@@ -1,0 +1,12 @@
+Version: 1.0
+File: include/net/if_inet6.h:105
+Symbol:
+Byte size 48
+struct ip6_sf_list {
+0x0 sf_next * @"struct--ip6_sf_list.txt"
+0x8 sf_addr @"struct--in6_addr.txt"
+0x18 sf_count [2]"long unsigned int"
+0x28 sf_gsresp "unsigned char"
+0x29 sf_oldin "unsigned char"
+0x2a sf_crcount "unsigned char"
+}

@@ -1,0 +1,23 @@
+Version: 1.0
+File: include/scsi/fcoe_sysfs.h:93
+Symbol:
+Byte size 920
+struct fcoe_fcf_device {
+0x0 id @"typedef--u32.txt"
+0x8 dev @"struct--device.txt"
+0x2a8 peers @"struct--list_head.txt"
+0x2b8 delete_work @"struct--work_struct.txt"
+0x2d8 dev_loss_work @"struct--delayed_work.txt"
+0x358 dev_loss_tmo @"typedef--u32.txt"
+0x360 priv * "void"
+0x368 state @"enum--fcf_state.txt"
+0x370 fabric_name @"typedef--u64.txt"
+0x378 switch_name @"typedef--u64.txt"
+0x380 fc_map @"typedef--u32.txt"
+0x384 vfid @"typedef--u16.txt"
+0x386 mac [6]@"typedef--u8.txt"
+0x38c priority @"typedef--u8.txt"
+0x390 fka_period @"typedef--u32.txt"
+0x394 selected @"typedef--u8.txt"
+0x396 vlan_id @"typedef--u16.txt"
+}

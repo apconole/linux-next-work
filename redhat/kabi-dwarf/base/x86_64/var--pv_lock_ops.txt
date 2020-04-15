@@ -1,0 +1,4 @@
+Version: 1.0
+File: arch/x86/kernel/paravirt-spinlocks.c:29
+Symbol:
+var pv_lock_ops @"struct--pv_lock_ops.txt"

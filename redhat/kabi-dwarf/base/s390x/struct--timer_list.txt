@@ -1,0 +1,18 @@
+Version: 1.0
+File: include/linux/timer.h:12
+Symbol:
+Byte size 80
+struct timer_list {
+0x0 entry @"struct--list_head.txt"
+0x10 expires "long unsigned int"
+0x18 base * @"struct--tvec_base.txt"
+0x20 function * func (NULL) (
+(NULL) "long unsigned int"
+)
+"void"
+0x28 data "long unsigned int"
+0x30 slack "int"
+0x34 start_pid "int"
+0x38 start_site * "void"
+0x40 start_comm [16]"char"
+}

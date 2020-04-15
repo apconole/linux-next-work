@@ -1,0 +1,8 @@
+Version: 1.0
+File: fs/block_dev.c:137
+Symbol:
+func set_blocksize (
+bdev * @"struct--block_device.txt"
+size "int"
+)
+"int"

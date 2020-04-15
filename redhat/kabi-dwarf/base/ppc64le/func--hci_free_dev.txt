@@ -1,0 +1,7 @@
+Version: 1.0
+File: net/bluetooth/hci_core.c:3013
+Symbol:
+func hci_free_dev (
+hdev * @"struct--hci_dev.txt"
+)
+"void"

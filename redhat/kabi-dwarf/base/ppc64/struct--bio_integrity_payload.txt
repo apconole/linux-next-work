@@ -1,0 +1,19 @@
+Version: 1.0
+File: include/linux/bio.h:180
+Symbol:
+Byte size 88
+struct bio_integrity_payload {
+0x0 bip_bio * @"struct--bio.txt"
+0x8 bip_sector @"typedef--sector_t.txt"
+0x10 bip_buf * "void"
+0x18 bip_end_io * @"typedef--bio_end_io_t.txt"
+0x20 bip_size "unsigned int"
+0x24 bip_slab "short unsigned int"
+0x26 bip_vcnt "short unsigned int"
+0x28 bip_idx "short unsigned int"
+0x2a:0-1 bip_owns_buf "unsigned int"
+0x2c:0-16 saved_bi_idx "unsigned int"
+0x30 bip_work @"struct--work_struct.txt"
+0x50 bip_vec * @"struct--bio_vec.txt"
+0x58 bip_inline_vecs [0]@"struct--bio_vec.txt"
+}

@@ -1,0 +1,7 @@
+Version: 1.0
+File: fs/block_dev.c:689
+Symbol:
+func bdput (
+bdev * @"struct--block_device.txt"
+)
+"void"

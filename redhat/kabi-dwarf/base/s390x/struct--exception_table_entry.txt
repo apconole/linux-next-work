@@ -1,0 +1,8 @@
+Version: 1.0
+File: arch/s390/include/asm/uaccess.h:79
+Symbol:
+Byte size 8
+struct exception_table_entry {
+0x0 insn "int"
+0x4 fixup "int"
+}

@@ -1,0 +1,8 @@
+Version: 1.0
+File: include/linux/srcu.h:41
+Symbol:
+Byte size 16
+struct rcu_batch {
+0x0 head * @"struct--callback_head.txt"
+0x8 tail * * @"struct--callback_head.txt"
+}

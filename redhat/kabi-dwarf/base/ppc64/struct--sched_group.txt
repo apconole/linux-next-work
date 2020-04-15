@@ -1,0 +1,12 @@
+Version: 1.0
+File: kernel/sched/sched.h:884
+Symbol:
+Byte size 32
+struct sched_group {
+0x0 next * @"struct--sched_group.txt"
+0x8 ref @"typedef--atomic_t.txt"
+0xc group_weight "unsigned int"
+0x10 sgp * @"struct--sched_group_power.txt"
+0x18 cpumask [0]"long unsigned int"
+0x18 asym_prefer_cpu "int"
+}

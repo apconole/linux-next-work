@@ -1,0 +1,7 @@
+Version: 1.0
+File: arch/powerpc/include/asm/device.h:53
+Symbol:
+Byte size 8
+struct pdev_archdata {
+0x0 dma_mask @"typedef--u64.txt"
+}

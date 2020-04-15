@@ -1,0 +1,68 @@
+Version: 1.0
+File: include/linux/fs.h:595
+Symbol:
+Byte size 584
+struct inode {
+0x0 i_mode @"typedef--umode_t.txt"
+0x2 i_opflags "short unsigned int"
+0x4 i_uid @"typedef--kuid_t.txt"
+0x8 i_gid @"typedef--kgid_t.txt"
+0xc i_flags "unsigned int"
+0x10 i_acl * @"struct--posix_acl.txt"
+0x18 i_default_acl * @"struct--posix_acl.txt"
+0x20 i_op * const @"struct--inode_operations.txt"
+0x28 i_sb * @"struct--super_block.txt"
+0x30 i_mapping * @"struct--address_space.txt"
+0x38 i_security * "void"
+0x40 i_ino "long unsigned int"
+0x48 (NULL) union (NULL) {
+i_nlink const "unsigned int"
+__i_nlink "unsigned int"
+}
+0x4c i_rdev @"typedef--dev_t.txt"
+0x50 i_size @"typedef--loff_t.txt"
+0x58 i_atime @"struct--timespec.txt"
+0x68 i_mtime @"struct--timespec.txt"
+0x78 i_ctime @"struct--timespec.txt"
+0x88 i_lock @"typedef--spinlock_t.txt"
+0x8c i_bytes "short unsigned int"
+0x90 i_blkbits "unsigned int"
+0x98 i_blocks @"typedef--blkcnt_t.txt"
+0xa0 i_state "long unsigned int"
+0xa8 i_mutex @"struct--mutex.txt"
+0xd0 dirtied_when "long unsigned int"
+0xd8 i_hash @"struct--hlist_node.txt"
+0xe8 i_io_list @"struct--list_head.txt"
+0xf8 i_lru @"struct--list_head.txt"
+0x108 i_sb_list @"struct--list_head.txt"
+0x118 (NULL) union (NULL) {
+i_dentry @"struct--hlist_head.txt"
+i_rcu @"struct--callback_head.txt"
+}
+0x128 i_version @"typedef--u64.txt"
+0x130 i_count @"typedef--atomic_t.txt"
+0x134 i_dio_count @"typedef--atomic_t.txt"
+0x138 i_writecount @"typedef--atomic_t.txt"
+0x140 i_fop * const @"struct--file_operations.txt"
+0x148 i_flock * @"struct--file_lock.txt"
+0x150 i_data @"struct--address_space.txt"
+0x200 i_dquot [2]* @"struct--dquot.txt"
+0x210 i_devices @"struct--list_head.txt"
+0x220 (NULL) union (NULL) {
+i_pipe * @"struct--pipe_inode_info.txt"
+i_bdev * @"struct--block_device.txt"
+i_cdev * @"struct--cdev.txt"
+}
+0x228 i_generation @"typedef--__u32.txt"
+0x22c i_fsnotify_mask @"typedef--__u32.txt"
+0x230 (NULL) union (NULL) {
+i_fsnotify_marks * @"struct--fsnotify_mark_connector.txt"
+__UNIQUE_ID_rh_kabi_hide32 struct (NULL) {
+0x0 i_fsnotify_marks @"struct--hlist_head.txt"
+}
+(NULL) union (NULL) {
+}
+}
+0x238 i_readcount @"typedef--atomic_t.txt"
+0x240 i_private * "void"
+}

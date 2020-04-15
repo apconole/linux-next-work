@@ -1,0 +1,5 @@
+Version: 1.0
+File: arch/powerpc/mm/numa.c:57
+Symbol:
+Byte size 2048
+var node_data [256]* @"typedef--pg_data_t.txt"

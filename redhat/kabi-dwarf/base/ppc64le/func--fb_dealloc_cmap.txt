@@ -1,0 +1,7 @@
+Version: 1.0
+File: drivers/video/fbcmap.c:145
+Symbol:
+func fb_dealloc_cmap (
+cmap * @"struct--fb_cmap.txt"
+)
+"void"

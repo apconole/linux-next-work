@@ -1,0 +1,7 @@
+Version: 1.0
+File: include/net/flow.h:249
+Symbol:
+Byte size 8
+struct flow_cache_object {
+0x0 ops * const @"struct--flow_cache_ops.txt"
+}

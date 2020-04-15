@@ -1,0 +1,21 @@
+Version: 1.0
+File: include/linux/genhd.h:102
+Symbol:
+Byte size 752
+struct hd_struct {
+0x0 start_sect @"typedef--sector_t.txt"
+0x8 nr_sects @"typedef--sector_t.txt"
+0x10 nr_sects_seq @"typedef--seqcount_t.txt"
+0x18 alignment_offset @"typedef--sector_t.txt"
+0x20 discard_alignment "unsigned int"
+0x28 __dev @"struct--device.txt"
+0x2a8 holder_dir * @"struct--kobject.txt"
+0x2b0 policy "int"
+0x2b4 partno "int"
+0x2b8 info * @"struct--partition_meta_info.txt"
+0x2c0 stamp "long unsigned int"
+0x2c8 in_flight [2]@"typedef--atomic_t.txt"
+0x2d0 dkstats * @"struct--disk_stats.txt"
+0x2d8 ref @"typedef--atomic_t.txt"
+0x2e0 callback_head @"struct--callback_head.txt"
+}

@@ -1,0 +1,7 @@
+Version: 1.0
+File: net/core/datagram.c:755
+Symbol:
+func __skb_checksum_complete (
+skb * @"struct--sk_buff.txt"
+)
+@"typedef--__sum16.txt"

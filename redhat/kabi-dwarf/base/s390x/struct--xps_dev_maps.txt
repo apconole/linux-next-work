@@ -1,0 +1,8 @@
+Version: 1.0
+File: include/linux/netdevice.h:785
+Symbol:
+Byte size 16
+struct xps_dev_maps {
+0x0 rcu @"struct--callback_head.txt"
+0x10 cpu_map [0]* @"struct--xps_map.txt"
+}

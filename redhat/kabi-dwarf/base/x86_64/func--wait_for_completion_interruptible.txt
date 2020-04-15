@@ -1,0 +1,7 @@
+Version: 1.0
+File: kernel/sched/core.c:4087
+Symbol:
+func wait_for_completion_interruptible (
+x * @"struct--completion.txt"
+)
+"int"

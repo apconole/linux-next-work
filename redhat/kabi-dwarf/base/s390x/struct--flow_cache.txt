@@ -1,0 +1,12 @@
+Version: 1.0
+File: include/net/flowcache.h:17
+Symbol:
+Byte size 128
+struct flow_cache {
+0x0 hash_shift @"typedef--u32.txt"
+0x8 percpu * @"struct--flow_cache_percpu.txt"
+0x10 hotcpu_notifier @"struct--notifier_block.txt"
+0x28 low_watermark "int"
+0x2c high_watermark "int"
+0x30 rnd_timer @"struct--timer_list.txt"
+}

@@ -1,0 +1,14 @@
+Version: 1.0
+File: drivers/pci/pci.h:107
+Symbol:
+Byte size 72
+struct pci_vpd {
+0x0 len "unsigned int"
+0x8 ops * const @"struct--pci_vpd_ops.txt"
+0x10 attr * @"struct--bin_attribute.txt"
+0x18 lock @"struct--mutex.txt"
+0x40 flag @"typedef--u16.txt"
+0x42 cap @"typedef--u8.txt"
+0x43:0-1 busy @"typedef--u8.txt"
+0x43:1-2 valid @"typedef--u8.txt"
+}

@@ -1,0 +1,7 @@
+Version: 1.0
+File: mm/slub.c:3762
+Symbol:
+func kfree (
+x * const "void"
+)
+"void"

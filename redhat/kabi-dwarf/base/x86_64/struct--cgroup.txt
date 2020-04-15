@@ -1,0 +1,28 @@
+Version: 1.0
+File: include/linux/cgroup.h:195
+Symbol:
+Byte size 408
+struct cgroup {
+0x0 flags "long unsigned int"
+0x8 count @"typedef--atomic_t.txt"
+0xc id "int"
+0x10 sibling @"struct--list_head.txt"
+0x20 children @"struct--list_head.txt"
+0x30 files @"struct--list_head.txt"
+0x40 parent * @"struct--cgroup.txt"
+0x48 dentry * @"struct--dentry.txt"
+0x50 name * @"struct--cgroup_name.txt"
+0x58 subsys [12]* @"struct--cgroup_subsys_state.txt"
+0xb8 root * @"struct--cgroupfs_root.txt"
+0xc0 css_sets @"struct--list_head.txt"
+0xd0 allcg_node @"struct--list_head.txt"
+0xe0 cft_q_node @"struct--list_head.txt"
+0xf0 release_list @"struct--list_head.txt"
+0x100 pidlists @"struct--list_head.txt"
+0x110 pidlist_mutex @"struct--mutex.txt"
+0x138 callback_head @"struct--callback_head.txt"
+0x148 free_work @"struct--work_struct.txt"
+0x168 event_list @"struct--list_head.txt"
+0x178 event_list_lock @"typedef--spinlock_t.txt"
+0x180 xattrs @"struct--simple_xattrs.txt"
+}

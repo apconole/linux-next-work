@@ -1,0 +1,5 @@
+Version: 1.0
+File: mm/page_alloc.c:79
+Symbol:
+Byte size 4
+var numa_node "int"

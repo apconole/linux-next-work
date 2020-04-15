@@ -1,0 +1,12 @@
+Version: 1.0
+File: include/uapi/scsi/scsi_bsg_fc.h:297
+Symbol:
+Byte size 16
+struct fc_bsg_reply {
+0x0 result @"typedef--uint32_t.txt"
+0x4 reply_payload_rcv_len @"typedef--uint32_t.txt"
+0x8 reply_data union (NULL) {
+vendor_reply @"struct--fc_bsg_host_vendor_reply.txt"
+ctels_reply @"struct--fc_bsg_ctels_reply.txt"
+}
+}

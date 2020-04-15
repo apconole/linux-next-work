@@ -1,0 +1,23 @@
+Version: 1.0
+File: include/linux/of.h:50
+Symbol:
+Byte size 200
+struct device_node {
+0x0 name * const "char"
+0x8 type * const "char"
+0x10 phandle @"typedef--phandle.txt"
+0x18 full_name * const "char"
+0x20 properties * @"struct--property.txt"
+0x28 deadprops * @"struct--property.txt"
+0x30 parent * @"struct--device_node.txt"
+0x38 child * @"struct--device_node.txt"
+0x40 sibling * @"struct--device_node.txt"
+0x48 next * @"struct--device_node.txt"
+0x50 allnext * @"struct--device_node.txt"
+0x58 pde * @"<declarations>/struct--proc_dir_entry.txt"
+0x60 kref @"struct--kref.txt"
+0x68 _flags "long unsigned int"
+0x70 data * "void"
+0x78 kobj @"struct--kobject.txt"
+0xb8 fwnode @"struct--fwnode_handle.txt"
+}

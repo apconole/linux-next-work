@@ -1,0 +1,36 @@
+Version: 1.0
+File: arch/powerpc/include/asm/pci-bridge.h:51
+Symbol:
+Byte size 592
+struct pci_controller {
+0x0 bus * @"struct--pci_bus.txt"
+0x8 is_dynamic "char"
+0xc node "int"
+0x10 dn * @"struct--device_node.txt"
+0x18 list_node @"struct--list_head.txt"
+0x28 parent * @"struct--device.txt"
+0x30 first_busno "int"
+0x34 last_busno "int"
+0x38 self_busno "int"
+0x40 busn @"struct--resource.txt"
+0x78 io_base_virt * "void"
+0x80 io_base_alloc * "void"
+0x88 io_base_phys @"typedef--resource_size_t.txt"
+0x90 pci_io_size @"typedef--resource_size_t.txt"
+0x98 isa_mem_phys @"typedef--resource_size_t.txt"
+0xa0 isa_mem_size @"typedef--resource_size_t.txt"
+0xa8 ops * @"struct--pci_ops.txt"
+0xb0 cfg_addr * "unsigned int"
+0xb8 cfg_data * "void"
+0xc0 indirect_type @"typedef--u32.txt"
+0xc8 io_resource @"struct--resource.txt"
+0x100 mem_resources [3]@"struct--resource.txt"
+0x1a8 mem_offset [3]@"typedef--resource_size_t.txt"
+0x1c0 global_number "int"
+0x1c8 dma_window_base_cur @"typedef--resource_size_t.txt"
+0x1d0 dma_window_size @"typedef--resource_size_t.txt"
+0x1d8 buid "long unsigned int"
+0x1e0 private_data * "void"
+0x1e8 pci_data * @"struct--pci_dn.txt"
+0x1f0 controller_ops @"struct--pci_controller_ops.txt"
+}

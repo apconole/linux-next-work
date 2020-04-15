@@ -1,0 +1,7 @@
+Version: 1.0
+File: net/core/dev.c:5427
+Symbol:
+func netif_napi_del (
+napi * @"struct--napi_struct.txt"
+)
+"void"

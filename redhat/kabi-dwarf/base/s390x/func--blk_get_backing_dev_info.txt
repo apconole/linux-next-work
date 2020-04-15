@@ -1,0 +1,7 @@
+Version: 1.0
+File: block/blk-core.c:96
+Symbol:
+func blk_get_backing_dev_info (
+bdev * @"struct--block_device.txt"
+)
+* @"struct--backing_dev_info.txt"

@@ -1,0 +1,13 @@
+Version: 1.0
+File: include/net/flow.h:134
+Symbol:
+Byte size 104
+struct flowi6 {
+0x0 __fl_common @"struct--flowi_common.txt"
+0x14 daddr @"struct--in6_addr.txt"
+0x24 saddr @"struct--in6_addr.txt"
+0x34 flowlabel @"typedef--__be32.txt"
+0x38 uli @"union--flowi_uli.txt"
+0x3c rh_reserved [4]@"typedef--u32.txt"
+0x50 __fl_extended @"struct--flowi_extended.txt"
+}

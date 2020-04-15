@@ -1,0 +1,7 @@
+Version: 1.0
+File: net/netlink/genetlink.c:404
+Symbol:
+func __genl_register_family (
+family * @"struct--genl_family.txt"
+)
+"int"

@@ -1,0 +1,8 @@
+Version: 1.0
+File: mm/mmu_notifier.c:425
+Symbol:
+func __mmu_notifier_register (
+mn * @"struct--mmu_notifier.txt"
+mm * @"struct--mm_struct.txt"
+)
+"int"

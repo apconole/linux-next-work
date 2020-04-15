@@ -1,0 +1,10 @@
+Version: 1.0
+File: include/linux/efi.h:505
+Symbol:
+typedef efi_get_next_variable_t
+func (NULL) (
+(NULL) * "long unsigned int"
+(NULL) * @"typedef--efi_char16_t.txt"
+(NULL) * @"typedef--efi_guid_t.txt"
+)
+@"typedef--efi_status_t.txt"

@@ -1,0 +1,10 @@
+Version: 1.0
+File: include/linux/tty_ldisc.h:218
+Symbol:
+Byte size 48
+struct tty_ldisc {
+0x0 ops * @"struct--tty_ldisc_ops.txt"
+0x8 users @"typedef--atomic_t.txt"
+0x10 wq_idle @"typedef--wait_queue_head_t.txt"
+0x28 tty * @"struct--tty_struct.txt"
+}

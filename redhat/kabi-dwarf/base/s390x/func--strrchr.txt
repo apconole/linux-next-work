@@ -1,0 +1,8 @@
+Version: 1.0
+File: arch/s390/lib/string.c:226
+Symbol:
+func strrchr (
+s * const "char"
+c "int"
+)
+* "char"

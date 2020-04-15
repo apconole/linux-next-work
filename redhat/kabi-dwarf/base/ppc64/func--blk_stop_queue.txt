@@ -1,0 +1,7 @@
+Version: 1.0
+File: block/blk-core.c:227
+Symbol:
+func blk_stop_queue (
+q * @"struct--request_queue.txt"
+)
+"void"

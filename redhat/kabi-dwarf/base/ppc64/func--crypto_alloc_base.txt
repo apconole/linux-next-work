@@ -1,0 +1,9 @@
+Version: 1.0
+File: crypto/api.c:433
+Symbol:
+func crypto_alloc_base (
+alg_name * const "char"
+type @"typedef--u32.txt"
+mask @"typedef--u32.txt"
+)
+* @"struct--crypto_tfm.txt"

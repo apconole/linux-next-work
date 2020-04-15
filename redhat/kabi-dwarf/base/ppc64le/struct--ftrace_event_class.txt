@@ -1,0 +1,28 @@
+Version: 1.0
+File: include/linux/ftrace_event.h:205
+Symbol:
+Byte size 72
+struct ftrace_event_class {
+0x0 system * const "char"
+0x8 probe * "void"
+0x10 perf_probe * "void"
+0x18 reg * func (NULL) (
+(NULL) * @"struct--ftrace_event_call.txt"
+(NULL) @"enum--trace_reg.txt"
+(NULL) * "void"
+)
+"int"
+0x20 define_fields * func (NULL) (
+(NULL) * @"struct--ftrace_event_call.txt"
+)
+"int"
+0x28 get_fields * func (NULL) (
+(NULL) * @"struct--ftrace_event_call.txt"
+)
+* @"struct--list_head.txt"
+0x30 fields @"struct--list_head.txt"
+0x40 raw_init * func (NULL) (
+(NULL) * @"struct--ftrace_event_call.txt"
+)
+"int"
+}

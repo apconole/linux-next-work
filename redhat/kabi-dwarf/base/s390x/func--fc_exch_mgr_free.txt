@@ -1,0 +1,7 @@
+Version: 1.0
+File: drivers/scsi/libfc/fc_exch.c:2384
+Symbol:
+func fc_exch_mgr_free (
+lport * @"struct--fc_lport.txt"
+)
+"void"

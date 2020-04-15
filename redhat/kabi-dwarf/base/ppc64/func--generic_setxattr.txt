@@ -1,0 +1,11 @@
+Version: 1.0
+File: fs/xattr.c:798
+Symbol:
+func generic_setxattr (
+dentry * @"struct--dentry.txt"
+name * const "char"
+value * const "void"
+size @"typedef--size_t.txt"
+flags "int"
+)
+"int"

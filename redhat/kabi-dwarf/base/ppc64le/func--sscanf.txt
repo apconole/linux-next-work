@@ -1,0 +1,9 @@
+Version: 1.0
+File: lib/vsprintf.c:2663
+Symbol:
+func sscanf (
+buf * const "char"
+fmt * const "char"
+(NULL) ...
+)
+"int"

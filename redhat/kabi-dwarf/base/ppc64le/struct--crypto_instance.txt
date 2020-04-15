@@ -1,0 +1,10 @@
+Version: 1.0
+File: include/crypto/algapi.h:41
+Symbol:
+Byte size 312
+struct crypto_instance {
+0x0 alg @"struct--crypto_alg.txt"
+0x120 tmpl * @"struct--crypto_template.txt"
+0x128 list @"struct--hlist_node.txt"
+0x138 __ctx [0]* "void"
+}

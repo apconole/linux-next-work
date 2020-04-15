@@ -1,0 +1,14 @@
+Version: 1.0
+File: include/linux/ioc4.h:91
+Symbol:
+Byte size 4
+union ioc4_int_out {
+raw @"typedef--uint32_t.txt"
+fields struct (NULL) {
+0x0:0-16 count @"typedef--uint32_t.txt"
+0x2:0-3 mode @"typedef--uint32_t.txt"
+0x2:3-14 reserved @"typedef--uint32_t.txt"
+0x3:6-7 diag @"typedef--uint32_t.txt"
+0x3:7-8 int_out @"typedef--uint32_t.txt"
+}
+}

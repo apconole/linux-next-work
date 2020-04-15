@@ -1,0 +1,62 @@
+Version: 1.0
+File: include/scsi/scsi_device.h:348
+Symbol:
+Byte size 856
+struct scsi_target {
+0x0 starget_sdev_user * @"struct--scsi_device.txt"
+0x8 siblings @"struct--list_head.txt"
+0x18 devices @"struct--list_head.txt"
+0x28 dev @"struct--device.txt"
+0x2d8 (NULL) union (NULL) {
+reap_ref @"struct--kref.txt"
+__UNIQUE_ID_rh_kabi_hide41 struct (NULL) {
+0x0 reap_ref "unsigned int"
+}
+(NULL) union (NULL) {
+}
+}
+0x2dc channel "unsigned int"
+0x2e0 id "unsigned int"
+0x2e4:0-1 create "unsigned int"
+0x2e4:1-2 single_lun "unsigned int"
+0x2e4:2-3 pdt_1f_for_no_lun "unsigned int"
+0x2e4:3-4 no_report_luns "unsigned int"
+0x2e4:4-5 expecting_lun_change "unsigned int"
+0x2e8 (NULL) union (NULL) {
+target_busy @"typedef--atomic_t.txt"
+__UNIQUE_ID_rh_kabi_hide42 struct (NULL) {
+0x0 target_busy "unsigned int"
+}
+(NULL) union (NULL) {
+}
+}
+0x2ec can_queue "unsigned int"
+0x2f0 (NULL) union (NULL) {
+target_blocked @"typedef--atomic_t.txt"
+__UNIQUE_ID_rh_kabi_hide43 struct (NULL) {
+0x0 target_blocked "unsigned int"
+}
+(NULL) union (NULL) {
+}
+}
+0x2f4 max_target_blocked "unsigned int"
+0x2f8 scsi_level "char"
+0x300 ew @"struct--execute_work.txt"
+0x320 state @"enum--scsi_target_state.txt"
+0x328 hostdata * "void"
+0x330 rh_reserved1 * func (NULL) (
+)
+"void"
+0x338 rh_reserved2 * func (NULL) (
+)
+"void"
+0x340 rh_reserved3 * func (NULL) (
+)
+"void"
+0x348 rh_reserved4 * func (NULL) (
+)
+"void"
+0x350 scsi_mq_reserved1 @"typedef--atomic_t.txt"
+0x354 scsi_mq_reserved2 @"typedef--atomic_t.txt"
+0x358 starget_data [0]"long unsigned int"
+}

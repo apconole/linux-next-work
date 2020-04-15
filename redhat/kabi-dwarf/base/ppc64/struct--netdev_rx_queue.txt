@@ -1,0 +1,10 @@
+Version: 1.0
+File: include/linux/netdevice.h:759
+Symbol:
+Byte size 128
+struct netdev_rx_queue {
+0x0 rps_map * @"struct--rps_map.txt"
+0x8 rps_flow_table * @"struct--rps_dev_flow_table.txt"
+0x10 kobj @"struct--kobject.txt"
+0x50 dev * @"struct--net_device.txt"
+}

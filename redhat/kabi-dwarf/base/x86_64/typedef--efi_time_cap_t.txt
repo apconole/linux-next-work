@@ -1,0 +1,10 @@
+Version: 1.0
+File: include/linux/efi.h:160
+Symbol:
+Byte size 12
+typedef efi_time_cap_t
+struct (NULL) {
+0x0 resolution @"typedef--u32.txt"
+0x4 accuracy @"typedef--u32.txt"
+0x8 sets_to_zero @"typedef--u8.txt"
+}

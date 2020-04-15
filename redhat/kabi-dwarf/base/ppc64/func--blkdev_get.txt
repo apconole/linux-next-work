@@ -1,0 +1,9 @@
+Version: 1.0
+File: fs/block_dev.c:1343
+Symbol:
+func blkdev_get (
+bdev * @"struct--block_device.txt"
+mode @"typedef--fmode_t.txt"
+holder * "void"
+)
+"int"

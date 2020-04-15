@@ -1,0 +1,8 @@
+Version: 1.0
+File: net/core/rtnetlink.c:320
+Symbol:
+Byte size 4
+struct nla_policy_rh74 {
+0x0 type @"typedef--u16.txt"
+0x2 len @"typedef--u16.txt"
+}

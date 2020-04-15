@@ -1,0 +1,8 @@
+Version: 1.0
+File: include/linux/mmu_notifier.h:22
+Symbol:
+Byte size 16
+struct mmu_notifier_mm {
+0x0 list @"struct--hlist_head.txt"
+0x8 lock @"typedef--spinlock_t.txt"
+}

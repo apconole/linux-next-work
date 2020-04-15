@@ -1,0 +1,5 @@
+Version: 1.0
+File: include/linux/dmaengine.h:37
+Symbol:
+typedef dma_cookie_t
+@"typedef--s32.txt"

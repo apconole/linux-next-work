@@ -1,0 +1,11 @@
+Version: 1.0
+File: include/linux/fwnode.h:17
+Symbol:
+Byte size 4
+enum fwnode_type {
+FWNODE_INVALID = 0x0
+FWNODE_OF = 0x1
+FWNODE_ACPI = 0x2
+FWNODE_ACPI_DATA = 0x3
+FWNODE_PDATA = 0x4
+}

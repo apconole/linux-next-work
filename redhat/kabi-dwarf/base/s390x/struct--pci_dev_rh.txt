@@ -1,0 +1,10 @@
+Version: 1.0
+File: include/linux/pci.h:417
+Symbol:
+Byte size 32
+struct pci_dev_rh {
+0x0 dma_alias_mask * "long unsigned int"
+0x8 driver_override * "char"
+0x10:0-1 ats_enabled "unsigned int"
+0x18 priv_flags "long unsigned int"
+}

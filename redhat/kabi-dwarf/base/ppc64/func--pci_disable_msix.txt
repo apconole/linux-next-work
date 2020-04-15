@@ -1,0 +1,7 @@
+Version: 1.0
+File: drivers/pci/msi.c:1100
+Symbol:
+func pci_disable_msix (
+dev * @"struct--pci_dev.txt"
+)
+"void"

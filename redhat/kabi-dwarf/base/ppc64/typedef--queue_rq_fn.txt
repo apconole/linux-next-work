@@ -1,0 +1,10 @@
+Version: 1.0
+File: include/linux/blk-mq.h:144
+Symbol:
+Byte size 4
+typedef queue_rq_fn
+func (NULL) (
+(NULL) * @"struct--blk_mq_hw_ctx.txt"
+(NULL) * const @"struct--blk_mq_queue_data.txt"
+)
+"int"

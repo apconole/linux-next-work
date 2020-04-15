@@ -1,0 +1,7 @@
+Version: 1.0
+File: fs/inode.c:367
+Symbol:
+func inode_init_once (
+inode * @"struct--inode.txt"
+)
+"void"

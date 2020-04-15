@@ -1,0 +1,79 @@
+Version: 1.0
+File: include/net/dst_ops.h:13
+Symbol:
+Byte size 192
+struct dst_ops {
+0x0 family "short unsigned int"
+0x2 protocol @"typedef--__be16.txt"
+0x4 gc_thresh "unsigned int"
+0x8 gc * func (NULL) (
+(NULL) * @"struct--dst_ops.txt"
+)
+"int"
+0x10 check * func (NULL) (
+(NULL) * @"struct--dst_entry.txt"
+(NULL) @"typedef--__u32.txt"
+)
+* @"struct--dst_entry.txt"
+0x18 default_advmss * func (NULL) (
+(NULL) * const @"struct--dst_entry.txt"
+)
+"unsigned int"
+0x20 mtu * func (NULL) (
+(NULL) * const @"struct--dst_entry.txt"
+)
+"unsigned int"
+0x28 cow_metrics * func (NULL) (
+(NULL) * @"struct--dst_entry.txt"
+(NULL) "long unsigned int"
+)
+* @"typedef--u32.txt"
+0x30 destroy * func (NULL) (
+(NULL) * @"struct--dst_entry.txt"
+)
+"void"
+0x38 ifdown * func (NULL) (
+(NULL) * @"struct--dst_entry.txt"
+(NULL) * @"struct--net_device.txt"
+(NULL) "int"
+)
+"void"
+0x40 negative_advice * func (NULL) (
+(NULL) * @"struct--dst_entry.txt"
+)
+* @"struct--dst_entry.txt"
+0x48 link_failure * func (NULL) (
+(NULL) * @"struct--sk_buff.txt"
+)
+"void"
+0x50 update_pmtu * func (NULL) (
+(NULL) * @"struct--dst_entry.txt"
+(NULL) * @"struct--sock.txt"
+(NULL) * @"struct--sk_buff.txt"
+(NULL) @"typedef--u32.txt"
+)
+"void"
+0x58 redirect * func (NULL) (
+(NULL) * @"struct--dst_entry.txt"
+(NULL) * @"struct--sock.txt"
+(NULL) * @"struct--sk_buff.txt"
+)
+"void"
+0x60 local_out * func (NULL) (
+(NULL) * @"struct--sk_buff.txt"
+)
+"int"
+0x68 neigh_lookup * func (NULL) (
+(NULL) * const @"struct--dst_entry.txt"
+(NULL) * @"struct--sk_buff.txt"
+(NULL) * const "void"
+)
+* @"struct--neighbour.txt"
+0x70 kmem_cachep * @"struct--kmem_cache.txt"
+0x78 confirm_neigh * func (NULL) (
+(NULL) * const @"struct--dst_entry.txt"
+(NULL) * const "void"
+)
+"void"
+0x80 pcpuc_entries @"struct--percpu_counter.txt"
+}

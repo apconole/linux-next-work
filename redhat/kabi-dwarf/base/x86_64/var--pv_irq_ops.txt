@@ -1,0 +1,4 @@
+Version: 1.0
+File: arch/x86/kernel/paravirt.c:341
+Symbol:
+var pv_irq_ops @"struct--pv_irq_ops.txt"

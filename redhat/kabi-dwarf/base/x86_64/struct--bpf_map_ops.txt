@@ -1,0 +1,65 @@
+Version: 1.0
+File: include/linux/bpf.h:24
+Symbol:
+Byte size 96
+struct bpf_map_ops {
+0x0 map_alloc_check * func (NULL) (
+(NULL) * @"union--bpf_attr.txt"
+)
+"int"
+0x8 map_alloc * func (NULL) (
+(NULL) * @"union--bpf_attr.txt"
+)
+* @"struct--bpf_map.txt"
+0x10 map_release * func (NULL) (
+(NULL) * @"struct--bpf_map.txt"
+(NULL) * @"struct--file.txt"
+)
+"void"
+0x18 map_free * func (NULL) (
+(NULL) * @"struct--bpf_map.txt"
+)
+"void"
+0x20 map_get_next_key * func (NULL) (
+(NULL) * @"struct--bpf_map.txt"
+(NULL) * "void"
+(NULL) * "void"
+)
+"int"
+0x28 map_lookup_elem * func (NULL) (
+(NULL) * @"struct--bpf_map.txt"
+(NULL) * "void"
+)
+* "void"
+0x30 map_update_elem * func (NULL) (
+(NULL) * @"struct--bpf_map.txt"
+(NULL) * "void"
+(NULL) * "void"
+(NULL) @"typedef--u64.txt"
+)
+"int"
+0x38 map_delete_elem * func (NULL) (
+(NULL) * @"struct--bpf_map.txt"
+(NULL) * "void"
+)
+"int"
+0x40 map_fd_get_ptr * func (NULL) (
+(NULL) * @"struct--bpf_map.txt"
+(NULL) * @"struct--file.txt"
+(NULL) "int"
+)
+* "void"
+0x48 map_fd_put_ptr * func (NULL) (
+(NULL) * "void"
+)
+"void"
+0x50 map_gen_lookup * func (NULL) (
+(NULL) * @"struct--bpf_map.txt"
+(NULL) * @"struct--bpf_insn.txt"
+)
+@"typedef--u32.txt"
+0x58 map_fd_sys_lookup_elem * func (NULL) (
+(NULL) * "void"
+)
+@"typedef--u32.txt"
+}

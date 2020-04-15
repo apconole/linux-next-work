@@ -1,0 +1,7 @@
+Version: 1.0
+File: drivers/scsi/scsi_transport_fc.c:2183
+Symbol:
+func fc_attach_transport (
+ft * @"struct--fc_function_template.txt"
+)
+* @"struct--scsi_transport_template.txt"

@@ -1,0 +1,7 @@
+Version: 1.0
+File: include/uapi/scsi/fc/fc_ns.h:99
+Symbol:
+Byte size 32
+struct fc_ns_fts {
+0x0 ff_type_map [8]@"typedef--__be32.txt"
+}

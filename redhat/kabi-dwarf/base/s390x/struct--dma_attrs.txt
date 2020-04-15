@@ -1,0 +1,7 @@
+Version: 1.0
+File: include/linux/dma-attrs.h:30
+Symbol:
+Byte size 8
+struct dma_attrs {
+0x0 flags [1]"long unsigned int"
+}

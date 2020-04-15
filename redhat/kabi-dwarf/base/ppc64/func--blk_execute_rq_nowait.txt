@@ -1,0 +1,11 @@
+Version: 1.0
+File: block/blk-exec.c:52
+Symbol:
+func blk_execute_rq_nowait (
+q * @"struct--request_queue.txt"
+bd_disk * @"struct--gendisk.txt"
+rq * @"struct--request.txt"
+at_head "int"
+done * @"typedef--rq_end_io_fn.txt"
+)
+"void"

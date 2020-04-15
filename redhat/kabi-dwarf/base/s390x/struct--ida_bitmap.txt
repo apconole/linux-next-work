@@ -1,0 +1,8 @@
+Version: 1.0
+File: include/linux/idr.h:209
+Symbol:
+Byte size 128
+struct ida_bitmap {
+0x0 nr_busy "long int"
+0x8 bitmap [15]"long unsigned int"
+}

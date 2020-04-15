@@ -1,0 +1,9 @@
+Version: 1.0
+File: mm/truncate.c:553
+Symbol:
+func invalidate_mapping_pages (
+mapping * @"struct--address_space.txt"
+start "long unsigned int"
+end "long unsigned int"
+)
+"long unsigned int"

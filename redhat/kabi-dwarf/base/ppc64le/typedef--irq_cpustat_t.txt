@@ -1,0 +1,16 @@
+Version: 1.0
+File: arch/powerpc/include/asm/hardirq.h:21
+Symbol:
+Byte size 128
+typedef irq_cpustat_t
+struct (NULL) {
+0x0 __softirq_pending "unsigned int"
+0x4 timer_irqs "unsigned int"
+0x8 pmu_irqs "unsigned int"
+0xc mce_exceptions "unsigned int"
+0x10 spurious_irqs "unsigned int"
+0x14 doorbell_irqs "unsigned int"
+0x18 timer_irqs_event "unsigned int"
+0x1c timer_irqs_others "unsigned int"
+0x20 hmi_exceptions "unsigned int"
+}

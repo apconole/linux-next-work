@@ -1,0 +1,20 @@
+Version: 1.0
+File: include/net/netns/mib.h:6
+Symbol:
+Byte size 112
+struct netns_mib {
+0x0 tcp_statistics [1]* @"struct--tcp_mib.txt"
+0x8 ip_statistics [1]* @"struct--ipstats_mib.txt"
+0x10 net_statistics [1]* @"struct--linux_mib.txt"
+0x18 udp_statistics [1]* @"struct--udp_mib.txt"
+0x20 udplite_statistics [1]* @"struct--udp_mib.txt"
+0x28 icmp_statistics [1]* @"struct--icmp_mib.txt"
+0x30 icmpmsg_statistics * @"struct--icmpmsg_mib.txt"
+0x38 proc_net_devsnmp6 * @"<declarations>/struct--proc_dir_entry.txt"
+0x40 udp_stats_in6 [1]* @"struct--udp_mib.txt"
+0x48 udplite_stats_in6 [1]* @"struct--udp_mib.txt"
+0x50 ipv6_statistics [1]* @"struct--ipstats_mib.txt"
+0x58 icmpv6_statistics [1]* @"struct--icmpv6_mib.txt"
+0x60 icmpv6msg_statistics * @"struct--icmpv6msg_mib.txt"
+0x68 xfrm_statistics [1]* @"struct--linux_xfrm_mib.txt"
+}

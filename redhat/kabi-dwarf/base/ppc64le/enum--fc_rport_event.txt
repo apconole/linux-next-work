@@ -1,0 +1,11 @@
+Version: 1.0
+File: include/scsi/libfc.h:135
+Symbol:
+Byte size 4
+enum fc_rport_event {
+RPORT_EV_NONE = 0x0
+RPORT_EV_READY = 0x1
+RPORT_EV_FAILED = 0x2
+RPORT_EV_STOP = 0x3
+RPORT_EV_LOGO = 0x4
+}

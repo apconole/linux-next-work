@@ -1,0 +1,8 @@
+Version: 1.0
+File: block/blk-settings.c:78
+Symbol:
+func blk_queue_softirq_done (
+q * @"struct--request_queue.txt"
+fn * @"typedef--softirq_done_fn.txt"
+)
+"void"

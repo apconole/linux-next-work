@@ -1,0 +1,10 @@
+Version: 1.0
+File: drivers/char/ipmi/ipmi_msghandler.c:1111
+Symbol:
+func ipmi_create_user (
+if_num "unsigned int"
+handler * const @"struct--ipmi_user_hndl.txt"
+handler_data * "void"
+user * @"typedef--ipmi_user_t.txt"
+)
+"int"

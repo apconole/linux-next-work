@@ -1,0 +1,35 @@
+Version: 1.0
+File: include/linux/relay.h:77
+Symbol:
+Byte size 40
+struct rchan_callbacks {
+0x0 subbuf_start * func (NULL) (
+(NULL) * @"struct--rchan_buf.txt"
+(NULL) * "void"
+(NULL) * "void"
+(NULL) @"typedef--size_t.txt"
+)
+"int"
+0x8 buf_mapped * func (NULL) (
+(NULL) * @"struct--rchan_buf.txt"
+(NULL) * @"struct--file.txt"
+)
+"void"
+0x10 buf_unmapped * func (NULL) (
+(NULL) * @"struct--rchan_buf.txt"
+(NULL) * @"struct--file.txt"
+)
+"void"
+0x18 create_buf_file * func (NULL) (
+(NULL) * const "char"
+(NULL) * @"struct--dentry.txt"
+(NULL) @"typedef--umode_t.txt"
+(NULL) * @"struct--rchan_buf.txt"
+(NULL) * "int"
+)
+* @"struct--dentry.txt"
+0x20 remove_buf_file * func (NULL) (
+(NULL) * @"struct--dentry.txt"
+)
+"int"
+}

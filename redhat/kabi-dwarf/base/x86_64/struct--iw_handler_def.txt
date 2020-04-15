@@ -1,0 +1,16 @@
+Version: 1.0
+File: include/net/iw_handler.h:323
+Symbol:
+Byte size 40
+struct iw_handler_def {
+0x0 standard * const @"typedef--iw_handler.txt"
+0x8 num_standard @"typedef--__u16.txt"
+0xa num_private @"typedef--__u16.txt"
+0xc num_private_args @"typedef--__u16.txt"
+0x10 private * const @"typedef--iw_handler.txt"
+0x18 private_args * const @"struct--iw_priv_args.txt"
+0x20 get_wireless_stats * func (NULL) (
+(NULL) * @"struct--net_device.txt"
+)
+* @"struct--iw_statistics.txt"
+}

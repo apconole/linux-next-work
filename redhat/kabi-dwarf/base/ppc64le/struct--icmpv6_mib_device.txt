@@ -1,0 +1,7 @@
+Version: 1.0
+File: include/net/snmp.h:80
+Symbol:
+Byte size 48
+struct icmpv6_mib_device {
+0x0 mibs [6]@"typedef--atomic_long_t.txt"
+}

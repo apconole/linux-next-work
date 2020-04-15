@@ -1,0 +1,38 @@
+Version: 1.0
+File: include/linux/device.h:239
+Symbol:
+Byte size 128
+struct device_driver {
+0x0 name * const "char"
+0x8 bus * @"struct--bus_type.txt"
+0x10 owner * @"struct--module.txt"
+0x18 mod_name * const "char"
+0x20 suppress_bind_attrs @"typedef--bool.txt"
+0x28 of_match_table * const @"struct--of_device_id.txt"
+0x30 acpi_match_table * const @"struct--acpi_device_id.txt"
+0x38 probe * func (NULL) (
+(NULL) * @"struct--device.txt"
+)
+"int"
+0x40 remove * func (NULL) (
+(NULL) * @"struct--device.txt"
+)
+"int"
+0x48 shutdown * func (NULL) (
+(NULL) * @"struct--device.txt"
+)
+"void"
+0x50 suspend * func (NULL) (
+(NULL) * @"struct--device.txt"
+(NULL) @"typedef--pm_message_t.txt"
+)
+"int"
+0x58 resume * func (NULL) (
+(NULL) * @"struct--device.txt"
+)
+"int"
+0x60 groups * * const @"struct--attribute_group.txt"
+0x68 pm * const @"struct--dev_pm_ops.txt"
+0x70 p * @"struct--driver_private.txt"
+0x78 device_driver_rh * @"struct--device_driver_rh.txt"
+}

@@ -1,0 +1,7 @@
+Version: 1.0
+File: drivers/pnp/driver.c:262
+Symbol:
+func pnp_register_driver (
+drv * @"struct--pnp_driver.txt"
+)
+"int"

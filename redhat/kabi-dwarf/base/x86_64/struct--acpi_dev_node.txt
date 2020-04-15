@@ -1,0 +1,14 @@
+Version: 1.0
+File: include/linux/device.h:727
+Symbol:
+Byte size 8
+struct acpi_dev_node {
+0x0 (NULL) union (NULL) {
+companion * @"struct--acpi_device.txt"
+__UNIQUE_ID_rh_kabi_hide35 struct (NULL) {
+0x0 handle * "void"
+}
+(NULL) union (NULL) {
+}
+}
+}

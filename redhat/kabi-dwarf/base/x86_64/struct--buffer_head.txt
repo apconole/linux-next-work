@@ -1,0 +1,18 @@
+Version: 1.0
+File: include/linux/buffer_head.h:63
+Symbol:
+Byte size 104
+struct buffer_head {
+0x0 b_state "long unsigned int"
+0x8 b_this_page * @"struct--buffer_head.txt"
+0x10 b_page * @"struct--page.txt"
+0x18 b_blocknr @"typedef--sector_t.txt"
+0x20 b_size @"typedef--size_t.txt"
+0x28 b_data * "char"
+0x30 b_bdev * @"struct--block_device.txt"
+0x38 b_end_io * @"typedef--bh_end_io_t.txt"
+0x40 b_private * "void"
+0x48 b_assoc_buffers @"struct--list_head.txt"
+0x58 b_assoc_map * @"struct--address_space.txt"
+0x60 b_count @"typedef--atomic_t.txt"
+}

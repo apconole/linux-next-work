@@ -1,0 +1,10 @@
+Version: 1.0
+File: kernel/timer.c:738
+Symbol:
+func init_timer_key (
+timer * @"struct--timer_list.txt"
+flags "unsigned int"
+name * const "char"
+key * @"struct--lock_class_key.txt"
+)
+"void"

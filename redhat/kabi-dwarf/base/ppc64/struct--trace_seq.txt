@@ -1,0 +1,10 @@
+Version: 1.0
+File: include/linux/trace_seq.h:13
+Symbol:
+Byte size 65548
+struct trace_seq {
+0x0 buffer [65536]"unsigned char"
+0x10000 len "unsigned int"
+0x10004 readpos "unsigned int"
+0x10008 full "int"
+}

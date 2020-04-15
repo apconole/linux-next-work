@@ -1,0 +1,11 @@
+Version: 1.0
+File: include/uapi/linux/mqueue.h:25
+Symbol:
+Byte size 64
+struct mq_attr {
+0x0 mq_flags "long int"
+0x8 mq_maxmsg "long int"
+0x10 mq_msgsize "long int"
+0x18 mq_curmsgs "long int"
+0x20 __reserved [4]"long int"
+}

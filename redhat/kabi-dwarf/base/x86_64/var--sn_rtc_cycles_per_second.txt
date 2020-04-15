@@ -1,0 +1,5 @@
+Version: 1.0
+File: arch/x86/kernel/apic/x2apic_uv_x.c:417
+Symbol:
+Byte size 8
+var sn_rtc_cycles_per_second "long unsigned int"

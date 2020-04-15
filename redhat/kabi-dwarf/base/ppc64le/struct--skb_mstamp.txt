@@ -1,0 +1,13 @@
+Version: 1.0
+File: include/linux/skbuff.h:549
+Symbol:
+Byte size 8
+struct skb_mstamp {
+0x0 (NULL) union (NULL) {
+v64 @"typedef--u64.txt"
+(NULL) struct (NULL) {
+0x0 stamp_us @"typedef--u32.txt"
+0x4 stamp_jiffies @"typedef--u32.txt"
+}
+}
+}

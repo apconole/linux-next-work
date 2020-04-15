@@ -1,0 +1,18 @@
+Version: 1.0
+File: drivers/base/base.h:28
+Symbol:
+Byte size 408
+struct subsys_private {
+0x0 subsys @"struct--kset.txt"
+0x60 devices_kset * @"struct--kset.txt"
+0x68 interfaces @"struct--list_head.txt"
+0x78 mutex @"struct--mutex.txt"
+0xa0 drivers_kset * @"struct--kset.txt"
+0xa8 klist_devices @"struct--klist.txt"
+0xd0 klist_drivers @"struct--klist.txt"
+0xf8 bus_notifier @"struct--blocking_notifier_head.txt"
+0x120:0-1 drivers_autoprobe "unsigned int"
+0x128 bus * @"struct--bus_type.txt"
+0x130 glue_dirs @"struct--kset.txt"
+0x190 class * @"struct--class.txt"
+}

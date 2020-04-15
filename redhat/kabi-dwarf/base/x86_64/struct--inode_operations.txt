@@ -1,0 +1,147 @@
+Version: 1.0
+File: include/linux/fs.h:1806
+Symbol:
+Byte size 192
+struct inode_operations {
+0x0 lookup * func (NULL) (
+(NULL) * @"struct--inode.txt"
+(NULL) * @"struct--dentry.txt"
+(NULL) "unsigned int"
+)
+* @"struct--dentry.txt"
+0x8 follow_link * func (NULL) (
+(NULL) * @"struct--dentry.txt"
+(NULL) * @"struct--nameidata.txt"
+)
+* "void"
+0x10 permission * func (NULL) (
+(NULL) * @"struct--inode.txt"
+(NULL) "int"
+)
+"int"
+0x18 get_acl * func (NULL) (
+(NULL) * @"struct--inode.txt"
+(NULL) "int"
+)
+* @"struct--posix_acl.txt"
+0x20 readlink * func (NULL) (
+(NULL) * @"struct--dentry.txt"
+(NULL) * "char"
+(NULL) "int"
+)
+"int"
+0x28 put_link * func (NULL) (
+(NULL) * @"struct--dentry.txt"
+(NULL) * @"struct--nameidata.txt"
+(NULL) * "void"
+)
+"void"
+0x30 create * func (NULL) (
+(NULL) * @"struct--inode.txt"
+(NULL) * @"struct--dentry.txt"
+(NULL) @"typedef--umode_t.txt"
+(NULL) @"typedef--bool.txt"
+)
+"int"
+0x38 link * func (NULL) (
+(NULL) * @"struct--dentry.txt"
+(NULL) * @"struct--inode.txt"
+(NULL) * @"struct--dentry.txt"
+)
+"int"
+0x40 unlink * func (NULL) (
+(NULL) * @"struct--inode.txt"
+(NULL) * @"struct--dentry.txt"
+)
+"int"
+0x48 symlink * func (NULL) (
+(NULL) * @"struct--inode.txt"
+(NULL) * @"struct--dentry.txt"
+(NULL) * const "char"
+)
+"int"
+0x50 mkdir * func (NULL) (
+(NULL) * @"struct--inode.txt"
+(NULL) * @"struct--dentry.txt"
+(NULL) @"typedef--umode_t.txt"
+)
+"int"
+0x58 rmdir * func (NULL) (
+(NULL) * @"struct--inode.txt"
+(NULL) * @"struct--dentry.txt"
+)
+"int"
+0x60 mknod * func (NULL) (
+(NULL) * @"struct--inode.txt"
+(NULL) * @"struct--dentry.txt"
+(NULL) @"typedef--umode_t.txt"
+(NULL) @"typedef--dev_t.txt"
+)
+"int"
+0x68 rename * func (NULL) (
+(NULL) * @"struct--inode.txt"
+(NULL) * @"struct--dentry.txt"
+(NULL) * @"struct--inode.txt"
+(NULL) * @"struct--dentry.txt"
+)
+"int"
+0x70 setattr * func (NULL) (
+(NULL) * @"struct--dentry.txt"
+(NULL) * @"struct--iattr.txt"
+)
+"int"
+0x78 getattr * func (NULL) (
+(NULL) * @"struct--vfsmount.txt"
+(NULL) * @"struct--dentry.txt"
+(NULL) * @"struct--kstat.txt"
+)
+"int"
+0x80 setxattr * func (NULL) (
+(NULL) * @"struct--dentry.txt"
+(NULL) * const "char"
+(NULL) * const "void"
+(NULL) @"typedef--size_t.txt"
+(NULL) "int"
+)
+"int"
+0x88 getxattr * func (NULL) (
+(NULL) * @"struct--dentry.txt"
+(NULL) * const "char"
+(NULL) * "void"
+(NULL) @"typedef--size_t.txt"
+)
+@"typedef--ssize_t.txt"
+0x90 listxattr * func (NULL) (
+(NULL) * @"struct--dentry.txt"
+(NULL) * "char"
+(NULL) @"typedef--size_t.txt"
+)
+@"typedef--ssize_t.txt"
+0x98 removexattr * func (NULL) (
+(NULL) * @"struct--dentry.txt"
+(NULL) * const "char"
+)
+"int"
+0xa0 fiemap * func (NULL) (
+(NULL) * @"struct--inode.txt"
+(NULL) * @"struct--fiemap_extent_info.txt"
+(NULL) @"typedef--u64.txt"
+(NULL) @"typedef--u64.txt"
+)
+"int"
+0xa8 update_time * func (NULL) (
+(NULL) * @"struct--inode.txt"
+(NULL) * @"struct--timespec.txt"
+(NULL) "int"
+)
+"int"
+0xb0 atomic_open * func (NULL) (
+(NULL) * @"struct--inode.txt"
+(NULL) * @"struct--dentry.txt"
+(NULL) * @"struct--file.txt"
+(NULL) "unsigned int"
+(NULL) @"typedef--umode_t.txt"
+(NULL) * "int"
+)
+"int"
+}
