@@ -834,7 +834,6 @@ static void hmm_devmem_release(struct device *dev, void *data)
 	__remove_pages(zone, start_pfn, npages, NULL);
 
 	hmm_devmem_radix_release(resource);
-	device_rh_free(dev);
 }
 
 static struct hmm_devmem *hmm_devmem_find(resource_size_t phys)

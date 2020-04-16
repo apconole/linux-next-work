@@ -767,7 +767,6 @@ static void wmi_dev_release(struct device *dev)
 	struct wmi_block *wblock = dev_to_wblock(dev);
 
 	kfree(wblock);
-	device_rh_free(dev);
 }
 
 static int wmi_dev_match(struct device *dev, struct device_driver *driver)

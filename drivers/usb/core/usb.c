@@ -428,7 +428,6 @@ static void usb_release_dev(struct device *dev)
 	kfree(udev->product);
 	kfree(udev->manufacturer);
 	kfree(udev->serial);
-	device_rh_free(&udev->dev);
 	kfree(udev);
 }
 

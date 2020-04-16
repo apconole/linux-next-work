@@ -613,7 +613,6 @@ static void dev_dax_release(struct device *dev)
 		ida_simple_remove(&dax_region->ida, dev_dax->id);
 	dax_region_put(dax_region);
 	put_dax(dax_dev);
-	device_rh_free(dev);
 	kfree(dev_dax);
 }
 
@@ -637,7 +636,6 @@ static void unregister_dev_dax(void *dev)
 
 	kill_dev_dax(dev_dax);
 	cdev_device_del(cdev, dev);
-	device_rh_free((struct device *)dev);
 	put_device(dev);
 }
 

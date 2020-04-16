@@ -95,7 +95,6 @@ static void release_pcibus_dev(struct device *dev)
 	pci_release_bus_of_node(pci_bus);
 	kfree(pci_bus->pci_bus_rh);
 	kfree(pci_bus);
-	device_rh_free(dev);
 }
 
 static struct class pcibus_class = {

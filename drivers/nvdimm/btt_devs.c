@@ -30,7 +30,6 @@ static void nd_btt_release(struct device *dev)
 	nd_detach_ndns(&nd_btt->dev, &nd_btt->ndns);
 	ida_simple_remove(&nd_region->btt_ida, nd_btt->id);
 	kfree(nd_btt->uuid);
-	device_rh_free(dev);
 	kfree(nd_btt);
 }
 

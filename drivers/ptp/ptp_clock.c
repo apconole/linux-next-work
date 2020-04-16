@@ -198,7 +198,6 @@ static void ptp_clock_release(struct device *dev)
 	mutex_destroy(&ptp->pincfg_mux);
 	ida_simple_remove(&ptp_clocks_map, ptp->index);
 	kfree(ptp);
-	device_rh_free(dev);
 }
 
 /* public interface */
