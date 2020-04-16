@@ -243,6 +243,7 @@ static void device_release(struct kobject *kobj)
 	 * possible memory leak.
 	 */
 	devres_release_all(dev);
+	device_rh_free(dev);
 
 	if (dev->release)
 		dev->release(dev);
@@ -255,7 +256,6 @@ static void device_release(struct kobject *kobj)
 			"function, it is broken and must be fixed.\n",
 			dev_name(dev));
 	kfree(p);
-	device_rh_free(dev);
 }
 
 static const void *device_namespace(struct kobject *kobj)
