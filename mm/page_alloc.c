@@ -64,6 +64,7 @@
 #include <linux/sched/rt.h>
 #include <linux/kthread.h>
 #include <linux/nmi.h>
+#include <linux/page_owner.h>
 
 #include <asm/sections.h>
 #include <asm/tlbflush.h>
@@ -974,6 +975,8 @@ static bool free_pages_prepare(struct page *page, unsigned int order)
 	if (bad)
 		return false;
 
+	reset_page_owner(page, order);
+
 	if (!PageHighMem(page)) {
 		debug_check_no_locks_freed(page_address(page),PAGE_SIZE<<order);
 		debug_check_no_obj_freed(page_address(page),
@@ -1571,6 +1574,7 @@ static int prep_new_page(struct page *page, int order, gfp_t gfp_flags)
 	if (order && (gfp_flags & __GFP_COMP))
 		prep_compound_page(page, order);
 
+	set_page_owner(page, order, gfp_flags);
 	/*
 	 * Make sure the caller of get_page_unless_zero() will see the
 	 * fully initialized page. Say, to ensure that compound_lock()
@@ -2129,8 +2133,11 @@ void split_page(struct page *page, unsigned int order)
 		split_page(virt_to_page(page[0].shadow), order);
 #endif
 
-	for (i = 1; i < (1 << order); i++)
+	set_page_owner(page, 0, 0);
+	for (i = 1; i < (1 << order); i++) {
 		set_page_refcounted(page + i);
+		set_page_owner(page + i, 0, 0);
+	}
 }
 EXPORT_SYMBOL_GPL(split_page);
 
@@ -2170,6 +2177,7 @@ static int __isolate_free_page(struct page *page, unsigned int order)
 		}
 	}
 
+	set_page_owner(page, order, 0);
 	return 1UL << order;
 }
 
