@@ -1945,7 +1945,6 @@ struct inode *nfs_alloc_inode(struct super_block *sb)
 #if IS_ENABLED(CONFIG_NFS_V4)
 	nfsi->nfs4_acl = NULL;
 #endif /* CONFIG_NFS_V4 */
-	mutex_init(&nfsi->parallel_io_mutex);
 	return &nfsi->vfs_inode;
 }
 EXPORT_SYMBOL_GPL(nfs_alloc_inode);
@@ -1987,7 +1986,6 @@ static void init_once(void *foo)
 	atomic_set(&nfsi->silly_count, 1);
 	INIT_HLIST_HEAD(&nfsi->silly_list);
 	init_waitqueue_head(&nfsi->waitqueue);
-	atomic_set(&nfsi->parallel_io_count, 0);
 	nfs4_init_once(nfsi);
 }
 
