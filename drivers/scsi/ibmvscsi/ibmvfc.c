@@ -3636,6 +3636,11 @@ static void ibmvfc_tgt_implicit_logout(struct ibmvfc_target *tgt)
 	struct ibmvfc_host *vhost = tgt->vhost;
 	struct ibmvfc_event *evt;
 
+	if (!vhost->logged_in) {
+		ibmvfc_set_tgt_action(tgt, IBMVFC_TGT_ACTION_DEL_RPORT);
+		return;
+	}
+
 	if (vhost->discovery_threads >= disc_threads)
 		return;
 
