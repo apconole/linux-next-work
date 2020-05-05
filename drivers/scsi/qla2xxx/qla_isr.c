@@ -2798,8 +2798,6 @@ out:
 
 	if (rsp->status_srb == NULL)
 		sp->done(sp, res);
-	else
-		WARN_ON_ONCE(true);
 }
 
 /**
