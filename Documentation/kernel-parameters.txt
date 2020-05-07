@@ -500,6 +500,9 @@ bytes respectively. Such letter suffixes can also be entirely omitted.
 	bert_disable	[ACPI]
 			Disable BERT OS support on buggy BIOSes.
 
+	bert_enable	[ACPI]
+			RHEL7 only: enable BERT OS support (disabled by default).
+
 	bttv.card=	[HW,V4L] bttv (bt848 + bt878 based grabber cards)
 	bttv.radio=	Most important insmod options are available as
 			kernel args too.
