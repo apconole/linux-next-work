@@ -2157,8 +2157,8 @@ static struct gfs2_rgrpd *rgblk_free(struct gfs2_sbd *sdp, u64 bstart,
 
 	rbm.rgd = gfs2_blk2rgrpd(sdp, bstart, 1);
 	if (!rbm.rgd) {
-		if (gfs2_consist(sdp))
-			fs_err(sdp, "block = %llu\n", (unsigned long long)bstart);
+		fs_err(sdp, "block = %llu\n", (unsigned long long)bstart);
+		gfs2_consist(sdp);
 		return NULL;
 	}
 
