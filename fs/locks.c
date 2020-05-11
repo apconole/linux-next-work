@@ -1702,6 +1702,8 @@ int generic_setlease(struct file *filp, long arg, struct file_lock **flp,
 	struct inode *inode = locks_inode(filp);
 	int error;
 
+	lockdep_assert_held(&inode->i_lock);
+
 	if ((!uid_eq(current_fsuid(), inode->i_uid)) && !capable(CAP_LEASE))
 		return -EACCES;
 	if (!S_ISREG(inode->i_mode))
@@ -1728,15 +1730,6 @@ int generic_setlease(struct file *filp, long arg, struct file_lock **flp,
 }
 EXPORT_SYMBOL(generic_setlease);
 
-static int
-__vfs_setlease(struct file *filp, long arg, struct file_lock **lease, void **priv)
-{
-	if (filp->f_op && filp->f_op->setlease && is_remote_lock(filp))
-		return filp->f_op->setlease(filp, arg, lease, priv);
-	else
-		return generic_setlease(filp, arg, lease, priv);
-}
-
 /**
  * vfs_setlease        -       sets a lease on an open file
  * @filp: file pointer
@@ -1750,16 +1743,31 @@ __vfs_setlease(struct file *filp, long arg, struct file_lock **lease, void **pri
  * if not, this function will return -ENOLCK (and generate a scary-looking
  * stack trace).
  */
-
 int
 vfs_setlease(struct file *filp, long arg, struct file_lock **lease, void **priv)
 {
 	struct inode *inode = locks_inode(filp);
 	int error;
 
-	spin_lock(&inode->i_lock);
-	error = __vfs_setlease(filp, arg, lease, priv);
-	spin_unlock(&inode->i_lock);
+	if (filp->f_op && filp->f_op->setlease && is_remote_lock(filp)) {
+		bool nolock = filp->f_path.dentry->d_sb->s_type->fs_flags &
+						FS_SETLEASE_NOLOCK;
+
+		/*
+		 * If FS_SETLEASE_NOLOCK is set, then the underlying filesystem
+		 * does not wish to have its setlease operation called with the
+		 * i_lock held.
+		 */
+		if (!nolock)
+			spin_lock(&inode->i_lock);
+		error = filp->f_op->setlease(filp, arg, lease, priv);
+		if (!nolock)
+			spin_unlock(&inode->i_lock);
+	} else {
+		spin_lock(&inode->i_lock);
+		error = generic_setlease(filp, arg, lease, priv);
+		spin_unlock(&inode->i_lock);
+	}
 
 	return error;
 }
