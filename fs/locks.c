@@ -456,6 +456,24 @@ static void lease_break_callback(struct file_lock *fl)
 	kill_fasync(&fl->fl_fasync, SIGIO, POLL_MSG);
 }
 
+static void
+lease_setup(struct file_lock *fl, void **priv)
+{
+	struct file *filp = fl->fl_file;
+	struct fasync_struct *fa = *priv;
+
+	/*
+	 * fasync_insert_entry() returns the old entry if any.
+	 * If there was no old entry, then it used 'new' and
+	 * inserted it into the fasync list. Clear new so that
+	 * we don't release it here.
+	 */
+	if (!fasync_insert_entry(fa->fa_fd, filp, &fl->fl_fasync, fa))
+		*priv = NULL;
+
+	__f_setown(filp, task_pid(current), PIDTYPE_PID, 0);
+}
+
 static const struct lock_manager_operations lease_manager_ops = {
 	.lm_break = lease_break_callback,
 	.lm_change = lease_modify,
@@ -1610,7 +1628,7 @@ generic_add_lease(struct file *filp, long arg, struct file_lock **flp, void **pr
 		error = lease->fl_lmops->lm_change(my_before, arg);
 		if (!error)
 			*flp = *my_before;
-		goto out;
+		goto out_setup;
 	}
 
 	error = -EINVAL;
@@ -1631,6 +1649,13 @@ generic_add_lease(struct file *filp, long arg, struct file_lock **flp, void **pr
 	error = check_conflicting_open(dentry, arg, lease->fl_flags);
 	if (error)
 		goto out_unlink;
+out_setup:
+	/*
+	 * RHEL7 doesn't have a lm_setup operation, so emulate it here by
+	 * only doing this for fcntl leases.
+	 */
+	if (lease->fl_lmops == &lease_manager_ops)
+		lease_setup(lease, priv);
 out:
 	if (is_deleg)
 		mutex_unlock(&inode->i_mutex);
@@ -1743,7 +1768,6 @@ EXPORT_SYMBOL_GPL(vfs_setlease);
 static int do_fcntl_add_lease(unsigned int fd, struct file *filp, long arg)
 {
 	struct file_lock *fl, *ret;
-	struct inode *inode = locks_inode(filp);
 	struct fasync_struct *new;
 	int error;
 
@@ -1756,30 +1780,12 @@ static int do_fcntl_add_lease(unsigned int fd, struct file *filp, long arg)
 		locks_free_lock(fl);
 		return -ENOMEM;
 	}
+	new->fa_fd = fd;
+
 	ret = fl;
-	spin_lock(&inode->i_lock);
-	error = __vfs_setlease(filp, arg, &ret, NULL);
-	if (error) {
-		spin_unlock(&inode->i_lock);
+	error = vfs_setlease(filp, arg, &ret, (void **)&new);
+	if (error || ret != fl)
 		locks_free_lock(fl);
-		goto out_free_fasync;
-	}
-	if (ret != fl)
-		locks_free_lock(fl);
-
-	/*
-	 * fasync_insert_entry() returns the old entry if any.
-	 * If there was no old entry, then it used 'new' and
-	 * inserted it into the fasync list. Clear new so that
-	 * we don't release it here.
-	 */
-	if (!fasync_insert_entry(fd, filp, &ret->fl_fasync, new))
-		new = NULL;
-
-	error = __f_setown(filp, task_pid(current), PIDTYPE_PID, 0);
-	spin_unlock(&inode->i_lock);
-
-out_free_fasync:
 	if (new)
 		fasync_free(new);
 	return error;
