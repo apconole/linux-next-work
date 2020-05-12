@@ -62,7 +62,7 @@ static struct buffer_head *ext4_append(handle_t *handle,
 
 	*block = inode->i_size >> inode->i_sb->s_blocksize_bits;
 
-	bh = ext4_bread(handle, inode, *block, 1, &err);
+	bh = ext4_bread(handle, inode, *block, EXT4_GET_BLOCKS_CREATE, &err);
 	if (!bh)
 		return ERR_PTR(err);
 	inode->i_size += inode->i_sb->s_blocksize;

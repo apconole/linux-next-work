@@ -806,18 +806,18 @@ int ext4_get_block(struct inode *inode, sector_t iblock,
  * `handle' can be NULL if create is zero
  */
 struct buffer_head *ext4_getblk(handle_t *handle, struct inode *inode,
-				ext4_lblk_t block, int create, int *errp)
+				ext4_lblk_t block, int map_flags, int *errp)
 {
 	struct ext4_map_blocks map;
 	struct buffer_head *bh;
+	int create = map_flags & EXT4_GET_BLOCKS_CREATE;
 	int fatal = 0, err;
 
 	J_ASSERT(handle != NULL || create == 0);
 
 	map.m_lblk = block;
 	map.m_len = 1;
-	err = ext4_map_blocks(handle, inode, &map,
-			      create ? EXT4_GET_BLOCKS_CREATE : 0);
+	err = ext4_map_blocks(handle, inode, &map, map_flags);
 
 	/* ensure we send some value back into *errp */
 	*errp = 0;
@@ -869,11 +869,11 @@ struct buffer_head *ext4_getblk(handle_t *handle, struct inode *inode,
 }
 
 struct buffer_head *ext4_bread(handle_t *handle, struct inode *inode,
-			       ext4_lblk_t block, int create, int *err)
+			       ext4_lblk_t block, int map_flags, int *err)
 {
 	struct buffer_head *bh;
 
-	bh = ext4_getblk(handle, inode, block, create, err);
+	bh = ext4_getblk(handle, inode, block, map_flags, err);
 	if (!bh)
 		return bh;
 	if (buffer_uptodate(bh))

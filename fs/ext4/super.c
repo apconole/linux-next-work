@@ -5708,6 +5708,7 @@ static ssize_t ext4_quota_write(struct super_block *sb, int type,
 	ext4_lblk_t blk = off >> EXT4_BLOCK_SIZE_BITS(sb);
 	int err = 0;
 	int offset = off & (sb->s_blocksize - 1);
+	int retries = 0;
 	struct buffer_head *bh;
 	handle_t *handle = journal_current_handle();
 
@@ -5729,6 +5730,13 @@ static ssize_t ext4_quota_write(struct super_block *sb, int type,
 	}
 
 	bh = ext4_bread(handle, inode, blk, 1, &err);
+	do {
+		bh = ext4_bread(handle, inode, blk,
+				EXT4_GET_BLOCKS_CREATE |
+				EXT4_GET_BLOCKS_METADATA_NOFAIL,
+				&err);
+	} while (!bh && (err == -ENOSPC) &&
+		 ext4_should_retry_alloc(inode->i_sb, &retries));
 	if (!bh)
 		goto out;
 	BUFFER_TRACE(bh, "get write access");
