@@ -7011,20 +7011,8 @@ int __dev_set_mtu(struct net_device *dev, int new_mtu)
 }
 EXPORT_SYMBOL(__dev_set_mtu);
 
-/**
- *	dev_set_mtu - Change maximum transfer unit
- *	@dev: device
- *	@new_mtu: new transfer unit
- *
- *	Change the maximum transfer size of the network device.
- */
-int dev_set_mtu(struct net_device *dev, int new_mtu)
+int dev_validate_mtu(struct net_device *dev, int new_mtu)
 {
-	int err, orig_mtu;
-
-	if (new_mtu == dev->mtu)
-		return 0;
-
 	/* RHEL - skip min_mtu & max_mtu checks for old drivers that
 	 * implement old .ndo_change_mtu_rh74() handler.
 	 */
@@ -7035,7 +7023,7 @@ int dev_set_mtu(struct net_device *dev, int new_mtu)
 
 		if (new_mtu < 0)
 			return -EINVAL;
-		goto skip_check;
+		return 0;
 	}
 
 	/* MTU must be positive, and in range */
@@ -7050,8 +7038,27 @@ int dev_set_mtu(struct net_device *dev, int new_mtu)
 				    dev->name, new_mtu, dev->extended->max_mtu);
 		return -EINVAL;
 	}
+	return 0;
+}
 
-skip_check:
+/**
+ *	dev_set_mtu - Change maximum transfer unit
+ *	@dev: device
+ *	@new_mtu: new transfer unit
+ *
+ *	Change the maximum transfer size of the network device.
+ */
+int dev_set_mtu(struct net_device *dev, int new_mtu)
+{
+	int err, orig_mtu;
+
+	if (new_mtu == dev->mtu)
+		return 0;
+
+	err = dev_validate_mtu(dev, new_mtu);
+	if (err)
+		return err;
+
 	if (!netif_device_present(dev))
 		return -ENODEV;
 
