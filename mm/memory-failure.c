@@ -1761,7 +1761,7 @@ int soft_offline_page(struct page *page, int flags)
 		if (!TestSetPageHWPoison(hpage)) {
 			atomic_long_inc(&num_poisoned_pages);
 			if (PageHuge(hpage))
-				dequeue_hwpoisoned_huge_page(hpage);
+				dissolve_free_huge_page(page);
 		}
 	}
 	return ret;
