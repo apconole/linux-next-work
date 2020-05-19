@@ -19,6 +19,7 @@ __license__ = "GPL"
 import getopt
 import os
 import sys
+import errno
 
 def load_kabi(dirname, kabi, order, arch):
     """Load a reference whitelist content."""
@@ -143,4 +144,8 @@ if __name__ == "__main__":
         sys.exit(1)
 
     load_kabi(kabi_dir, kabi, kabi_order, arch)
-    show_kabi(kabi, kabi_order, release, kabi_out, kabi_head)
+    try:
+        show_kabi(kabi, kabi_order, release, kabi_out, kabi_head)
+    except IOError as e:
+        if e.errno != errno.EPIPE:
+            raise e
