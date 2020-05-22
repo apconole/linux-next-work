@@ -815,8 +815,8 @@ out:
 		es->es_lblk = es1->es_lblk;
 		es->es_len = es1->es_len;
 		es->es_pblk = es1->es_pblk;
-		if (!ext4_es_is_referenced(es))
-			ext4_es_set_referenced(es);
+		if (!ext4_es_is_referenced(es1))
+			ext4_es_set_referenced(es1);
 	}
 
 	read_unlock(&EXT4_I(inode)->i_es_lock);
