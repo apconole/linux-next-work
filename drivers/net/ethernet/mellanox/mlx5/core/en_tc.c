@@ -2578,6 +2578,25 @@ mlx5e_encap_get(struct mlx5e_priv *priv, struct encap_key *key,
 	return NULL;
 }
 
+static bool is_duplicated_encap_entry(struct mlx5e_priv *priv,
+				      struct mlx5e_tc_flow *flow,
+				      int out_index,
+				      struct mlx5e_encap_entry *e,
+				      struct netlink_ext_ack *extack)
+{
+	int i;
+
+	for (i = 0; i < out_index; i++) {
+		if (flow->encaps[i].e != e)
+			continue;
+		NL_SET_ERR_MSG_MOD(extack, "can't duplicate encap action");
+		netdev_err(priv->netdev, "can't duplicate encap action\n");
+		return true;
+	}
+
+	return false;
+}
+
 static int mlx5e_attach_encap(struct mlx5e_priv *priv,
 			      struct mlx5e_tc_flow *flow,
 			      struct net_device *mirred_dev,
@@ -2607,8 +2626,15 @@ static int mlx5e_attach_encap(struct mlx5e_priv *priv,
 	e = mlx5e_encap_get(priv, &key, hash_key);
 
 	/* must verify if encap is valid or not */
-	if (e)
+	if (e) {
+		/* Check that entry was not already attached to this flow */
+		if (is_duplicated_encap_entry(priv, flow, out_index, e, extack)) {
+			err = -EOPNOTSUPP;
+			goto out_err;
+		}
+
 		goto attach_flow;
+	}
 
 	e = kzalloc(sizeof(*e), GFP_KERNEL);
 	if (!e)
@@ -2801,6 +2827,26 @@ bool mlx5e_is_valid_eswitch_fwd_dev(struct mlx5e_priv *priv,
 	       same_hw_devs(priv, netdev_priv(out_dev));
 }
 
+static bool is_duplicated_output_device(struct net_device *dev,
+					struct net_device *out_dev,
+					int *ifindexes, int if_count,
+					struct netlink_ext_ack *extack)
+{
+	int i;
+
+	for (i = 0; i < if_count; i++) {
+		if (ifindexes[i] == out_dev->ifindex) {
+			NL_SET_ERR_MSG_MOD(extack,
+					   "can't duplicate output to same device");
+			netdev_err(dev, "can't duplicate output to same device: %s\n",
+				   out_dev->name);
+			return true;
+		}
+	}
+
+	return false;
+}
+
 static int parse_tc_fdb_actions(struct mlx5e_priv *priv, struct tcf_exts *exts,
 				struct mlx5e_tc_flow_parse_attr *parse_attr,
 				struct mlx5e_tc_flow *flow,
@@ -2810,11 +2856,12 @@ static int parse_tc_fdb_actions(struct mlx5e_priv *priv, struct tcf_exts *exts,
 	struct mlx5_esw_flow_attr *attr = flow->esw_attr;
 	struct mlx5e_rep_priv *rpriv = priv->ppriv;
 	struct ip_tunnel_info *info = NULL;
+	int ifindexes[MLX5_MAX_FLOW_FWD_VPORTS];
 	const struct tc_action *a;
 	LIST_HEAD(actions);
+	int err, if_count = 0;
 	bool encap = false;
 	u32 action = 0;
-	int err;
 
 	if (!tcf_exts_has_actions(exts))
 		return -EINVAL;
@@ -2877,6 +2924,16 @@ static int parse_tc_fdb_actions(struct mlx5e_priv *priv, struct tcf_exts *exts,
 				struct mlx5_eswitch *esw = priv->mdev->priv.eswitch;
 				struct net_device *uplink_dev = mlx5_eswitch_uplink_get_proto_dev(esw, REP_ETH);
 				struct net_device *uplink_upper = netdev_master_upper_dev_get(uplink_dev);
+
+				if (is_duplicated_output_device(priv->netdev,
+								out_dev,
+								ifindexes,
+								if_count,
+								extack))
+					return -EOPNOTSUPP;
+
+				ifindexes[if_count] = out_dev->ifindex;
+				if_count++;
 
 				if (uplink_upper &&
 				    netif_is_lag_master(uplink_upper) &&
