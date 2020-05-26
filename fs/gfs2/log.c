@@ -768,8 +768,9 @@ void gfs2_log_flush(struct gfs2_sbd *sdp, struct gfs2_glock *gl)
 		INIT_LIST_HEAD(&tr->tr_ail2_list);
 	}
 
-	gfs2_assert_withdraw(sdp,
-			sdp->sd_log_num_revoke == sdp->sd_log_committed_revoke);
+	if (gfs2_assert_withdraw_delayed(sdp,
+			sdp->sd_log_num_revoke == sdp->sd_log_committed_revoke))
+		goto out;
 
 	sdp->sd_log_flush_head = sdp->sd_log_head;
 	sdp->sd_log_flush_wrapped = 0;
