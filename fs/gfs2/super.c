@@ -315,11 +315,13 @@ void gfs2_jindex_free(struct gfs2_sbd *sdp)
 	sdp->sd_journals = 0;
 	spin_unlock(&sdp->sd_jindex_spin);
 
+	sdp->sd_jdesc = NULL;
 	while (!list_empty(&list)) {
 		jd = list_first_entry(&list, struct gfs2_jdesc, jd_list);
 		gfs2_free_journal_extents(jd);
 		list_del(&jd->jd_list);
 		iput(jd->jd_inode);
+		jd->jd_inode = NULL;
 		kfree(jd);
 	}
 }
@@ -424,9 +426,13 @@ int gfs2_make_fs_rw(struct gfs2_sbd *sdp)
 		goto fail_threads;
 
 	j_gl->gl_ops->go_inval(j_gl, DIO_METADATA);
+	if (gfs2_withdrawn(sdp)) {
+		error = -EIO;
+		goto fail;
+	}
 
 	error = gfs2_find_jhead(sdp->sd_jdesc, &head, false);
-	if (error)
+	if (error || gfs2_withdrawn(sdp))
 		goto fail;
 
 	if (!(head.lh_flags & GFS2_LOG_HEAD_UNMOUNT)) {
@@ -440,7 +446,7 @@ int gfs2_make_fs_rw(struct gfs2_sbd *sdp)
 	gfs2_log_pointers_init(sdp, head.lh_blkno);
 
 	error = gfs2_quota_init(sdp);
-	if (error)
+	if (error || gfs2_withdrawn(sdp))
 		goto fail;
 
 	set_bit(SDF_JOURNAL_LIVE, &sdp->sd_flags);
@@ -841,24 +847,30 @@ out:
  * Returns: errno
  */
 
-static int gfs2_make_fs_ro(struct gfs2_sbd *sdp)
+int gfs2_make_fs_ro(struct gfs2_sbd *sdp)
 {
 	struct gfs2_holder t_gh;
-	int error;
+	int error = 0;
+	int log_write_allowed = test_bit(SDF_JOURNAL_LIVE, &sdp->sd_flags);
 
-	if (sdp->sd_quotad_process) {
-		kthread_stop(sdp->sd_quotad_process);
-		sdp->sd_quotad_process = NULL;
-	}
-	if (sdp->sd_logd_process) {
-		kthread_stop(sdp->sd_logd_process);
-		sdp->sd_logd_process = NULL;
-	}
+	gfs2_holder_mark_uninitialized(&t_gh);
 
 	flush_workqueue(gfs2_delete_workqueue);
-	gfs2_quota_sync(sdp->sd_vfs, 0);
-	gfs2_statfs_sync(sdp->sd_vfs, 0);
+	if (!log_write_allowed && current == sdp->sd_quotad_process)
+		fs_warn(sdp, "The quotad daemon is withdrawing.\n");
+	else if (sdp->sd_quotad_process)
+		kthread_stop(sdp->sd_quotad_process);
+	sdp->sd_quotad_process = NULL;
+	if (!log_write_allowed && current == sdp->sd_logd_process)
+		fs_warn(sdp, "The logd daemon is withdrawing.\n");
+	else if (sdp->sd_logd_process)
+		kthread_stop(sdp->sd_logd_process);
+	sdp->sd_logd_process = NULL;
 
+	if (log_write_allowed) {
+		gfs2_quota_sync(sdp->sd_vfs, 0);
+		gfs2_statfs_sync(sdp->sd_vfs, 0);
+	}
 	error = gfs2_glock_nq_init(sdp->sd_trans_gl, LM_ST_SHARED, GL_NOCACHE,
 				   &t_gh);
 	if (error && !gfs2_withdrawn(sdp)) {
@@ -867,13 +879,16 @@ static int gfs2_make_fs_ro(struct gfs2_sbd *sdp)
 		return error;
 	}
 
-	gfs2_meta_syncfs(sdp);
-	gfs2_log_shutdown(sdp, 1);
-
+	if (log_write_allowed) {
+		gfs2_meta_syncfs(sdp);
+		gfs2_log_shutdown(sdp, 1);
+	}
 	if (gfs2_holder_initialized(&t_gh))
 		gfs2_glock_dq_uninit(&t_gh);
 
 	gfs2_quota_cleanup(sdp);
+	if (!log_write_allowed)
+		sdp->sd_vfs->s_flags |= MS_RDONLY;
 	return 0;
 }
 
@@ -924,8 +939,10 @@ restart:
 	gfs2_glock_put(sdp->sd_trans_gl);
 
 	if (!sdp->sd_args.ar_spectator) {
-		gfs2_glock_dq_uninit(&sdp->sd_journal_gh);
-		gfs2_glock_dq_uninit(&sdp->sd_jinode_gh);
+		if (gfs2_holder_initialized(&sdp->sd_journal_gh))
+			gfs2_glock_dq_uninit(&sdp->sd_journal_gh);
+		if (gfs2_holder_initialized(&sdp->sd_jinode_gh))
+			gfs2_glock_dq_uninit(&sdp->sd_jinode_gh);
 		gfs2_glock_dq_uninit(&sdp->sd_sc_gh);
 		gfs2_glock_dq_uninit(&sdp->sd_qc_gh);
 		iput(sdp->sd_sc_inode);
