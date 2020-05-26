@@ -1188,20 +1188,18 @@ int gfs2_releasepage(struct page *page, gfp_t gfp_mask)
 		bd = bh->b_private;
 		if (bd) {
 			gfs2_assert_warn(sdp, bd->bd_bh == bh);
-			if (!list_empty(&bd->bd_list)) {
-				if (!buffer_pinned(bh))
-					list_del_init(&bd->bd_list);
-				else
-					bd = NULL;
-			}
-			if (bd)
-				bd->bd_bh = NULL;
+			bd->bd_bh = NULL;
 			bh->b_private = NULL;
+			/*
+			 * The bd may still be queued as a revoke, in which
+			 * case we must not dequeue nor free it.
+			 */
+			if (!bd->bd_blkno && !list_empty(&bd->bd_list))
+				list_del_init(&bd->bd_list);
+			if (list_empty(&bd->bd_list))
+				kmem_cache_free(gfs2_bufdata_cachep, bd);
 		}
 		gfs2_log_unlock(sdp);
-		if (bd)
-			kmem_cache_free(gfs2_bufdata_cachep, bd);
-
 		bh = bh->b_this_page;
 	} while (bh != head);
 
