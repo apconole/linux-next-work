@@ -155,11 +155,12 @@ void gfs2_ail1_flush(struct gfs2_sbd *sdp, struct writeback_control *wbc)
 {
 	struct list_head *head = &sdp->sd_ail1_list;
 	struct gfs2_trans *tr;
-	int ret = 0;
+	int ret;
 
 	trace_gfs2_ail_flush(sdp, wbc, 1);
 	spin_lock(&sdp->sd_ail_lock);
 restart:
+	ret = 0;
 	list_for_each_entry_reverse(tr, head, tr_list) {
 		if (wbc->nr_to_write <= 0)
 			break;
