@@ -957,6 +957,7 @@ static bool valid_intel_processor(__u8 model, __u8 stepping)
 	case INTEL_FAM6_BROADWELL_GT3E:
 	case INTEL_FAM6_HASWELL_GT3E:
 	case INTEL_FAM6_HASWELL_ULT:
+	case INTEL_FAM6_ICELAKE_X:
 		valid = true;
 		break;
 
