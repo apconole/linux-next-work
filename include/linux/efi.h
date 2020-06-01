@@ -900,6 +900,7 @@ extern efi_status_t efi_query_variable_store(u32 attributes,
 					     unsigned long size,
 					     bool nonblocking);
 extern void efi_find_mirror(void);
+extern bool efi_bgrt_image_remappable(u64 pa, size_t pa_size); /* RHEL7-ONLY */
 #else
 static inline void efi_late_init(void) {}
 static inline void efi_free_boot_services(void) {}
