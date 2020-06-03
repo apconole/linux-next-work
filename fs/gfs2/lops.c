@@ -266,8 +266,6 @@ static struct bio *gfs2_log_alloc_bio(struct gfs2_sbd *sdp, u64 blkno,
 	unsigned nrvecs = bio_get_nr_vecs(sb->s_bdev);
 	struct bio *bio;
 
-	BUG_ON(sdp->sd_log_bio);
-
 	while (1) {
 		bio = bio_alloc(GFP_NOIO, nrvecs);
 		if (likely(bio))
