@@ -225,15 +225,6 @@ create_err:
 	return ret;
 }
 
-static void remove_callback(struct device *dev)
-{
-	int ret;
-
-	ret = mdev_device_remove(dev, false);
-	if (ret)
-		dev_info(dev, "Unable to remove device: %d\n",ret);
-}
-
 static ssize_t remove_store(struct device *dev, struct device_attribute *attr,
 			    const char *buf, size_t count)
 {
@@ -242,11 +233,14 @@ static ssize_t remove_store(struct device *dev, struct device_attribute *attr,
 	if (kstrtoul(buf, 0, &val) < 0)
 		return -EINVAL;
 
-	if (val) {
-		int ret = device_schedule_callback(dev, remove_callback);
+	if (val && device_remove_file_self(dev, attr)) {
+		int ret;
 
-		if (ret)
-			count = ret;
+		ret = mdev_device_remove(dev);
+		if (ret) {
+			device_create_file(dev, attr);
+			return ret;
+		}
 	}
 
 	return count;
