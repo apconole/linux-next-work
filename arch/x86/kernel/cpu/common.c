@@ -46,6 +46,12 @@
 #include <asm/cpu_device_id.h>
 #include <asm/intel-family.h>
 
+/*
+ * RHEL7: Use the v2 x86_cpu_id structure and x86_match_cpu() function.
+ */
+#define x86_cpu_id	x86_cpu_id_v2
+#define x86_match_cpu	x86_match_cpu_v2
+
 #ifdef CONFIG_X86_LOCAL_APIC
 #include <asm/uv/uv.h>
 #endif

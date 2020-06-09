@@ -609,6 +609,14 @@ struct x86_cpu_id {
 	__u16 model;
 	__u16 feature;	/* bit index */
 	kernel_ulong_t driver_data;
+};
+
+struct x86_cpu_id_v2 {
+	__u16 vendor;
+	__u16 family;
+	__u16 model;
+	__u16 feature;	/* bit index */
+	kernel_ulong_t driver_data;
 	__u16 steppings;
 };
 
