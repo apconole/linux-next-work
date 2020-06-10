@@ -7180,7 +7180,6 @@ bool has_unmovable_pages(struct zone *zone, struct page *page, int count,
 	}
 	return false;
 unmovable:
-	WARN_ON_ONCE(zone_idx(zone) == ZONE_MOVABLE);
 	return true;
 }
 
