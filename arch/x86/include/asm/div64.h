@@ -77,7 +77,7 @@ static inline u64 mul_u32_u32(u32 a, u32 b)
  * Will generate an #DE when the result doesn't fit u64, could fix with an
  * __ex_table[] entry when it becomes an issue.
  */
-extern __always_inline u64 mul_u64_u64_div_u64(u64 a, u64 mul, u64 div)
+static inline u64 mul_u64_u64_div_u64(u64 a, u64 mul, u64 div)
 {
 	u64 q;
 
@@ -87,6 +87,7 @@ extern __always_inline u64 mul_u64_u64_div_u64(u64 a, u64 mul, u64 div)
 
 	return q;
 }
+#define mul_u64_u64_div_u64 mul_u64_u64_div_u64
 
 #endif /* CONFIG_X86_32 */
 

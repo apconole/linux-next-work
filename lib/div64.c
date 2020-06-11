@@ -182,7 +182,8 @@ u32 iter_div_u64_rem(u64 dividend, u32 divisor, u64 *remainder)
 }
 EXPORT_SYMBOL(iter_div_u64_rem);
 
-__weak u64 mul_u64_u64_div_u64(u64 a, u64 b, u64 c)
+#ifndef mul_u64_u64_div_u64
+u64 mul_u64_u64_div_u64(u64 a, u64 b, u64 c)
 {
 	u64 res = 0, div, rem;
 	int shift;
@@ -220,3 +221,4 @@ __weak u64 mul_u64_u64_div_u64(u64 a, u64 b, u64 c)
 
 	return res + div64_u64(a * b, c);
 }
+#endif
