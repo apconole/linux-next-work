@@ -537,7 +537,16 @@ void send_sigio(struct fown_struct *fown, int fd, int band)
 		send_sigio_to_task(p, fown, fd, band, group);
 		rcu_read_unlock();
 	} else {
-		qread_lock(&tasklist_lock);
+		/*
+		 * BZ1838799:
+		 * If irq is disabled, we go into unfair locking mode
+		 * to avoid deadlock in case we are holding uart_port.lock.
+		 */
+		if (irqs_disabled())
+			qread_lock_unfair(&tasklist_lock);
+		else
+			qread_lock(&tasklist_lock);
+
 		do_each_pid_task(pid, type, p) {
 			send_sigio_to_task(p, fown, fd, band, group);
 		} while_each_pid_task(pid, type, p);
