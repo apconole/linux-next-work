@@ -1202,7 +1202,11 @@ static int gfs2_atomic_open(struct inode *dir, struct dentry *dentry,
 			return finish_no_open(file, dentry);
 		}
 		dput(d);
-		return excl && (flags & O_CREAT) ? -EEXIST : 0;
+		if (excl && (flags & O_CREAT)) {
+			fput(file);
+			return -EEXIST;
+		}
+		return 0;
 	}
 
 	BUG_ON(d != NULL);
