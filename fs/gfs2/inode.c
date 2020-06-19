@@ -588,7 +588,7 @@ static int gfs2_create_inode(struct inode *dir, struct dentry *dentry,
 				error = finish_no_open(file, NULL);
 		}
 		gfs2_glock_dq_uninit(ghs);
-		return error;
+		goto fail;
 	} else if (error != -ENOENT) {
 		goto fail_gunlock;
 	}
@@ -705,8 +705,10 @@ static int gfs2_create_inode(struct inode *dir, struct dentry *dentry,
 		error = finish_open(file, dentry, gfs2_open_common, opened);
 	}
 	gfs2_glock_dq_uninit(ghs);
+	gfs2_qa_put(ip);
 	gfs2_glock_dq_uninit(ghs + 1);
 	clear_bit(GLF_INODE_CREATING, &io_gl->gl_flags);
+	gfs2_qa_put(dip);
 	return error;
 
 fail_gunlock3:
@@ -717,7 +719,6 @@ fail_gunlock2:
 	if (io_gl)
 		clear_bit(GLF_INODE_CREATING, &io_gl->gl_flags);
 fail_free_inode:
-	gfs2_qa_put(ip);
 	if (ip->i_gl) {
 		glock_clear_object(ip->i_gl, ip);
 		gfs2_glock_put(ip->i_gl);
@@ -949,7 +950,7 @@ out_gunlock:
 out_child:
 	gfs2_glock_dq(ghs);
 out_parent:
-	gfs2_qa_put(ip);
+	gfs2_qa_put(dip);
 	gfs2_holder_uninit(ghs);
 	gfs2_holder_uninit(ghs + 1);
 	return error;
