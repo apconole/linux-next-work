@@ -411,10 +411,6 @@ static int gfs2_page_mkwrite(struct vm_area_struct *vma, struct vm_fault *vmf)
 
 	sb_start_pagefault(inode->i_sb);
 
-	ret = gfs2_qa_get(ip);
-	if (ret)
-		goto out;
-
 	gfs2_size_hint(vma->vm_file, pos, PAGE_CACHE_SIZE);
 
 	gfs2_holder_init(ip->i_gl, LM_ST_EXCLUSIVE, 0, &gh);
@@ -494,13 +490,11 @@ out_quota_unlock:
 out_unlock:
 	gfs2_glock_dq(&gh);
 out_uninit:
-	gfs2_qa_put(ip);
 	gfs2_holder_uninit(&gh);
 	if (ret == 0) {
 		set_page_dirty(page);
 		wait_for_stable_page(page);
 	}
-out:
 	sb_end_pagefault(inode->i_sb);
 	return block_page_mkwrite_return(ret);
 }
@@ -782,8 +776,6 @@ out2:
 	current->backing_dev_info = NULL;
 out_unlock:
 	inode_unlock(inode);
-out:
-	gfs2_qa_put(ip);
 	if (likely(ret > 0)) {
 		ssize_t err;
 
@@ -792,6 +784,8 @@ out:
 		if (err < 0 && ret > 0)
 			ret = err;
 	}
+out:
+	gfs2_qa_put(ip);
 	return ret;
 }
 
@@ -1019,18 +1013,11 @@ static long gfs2_fallocate(struct file *file, int mode, loff_t offset, loff_t le
 	if (mode & FALLOC_FL_PUNCH_HOLE) {
 		ret = __gfs2_punch_hole(file, offset, len);
 	} else {
-		ret = gfs2_qa_get(ip);
-		if (ret)
-			goto out_putw;
-
 		ret = __gfs2_fallocate(file, mode, offset, len);
-
 		if (ret)
 			gfs2_rs_deltree(&ip->i_res);
-		gfs2_qa_put(ip);
 	}
 
-out_putw:
 	put_write_access(inode);
 out_unlock:
 	gfs2_glock_dq(&gh);
