@@ -1640,6 +1640,8 @@ out_unlock:
 out:
 	/* Case 3 starts here */
 	truncate_inode_pages_final(&inode->i_data);
+	if (ip->i_qadata)
+		gfs2_assert_warn(sdp, ip->i_qadata->qa_ref == 0);
 	gfs2_rsqa_delete(ip, NULL);
 	gfs2_ordered_del_inode(ip);
 	clear_inode(inode);
