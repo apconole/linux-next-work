@@ -722,7 +722,8 @@ fail_free_inode:
 		glock_clear_object(ip->i_gl, ip);
 		gfs2_glock_put(ip->i_gl);
 	}
-	gfs2_rsqa_delete(ip, NULL);
+	gfs2_rs_delete(ip, NULL);
+	gfs2_qa_put(ip);
 fail_gunlock:
 	gfs2_glock_dq_uninit(ghs);
 	if (inode && !IS_ERR(inode)) {
