@@ -519,13 +519,14 @@ SYSCALL_DEFINE5(mremap, unsigned long, addr, unsigned long, old_len,
 	LIST_HEAD(uf_unmap_early);
 	LIST_HEAD(uf_unmap);
 
-	down_write(&current->mm->mmap_sem);
-
 	if (flags & ~(MREMAP_FIXED | MREMAP_MAYMOVE))
-		goto out;
+		return ret;
+
+	if (flags & MREMAP_FIXED && !(flags & MREMAP_MAYMOVE))
+		return ret;
 
 	if (addr & ~PAGE_MASK)
-		goto out;
+		return ret;
 
 	old_len = PAGE_ALIGN(old_len);
 	new_len = PAGE_ALIGN(new_len);
@@ -536,12 +537,13 @@ SYSCALL_DEFINE5(mremap, unsigned long, addr, unsigned long, old_len,
 	 * a zero new-len is nonsensical.
 	 */
 	if (!new_len)
-		goto out;
+		return ret;
+
+	down_write(&current->mm->mmap_sem);
 
 	if (flags & MREMAP_FIXED) {
-		if (flags & MREMAP_MAYMOVE)
-			ret = mremap_to(addr, old_len, new_addr, new_len,
-					&locked, &uf, &uf_unmap_early, &uf_unmap);
+		ret = mremap_to(addr, old_len, new_addr, new_len,
+				&locked, &uf, &uf_unmap_early, &uf_unmap);
 		goto out;
 	}
 
