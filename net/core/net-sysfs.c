@@ -896,8 +896,9 @@ static int rx_queue_add_kobject(struct net_device *net, int index)
 		return error;
 	}
 
-	kobject_uevent(kobj, KOBJ_ADD);
 	dev_hold(queue->dev);
+
+	kobject_uevent(kobj, KOBJ_ADD);
 
 	return error;
 }
@@ -1298,6 +1299,8 @@ static int netdev_queue_add_kobject(struct net_device *net, int index)
 	if (error)
 		goto exit;
 
+	dev_hold(queue->dev);
+
 #ifdef CONFIG_BQL
 	error = sysfs_create_group(kobj, &dql_group);
 	if (error)
@@ -1305,7 +1308,6 @@ static int netdev_queue_add_kobject(struct net_device *net, int index)
 #endif
 
 	kobject_uevent(kobj, KOBJ_ADD);
-	dev_hold(queue->dev);
 
 	return 0;
 exit:
