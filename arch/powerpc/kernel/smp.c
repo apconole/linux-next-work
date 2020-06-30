@@ -55,6 +55,7 @@
 #include <asm/kexec.h>
 #include <asm/asm-prototypes.h>
 #include <asm/ftrace.h>
+#include <asm/firmware.h>
 
 #ifdef DEBUG
 #include <asm/udbg.h>
@@ -709,10 +710,34 @@ static void remove_cpu_from_masks(int cpu)
 }
 #endif
 
+int get_physical_package_id(int cpu)
+{
+	int pkg_id = cpu_to_chip_id(cpu);
+
+#ifdef CONFIG_PPC_SPLPAR
+	/*
+	 * If the platform is PowerNV or Guest on KVM, ibm,chip-id is
+	 * defined. Hence we would return the chip-id as the result of
+	 * get_physical_package_id.
+	 */
+	if (pkg_id == -1 && firmware_has_feature(FW_FEATURE_LPAR)) {
+		struct device_node *np = of_get_cpu_node(cpu, NULL);
+
+		if (np) {
+			pkg_id = of_node_to_nid(np);
+			of_node_put(np);
+		}
+	}
+#endif /* CONFIG_PPC_SPLPAR */
+
+	return pkg_id;
+}
+EXPORT_SYMBOL_GPL(get_physical_package_id);
+
 static void add_cpu_to_masks(int cpu)
 {
 	int first_thread = cpu_first_thread_sibling(cpu);
-	int chipid = cpu_to_chip_id(cpu);
+	int pkg_id = get_physical_package_id(cpu);
 	int i;
 
 	/*
@@ -740,11 +765,11 @@ static void add_cpu_to_masks(int cpu)
 	for_each_cpu(i, cpu_l2_cache_mask(cpu))
 		set_cpus_related(cpu, i, cpu_core_mask);
 
-	if (chipid == -1)
+	if (pkg_id == -1)
 		return;
 
 	for_each_cpu(i, cpu_online_mask)
-		if (cpu_to_chip_id(i) == chipid)
+		if (get_physical_package_id(i) == pkg_id)
 			set_cpus_related(cpu, i, cpu_core_mask);
 }
 
