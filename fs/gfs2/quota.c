@@ -607,7 +607,6 @@ out_unhold:
 	if (error)
 		gfs2_quota_unhold(ip);
 out:
-	gfs2_qa_put(ip);
 	return error;
 }
 
