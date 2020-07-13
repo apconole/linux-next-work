@@ -2229,6 +2229,8 @@ static void hv_free_config_window(struct hv_pcibus_device *hbus)
 	vmbus_free_mmio(hbus->mem_config->start, PCI_CONFIG_MMIO_LENGTH);
 }
 
+static void hv_pci_bus_exit(struct hv_device *hdev);
+
 /**
  * hv_pci_enter_d0() - Bring the "bus" into the D0 power state
  * @hdev:	VMBus's tracking struct for this root PCI bus
@@ -2241,8 +2243,10 @@ static int hv_pci_enter_d0(struct hv_device *hdev)
 	struct pci_bus_d0_entry *d0_entry;
 	struct hv_pci_compl comp_pkt;
 	struct pci_packet *pkt;
+	bool enter_d0_retry = true;
 	int ret;
 
+enter_d0_retry:
 	/*
 	 * Tell the host that the bus is ready to use, and moved into the
 	 * powered-on state.  This includes telling the host which region
@@ -2268,6 +2272,32 @@ static int hv_pci_enter_d0(struct hv_device *hdev)
 
 	if (ret)
 		goto exit;
+
+	/*
+	 * In certain case (Kdump) the pci device of interest was
+	 * not cleanly shut down and resource is still held on host
+	 * side, the host could return invalid device status.
+	 * We need to explicitly request host to release the resource
+	 * and try to enter D0 again.
+	 */
+	if (ret == -EPROTO && enter_d0_retry) {
+		enter_d0_retry = false;
+
+		dev_err(&hdev->device, "Retrying D0 Entry\n");
+
+		/*
+		 * Hv_pci_bus_exit() calls hv_send_resource_released()
+		 * to free up resources of its child devices.
+		 * In the kdump kernel we need to set the
+		 * wslot_res_allocated to 255 so it scans all child
+		 * devices to release resources allocated in the
+		 * normal kernel before panic happened.
+		 */
+		hbus->wslot_res_allocated = 255;
+		hv_pci_bus_exit(hdev);
+
+		goto enter_d0_retry;
+	}
 
 	if (comp_pkt.completion_status < 0) {
 		dev_err(&hdev->device,
