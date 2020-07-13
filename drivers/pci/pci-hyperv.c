@@ -459,6 +459,9 @@ struct hv_pcibus_device {
 
 	struct workqueue_struct *wq;
 
+	/* Highest slot of child device with resources allocated */
+	int wslot_res_allocated;
+
 	/* hypercall arg, must not cross page boundary */
 	struct retarget_msi_interrupt retarget_msi_interrupt_params;
 
@@ -2337,7 +2340,7 @@ static int hv_send_resources_allocated(struct hv_device *hdev)
 	struct hv_pci_dev *hpdev;
 	struct pci_packet *pkt;
 	size_t size_res;
-	u32 wslot;
+	int wslot;
 	int ret;
 
 	size_res = (pci_protocol_version < PCI_PROTOCOL_VERSION_1_2)
@@ -2390,6 +2393,8 @@ static int hv_send_resources_allocated(struct hv_device *hdev)
 				comp_pkt.completion_status);
 			break;
 		}
+
+		hbus->wslot_res_allocated = wslot;
 	}
 
 	kfree(pkt);
@@ -2408,10 +2413,10 @@ static int hv_send_resources_released(struct hv_device *hdev)
 	struct hv_pcibus_device *hbus = hv_get_drvdata(hdev);
 	struct pci_child_message pkt;
 	struct hv_pci_dev *hpdev;
-	u32 wslot;
+	int wslot;
 	int ret;
 
-	for (wslot = 0; wslot < 256; wslot++) {
+	for (wslot = hbus->wslot_res_allocated; wslot >= 0; wslot--) {
 		hpdev = get_pcichild_wslot(hbus, wslot);
 		if (!hpdev)
 			continue;
@@ -2426,7 +2431,11 @@ static int hv_send_resources_released(struct hv_device *hdev)
 				       VM_PKT_DATA_INBAND, 0);
 		if (ret)
 			return ret;
+
+		hbus->wslot_res_allocated = wslot - 1;
 	}
+
+	hbus->wslot_res_allocated = -1;
 
 	return 0;
 }
@@ -2508,6 +2517,7 @@ static int hv_pci_probe(struct hv_device *hdev,
 	if (!hbus)
 		return -ENOMEM;
 	hbus->state = hv_pcibus_init;
+	hbus->wslot_res_allocated = -1;
 
 	/*
 	 * The PCI bus "domain" is what is called "segment" in ACPI and other
@@ -2589,7 +2599,7 @@ static int hv_pci_probe(struct hv_device *hdev,
 
 	ret = hv_pci_allocate_bridge_windows(hbus);
 	if (ret)
-		goto unmap;
+		goto exit_d0;
 
 	ret = hv_send_resources_allocated(hdev);
 	if (ret)
@@ -2607,6 +2617,8 @@ static int hv_pci_probe(struct hv_device *hdev,
 
 free_windows:
 	hv_pci_free_bridge_windows(hbus);
+exit_d0:
+	(void) hv_pci_bus_exit(hdev);
 unmap:
 	iounmap(hbus->cfg_addr);
 release:
