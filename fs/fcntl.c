@@ -534,7 +534,8 @@ void send_sigio(struct fown_struct *fown, int fd, int band)
 	if (type == PIDTYPE_PID) {
 		rcu_read_lock();
 		p = pid_task(pid, PIDTYPE_PID);
-		send_sigio_to_task(p, fown, fd, band, group);
+		if (p)
+			send_sigio_to_task(p, fown, fd, band, group);
 		rcu_read_unlock();
 	} else {
 		/*
@@ -588,7 +589,8 @@ int send_sigurg(struct fown_struct *fown)
 	if (type == PIDTYPE_PID) {
 		rcu_read_lock();
 		p = pid_task(pid, PIDTYPE_PID);
-		send_sigurg_to_task(p, fown, group);
+		if (p)
+			send_sigurg_to_task(p, fown, group);
 		rcu_read_unlock();
 	} else {
 		qread_lock(&tasklist_lock);
