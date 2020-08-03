@@ -6,8 +6,12 @@ rheldup3.x509
 rhelkpatch1.x509
 redhatsecurebootca2.cer
 redhatsecureboot003.cer
-securebootca.cer
-secureboot.cer
+redhatsecureboot301.cer
+redhatsecureboot401.cer
+redhatsecureboot501.cer
+redhatsecurebootca3.cer
+redhatsecurebootca4.cer
+redhatsecurebootca5.cer
 Makefile.common
 Makefile
 README.dist-git
