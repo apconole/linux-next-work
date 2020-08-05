@@ -65,6 +65,11 @@ static int __init load_uefi_certs(void)
 	void *db = NULL, *dbx = NULL, *mok = NULL;
 	unsigned long dbsize = 0, dbxsize = 0, moksize = 0;
 	int ignore_db, rc = 0;
+	int mok_i;
+	static efi_char16_t mok_name[] = L"MokListRT0";
+
+	/* Index of last non-terminating efi_char16_t in mok_name */
+	const int mok_x = sizeof(mok_name)/sizeof(mok_name[0]) - 2;
 
 	/* Check if SB is enabled and just return if not */
 	if (!efi_enabled(EFI_SECURE_BOOT))
@@ -73,8 +78,8 @@ static int __init load_uefi_certs(void)
 	/* See if the user has setup Ignore DB mode */
 	ignore_db = check_ignore_db();
 
-	/* Get db, MokListRT, and dbx.  They might not exist, so it isn't
-	 * an error if we can't get them.
+	/* Get db, MokListRT, MokListRT[1-9], and dbx. They might not exist,
+	 * so it isn't an error if we can't get them.
 	 */
 	if (!ignore_db) {
 		db = get_cert_list(L"db", &secure_var, &dbsize);
@@ -88,14 +93,23 @@ static int __init load_uefi_certs(void)
 		}
 	}
 
-	mok = get_cert_list(L"MokListRT", &mok_var, &moksize);
-	if (!mok) {
-		pr_info("MODSIGN: Couldn't get UEFI MokListRT\n");
-	} else {
-		rc = parse_efi_signature_list(mok, moksize, system_trusted_keyring);
-		if (rc)
-			pr_err("Couldn't parse MokListRT signatures: %d\n", rc);
-		kfree(mok);
+	mok_name[mok_x] = L'\0';
+
+	for (mok_i = 0; mok_i <= 9; mok_i++) {
+		mok = get_cert_list(mok_name, &mok_var, &moksize);
+		if (!mok) {
+			if (mok_i == 0)
+				pr_info("MODSIGN: Couldn't get UEFI MokListRT\n");
+			break;
+		} else {
+			rc = parse_efi_signature_list(mok, moksize,
+						      system_trusted_keyring);
+			if (rc)
+				pr_err("Couldn't parse MokListRT%c signatures: %d\n",
+				       (mok_i == 0) ? ' ' : ('0' + mok_i), rc);
+			kfree(mok);
+		}
+		mok_name[mok_x] = L'1' + mok_i;
 	}
 
 	dbx = get_cert_list(L"dbx", &secure_var, &dbxsize);
