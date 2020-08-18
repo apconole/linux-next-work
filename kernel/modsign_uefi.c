@@ -33,6 +33,8 @@ static __init void *get_cert_list(efi_char16_t *name, efi_guid_t *guid, unsigned
 	void *db = NULL;
 
 	status = efi.get_variable(name, guid, NULL, &lsize, &tmpdb);
+	if (status == EFI_NOT_FOUND)
+		return NULL;
 	if (status != EFI_BUFFER_TOO_SMALL) {
 		pr_err("Couldn't get size: 0x%lx\n", status);
 		return NULL;
