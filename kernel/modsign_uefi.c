@@ -58,20 +58,53 @@ out:
 }
 
 /*
- *  * Load the certs contained in the UEFI databases
- *   */
-static int __init load_uefi_certs(void)
+ * Load the certs contained in the UEFI MokListRT databases into the
+ * system trusted keyring.
+ */
+static int __init load_moklist_certs(void)
 {
-	efi_guid_t secure_var = EFI_IMAGE_SECURITY_DATABASE_GUID;
 	efi_guid_t mok_var = EFI_SHIM_LOCK_GUID;
-	void *db = NULL, *dbx = NULL, *mok = NULL;
-	unsigned long dbsize = 0, dbxsize = 0, moksize = 0;
-	int ignore_db, rc = 0;
+	void *mok = NULL;
+	unsigned long moksize = 0;
+	int rc = 0;
 	int mok_i;
 	static efi_char16_t mok_name[] = L"MokListRT0";
 
 	/* Index of last non-terminating efi_char16_t in mok_name */
-	const int mok_x = sizeof(mok_name)/sizeof(mok_name[0]) - 2;
+	const int mok_x = ARRAY_SIZE(mok_name) - 2;
+
+	mok_name[mok_x] = L'\0';
+
+	/* Get MokListRT and MokListRT[1-9]. They might not exist,
+	 * so it isn't an error if we can't get them.
+	 */
+	for (mok_i = 0; mok_i <= 9; mok_i++) {
+		mok = get_cert_list(mok_name, &mok_var, &moksize);
+		if (!mok) {
+			if (mok_i == 0)
+				pr_info("MODSIGN: Couldn't get UEFI MokListRT\n");
+			break;
+		}
+		rc = parse_efi_signature_list(mok, moksize,
+					      system_trusted_keyring);
+		if (rc)
+			pr_err("Couldn't parse MokListRT%c signatures: %d\n",
+			       (mok_i == 0) ? ' ' : ('0' + mok_i), rc);
+		kfree(mok);
+		mok_name[mok_x] = L'1' + mok_i;
+	}
+	return rc;
+}
+
+/*
+ * Load the certs contained in the UEFI databases
+ */
+static int __init load_uefi_certs(void)
+{
+	efi_guid_t secure_var = EFI_IMAGE_SECURITY_DATABASE_GUID;
+	void *db = NULL, *dbx = NULL;
+	unsigned long dbsize = 0, dbxsize = 0;
+	int ignore_db, rc = 0;
 
 	/* Check if SB is enabled and just return if not */
 	if (!efi_enabled(EFI_SECURE_BOOT))
@@ -80,9 +113,9 @@ static int __init load_uefi_certs(void)
 	/* See if the user has setup Ignore DB mode */
 	ignore_db = check_ignore_db();
 
-	/* Get db, MokListRT, MokListRT[1-9], and dbx. They might not exist,
-	 * so it isn't an error if we can't get them.
-	 */
+	 /* Get db and dbx. They might not exist, so it isn't an error
+	  * if we can't get them.
+	  */
 	if (!ignore_db) {
 		db = get_cert_list(L"db", &secure_var, &dbsize);
 		if (!db) {
@@ -95,25 +128,6 @@ static int __init load_uefi_certs(void)
 		}
 	}
 
-	mok_name[mok_x] = L'\0';
-
-	for (mok_i = 0; mok_i <= 9; mok_i++) {
-		mok = get_cert_list(mok_name, &mok_var, &moksize);
-		if (!mok) {
-			if (mok_i == 0)
-				pr_info("MODSIGN: Couldn't get UEFI MokListRT\n");
-			break;
-		} else {
-			rc = parse_efi_signature_list(mok, moksize,
-						      system_trusted_keyring);
-			if (rc)
-				pr_err("Couldn't parse MokListRT%c signatures: %d\n",
-				       (mok_i == 0) ? ' ' : ('0' + mok_i), rc);
-			kfree(mok);
-		}
-		mok_name[mok_x] = L'1' + mok_i;
-	}
-
 	dbx = get_cert_list(L"dbx", &secure_var, &dbxsize);
 	if (!dbx) {
 		pr_info("MODSIGN: Couldn't get UEFI dbx list\n");
@@ -124,6 +138,10 @@ static int __init load_uefi_certs(void)
 			pr_err("Couldn't parse dbx signatures: %d\n", rc);
 		kfree(dbx);
 	}
+
+	/* Load the MokListRT and MokListRT[1-9] certs.
+	 */
+	rc = load_moklist_certs();
 
 	return rc;
 }
