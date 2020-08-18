@@ -45,6 +45,16 @@ struct efi_mokvar_sysfs_attr {
 static struct kobject *mokvar_kobj;
 static LIST_HEAD(efi_mokvar_sysfs_list);
 
+static bool efi_mokvar_config_disabled;
+
+static int __init setup_nomokvarconfig(char *arg)
+{
+	efi_mokvar_config_disabled = true;
+	return 0;
+}
+early_param("nomokvarconfig", setup_nomokvarconfig);
+
+
 /*
  * efi_mokvar_config_init() - Early boot validation of EFI MOK config table
  *
@@ -80,6 +90,11 @@ void __init efi_mokvar_config_init(void)
 
 	if (!efi_is_table_address(efi.mokvar_config))
 		return;
+
+	if (efi_mokvar_config_disabled) {
+		pr_info("EFI MOKvar config table disabled via kernel parameter\n");
+		return;
+	}
 
 	/* The EFI MOK config table must fit within a single EFI memory
 	 * descriptor range.
