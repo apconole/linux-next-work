@@ -2652,6 +2652,15 @@ static int mlx5e_attach_encap(struct mlx5e_priv *priv,
 			goto out_err;
 		}
 
+		mutex_unlock(&esw->offloads.encap_tbl_lock);
+		wait_for_completion(&e->res_ready);
+
+		/* Protect against concurrent neigh update. */
+		mutex_lock(&esw->offloads.encap_tbl_lock);
+		if (e->compl_result) {
+			err = -EREMOTEIO;
+			goto out_err;
+		}
 		goto attach_flow;
 	}
 
@@ -2662,22 +2671,32 @@ static int mlx5e_attach_encap(struct mlx5e_priv *priv,
 	}
 
 	refcount_set(&e->refcnt, 1);
+	init_completion(&e->res_ready);
+
 	e->tun_info = *tun_info;
 	err = mlx5e_tc_tun_init_encap_attr(mirred_dev, priv, e, extack);
-	if (err)
+	if (err) {
+		kfree(e);
+		e = NULL;
 		goto out_err;
+	}
 
 	INIT_LIST_HEAD(&e->flows);
+	hash_add_rcu(esw->offloads.encap_tbl, &e->encap_hlist, hash_key);
+	mutex_unlock(&esw->offloads.encap_tbl_lock);
 
 	if (family == AF_INET)
 		err = mlx5e_tc_tun_create_header_ipv4(priv, mirred_dev, e);
 	else if (family == AF_INET6)
 		err = mlx5e_tc_tun_create_header_ipv6(priv, mirred_dev, e);
 
-	if (err)
+	/* Protect against concurrent neigh update. */
+	mutex_lock(&esw->offloads.encap_tbl_lock);
+	complete_all(&e->res_ready);
+	if (err) {
+		e->compl_result = err;
 		goto out_err;
-
-	hash_add_rcu(esw->offloads.encap_tbl, &e->encap_hlist, hash_key);
+	}
 
 attach_flow:
 	flow->encaps[out_index].e = e;
@@ -2697,7 +2716,8 @@ attach_flow:
 
 out_err:
 	mutex_unlock(&esw->offloads.encap_tbl_lock);
-	kfree(e);
+	if (e)
+		mlx5e_encap_put(priv, e);
 	return err;
 }
 
