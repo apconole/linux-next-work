@@ -2,8 +2,9 @@ include Makefile.common
 include Makefile.rhpkg
 
 LANG=C
-BUILD_DEFAULT_TARGET = rhel-${RHELMAJOR}.${RHELMINOR}-test-pesign
-BUILD_SCRATCH_TARGET = rhel-${RHELMAJOR}.${RHELMINOR}-test-pesign
+BUILD_DEFAULT_TARGET = rhel-${RHELMAJOR}.${RHELMINOR}-z-test-pesign
+BUILD_SCRATCH_TARGET = rhel-${RHELMAJOR}.${RHELMINOR}-z-test-pesign
+ZSTREAM=yes
 
 ifeq ("$(ZSTREAM)", "yes")
   ifeq ("$(origin RHDISTGIT_BRANCH)", "command line")
@@ -164,7 +165,7 @@ $(KABIDW_TARBALL):
 
 setup-source: rh-clean-sources
 	@cp $(REDHAT)/$(SPECFILE).template $(SOURCES)/$(SPECFILE)
-	@$(REDHAT)/genspec.sh $(SOURCES) $(SOURCES)/$(SPECFILE) $(PKGRELEASE) $(RPMVERSION) $(RELEASED_KERNEL) $(SPECRELEASE) $(DISTRO_BUILD) $(__ZSTREAM) "$(BUILDOPTS)"
+	@$(REDHAT)/genspec.sh $(SOURCES) $(SOURCES)/$(SPECFILE) $(PKGRELEASE) $(RPMVERSION) $(RELEASED_KERNEL) $(SPECRELEASE) $(DISTRO_BUILD) "no" "$(BUILDOPTS)"
 	@cp $(SOURCES)/$(SPECFILE) $(SOURCES)/../SPECS/
 
 rh-git-dirtytree:
