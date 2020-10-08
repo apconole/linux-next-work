@@ -74,6 +74,13 @@ void nf_queue_entry_release_refs(struct nf_queue_entry *entry)
 }
 EXPORT_SYMBOL_GPL(nf_queue_entry_release_refs);
 
+void nf_queue_entry_free(struct nf_queue_entry *entry)
+{
+	nf_queue_entry_release_refs(entry);
+	kfree(entry);
+}
+EXPORT_SYMBOL_GPL(nf_queue_entry_free);
+
 /* Bump dev refs so they don't vanish while packet is out */
 bool nf_queue_entry_get_refs(struct nf_queue_entry *entry)
 {
