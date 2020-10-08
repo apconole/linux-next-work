@@ -185,8 +185,6 @@ void nf_reinject(struct nf_queue_entry *entry, unsigned int verdict)
 
 	rcu_read_lock();
 
-	nf_queue_entry_release_refs(entry);
-
 	/* Continue traversal iff userspace said ok... */
 	if (verdict == NF_REPEAT) {
 		elem = list_entry(elem->list.prev, struct nf_hook_ops, list);
@@ -232,6 +230,6 @@ void nf_reinject(struct nf_queue_entry *entry, unsigned int verdict)
 		kfree_skb(skb);
 	}
 	rcu_read_unlock();
-	kfree(entry);
+	nf_queue_entry_free(entry);
 }
 EXPORT_SYMBOL(nf_reinject);
