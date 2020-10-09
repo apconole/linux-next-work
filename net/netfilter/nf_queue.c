@@ -58,16 +58,10 @@ void nf_queue_entry_release_refs(struct nf_queue_entry *entry)
 	if (state->sk)
 		sock_put(state->sk);
 #if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
-	if (entry->skb->nf_bridge) {
-		struct net_device *physdev;
-
-		physdev = nf_bridge_get_physindev(entry->skb);
-		if (physdev)
-			dev_put(physdev);
-		physdev = nf_bridge_get_physoutdev(entry->skb);
-		if (physdev)
-			dev_put(physdev);
-	}
+	if (entry->physin)
+		dev_put(entry->physin);
+	if (entry->physout)
+		dev_put(entry->physout);
 #endif
 	/* Drop reference to owner of hook which queued us. */
 	module_put(entry->elem->owner);
@@ -80,6 +74,23 @@ void nf_queue_entry_free(struct nf_queue_entry *entry)
 	kfree(entry);
 }
 EXPORT_SYMBOL_GPL(nf_queue_entry_free);
+
+static void __nf_queue_entry_init_physdevs(struct nf_queue_entry *entry)
+{
+#if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
+	const struct sk_buff *skb = entry->skb;
+	struct nf_bridge_info *nf_bridge;
+
+	nf_bridge = skb->nf_bridge;
+	if (nf_bridge) {
+		entry->physin = nf_bridge_get_physindev(skb);
+		entry->physout = nf_bridge_get_physoutdev(skb);
+	} else {
+		entry->physin = NULL;
+		entry->physout = NULL;
+	}
+#endif
+}
 
 /* Bump dev refs so they don't vanish while packet is out */
 bool nf_queue_entry_get_refs(struct nf_queue_entry *entry)
@@ -95,17 +106,12 @@ bool nf_queue_entry_get_refs(struct nf_queue_entry *entry)
 		dev_hold(state->out);
 	if (state->sk)
 		sock_hold(state->sk);
-#if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
-	if (entry->skb->nf_bridge) {
-		struct net_device *physdev;
 
-		physdev = nf_bridge_get_physindev(entry->skb);
-		if (physdev)
-			dev_hold(physdev);
-		physdev = nf_bridge_get_physoutdev(entry->skb);
-		if (physdev)
-			dev_hold(physdev);
-	}
+#if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
+	if (entry->physin)
+		dev_hold(entry->physin);
+	if (entry->physout)
+		dev_hold(entry->physout);
 #endif
 
 	return true;
@@ -151,6 +157,8 @@ int nf_queue(struct sk_buff *skb,
 		.state	= *state,
 		.size	= sizeof(*entry) + afinfo->route_key_size,
 	};
+
+	__nf_queue_entry_init_physdevs(entry);
 
 	if (!nf_queue_entry_get_refs(entry)) {
 		status = -ECANCELED;
