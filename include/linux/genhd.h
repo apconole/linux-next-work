@@ -406,6 +406,7 @@ static inline void free_part_info(struct hd_struct *part)
 
 /* block/blk-core.c */
 extern void part_round_stats(struct request_queue *q, int cpu, struct hd_struct *part);
+void update_io_ticks(struct hd_struct *part, unsigned long now, int cpu);
 
 /* block/genhd.c */
 extern void add_disk(struct gendisk *disk);
