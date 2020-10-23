@@ -2542,7 +2542,7 @@ void blk_account_io_done(struct request *req)
 		part = req->part;
 
 		if (is_mq)
-			update_io_ticks(part, jiffies, cpu);
+			update_io_ticks(part, jiffies, cpu, true);
 		part_stat_inc(cpu, part, ios[rw]);
 		part_stat_add(cpu, part, ticks[rw], duration);
 		if (!is_mq)
@@ -2614,7 +2614,7 @@ void blk_account_io_start(struct request *rq, bool new_io)
 	}
 
 	if (is_mq)
-		update_io_ticks(part, jiffies, cpu);
+		update_io_ticks(part, jiffies, cpu, false);
 
 	part_stat_unlock();
 }

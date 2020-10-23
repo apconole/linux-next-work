@@ -1779,14 +1779,15 @@ void bio_check_pages_dirty(struct bio *bio)
 	}
 }
 
-void update_io_ticks(struct hd_struct *part, unsigned long now, int cpu)
+void update_io_ticks(struct hd_struct *part, unsigned long now, int cpu,
+		bool end)
 {
 	unsigned long stamp;
 again:
 	stamp = READ_ONCE(part->stamp);
 	if (unlikely(stamp != now)) {
 		if (likely(cmpxchg(&part->stamp, stamp, now) == stamp)) {
-			__part_stat_add(cpu, part, io_ticks, 1);
+			__part_stat_add(cpu, part, io_ticks, end ? now - stamp : 1);
 		}
 	}
 	if (part->partno) {
@@ -1803,7 +1804,7 @@ void generic_start_io_acct(struct request_queue *q, int rw,
 	if (!q->mq_ops)
 		part_round_stats(q, cpu, part);
 	else
-		update_io_ticks(part, jiffies, cpu);
+		update_io_ticks(part, jiffies, cpu, false);
 	part_stat_inc(cpu, part, ios[rw]);
 	part_stat_add(cpu, part, sectors[rw], sectors);
 	part_inc_in_flight(q, part, rw);
@@ -1821,7 +1822,7 @@ void generic_end_io_acct(struct request_queue *q, int rw,
 	bool is_mq = !!q->mq_ops;
 
 	if (is_mq)
-		update_io_ticks(part, now, cpu);
+		update_io_ticks(part, now, cpu, true);
 	part_stat_add(cpu, part, ticks[rw], duration);
 	if (!is_mq)
 		part_round_stats(q, cpu, part);
