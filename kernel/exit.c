@@ -700,6 +700,11 @@ static void forget_original_parent(struct task_struct *father,
 	 * drop tasklist_lock and reacquire it.
 	 */
 	exit_ptrace(father);
+
+	if (list_empty(&father->children) &&
+	    task_active_pid_ns(father)->child_reaper != father)
+		return;
+
 	reaper = find_new_reaper(father);
 
 	list_for_each_entry_safe(p, n, &father->children, sibling) {
