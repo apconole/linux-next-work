@@ -6110,7 +6110,7 @@ static int __migrate_task(struct task_struct *p, int src_cpu, int dest_cpu)
 	 */
 	if (task_on_rq_queued(p)) {
 		dequeue_task(rq, p, DEQUEUE_SAVE);
-		p->on_rq = TASK_ON_RQ_MIGRATING;
+		WRITE_ONCE(p->on_rq, TASK_ON_RQ_MIGRATING);
 		set_task_cpu(p, dest_cpu);
 		raw_spin_unlock(&rq->lock);
 
