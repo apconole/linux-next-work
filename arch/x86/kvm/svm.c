@@ -3867,13 +3867,12 @@ static int svm_set_msr(struct kvm_vcpu *vcpu, struct msr_data *msr)
 
 		if (data & ~PRED_CMD_IBPB)
 			return 1;
-
+		if (!boot_cpu_has(X86_FEATURE_AMD_IBPB))
+			return 1;
 		if (!data)
 			break;
 
 		wrmsrl(MSR_IA32_PRED_CMD, PRED_CMD_IBPB);
-		if (is_guest_mode(vcpu))
-			break;
 		set_msr_interception(svm->msrpm, MSR_IA32_PRED_CMD, 0, 1);
 		break;
 	case MSR_AMD64_VIRT_SPEC_CTRL:
@@ -3951,6 +3950,9 @@ static int svm_set_msr(struct kvm_vcpu *vcpu, struct msr_data *msr)
 		vcpu_unimpl(vcpu, "unimplemented wrmsr: 0x%x data 0x%llx\n", ecx, data);
 		break;
 	case MSR_IA32_SPEC_CTRL:
+		if (data & ~kvm_spec_ctrl_valid_bits(vcpu))
+			return 1;
+
 		svm->spec_ctrl = data;
 		break;
 	case MSR_IA32_APICBASE:
