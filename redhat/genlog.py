@@ -55,7 +55,7 @@ def parse_commit(commit):
     # remove any '%' character, since it'll be used inside the rpm spec changelog
     log_entry = lines[0].replace("%","")
 
-    patchwork = lines[2].startswith("Patchwork-id: ")
+    patchwork = lines[2].startswith("Patchwork-id: ") if len(lines) > 2 else False
 
     cve_list = []
     bug_list = []
