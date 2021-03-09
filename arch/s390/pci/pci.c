@@ -535,6 +535,8 @@ int arch_setup_msi_irqs(struct pci_dev *pdev, int nvec, int type)
 
 	msi_nr = __irq_offset(aisb);
 	list_for_each_entry(msi, &pdev->msi_list, list) {
+		if ((msi_nr - __irq_offset(aisb)) >= msi_vecs)
+			break;
 		rc = zpci_setup_msi_irq(zdev, msi, msi_nr,
 					__irq_offset(aisb));
 		if (rc)
@@ -561,8 +563,11 @@ void arch_teardown_msi_irqs(struct pci_dev *pdev)
 	if (rc)
 		return;
 
-	list_for_each_entry(msi, &pdev->msi_list, list)
+	list_for_each_entry(msi, &pdev->msi_list, list) {
+		if (!msi->irq)
+			continue;
 		zpci_teardown_msi_irq(zdev, msi, __irq_offset(zdev->aisb));
+	}
 
 	zpci_free_msi(zdev);
 
