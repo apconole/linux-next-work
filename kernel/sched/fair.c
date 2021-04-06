@@ -1749,11 +1749,21 @@ unlock:
 	put_numa_group(my_grp);
 }
 
-void task_numa_free(struct task_struct *p)
+/*
+ * Get rid of NUMA staticstics associated with a task (either current or dead).
+ * If @final is set, the task is dead and has reached refcount zero, so we can
+ * safely free all relevant data structures. Otherwise, there might be
+ * concurrent reads from places like load balancing and procfs, and we should
+ * reset the data back to default state without freeing ->numa_faults_memory.
+ */
+void task_numa_free(struct task_struct *p, bool final)
 {
 	struct numa_group *grp = p->numa_group;
 	int i;
 	void *numa_faults = p->numa_faults_memory;
+
+	if (!numa_faults)
+		return;
 
 	if (grp) {
 		unsigned long irq_flags;
@@ -1769,11 +1779,27 @@ void task_numa_free(struct task_struct *p)
 		put_numa_group(grp);
 	}
 
-	p->numa_faults_memory = NULL;
-	p->numa_faults_buffer_memory = NULL;
-	p->numa_faults_cpu= NULL;
-	p->numa_faults_buffer_cpu = NULL;
-	kfree(numa_faults);
+	if (final) {
+		p->numa_faults_memory = NULL;
+		p->numa_faults_buffer_memory = NULL;
+		p->numa_faults_cpu= NULL;
+		p->numa_faults_buffer_cpu = NULL;
+		kfree(numa_faults);
+	} else {
+		/*
+		 * RHEL-7 misses the overhaul of upstream commit 44dba3d5d6a1
+		 * ("sched: Refactor task_struct to use numa_faults instead
+		 *  of numa_* pointers"), therefore in order to easily zero out
+		 * all of the NUMA hint counters and averaged statistics for
+		 * this instance we simplify the step as a single memset() call.
+		 * 'size' is computed to the size of the whole allocated buffer,
+		 * exactly as performed by task_numa_fault().
+		 */
+		size_t size = sizeof(*p->numa_faults_memory) *
+			      NR_NUMA_HINT_FAULT_BUCKETS * nr_node_ids;
+		p->total_numa_faults = 0;
+		memset(p->numa_faults_memory, 0, size);
+	}
 }
 
 /*
