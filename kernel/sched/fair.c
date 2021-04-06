@@ -1532,6 +1532,7 @@ static void task_numa_placement(struct task_struct *p)
 	unsigned long max_faults = 0, max_group_faults = 0;
 	unsigned long fault_types[2] = { 0, 0 };
 	unsigned long total_faults;
+	unsigned long irq_flags;
 	u64 runtime, period;
 	spinlock_t *group_lock = NULL;
 
@@ -1548,7 +1549,7 @@ static void task_numa_placement(struct task_struct *p)
 	/* If the task is part of a group prevent parallel updates to group stats */
 	if (p->numa_group) {
 		group_lock = &p->numa_group->lock;
-		spin_lock(group_lock);
+		spin_lock_irqsave(group_lock, irq_flags);
 	}
 
 	/* Find the node with the highest number of faults */
@@ -1623,7 +1624,7 @@ static void task_numa_placement(struct task_struct *p)
 			}
 		}
 
-		spin_unlock(group_lock);
+		spin_unlock_irqrestore(group_lock, irq_flags);
 	}
 
 	/* Preferred node as the node with the most faults */
@@ -1650,6 +1651,7 @@ static void task_numa_group(struct task_struct *p, int cpupid, int flags,
 {
 	struct numa_group *grp, *my_grp;
 	struct task_struct *tsk;
+	unsigned long irq_flags;
 	bool join = false;
 	int cpu = cpupid_to_cpu(cpupid);
 	int i;
@@ -1729,7 +1731,9 @@ unlock:
 	if (!join)
 		return;
 
-	double_lock(&my_grp->lock, &grp->lock);
+	WARN_ON(irqs_disabled());
+	local_irq_save(irq_flags);
+	double_lock_irq(&my_grp->lock, &grp->lock);
 
 	for (i = 0; i < NR_NUMA_HINT_FAULT_STATS * nr_node_ids; i++) {
 		my_grp->faults[i] -= p->numa_faults_memory[i];
@@ -1743,7 +1747,7 @@ unlock:
 	grp->nr_tasks++;
 
 	spin_unlock(&my_grp->lock);
-	spin_unlock(&grp->lock);
+	spin_unlock_irqrestore(&grp->lock, irq_flags);
 
 	rcu_assign_pointer(p->numa_group, grp);
 
@@ -1757,14 +1761,15 @@ void task_numa_free(struct task_struct *p)
 	void *numa_faults = p->numa_faults_memory;
 
 	if (grp) {
-		spin_lock(&grp->lock);
+		unsigned long irq_flags;
+		spin_lock_irqsave(&grp->lock, irq_flags);
 		for (i = 0; i < NR_NUMA_HINT_FAULT_STATS * nr_node_ids; i++)
 			grp->faults[i] -= p->numa_faults_memory[i];
 		grp->total_faults -= p->total_numa_faults;
 
 		list_del(&p->numa_entry);
 		grp->nr_tasks--;
-		spin_unlock(&grp->lock);
+		spin_unlock_irqrestore(&grp->lock, irq_flags);
 		rcu_assign_pointer(p->numa_group, NULL);
 		put_numa_group(grp);
 	}
