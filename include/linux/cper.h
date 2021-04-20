@@ -420,6 +420,8 @@ struct cper_sec_pcie {
 /* Reset to default packing */
 #pragma pack()
 
+extern const char * const cper_proc_error_type_strs[4];
+
 u64 cper_next_record_id(void);
 const char *cper_severity_str(unsigned int);
 const char *cper_mem_err_type_str(unsigned int);
