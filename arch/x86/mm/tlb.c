@@ -31,6 +31,8 @@ DEFINE_PER_CPU_SHARED_ALIGNED(struct tlb_state, cpu_tlbstate)
  *	Implement flush IPI by CALL_FUNCTION_VECTOR, Alex Shi
  */
 
+#ifdef CONFIG_SMP
+
 struct flush_tlb_info {
 	struct mm_struct *flush_mm;
 	unsigned long flush_start;
@@ -275,6 +277,7 @@ void flush_tlb_kernel_range(unsigned long start, unsigned long end)
 		on_each_cpu(do_kernel_range_flush, &info, 1);
 	}
 }
+#endif /* CONFIG_SMP */
 
 #ifdef CONFIG_DEBUG_TLBFLUSH
 static ssize_t tlbflush_read_file(struct file *file, char __user *user_buf,
