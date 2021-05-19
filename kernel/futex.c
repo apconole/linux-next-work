@@ -1966,7 +1966,8 @@ retry:
 	WARN_ON(!list_empty(&pi_state->list));
 	list_add(&pi_state->list, &newowner->pi_state_list);
 	raw_spin_unlock_irq(&newowner->pi_lock);
-	return 0;
+
+	return newowner == current;
 
 	/*
 	 * To handle the page fault we need to drop the hash bucket
@@ -1989,7 +1990,7 @@ handle_fault:
 	 * Check if someone else fixed it for us:
 	 */
 	if (pi_state->owner != oldowner)
-		return 0;
+		return newowner == current;
 
 	if (ret)
 		return ret;
@@ -2017,7 +2018,6 @@ static long futex_wait_restart(struct restart_block *restart);
 static int fixup_owner(u32 __user *uaddr, struct futex_q *q, int locked)
 {
 	struct task_struct *owner;
-	int ret = 0;
 
 	if (locked) {
 		/*
@@ -2025,8 +2025,8 @@ static int fixup_owner(u32 __user *uaddr, struct futex_q *q, int locked)
 		 * did a lock-steal - fix up the PI-state in that case:
 		 */
 		if (q->pi_state->owner != current)
-			ret = fixup_pi_state_owner(uaddr, q, current);
-		goto out;
+			return fixup_pi_state_owner(uaddr, q, current);
+		return 1;
 	}
 
 	/*
@@ -2040,8 +2040,7 @@ static int fixup_owner(u32 __user *uaddr, struct futex_q *q, int locked)
 		 * rt_mutex waiters list.
 		 */
 		if (rt_mutex_trylock(&q->pi_state->pi_mutex)) {
-			locked = 1;
-			goto out;
+			return 1;
 		}
 
 		/*
@@ -2054,8 +2053,8 @@ static int fixup_owner(u32 __user *uaddr, struct futex_q *q, int locked)
 		if (!owner)
 			owner = rt_mutex_next_owner(&q->pi_state->pi_mutex);
 		raw_spin_unlock(&q->pi_state->pi_mutex.wait_lock);
-		ret = fixup_pi_state_owner(uaddr, q, owner);
-		goto out;
+
+		return fixup_pi_state_owner(uaddr, q, owner);
 	}
 
 	/*
@@ -2063,13 +2062,11 @@ static int fixup_owner(u32 __user *uaddr, struct futex_q *q, int locked)
 	 * the owner of the rt_mutex.
 	 */
 	if (rt_mutex_owner(&q->pi_state->pi_mutex) == current)
-		printk(KERN_ERR "fixup_owner: ret = %d pi-mutex: %p "
-				"pi-state %p\n", ret,
+		printk(KERN_ERR "fixup_owner: pi-mutex: %p pi-state %p\n",
 				q->pi_state->pi_mutex.owner,
 				q->pi_state->owner);
 
-out:
-	return ret ? ret : locked;
+	return 0;
 }
 
 /**
@@ -2666,6 +2663,11 @@ static int futex_wait_requeue_pi(u32 __user *uaddr, unsigned int flags,
 			spin_lock(q.lock_ptr);
 			ret = fixup_pi_state_owner(uaddr2, &q, current);
 			spin_unlock(q.lock_ptr);
+			/*
+			 * Adjust the return value. It's either -EFAULT or
+			 * success (1) but the caller expects 0 for success.
+			 */
+			ret = ret < 0 ? ret : 0;
 		}
 	} else {
 		/*
