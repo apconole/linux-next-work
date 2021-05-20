@@ -32,6 +32,7 @@ realtime_check:
     package_name: kernel-rt
     srpm_make_target: 'rt-srpm'
     skip_test: 'true'
+    skip_results: 'true'
   trigger:
     project: redhat/red-hat-ci-tools/kernel/cki-internal-pipelines/cki-internal-contributors
     branch: rhel7
