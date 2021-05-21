@@ -495,6 +495,7 @@ static void do_fatal_recovery(struct pci_dev *dev)
 
 	parent = udev->subordinate;
 	pci_lock_rescan_remove();
+	pci_dev_get(dev);
 	list_for_each_entry_safe_reverse(pdev, temp, &parent->devices,
 					 bus_list) {
 		pci_dev_get(pdev);
@@ -521,6 +522,7 @@ static void do_fatal_recovery(struct pci_dev *dev)
 	if (result != PCI_ERS_RESULT_RECOVERED)
 		pci_info(dev, "AER: Device recovery from fatal error failed\n");
 
+	pci_dev_put(dev);
 	pci_unlock_rescan_remove();
 }
 
