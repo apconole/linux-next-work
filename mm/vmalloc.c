@@ -1502,6 +1502,7 @@ static void __vunmap(const void *addr, int deallocate_pages)
 
 			BUG_ON(!page);
 			__free_pages(page, 0);
+			cond_resched();
 		}
 
 		if (area->flags & VM_VPAGES)
