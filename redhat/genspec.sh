@@ -21,7 +21,7 @@ RPM_VERSION="$RPMVERSION-$PKGRELEASE";
 
 echo >$clogf
 
-lasttag=$(git describe --match="kernel-${RPMVERSION}-*" --abbrev=0)
+lasttag=$(git rev-list --first-parent --grep="^\[redhat\] kernel-${RPMVERSION}" --max-count=1 HEAD)
 echo "Gathering new log entries since $lasttag"
 git log --topo-order --reverse --no-merges -z --format="- %s (%an)%n%b" ${lasttag}.. |
 	${0%/*}/genlog.py >> "$clogf"
