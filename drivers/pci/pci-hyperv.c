@@ -458,7 +458,6 @@ enum hv_pcibus_state {
 	hv_pcibus_init = 0,
 	hv_pcibus_probed,
 	hv_pcibus_installed,
-	hv_pcibus_removed,
 	hv_pcibus_maximum
 };
 
@@ -2835,8 +2834,9 @@ static void hv_pci_bus_exit(struct hv_device *hdev)
 		struct pci_packet teardown_packet;
 		u8 buffer[sizeof(struct pci_message)];
 	} pkt;
-	struct hv_dr_state *dr;
 	struct hv_pci_compl comp_pkt;
+	struct hv_pci_dev *hpdev, *tmp;
+	unsigned long flags;
 	int ret;
 
 	/*
@@ -2847,9 +2847,16 @@ static void hv_pci_bus_exit(struct hv_device *hdev)
 		return;
 
 	/* Delete any children which might still exist. */
-	dr = kzalloc(sizeof(*dr), GFP_KERNEL);
-	if (dr && hv_pci_start_relations_work(hbus, dr))
-		kfree(dr);
+	spin_lock_irqsave(&hbus->device_list_lock, flags);
+	list_for_each_entry_safe(hpdev, tmp, &hbus->children, list_entry) {
+		list_del(&hpdev->list_entry);
+		if (hpdev->pci_slot)
+			pci_destroy_slot(hpdev->pci_slot);
+		/* For the two refs got in new_pcichild_device() */
+		put_pcichild(hpdev);
+		put_pcichild(hpdev);
+	}
+	spin_unlock_irqrestore(&hbus->device_list_lock, flags);
 
 	ret = hv_send_resources_released(hdev);
 	if (ret)
@@ -2883,13 +2890,22 @@ static int hv_pci_remove(struct hv_device *hdev)
 
 	hbus = hv_get_drvdata(hdev);
 	if (hbus->state == hv_pcibus_installed) {
+		tasklet_disable(&hdev->channel->callback_event);
+		tasklet_enable(&hdev->channel->callback_event);
+		destroy_workqueue(hbus->wq);
+		hbus->wq = NULL;
+		/*
+		 * At this point, no work is running or can be scheduled
+		 * on hbus-wq. We can't race with hv_pci_devices_present()
+		 * or hv_pci_eject_device(), it's safe to proceed.
+		 */
+
 		/* Remove the bus from PCI's point of view. */
 		pci_lock_rescan_remove();
 		pci_stop_root_bus(hbus->pci_bus);
 		hv_pci_remove_slots(hbus);
 		pci_remove_root_bus(hbus->pci_bus);
 		pci_unlock_rescan_remove();
-		hbus->state = hv_pcibus_removed;
 	}
 
 	hv_pci_bus_exit(hdev);
@@ -2902,7 +2918,6 @@ static int hv_pci_remove(struct hv_device *hdev)
 	hv_pci_free_bridge_windows(hbus);
 	put_hvpcibus(hbus);
 	wait_for_completion(&hbus->remove_event);
-	destroy_workqueue(hbus->wq);
 
 	hv_put_dom_num(hbus->sysdata.domain);
 
