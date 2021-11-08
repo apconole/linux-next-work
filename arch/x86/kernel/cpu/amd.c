@@ -713,6 +713,7 @@ static void init_amd(struct cpuinfo_x86 *c)
 	c->apicid = hard_smp_processor_id();
 
 	switch (c->x86) {
+	case 0x19: init_amd_zn(c); break;
 	}
 #else
 
