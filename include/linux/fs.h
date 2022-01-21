@@ -898,7 +898,7 @@ struct file {
 #ifndef __GENKSYMS__
 	struct mutex		f_pos_lock;
 #endif
-};
+} __attribute__((aligned(4)));	/* lest something weird decides that 2 is OK */
 
 struct file_handle {
 	__u32 handle_bytes;
