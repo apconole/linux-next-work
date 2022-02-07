@@ -44,40 +44,37 @@ workflow: !reference [.workflow]
     RUN_ONLY_FOR_RT: 'true'
 
 # regular pipelines
-
-merge_request_regular:
+rhel7_merge_request:
   extends: [.internal, .merge_request, .with_notifications, .rhel_common,
             .trigger]
 
-realtime_check_regular:
+rhel7_realtime_check_merge_request:
   extends: [.internal, .merge_request, .realtime_check_common,
             .realtime_check]
 
-baseline_regular:
+rhel7_baseline:
   extends: [.internal, .baseline, .with_notifications, .rhel_common,
             .trigger]
 
 # realtime branch pipelines
-
-merge_request_realtime:
+rhel7_realtime_merge_request:
   extends: [.internal, .merge_request, .with_notifications, .realtime_pipeline_common,
             .realtime_full]
 
-baseline_realtime:
+rhel7_realtime_baseline:
   extends: [.internal, .baseline, .with_notifications, .realtime_pipeline_common,
             .realtime_full]
 
 # private pipelines
-
-merge_request_private:
+rhel7_merge_request_private:
   extends: [.scratch, .merge_request, .rhel_common,
             .trigger]
 
-realtime_check_private:
+rhel7_realtime_check_merge_request_private:
   extends: [.scratch, .merge_request, .realtime_check_common,
             .realtime_check]
 
-merge_request_realtime_private:
+rhel7_realtime_merge_request_private:
   extends: [.scratch, .merge_request, .realtime_pipeline_common,
             .realtime_full]
 
