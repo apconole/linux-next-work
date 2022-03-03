@@ -1,6 +1,7 @@
 include Makefile.common
 include Makefile.rhpkg
 
+ZSTREAM=yes
 LANG=C
 BUILD_DEFAULT_TARGET = rhel-${RHELMAJOR}.${RHELMINOR}-z-test-pesign
 BUILD_SCRATCH_TARGET = rhel-${RHELMAJOR}.${RHELMINOR}-z-test-pesign
