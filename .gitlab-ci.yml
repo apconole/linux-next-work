@@ -29,7 +29,6 @@ workflow: !reference [.workflow]
   variables:
     builder_image: quay.io/cki/builder-rhel7
     name: kernel-rt-rhel7
-    merge_branch: main-rt
     kpet_tree_family: rhel7-rt
     srpm_make_target: 'rt-srpm'
 
