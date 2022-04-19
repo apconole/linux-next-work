@@ -52,21 +52,9 @@ rhel7_realtime_check_merge_request:
   extends: [.internal, .merge_request, .realtime_check_common,
             .realtime_check]
 
-rhel7_baseline:
-  extends: [.internal, .baseline, .with_notifications, .rhel_common,
-            .trigger]
-
-rhel7_realtime_check_baseline:
-  extends: [.internal, .baseline, .realtime_check_baseline,
-            .realtime_check]
-
 # realtime branch pipelines
 rhel7_realtime_merge_request:
   extends: [.internal, .merge_request, .with_notifications, .realtime_pipeline_common,
-            .realtime_full]
-
-rhel7_realtime_baseline:
-  extends: [.internal, .baseline, .with_notifications, .realtime_pipeline_common,
             .realtime_full]
 
 # private pipelines
@@ -81,5 +69,3 @@ rhel7_realtime_check_merge_request_private:
 rhel7_realtime_merge_request_private:
   extends: [.scratch, .merge_request, .realtime_pipeline_common,
             .realtime_full]
-
-# no private baselines as repos are mirrored
