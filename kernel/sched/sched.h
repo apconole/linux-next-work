@@ -144,6 +144,7 @@ struct rt_bandwidth {
 	ktime_t			rt_period;
 	u64			rt_runtime;
 	struct hrtimer		rt_period_timer;
+	RH_KABI_EXTEND(unsigned int rt_period_active)
 };
 
 void __dl_clear_params(struct task_struct *p);
@@ -254,6 +255,7 @@ struct cfs_bandwidth {
 	int nr_periods, nr_throttled;
 	u64 throttled_time;
 	RH_KABI_EXTEND(bool distribute_running)
+	RH_KABI_EXTEND(int period_active)
 #endif
 };
 
@@ -1532,8 +1534,6 @@ static inline void sched_rt_avg_update(struct rq *rq, u64 rt_delta)
 static inline void sched_rt_avg_update(struct rq *rq, u64 rt_delta) { }
 static inline void sched_avg_update(struct rq *rq) { }
 #endif
-
-extern void start_bandwidth_timer(struct hrtimer *period_timer, ktime_t period);
 
 /*
  * __task_rq_lock - lock the rq @p resides on.
