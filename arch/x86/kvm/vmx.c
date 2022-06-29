@@ -9363,6 +9363,9 @@ static void __noclone vmx_vcpu_run(struct kvm_vcpu *vcpu)
 		vmx_l1d_flush(vcpu);
 	else if (static_key_false(&mds_user_clear))
 		mds_clear_cpu_buffers();
+	else if (static_key_false(&mmio_stale_data_clear) &&
+		 kvm_arch_has_assigned_device(vcpu->kvm))
+		mds_clear_cpu_buffers();
 
 	vmx->__launched = vmx->loaded_vmcs->launched;
 	asm(
