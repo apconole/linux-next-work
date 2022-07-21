@@ -188,12 +188,6 @@
 #define X8(x...) X4(x), X4(x)
 #define X16(x...) X8(x), X8(x)
 
-#define NR_FASTOP 	(ilog2(sizeof(ulong)) + 1)
-#define RET_LENGTH	(1 + (4 * IS_ENABLED(CONFIG_RETPOLINE)))
-#define FASTOP_LENGTH	(7 + RET_LENGTH)
-#define FASTOP_SIZE	(8 << ((FASTOP_LENGTH > 8) & 1) << ((FASTOP_LENGTH > 16) & 1))
-_Static_assert(FASTOP_LENGTH <= FASTOP_SIZE, "FASTOP_LENGTH <= FASTOP_SIZE");
-
 /*
  * fastop functions have a special calling convention:
  *
@@ -206,6 +200,10 @@ _Static_assert(FASTOP_LENGTH <= FASTOP_SIZE, "FASTOP_LENGTH <= FASTOP_SIZE");
  * Moreover, they are all exactly FASTOP_SIZE bytes long, so functions for
  * different operand sizes can be reached by calculation, rather than a jump
  * table (which would be bigger than the code).
+ *
+ * The 16 byte alignment, considering 5 bytes for the RET thunk, 3 for ENDBR
+ * and 1 for the straight line speculation INT3, leaves 7 bytes for the
+ * body of the function.  Currently none is larger than 4.
  *
  * fastop functions are declared as taking a never-defined fastop parameter,
  * so they can't be called from C directly.
@@ -335,6 +333,8 @@ static void invalidate_registers(struct x86_emulate_ctxt *ctxt)
 
 static int fastop(struct x86_emulate_ctxt *ctxt, void (*fop)(struct fastop *));
 
+#define FASTOP_SIZE	16
+
 #define __FOP_FUNC(name) \
 	".align " __stringify(FASTOP_SIZE) " \n\t" \
 	".type " name ", @function \n\t" \
@@ -462,9 +462,7 @@ static int fastop(struct x86_emulate_ctxt *ctxt, void (*fop)(struct fastop *));
  * SETcc %al				[3 bytes]
  * RET | JMP __x86_return_thunk		[1,5 bytes; CONFIG_RETPOLINE]
  */
-#define SETCC_LENGTH   (3 + RET_LENGTH)
-#define SETCC_ALIGN    (4 << ((SETCC_LENGTH > 4) & 1) << ((SETCC_LENGTH > 8) & 1))
-_Static_assert(SETCC_LENGTH <= SETCC_ALIGN, "SETCC_LENGTH <= SETCC_ALIGN");
+#define SETCC_ALIGN	16
 
 /* Special case for SETcc - 1 instruction per cc */
 #define FOP_SETCC(op) \
