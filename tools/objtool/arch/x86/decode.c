@@ -170,3 +170,8 @@ int arch_decode_instruction(struct elf *elf, struct section *sec,
 
 	return 0;
 }
+
+bool arch_is_rethunk(struct symbol *sym)
+{
+	return !strcmp(sym->name, "__x86_return_thunk");
+}
