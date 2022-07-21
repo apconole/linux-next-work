@@ -277,6 +277,7 @@
 /* FREE!				(11*32+11) */
 /* FREE!				(11*32+12) */
 #define X86_FEATURE_RETPOLINE_AMD	(11*32+13) /* AMD Retpoline mitigation for Spectre variant 2 */
+#define X86_FEATURE_RETHUNK		(11*32+14) /* "" Use REturn THUNK */
 
 /* AMD-defined CPU features, CPUID level 0x80000008 (EBX), word 13 */
 #define X86_FEATURE_CLZERO		(13*32+ 0) /* CLZERO instruction */

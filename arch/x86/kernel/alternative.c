@@ -48,6 +48,22 @@ do {									\
 		printk(KERN_DEBUG "%s: " fmt "\n", __func__, ##args);	\
 } while (0)
 
+#define DUMP_BYTES(buf, len, fmt, args...)				\
+do {									\
+	if (unlikely(debug_alternative)) {				\
+		int j;							\
+									\
+		if (!(len))						\
+			break;						\
+									\
+		printk(KERN_DEBUG pr_fmt(fmt), ##args);			\
+		for (j = 0; j < (len) - 1; j++)				\
+			printk(KERN_CONT "%02hhx ", buf[j]);		\
+		printk(KERN_CONT "%02hhx\n", buf[j]);			\
+	}								\
+} while (0)
+
+
 /*
  * Each GENERIC_NOPX is of X bytes, and defined as an array of bytes
  * that correspond to that nop. Getting from one nop to the next, we
@@ -229,6 +245,7 @@ static void __init_or_module add_nops(void *insns, unsigned int len)
 	}
 }
 
+extern s32 __return_sites[], __return_sites_end[];
 extern struct alt_instr __alt_instructions[], __alt_instructions_end[];
 extern s32 __smp_locks[], __smp_locks_end[];
 void *text_poke_early(void *addr, const void *opcode, size_t len);
@@ -479,12 +496,86 @@ extern struct paravirt_patch_site __start_parainstructions[],
 	__stop_parainstructions[];
 #endif	/* CONFIG_PARAVIRT */
 
+#define INT3_INSN_OPCODE	0xCC
+#define RET_INSN_OPCODE		0xC3
+#define JMP32_INSN_OPCODE	0xE9
+
+/*
+ * Rewrite the compiler generated return thunk tail-calls.
+ *
+ * For example, convert:
+ *
+ *   JMP __x86_return_thunk
+ *
+ * into:
+ *
+ *   RET
+ */
+static int patch_return(void *addr, struct insn *insn, u8 *bytes)
+{
+	int i = 0;
+
+	if (cpu_feature_enabled(X86_FEATURE_RETHUNK))
+		return -1;
+
+	bytes[i++] = RET_INSN_OPCODE;
+
+	for (; i < insn->length;)
+		bytes[i++] = INT3_INSN_OPCODE;
+
+	return i;
+}
+
+void __init_or_module noinline apply_returns(s32 *start, s32 *end)
+{
+	s32 *s;
+
+	DPRINTK("return thunk table %p -> %p", start, end);
+
+	for (s = start; s < end; s++) {
+		void *addr = (void *)s + *s;
+		struct insn insn;
+		int len, ret;
+		u8 bytes[16];
+		u8 op1;
+
+		insn_init(&insn, addr, MAX_INSN_SIZE, IS_ENABLED(CONFIG_X86_64));
+		insn_get_length(&insn);
+
+		ret = insn_complete(&insn);
+		if (WARN_ON_ONCE(!ret))
+			continue;
+
+		op1 = insn.opcode.bytes[0];
+		if (WARN_ON_ONCE(op1 != JMP32_INSN_OPCODE))
+			continue;
+
+		DPRINTK("return thunk at: %pS (%px) len: %d to: %pS",
+			addr, addr, insn.length,
+			addr + insn.length + insn.immediate.value);
+
+		len = patch_return(addr, &insn, bytes);
+		if (len == insn.length) {
+			DUMP_BYTES(((u8*)addr),  len, "%px: orig: ", addr);
+			DUMP_BYTES(((u8*)bytes), len, "%px: repl: ", addr);
+			text_poke_early(addr, bytes, len);
+		}
+	}
+}
+
 void __init alternative_instructions(void)
 {
 	/* The patching is not fully atomic, so try to avoid local interruptions
 	   that might execute the to be patched code.
 	   Other CPUs are not running. */
 	stop_nmi();
+
+
+	/*
+	 * Rewrite return thunks before applying the alternatives as
+	 * those can rewrite the thunks
+	 */
+	apply_returns(__return_sites, __return_sites_end);
 
 	/*
 	 * Don't stop machine check exceptions while patching.
