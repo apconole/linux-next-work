@@ -25,6 +25,7 @@
  * For more information, see tools/objtool/Documentation/stack-validation.txt.
  */
 
+#include <fcntl.h>
 #include <string.h>
 #include <stdlib.h>
 #include <subcmd/parse-options.h>
@@ -1214,7 +1215,7 @@ int cmd_check(int argc, const char **argv)
 
 	objname = argv[0];
 
-	file.elf = elf_open(objname);
+	file.elf = elf_open(objname, O_RDWR);
 	if (!file.elf) {
 		fprintf(stderr, "error reading elf file %s\n", objname);
 		return 1;
@@ -1241,6 +1242,10 @@ int cmd_check(int argc, const char **argv)
 	if (ret < 0)
 		goto out;
 	warnings += ret;
+
+	ret = elf_write(file.elf);
+	if (ret < 0)
+		goto out;
 
 out:
 	cleanup(&file);

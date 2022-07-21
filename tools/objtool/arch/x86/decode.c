@@ -53,7 +53,7 @@ int arch_decode_instruction(struct elf *elf, struct section *sec,
 	if (x86_64 == -1)
 		return -1;
 
-	insn_init(&insn, (void *)(sec->data + offset), maxlen, x86_64);
+	insn_init(&insn, (void *)(sec->data->d_buf + offset), maxlen, x86_64);
 	insn_get_length(&insn);
 	insn_get_opcode(&insn);
 	insn_get_modrm(&insn);
