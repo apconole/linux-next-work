@@ -736,13 +736,23 @@ static void __init retbleed_select_mitigation(void)
 		break;
 
 	case RETBLEED_CMD_IBPB:
-		retbleed_mitigation = RETBLEED_MITIGATION_IBPB;
-		break;
-
+		if (boot_cpu_has(X86_FEATURE_IBPB)) {
+			retbleed_mitigation = RETBLEED_MITIGATION_IBPB;
+			break;
+		} else {
+			pr_err("WARNING: CPU does not support IBPB.\n");
+		}
+		/* fallthrough */
 	case RETBLEED_CMD_AUTO:
 	default:
-		if (boot_cpu_data.x86_vendor == X86_VENDOR_AMD)
-			retbleed_mitigation = RETBLEED_MITIGATION_UNRET;
+		if (boot_cpu_data.x86_vendor == X86_VENDOR_AMD) {
+			if (!IS_ENABLED(CONFIG_RETPOLINE) && boot_cpu_has(X86_FEATURE_IBPB)) {
+				pr_err(RETBLEED_COMPILER_MSG);
+				retbleed_mitigation = RETBLEED_MITIGATION_IBPB;
+			} else {
+				retbleed_mitigation = RETBLEED_MITIGATION_UNRET;
+			}
+		}
 
 		/*
 		 * The Intel mitigation (IBRS or eIBRS) was already selected in
@@ -755,13 +765,6 @@ static void __init retbleed_select_mitigation(void)
 
 	switch (retbleed_mitigation) {
 	case RETBLEED_MITIGATION_UNRET:
-
-		if (!IS_ENABLED(CONFIG_RETPOLINE)) {
-			pr_err(RETBLEED_COMPILER_MSG);
-			retbleed_mitigation = RETBLEED_MITIGATION_IBPB;
-			goto retbleed_force_ibpb;
-		}
-
 		setup_force_cpu_cap(X86_FEATURE_RETHUNK);
 		setup_force_cpu_cap(X86_FEATURE_UNRET);
 
@@ -772,7 +775,6 @@ static void __init retbleed_select_mitigation(void)
 		break;
 
 	case RETBLEED_MITIGATION_IBPB:
-retbleed_force_ibpb:
 		setup_force_cpu_cap(X86_FEATURE_ENTRY_IBPB);
 		mitigate_smt = true;
 		break;
