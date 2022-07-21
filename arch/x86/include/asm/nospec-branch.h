@@ -168,6 +168,8 @@
 
 #else /* __ASSEMBLY__ */
 
+extern void __x86_return_thunk(void);
+
 #if defined(CONFIG_X86_64) && defined(RETPOLINE)
 /*
  * Since the inline asm uses the %V modifier which is only in newer GCC,

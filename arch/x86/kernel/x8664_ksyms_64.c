@@ -97,4 +97,7 @@ EXPORT_THUNK(r12);
 EXPORT_THUNK(r13);
 EXPORT_THUNK(r14);
 EXPORT_THUNK(r15);
+
+extern void __x86_return_thunk(void);
+EXPORT_SYMBOL(__x86_return_thunk);
 #endif
