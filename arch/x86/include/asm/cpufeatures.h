@@ -202,12 +202,11 @@
 #define X86_FEATURE_HW_PSTATE	(7*32+ 8) /* AMD HW-PState */
 #define X86_FEATURE_PROC_FEEDBACK (7*32+ 9) /* AMD ProcFeedbackInterface */
 #define X86_FEATURE_SME		( 7*32+10) /* AMD Secure Memory Encryption */
-#define X86_FEATURE_MSR_SPEC_CTRL ( 7*32+11) /* "" MSR SPEC_CTRL is implemented */
 #define X86_FEATURE_FENCE_SWAPGS_KERNEL	(7*32+12) /* "" LFENCE in kernel entry SWAPGS path */
 #define X86_FEATURE_RETPOLINE_AMD (7*32+13) /* AMD Retpoline mitigation for Spectre variant 2 */
 #define X86_FEATURE_INTEL_PPIN	( 7*32+14) /* Intel Processor Inventory Number */
-#define X86_FEATURE_INTEL_PT	( 7*32+15) /* Intel Processor Trace */
-#define X86_FEATURE_CDP_L2	( 7*32+16) /* Code and Data Prioritization L2 */
+#define X86_FEATURE_CDP_L2	( 7*32+15) /* Code and Data Prioritization L2 */
+#define X86_FEATURE_MSR_SPEC_CTRL ( 7*32+16) /* "" MSR SPEC_CTRL is implemented */
 #define X86_FEATURE_SSBD	( 7*32+17) /* Speculative Store Bypass Disable */
 #define X86_FEATURE_MBA		( 7*32+18) /* Memory Bandwidth Allocation */
 #define X86_FEATURE_IBP_DISABLE ( 7*32+21) /* Old AMD Indirect Branch Predictor Disable */
@@ -251,6 +250,7 @@
 #define X86_FEATURE_AVX512IFMA	( 9*32+21) /* AVX-512 Integer Fused Multiply-Add instructions */
 #define X86_FEATURE_CLFLUSHOPT	(9*32+23) /* CLFLUSHOPT instruction */
 #define X86_FEATURE_CLWB	( 9*32+24) /* CLWB instruction */
+#define X86_FEATURE_INTEL_PT    ( 9*32+25) /* Intel Processor Trace */
 #define X86_FEATURE_AVX512PF	(9*32+26) /* AVX-512 Prefetch */
 #define X86_FEATURE_AVX512ER	(9*32+27) /* AVX-512 Exponential and Reciprocal */
 #define X86_FEATURE_AVX512CD	(9*32+28) /* AVX-512 Conflict Detection */
