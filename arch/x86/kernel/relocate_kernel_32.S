@@ -94,7 +94,7 @@ relocate_kernel:
 	movl    %edi, %eax
 	addl    $(identity_mapped - relocate_kernel), %eax
 	pushl   %eax
-	ret
+	RET
 
 identity_mapped:
 	/* set return address to 0 if not preserving context */
@@ -161,7 +161,7 @@ identity_mapped:
 	xorl    %edx, %edx
 	xorl    %esi, %esi
 	xorl    %ebp, %ebp
-	ret
+	RET
 1:
 	popl	%edx
 	movl	CP_PA_SWAP_PAGE(%edi), %esp
@@ -192,7 +192,7 @@ identity_mapped:
 	movl	%edi, %eax
 	addl	$(virtual_mapped - relocate_kernel), %eax
 	pushl	%eax
-	ret
+	RET
 
 virtual_mapped:
 	movl	CR4(%edi), %eax
@@ -209,7 +209,7 @@ virtual_mapped:
 	popl	%edi
 	popl	%esi
 	popl	%ebx
-	ret
+	RET
 
 	/* Do the copies */
 swap_pages:
@@ -271,7 +271,7 @@ swap_pages:
 	popl	%edi
 	popl	%ebx
 	popl	%ebp
-	ret
+	RET
 
 	.globl kexec_control_code_size
 .set kexec_control_code_size, . - relocate_kernel

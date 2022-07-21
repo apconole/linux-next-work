@@ -55,6 +55,8 @@
 #define __ALIGN_STR	__stringify(__ALIGN)
 #endif
 
+#define RET	ret
+
 #else /* __ASSEMBLY__ */
 
 #define ASM_RET	"ret\n\t"

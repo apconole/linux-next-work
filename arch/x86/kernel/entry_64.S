@@ -329,7 +329,7 @@ ENTRY(save_rest)
 	movq_cfi r15, R15+16
 	movq %r11, 8(%rsp)	/* return address */
 	FIXUP_TOP_OF_STACK %r11, 16
-	ret
+	RET
 	CFI_ENDPROC
 END(save_rest)
 
@@ -368,7 +368,7 @@ ENTRY(save_paranoid)
 	SAVE_AND_SWITCH_TO_KERNEL_CR3 scratch_reg=%rax save_reg=%r14
 	IBRS_ENTRY_SAVE_AND_CLOBBER save_reg=%r13d /* no indirect jump allowed before IBRS */
 	FILL_RETURN_BUFFER_CLOBBER /* no ret allowed before stuffing the RSB */
-	ret
+	RET
 	CFI_ENDPROC
 END(save_paranoid)
 	.popsection
@@ -715,7 +715,7 @@ ENTRY(stub_\func)
 	call sys_\func
 	UNWIND_END_OF_STACK
 	RESTORE_TOP_OF_STACK %r11, 8
-	ret
+	RET
 	CFI_ENDPROC
 END(stub_\func)
 	.endm
@@ -728,7 +728,7 @@ ENTRY(\label)
 	call \func
 	UNWIND_END_OF_STACK
 	RESTORE_TOP_OF_STACK %r11, 8
-	ret
+	RET
 	CFI_ENDPROC
 END(\label)
 	.endm
@@ -1269,7 +1269,7 @@ gs_change:
 2:	mfence		/* workaround */
 	SWAPGS
 	popfq_cfi
-	ret
+	RET
 	CFI_ENDPROC
 END(native_load_gs_index)
 
@@ -1299,7 +1299,7 @@ ENTRY(call_softirq)
 	CFI_DEF_CFA_REGISTER	rsp
 	CFI_ADJUST_CFA_OFFSET   -8
 	decl PER_CPU_VAR(irq_count)
-	ret
+	RET
 	CFI_ENDPROC
 END(call_softirq)
 
@@ -1565,7 +1565,7 @@ error_sti:
 	movq %rax, %rsp
 1:
 	TRACE_IRQS_OFF
-	ret
+	RET
 
 /*
  * There are two places in the kernel that can potentially fault with
