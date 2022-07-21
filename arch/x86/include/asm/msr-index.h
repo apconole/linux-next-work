@@ -2,7 +2,11 @@
 #define _ASM_X86_MSR_INDEX_H
 
 #ifndef BIT
+#ifdef __ASSEMBLY__
+#define BIT(nr)		(1 << (nr))
+#else
 #define BIT(nr)		(1UL << (nr))
+#endif
 #endif
 
 /* CPU model specific register (MSR) numbers */

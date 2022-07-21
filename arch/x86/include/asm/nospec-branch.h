@@ -171,7 +171,8 @@
  * return thunk isn't mapped into the userspace tables (then again, AMD
  * typically has NO_MELTDOWN).
  *
- * Doesn't clobber any registers but does require a stable stack.
+ * While zen_untrain_ret() doesn't clobber anything but requires stack,
+ * entry_ibpb() will clobber AX, CX, DX.
  *
  * As such, this must be placed after every *SWITCH_TO_KERNEL_CR3 at a point
  * where we have a stack but before any RET instruction.
@@ -180,10 +181,12 @@
 #ifdef CONFIG_RETPOLINE
 	661: ASM_NOP5_ATOMIC; 662:
 	.pushsection .altinstr_replacement, "ax"
-	663: call zen_untrain_ret; 664:
+	6631: call zen_untrain_ret; 6641:
+	6632: call entry_ibpb; 6642:
 	.popsection
 	.pushsection .altinstructions, "a"
-	altinstruction_entry 661b, 663b, X86_FEATURE_UNRET, 662b-661b, 664b-663b
+	altinstruction_entry 661b, 6631b, X86_FEATURE_UNRET, 662b-661b, 6641b-6631b
+	altinstruction_entry 661b, 6632b, X86_FEATURE_ENTRY_IBPB, 662b-661b, 6642b-6632b
 	.popsection
 #endif
 .endm
@@ -192,6 +195,7 @@
 
 extern void __x86_return_thunk(void);
 extern void zen_untrain_ret(void);
+extern void entry_ibpb(void);
 
 #if defined(CONFIG_X86_64) && defined(RETPOLINE)
 /*
@@ -279,9 +283,12 @@ static inline void fill_RSB(void)
  */
 static inline void untrain_ret(void)
 {
-	alternative(ASM_NOP5_ATOMIC,
-		    "call zen_untrain_ret",
-		    X86_FEATURE_UNRET);
+	asm volatile (
+		ALTERNATIVE_2(ASM_NOP5_ATOMIC,
+			      "call zen_untrain_ret", X86_FEATURE_UNRET,
+			      "call entry_ibpb", X86_FEATURE_ENTRY_IBPB)
+		: : : "memory"
+	);
 }
 
 extern struct static_key mds_user_clear;

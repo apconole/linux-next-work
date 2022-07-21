@@ -273,7 +273,7 @@
 #define X86_FEATURE_CQM_MBM_LOCAL	(11*32+ 3) /* LLC Local MBM monitoring */
 #define X86_FEATURE_FENCE_SWAPGS_USER	(11*32+ 4) /* "" LFENCE in user entry SWAPGS path */
 #define X86_FEATURE_FENCE_SWAPGS_KERNEL	(11*32+ 5) /* "" LFENCE in kernel entry SWAPGS path */
-/* FREE!				(11*32+10) */
+#define X86_FEATURE_ENTRY_IBPB		(11*32+10) /* "" Issue an IBPB on kernel entry */
 /* FREE!				(11*32+11) */
 /* FREE!				(11*32+12) */
 #define X86_FEATURE_RETPOLINE_AMD	(11*32+13) /* AMD Retpoline mitigation for Spectre variant 2 */
