@@ -787,36 +787,28 @@ static void apply_forced_caps(struct cpuinfo_x86 *c)
 
 static void init_cqm(struct cpuinfo_x86 *c)
 {
-	u32 eax, ebx, ecx, edx;
+	struct rh_cpuinfo_x86 *rh_c =
+		(c == &boot_cpu_data) ? &rh_boot_cpu_data : &rh_cpu_data(c->cpu_index);
 
-	/* Additional Intel-defined flags: level 0x0000000F */
-	if (c->cpuid_level >= 0x0000000F) {
-		struct rh_cpuinfo_x86 *rh_c =
-			(c == &boot_cpu_data) ? &rh_boot_cpu_data
-			: &rh_cpu_data(c->cpu_index);
+	if (!cpu_has(c, X86_FEATURE_CQM_LLC)) {
+		rh_c->x86_cache_max_rmid = -1;
+		rh_c->x86_cache_occ_scale = -1;
+		return;
+	}
 
-		/* QoS sub-leaf, EAX=0Fh, ECX=0 */
-		cpuid_count(0x0000000F, 0, &eax, &ebx, &ecx, &edx);
-		c->x86_capability[CPUID_F_0_EDX] = edx;
+	/* will be overridden if occupancy monitoring exists */
+	rh_c->x86_cache_max_rmid = cpuid_ebx(0xf);
 
-		if (cpu_has(c, X86_FEATURE_CQM_LLC)) {
-			/* will be overridden if occupancy monitoring exists */
-			rh_c->x86_cache_max_rmid = ebx;
+	if (cpu_has(c, X86_FEATURE_CQM_OCCUP_LLC) ||
+	    cpu_has(c, X86_FEATURE_CQM_MBM_TOTAL) ||
+	    cpu_has(c, X86_FEATURE_CQM_MBM_LOCAL)) {
+		u32 eax, ebx, ecx, edx;
 
-			/* QoS sub-leaf, EAX=0Fh, ECX=1 */
-			cpuid_count(0x0000000F, 1, &eax, &ebx, &ecx, &edx);
-			c->x86_capability[CPUID_F_1_EDX] = edx;
+		/* QoS sub-leaf, EAX=0Fh, ECX=1 */
+		cpuid_count(0xf, 1, &eax, &ebx, &ecx, &edx);
 
-			if ((cpu_has(c, X86_FEATURE_CQM_OCCUP_LLC)) ||
-			      ((cpu_has(c, X86_FEATURE_CQM_MBM_TOTAL)) ||
-			       (cpu_has(c, X86_FEATURE_CQM_MBM_LOCAL)))) {
-				rh_c->x86_cache_max_rmid = ecx;
-				rh_c->x86_cache_occ_scale = ebx;
-			}
-		} else {
-			rh_c->x86_cache_max_rmid = -1;
-			rh_c->x86_cache_occ_scale = -1;
-		}
+		rh_c->x86_cache_max_rmid = ecx;
+		rh_c->x86_cache_occ_scale = ebx;
 	}
 }
 
