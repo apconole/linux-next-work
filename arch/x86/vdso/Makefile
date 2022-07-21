@@ -69,6 +69,7 @@ endif
 endif
 
 $(vobjs): KBUILD_CFLAGS := $(filter-out $(RETPOLINE_CFLAGS),$(KBUILD_CFLAGS)) $(CFL)
+$(vobjs): KBUILD_AFLAGS += -DBUILD_VDSO
 
 #
 # vDSO code runs in userspace and -pg doesn't help with profiling anyway.
@@ -156,6 +157,7 @@ extra-y	+= $(vdso32-images)
 $(obj)/vdso32.o: $(vdso32-images:%=$(obj)/%)
 
 KBUILD_AFLAGS_32 := $(filter-out -m64,$(KBUILD_AFLAGS))
+KBUILD_AFLAGS_32 += -DBUILD_VDSO
 $(vdso32-images:%=$(obj)/%.dbg): KBUILD_AFLAGS = $(KBUILD_AFLAGS_32)
 $(vdso32-images:%=$(obj)/%.dbg): asflags-$(CONFIG_X86_64) += -m32
 
