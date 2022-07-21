@@ -67,7 +67,8 @@ ENTRY(get_sev_encryption_bit)
 
 #endif	/* CONFIG_AMD_MEM_ENCRYPT */
 
-	RET
+	ret
+	int3
 ENDPROC(get_sev_encryption_bit)
 
 	.code64
@@ -95,5 +96,6 @@ ENTRY(get_sev_encryption_mask)
 	pop	%rbp
 #endif
 
-	RET
+	ret
+	int3
 ENDPROC(get_sev_encryption_mask)
