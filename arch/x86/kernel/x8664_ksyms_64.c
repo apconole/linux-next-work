@@ -100,4 +100,7 @@ EXPORT_THUNK(r15);
 
 extern void __x86_return_thunk(void);
 EXPORT_SYMBOL(__x86_return_thunk);
+
+extern void zen_untrain_ret(void);
+EXPORT_SYMBOL(zen_untrain_ret);
 #endif

@@ -166,9 +166,32 @@
 .Ldone_\@:
 .endm
 
+/*
+ * Mitigate RETBleed for AMD/Hygon Zen uarch. Requires KERNEL CR3 because the
+ * return thunk isn't mapped into the userspace tables (then again, AMD
+ * typically has NO_MELTDOWN).
+ *
+ * Doesn't clobber any registers but does require a stable stack.
+ *
+ * As such, this must be placed after every *SWITCH_TO_KERNEL_CR3 at a point
+ * where we have a stack but before any RET instruction.
+ */
+.macro UNTRAIN_RET
+#ifdef CONFIG_RETPOLINE
+	661: ASM_NOP5_ATOMIC; 662:
+	.pushsection .altinstr_replacement, "ax"
+	663: call zen_untrain_ret; 664:
+	.popsection
+	.pushsection .altinstructions, "a"
+	altinstruction_entry 661b, 663b, X86_FEATURE_UNRET, 662b-661b, 664b-663b
+	.popsection
+#endif
+.endm
+
 #else /* __ASSEMBLY__ */
 
 extern void __x86_return_thunk(void);
+extern void zen_untrain_ret(void);
 
 #if defined(CONFIG_X86_64) && defined(RETPOLINE)
 /*
@@ -248,6 +271,17 @@ static inline void fill_RSB(void)
 	asm volatile (__stringify(__FILL_RETURN_BUFFER(%0, RSB_CLEAR_LOOPS, %1))
 		      : "=r" (loops), "+r" (sp)
 		      : : "memory" );
+}
+
+/*
+ * On VMEXIT we must ensure we untrain RET in order to mitigate
+ * RETBleed for AMD/Hygon Zen uarch.
+ */
+static inline void untrain_ret(void)
+{
+	alternative(ASM_NOP5_ATOMIC,
+		    "call zen_untrain_ret",
+		    X86_FEATURE_UNRET);
 }
 
 extern struct static_key mds_user_clear;
