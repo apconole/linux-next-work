@@ -785,36 +785,9 @@ static void apply_forced_caps(struct cpuinfo_x86 *c)
 	}
 }
 
-void get_cpu_cap(struct cpuinfo_x86 *c)
+static void init_cqm(struct cpuinfo_x86 *c)
 {
 	u32 eax, ebx, ecx, edx;
-
-	/* Intel-defined flags: level 0x00000001 */
-	if (c->cpuid_level >= 0x00000001) {
-		cpuid(0x00000001, &eax, &ebx, &ecx, &edx);
-
-		c->x86_capability[CPUID_1_ECX] = ecx;
-		c->x86_capability[CPUID_1_EDX] = edx;
-	}
-
-	/* Thermal and Power Management Leaf: level 0x00000006 (eax) */
-	if (c->cpuid_level >= 0x00000006)
-		c->x86_capability[CPUID_6_EAX] = cpuid_eax(0x00000006);
-
-	/* Additional Intel-defined flags: level 0x00000007 */
-	if (c->cpuid_level >= 0x00000007) {
-		cpuid_count(0x00000007, 0, &eax, &ebx, &ecx, &edx);
-		c->x86_capability[CPUID_7_0_EBX] = ebx;
-		c->x86_capability[CPUID_7_ECX] = ecx;
-		c->x86_capability[CPUID_7_EDX] = edx;
-	}
-
-	/* Extended state features: level 0x0000000d */
-	if (c->cpuid_level >= 0x0000000d) {
-		cpuid_count(0x0000000d, 1, &eax, &ebx, &ecx, &edx);
-
-		c->x86_capability[CPUID_D_1_EAX] = eax;
-	}
 
 	/* Additional Intel-defined flags: level 0x0000000F */
 	if (c->cpuid_level >= 0x0000000F) {
@@ -844,6 +817,38 @@ void get_cpu_cap(struct cpuinfo_x86 *c)
 			rh_c->x86_cache_max_rmid = -1;
 			rh_c->x86_cache_occ_scale = -1;
 		}
+	}
+}
+
+void get_cpu_cap(struct cpuinfo_x86 *c)
+{
+	u32 eax, ebx, ecx, edx;
+
+	/* Intel-defined flags: level 0x00000001 */
+	if (c->cpuid_level >= 0x00000001) {
+		cpuid(0x00000001, &eax, &ebx, &ecx, &edx);
+
+		c->x86_capability[CPUID_1_ECX] = ecx;
+		c->x86_capability[CPUID_1_EDX] = edx;
+	}
+
+	/* Thermal and Power Management Leaf: level 0x00000006 (eax) */
+	if (c->cpuid_level >= 0x00000006)
+		c->x86_capability[CPUID_6_EAX] = cpuid_eax(0x00000006);
+
+	/* Additional Intel-defined flags: level 0x00000007 */
+	if (c->cpuid_level >= 0x00000007) {
+		cpuid_count(0x00000007, 0, &eax, &ebx, &ecx, &edx);
+		c->x86_capability[CPUID_7_0_EBX] = ebx;
+		c->x86_capability[CPUID_7_ECX] = ecx;
+		c->x86_capability[CPUID_7_EDX] = edx;
+	}
+
+	/* Extended state features: level 0x0000000d */
+	if (c->cpuid_level >= 0x0000000d) {
+		cpuid_count(0x0000000d, 1, &eax, &ebx, &ecx, &edx);
+
+		c->x86_capability[CPUID_D_1_EAX] = eax;
 	}
 
 	/* AMD-defined flags: level 0x80000001 */
@@ -884,6 +889,7 @@ void get_cpu_cap(struct cpuinfo_x86 *c)
 
 	init_scattered_cpuid_features(c);
 	init_speculation_control(c);
+	init_cqm(c);
 
 	/*
 	 * Clear/Set all flags overridden by options, after probe.
