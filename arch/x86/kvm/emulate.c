@@ -188,8 +188,11 @@
 #define X8(x...) X4(x), X4(x)
 #define X16(x...) X8(x), X8(x)
 
-#define NR_FASTOP (ilog2(sizeof(ulong)) + 1)
-#define FASTOP_SIZE 8
+#define NR_FASTOP 	(ilog2(sizeof(ulong)) + 1)
+#define RET_LENGTH	(1 + (4 * IS_ENABLED(CONFIG_RETPOLINE)))
+#define FASTOP_LENGTH	(7 + RET_LENGTH)
+#define FASTOP_SIZE	(8 << ((FASTOP_LENGTH > 8) & 1) << ((FASTOP_LENGTH > 16) & 1))
+_Static_assert(FASTOP_LENGTH <= FASTOP_SIZE, "FASTOP_LENGTH <= FASTOP_SIZE");
 
 /*
  * fastop functions have a special calling convention:
@@ -459,7 +462,6 @@ static int fastop(struct x86_emulate_ctxt *ctxt, void (*fop)(struct fastop *));
  * SETcc %al				[3 bytes]
  * RET | JMP __x86_return_thunk		[1,5 bytes; CONFIG_RETPOLINE]
  */
-#define RET_LENGTH     (1 + (4 * IS_ENABLED(CONFIG_RETPOLINE)))
 #define SETCC_LENGTH   (3 + RET_LENGTH)
 #define SETCC_ALIGN    (4 << ((SETCC_LENGTH > 4) & 1) << ((SETCC_LENGTH > 8) & 1))
 _Static_assert(SETCC_LENGTH <= SETCC_ALIGN, "SETCC_LENGTH <= SETCC_ALIGN");
