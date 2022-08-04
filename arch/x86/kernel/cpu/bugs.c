@@ -149,6 +149,7 @@ enum spectre_v2_mitigation_cmd {
 	SPECTRE_V2_CMD_FORCE,
 	SPECTRE_V2_CMD_AUTO,
 	SPECTRE_V2_CMD_RETPOLINE,
+	SPECTRE_V2_CMD_RETPOLINE_FORCE,
 	SPECTRE_V2_CMD_RETPOLINE_IBRS_USER,
 	SPECTRE_V2_CMD_IBRS,
 	SPECTRE_V2_CMD_IBRS_ALWAYS,
@@ -827,6 +828,7 @@ static const struct {
 	{ "off",		SPECTRE_V2_CMD_NONE,		   false },
 	{ "on",			SPECTRE_V2_CMD_FORCE,		   true },
 	{ "retpoline",		SPECTRE_V2_CMD_RETPOLINE,	   false },
+	{ "retpoline,force",	SPECTRE_V2_CMD_RETPOLINE_FORCE,	   false },
 	{ "retpoline,ibrs_user",SPECTRE_V2_CMD_RETPOLINE_IBRS_USER,false },
 	{ "ibrs",		SPECTRE_V2_CMD_IBRS,		   false },
 	{ "ibrs_always",	SPECTRE_V2_CMD_IBRS_ALWAYS,	   false },
@@ -882,6 +884,30 @@ static enum spectre_v2_mitigation_cmd __init spectre_v2_parse_cmdline(void)
 		return SPECTRE_V2_CMD_AUTO;
 	}
 
+	/*
+	 * RETBleed affected CPUs (Intel) depend on IBRS as an effective
+	 * mitigation mechanism. We'll override spectre_v2=retpoline with
+	 * spectre_v2=auto here, unless the old behavior is forced by
+	 * amending ',force' to the spectre_v2 cmdline.
+	 */
+	if (boot_cpu_has_bug(X86_BUG_RETBLEED) &&
+	    boot_cpu_data.x86_vendor == X86_VENDOR_INTEL) {
+		switch (cmd) {
+		case SPECTRE_V2_CMD_RETPOLINE:
+			pr_warn("WARNING: %s selected but CPU is affected by RETBleed. " \
+				"Switching to AUTO select\n",
+				mitigation_options[i].option);
+			return SPECTRE_V2_CMD_AUTO;
+
+		case SPECTRE_V2_CMD_RETPOLINE_FORCE:
+			pr_warn("WARNING: %s selected but CPU is affected by RETBleed. " \
+				"Switching to \"auto\" is advised\n",
+				mitigation_options[i].option);
+		default:
+			break;
+		}
+	}
+
 	if (mitigation_options[i].secure)
 		spec2_print_if_secure(mitigation_options[i].option);
 	else
@@ -921,6 +947,7 @@ void __spectre_v2_select_mitigation(void)
 		}
 		break;
 
+	case SPECTRE_V2_CMD_RETPOLINE_FORCE:
 	case SPECTRE_V2_CMD_RETPOLINE:
 		spec_ctrl_enable_retpoline();
 		return;

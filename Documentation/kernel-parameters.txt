@@ -3528,12 +3528,22 @@ bytes respectively. Such letter suffixes can also be entirely omitted.
 
 			Specific mitigations can also be selected manually:
 
-			retpoline	  - replace indirect branches
+			retpoline[,force] - replace indirect branches
 			ibrs		  - Intel: Indirect Branch Restricted Speculation (kernel)
 			ibrs_always	  - Intel: Indirect Branch Restricted Speculation (kernel and user space)
 
 			Not specifying this option is equivalent to
 			spectre_v2=auto.
+
+			NOTE: with the advent of RETBleed, IBRS becomes the
+			defacto speculation control protection mechanism for
+			Intel CPUs affected by it. Specifying 'retpoline' as
+			spectre_v2 mitigation will now become equivalent to
+			spectre_v2=auto for such CPUs.
+
+			adding ',force' to spectre_v2=retpoline will make it
+			keep the old behavior, which means the system will
+			remain VULNERABLE to RETBleed.
 
 	spec_store_bypass_disable=
 			[HW] Control Speculative Store Bypass (SSB) Disable mitigation
