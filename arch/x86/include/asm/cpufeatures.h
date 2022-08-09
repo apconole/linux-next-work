@@ -206,6 +206,8 @@
 #define X86_FEATURE_MSR_SPEC_CTRL	( 7*32+16) /* "" MSR SPEC_CTRL is implemented */
 #define X86_FEATURE_SSBD		( 7*32+17) /* Speculative Store Bypass Disable */
 #define X86_FEATURE_MBA			( 7*32+18) /* Memory Bandwidth Allocation */
+#define X86_FEATURE_RSB_CTXSW		( 7*32+19) /* Fill RSB on context switches */
+/* FREE!				( 7*32+20) */
 #define X86_FEATURE_IBP_DISABLE		( 7*32+21) /* Old AMD Indirect Branch Predictor Disable */
 #define X86_FEATURE_USE_IBPB		( 7*32+22) /* "" Indirect Branch Prediction Barrier enabled */
 #define X86_FEATURE_SPEC_STORE_BYPASS_DISABLE	( 7*32+23) /* "" Disable Speculative Store Bypass. */

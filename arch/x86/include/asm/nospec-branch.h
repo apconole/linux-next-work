@@ -61,20 +61,21 @@
   * A simpler FILL_RETURN_BUFFER macro. Don't make people use the CPP
   * monstrosity above, manually.
   */
-.macro FILL_RETURN_BUFFER_CLOBBER reg=%rax
-	661: __FILL_RETURN_BUFFER(\reg, RSB_CLEAR_LOOPS, %_ASM_SP); 662:
+.macro FILL_RETURN_BUFFER_CLOBBER reg:req ftr:req
+	661: jmp .Lskip_rsb_\@; ASM_NOP8; ASM_NOP8; ASM_NOP8; ASM_NOP8; ASM_NOP8; ASM_NOP1; 662:
 	.pushsection .altinstr_replacement, "ax"
-	663: ASM_NOP8; ASM_NOP8; ASM_NOP8; ASM_NOP8; ASM_NOP8; ASM_NOP3; 664:
+	663: __FILL_RETURN_BUFFER(\reg, RSB_CLEAR_LOOPS, %_ASM_SP); 664:
 	.popsection
 	.pushsection .altinstructions, "a"
-	altinstruction_entry 661b, 663b, X86_FEATURE_SMEP, 662b-661b, 664b-663b
+	altinstruction_entry 661b, 663b, \ftr, 662b-661b, 664b-663b
 	.popsection
+.Lskip_rsb_\@:
 .endm
 
-.macro FILL_RETURN_BUFFER
-	push %rax
-	FILL_RETURN_BUFFER_CLOBBER reg=%rax
-	pop %rax
+.macro FILL_RETURN_BUFFER reg:req ftr:req
+	push \reg
+	FILL_RETURN_BUFFER_CLOBBER reg=\reg ftr=\ftr
+	pop \reg
 .endm
 
 /*

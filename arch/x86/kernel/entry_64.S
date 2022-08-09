@@ -269,7 +269,7 @@ ENDPROC(native_usergs_sysret64)
 	SWITCH_TO_KERNEL_CR3
 	IBRS_ENTRY_CLOBBER /* no indirect jump allowed before IBRS */
 	movq PER_CPU_VAR(kernel_stack), %rsp
-	FILL_RETURN_BUFFER_CLOBBER /* no ret allowed before stuffing the RSB */
+	FILL_RETURN_BUFFER_CLOBBER %rax, X86_FEATURE_RSB_CTXSW /* no ret allowed before stuffing the RSB */
 	UNTRAIN_RET
 	movq %rsi, %rsp
 	jmp 2f
@@ -368,7 +368,7 @@ ENTRY(save_paranoid)
 2:
 	SAVE_AND_SWITCH_TO_KERNEL_CR3 scratch_reg=%rax save_reg=%r14
 	IBRS_ENTRY_SAVE_AND_CLOBBER save_reg=%r13d /* no indirect jump allowed before IBRS */
-	FILL_RETURN_BUFFER_CLOBBER /* no ret allowed before stuffing the RSB */
+	FILL_RETURN_BUFFER_CLOBBER %rax, X86_FEATURE_RSB_CTXSW /* no ret allowed before stuffing the RSB */
 	UNTRAIN_RET
 	RET
 	CFI_ENDPROC
@@ -477,7 +477,7 @@ GLOBAL(system_call_after_swapgs)
 	movq	%rsp,PER_CPU_VAR(old_rsp)
 	movq	PER_CPU_VAR(kernel_stack),%rsp
 	IBRS_ENTRY /* no indirect jump allowed before IBRS */
-	FILL_RETURN_BUFFER /* no ret allowed before stuffing the RSB */
+	FILL_RETURN_BUFFER %rax, X86_FEATURE_RSB_CTXSW /* no ret allowed before stuffing the RSB */
 	UNTRAIN_RET
 	/*
 	 * No need to follow this irqs off/on section - it's straight
@@ -1544,7 +1544,7 @@ error_swapgs:
 	movq %rsp, %rsi
 	movq PER_CPU_VAR(kernel_stack), %rsp
 	IBRS_ENTRY_CLOBBER /* no indirect jump allowed before IBRS */
-	FILL_RETURN_BUFFER_CLOBBER /* no ret allowed before stuffing the RSB */
+	FILL_RETURN_BUFFER_CLOBBER %rax, X86_FEATURE_RSB_CTXSW /* no ret allowed before stuffing the RSB */
 	UNTRAIN_RET
 	movq %rsi, %rsp
 error_sti:
@@ -1731,7 +1731,7 @@ ENTRY(nmi)
 	pushq	%r15		/* pt_regs->r15 */
 
 	IBRS_ENTRY_CLOBBER /* no indirect jump allowed before IBRS */
-	FILL_RETURN_BUFFER_CLOBBER /* no ret allowed before stuffing the RSB */
+	FILL_RETURN_BUFFER_CLOBBER %rax, X86_FEATURE_RSB_CTXSW /* no ret allowed before stuffing the RSB */
 	UNTRAIN_RET
 
 	/*

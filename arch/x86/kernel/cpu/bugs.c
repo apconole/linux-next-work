@@ -1092,6 +1092,19 @@ static void __init spectre_v2_select_mitigation(void)
 		spec_ctrl_disable_kernel_rrsba();
 
 	spectre_v2_print_mitigation();
+
+	/*
+	 * If spectre v2 protection has been enabled, unconditionally fill
+	 * RSB during a context switch; this protects against two independent
+	 * issues:
+	 *
+	 *	- RSB underflow (and switch to BTB) on Skylake+
+	 *	- SpectreRSB variant of spectre v2 on X86_BUG_SPECTRE_V2 CPUs
+	 */
+	if (boot_cpu_has_bug(X86_BUG_SPECTRE_V2) && mode != SPECTRE_V2_NONE) {
+		setup_force_cpu_cap(X86_FEATURE_RSB_CTXSW);
+		pr_info("Filling RSB on context switch\n");
+	}
 }
 
 #undef pr_fmt
