@@ -326,10 +326,8 @@ static int posix_cpu_clock_get(const clockid_t which_clock, struct timespec *tp)
 			error = cpu_clock_sample(which_clock,
 						 current, &rtn);
 		} else {
-			qread_lock(&tasklist_lock);
 			error = cpu_clock_sample_group(which_clock,
 						       current, &rtn);
-			qread_unlock(&tasklist_lock);
 		}
 	} else {
 		/*
