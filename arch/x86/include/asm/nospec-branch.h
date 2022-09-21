@@ -51,9 +51,11 @@
 	lfence;					\
 	jmp	775b;				\
 774:						\
+	add	$(BITS_PER_LONG/8) * 2, sp;	\
 	dec	reg;				\
 	jnz	771b;				\
-	add	$(BITS_PER_LONG/8) * nr, sp;
+	/* barrier for jnz misprediction */	\
+	lfence;
 
 #ifdef __ASSEMBLY__
 
@@ -62,7 +64,7 @@
   * monstrosity above, manually.
   */
 .macro FILL_RETURN_BUFFER_CLOBBER reg:req ftr:req
-	661: jmp .Lskip_rsb_\@; ASM_NOP8; ASM_NOP8; ASM_NOP8; ASM_NOP8; ASM_NOP8; ASM_NOP1; 662:
+	661: jmp .Lskip_rsb_\@; ASM_NOP8; ASM_NOP8; ASM_NOP8; ASM_NOP8; ASM_NOP8; ASM_NOP4; 662:
 	.pushsection .altinstr_replacement, "ax"
 	663: __FILL_RETURN_BUFFER(\reg, RSB_CLEAR_LOOPS, %_ASM_SP); 664:
 	.popsection
