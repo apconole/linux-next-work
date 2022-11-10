@@ -732,9 +732,43 @@ static bool tcp_in_window(const struct nf_conn *ct,
 		if (sender->flags & IP_CT_TCP_FLAG_BE_LIBERAL ||
 		    tn->tcp_be_liberal)
 			res = true;
-		if (!res && LOG_INVALID(net, IPPROTO_TCP))
-			nf_log_packet(net, pf, 0, skb, NULL, NULL, NULL,
-			"nf_ct_tcp: %s ",
+
+		if (!res) {
+			bool seq_ok = before(seq, sender->td_maxend + 1);
+
+			if (!seq_ok) {
+				u32 overshot = end - sender->td_maxend + 1;
+				bool ack_ok;
+
+				ack_ok = after(sack, receiver->td_end - MAXACKWINDOW(sender) - 1);
+
+				if (in_recv_win &&
+				    ack_ok &&
+				    overshot <= receiver->td_maxwin &&
+				    before(sack, receiver->td_end + 1)) {
+					/* Work around TCPs that send more bytes than allowed by
+					 * the receive window.
+					 *
+					 * If the (marked as invalid) packet is allowed to pass by
+					 * the ruleset and the peer acks this data, then its possible
+					 * all future packets will trigger 'ACK is over upper bound' check.
+					 *
+					 * Thus if only the sequence check fails then do update td_end so
+					 * possible ACK for this data can update internal state.
+					 */
+					sender->td_end = end;
+					sender->flags |= IP_CT_TCP_FLAG_DATA_UNACKNOWLEDGED;
+
+					if (LOG_INVALID(net, IPPROTO_TCP))
+						nf_log_packet(net, pf, 0, skb, NULL, NULL, NULL,
+								  "%u bytes more than expected", overshot);
+					return res;
+				}
+			}
+
+			if (LOG_INVALID(net, IPPROTO_TCP))
+				nf_log_packet(net, pf, 0, skb, NULL, NULL, NULL,
+				"nf_ct_tcp: %s ",
 			before(seq, sender->td_maxend + 1) ?
 			in_recv_win ?
 			before(sack, receiver->td_end + 1) ?
