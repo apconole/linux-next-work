@@ -63,6 +63,11 @@ static const char *const tcp_conntrack_names[] = {
 	"SYN_SENT2",
 };
 
+enum nf_ct_tcp_action {
+	NFCT_TCP_INVALID,
+	NFCT_TCP_ACCEPT,
+};
+
 #define SECS * HZ
 #define MINS * 60 SECS
 #define HOURS * 60 MINS
@@ -529,24 +534,53 @@ static void tcp_init_sender(struct ip_ct_tcp_state *sender,
 	}
 }
 
-static bool tcp_in_window(const struct nf_conn *ct,
-			  struct ip_ct_tcp *state,
-			  enum ip_conntrack_dir dir,
-			  unsigned int index,
-			  const struct sk_buff *skb,
-			  unsigned int dataoff,
-			  const struct tcphdr *tcph,
-			  u_int8_t pf)
+__printf(5, 6)
+static noinline_for_stack enum nf_ct_tcp_action
+nf_tcp_log_invalid(const struct sk_buff *skb,
+		   const struct nf_conn *ct,
+		   const struct ip_ct_tcp_state *sender,
+		   enum nf_ct_tcp_action ret,
+		   const char *fmt, ...)
 {
+	struct net *net = nf_ct_net(ct);
+	struct nf_tcp_net *tn = tcp_pernet(net);
+	int pf = nf_ct_l3num(ct);
+	va_list args;
+	bool be_liberal;
+
+	be_liberal = sender->flags & IP_CT_TCP_FLAG_BE_LIBERAL || tn->tcp_be_liberal;
+	if (be_liberal)
+		return NFCT_TCP_ACCEPT;
+
+	if (LOG_INVALID(net, IPPROTO_TCP)) {
+		char scratch[128];
+
+		va_start(args, fmt);
+		vsnprintf(scratch, sizeof(scratch), fmt, args);
+		va_end(args);
+		nf_log_packet(net, pf, 0, skb, NULL, NULL, NULL,
+				"%s", scratch);
+	}
+
+	return ret;
+}
+
+static enum nf_ct_tcp_action
+tcp_in_window(struct nf_conn *ct, enum ip_conntrack_dir dir,
+	      unsigned int index, const struct sk_buff *skb,
+	      unsigned int dataoff, const struct tcphdr *tcph,
+	      u_int8_t pf)
+{
+	struct ip_ct_tcp *state = &ct->proto.tcp;
 	struct net *net = nf_ct_net(ct);
 	struct nf_tcp_net *tn = tcp_pernet(net);
 	struct ip_ct_tcp_state *sender = &state->seen[dir];
 	struct ip_ct_tcp_state *receiver = &state->seen[!dir];
 	const struct nf_conntrack_tuple *tuple = &ct->tuplehash[dir].tuple;
 	__u32 seq, ack, sack, end, win, swin;
-	u16 win_raw;
+	bool in_recv_win, seq_ok;
 	s32 receiver_offset;
-	bool res, in_recv_win;
+	u16 win_raw;
 
 	/*
 	 * Get the required data from the packet.
@@ -587,7 +621,7 @@ static bool tcp_in_window(const struct nf_conn *ct,
 					end, win);
 			if (!tcph->ack)
 				/* Simultaneous open */
-				return true;
+				return NFCT_TCP_ACCEPT;
 		} else {
 			/*
 			 * We are in the middle of a connection,
@@ -630,7 +664,7 @@ static bool tcp_in_window(const struct nf_conn *ct,
 				end, win);
 
 		if (dir == IP_CT_DIR_REPLY && !tcph->ack)
-			return true;
+			return NFCT_TCP_ACCEPT;
 	}
 
 	if (!(tcph->ack)) {
@@ -665,6 +699,49 @@ static bool tcp_in_window(const struct nf_conn *ct,
 		 receiver->td_end, receiver->td_maxend, receiver->td_maxwin,
 		 receiver->td_scale);
 
+	seq_ok = before(seq, sender->td_maxend + 1);
+	if (!seq_ok) {
+		u32 overshot = end - sender->td_maxend + 1;
+		bool ack_ok;
+
+		ack_ok = after(sack, receiver->td_end - MAXACKWINDOW(sender) - 1);
+		in_recv_win = receiver->td_maxwin &&
+			      after(end, sender->td_end - receiver->td_maxwin - 1);
+
+		if (in_recv_win &&
+		    ack_ok &&
+		    overshot <= receiver->td_maxwin &&
+		    before(sack, receiver->td_end + 1)) {
+			/* Work around TCPs that send more bytes than allowed by
+			 * the receive window.
+			 *
+			 * If the (marked as invalid) packet is allowed to pass by
+			 * the ruleset and the peer acks this data, then its possible
+			 * all future packets will trigger 'ACK is over upper bound' check.
+			 *
+			 * Thus if only the sequence check fails then do update td_end so
+			 * possible ACK for this data can update internal state.
+			 */
+			sender->td_end = end;
+			sender->flags |= IP_CT_TCP_FLAG_DATA_UNACKNOWLEDGED;
+
+			if (LOG_INVALID(net, IPPROTO_TCP))
+				nf_log_packet(net, pf, 0, skb, NULL, NULL, NULL,
+						"%u bytes more than expected", overshot);
+
+			return NFCT_TCP_ACCEPT;
+		}
+
+		return nf_tcp_log_invalid(skb, ct, sender, NFCT_TCP_INVALID,
+					  "SEQ is over upper bound %u (over the window of the receiver)",
+					  sender->td_maxend + 1);
+	}
+
+	if (!before(sack, receiver->td_end + 1))
+		return nf_tcp_log_invalid(skb, ct, sender, NFCT_TCP_INVALID,
+					  "ACK is over upper bound %u (ACKed data not seen yet)",
+					  receiver->td_end + 1);
+
 	/* Is the ending sequence in the receive window (if available)? */
 	in_recv_win = !receiver->td_maxwin ||
 		      after(end, sender->td_end - receiver->td_maxwin - 1);
@@ -675,9 +752,8 @@ static bool tcp_in_window(const struct nf_conn *ct,
 		 before(sack, receiver->td_end + 1),
 		 after(sack, receiver->td_end - MAXACKWINDOW(sender) - 1));
 
-	if (before(seq, sender->td_maxend + 1) &&
-	    in_recv_win &&
-	    before(sack, receiver->td_end + 1) &&
+
+	if (in_recv_win &&
 	    after(sack, receiver->td_end - MAXACKWINDOW(sender) - 1)) {
 		/*
 		 * Take into account window scaling (RFC 1323).
@@ -735,49 +811,14 @@ static bool tcp_in_window(const struct nf_conn *ct,
 				state->retrans = 0;
 			}
 		}
-		res = true;
 	} else {
-		res = false;
 		if (sender->flags & IP_CT_TCP_FLAG_BE_LIBERAL ||
 		    tn->tcp_be_liberal)
-			res = true;
+			return NFCT_TCP_ACCEPT;
 
-		if (!res) {
-			bool seq_ok = before(seq, sender->td_maxend + 1);
-
-			if (!seq_ok) {
-				u32 overshot = end - sender->td_maxend + 1;
-				bool ack_ok;
-
-				ack_ok = after(sack, receiver->td_end - MAXACKWINDOW(sender) - 1);
-
-				if (in_recv_win &&
-				    ack_ok &&
-				    overshot <= receiver->td_maxwin &&
-				    before(sack, receiver->td_end + 1)) {
-					/* Work around TCPs that send more bytes than allowed by
-					 * the receive window.
-					 *
-					 * If the (marked as invalid) packet is allowed to pass by
-					 * the ruleset and the peer acks this data, then its possible
-					 * all future packets will trigger 'ACK is over upper bound' check.
-					 *
-					 * Thus if only the sequence check fails then do update td_end so
-					 * possible ACK for this data can update internal state.
-					 */
-					sender->td_end = end;
-					sender->flags |= IP_CT_TCP_FLAG_DATA_UNACKNOWLEDGED;
-
-					if (LOG_INVALID(net, IPPROTO_TCP))
-						nf_log_packet(net, pf, 0, skb, NULL, NULL, NULL,
-								  "%u bytes more than expected", overshot);
-					return res;
-				}
-			}
-
-			if (LOG_INVALID(net, IPPROTO_TCP))
-				nf_log_packet(net, pf, 0, skb, NULL, NULL, NULL,
-				"nf_ct_tcp: %s ",
+		if (LOG_INVALID(net, IPPROTO_TCP)) {
+			nf_log_packet(net, pf, 0, skb, NULL, NULL, NULL,
+					"nf_ct_tcp: %s ",
 			before(seq, sender->td_maxend + 1) ?
 			in_recv_win ?
 			before(sack, receiver->td_end + 1) ?
@@ -786,14 +827,17 @@ static bool tcp_in_window(const struct nf_conn *ct,
 			: "ACK is over the upper bound (ACKed data not seen yet)"
 			: "SEQ is under the lower bound (already ACKed data retransmitted)"
 			: "SEQ is over the upper bound (over the window of the receiver)");
+		}
+
+		return NFCT_TCP_INVALID;
 	}
 
-	pr_debug("tcp_in_window: res=%u sender end=%u maxend=%u maxwin=%u "
+	pr_debug("tcp_in_window: sender end=%u maxend=%u maxwin=%u "
 		 "receiver end=%u maxend=%u maxwin=%u\n",
-		 res, sender->td_end, sender->td_maxend, sender->td_maxwin,
+		 sender->td_end, sender->td_maxend, sender->td_maxwin,
 		 receiver->td_end, receiver->td_maxend, receiver->td_maxwin);
 
-	return res;
+	return NFCT_TCP_ACCEPT;
 }
 
 /* table of valid flag combinations - PUSH, ECE and CWR are always valid */
@@ -1105,7 +1149,7 @@ static int tcp_packet(struct nf_conn *ct,
 		break;
 	}
 
-	if (!tcp_in_window(ct, &ct->proto.tcp, dir, index,
+	if (!tcp_in_window(ct, dir, index,
 			   skb, dataoff, th, pf)) {
 		spin_unlock_bh(&ct->lock);
 		return -NF_ACCEPT;
