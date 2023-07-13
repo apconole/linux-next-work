@@ -2431,7 +2431,7 @@ struct nft_set *nf_tables_set_lookup(const struct nft_table *table,
 		return ERR_PTR(-EINVAL);
 
 	list_for_each_entry(set, &table->sets, list) {
-		if (!nla_strcmp(nla, set->name))
+		if (!nla_strcmp(nla, set->name) && !set->removed)
 			return set;
 	}
 	return ERR_PTR(-ENOENT);
@@ -2449,7 +2449,8 @@ struct nft_set *nf_tables_set_lookup_byid(const struct net *net,
 			struct nft_set *set = nft_trans_set(trans);
 
 			if (id == nft_trans_set_id(trans) &&
-			    trans->ctx.table == table)
+			    trans->ctx.table == table &&
+			    !set->removed)
 				return set;
 		}
 	}
@@ -3767,9 +3768,6 @@ static int nf_tables_delsetelem(struct net *net, struct sock *nlsk,
 		return PTR_ERR(set);
 	if (!list_empty(&set->bindings) && set->flags & NFT_SET_CONSTANT)
 		return -EBUSY;
-
-	if (set->removed)
-		return -ENOENT;
 
 	if (nla[NFTA_SET_ELEM_LIST_ELEMENTS] == NULL) {
 		struct nft_set_dump_args args = {
