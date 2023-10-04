@@ -16,6 +16,7 @@ tests="
 	arp_ping				eth-arp: Basic arp ping between two NS
 	ct_connect_v4				ip4-ct-xon: Basic ipv4 tcp connection using ct
 	connect_v4				ip4-xon: Basic ipv4 ping between two NS
+	connect_v6				ip6-xox: Basic ipv6 ping between two NS
 	nat_connect_v4				ip4-nat-xon: Basic ipv4 tcp connection via NAT
 	netlink_checks				ovsnl: validate netlink attrs and settings
 	upcall_interfaces			ovs: test the upcall interfaces
@@ -405,6 +406,45 @@ test_connect_v4 () {
 
 	# do a ping
 	ovs_sbx "test_connect_v4" ip netns exec client ping 172.31.110.20 -c 3 || return 1
+
+	info "done..."
+	return 0
+}
+
+# test_connect_v6 test
+test_connect_v6 () {
+	sbx_add "test_connect_v6" || return $?
+
+	ovs_add_dp "test_connect_v6" cv6 || return 1
+
+	info "create namespaces"
+	for ns in client server; do
+		ovs_add_netns_and_veths "test_connect_v6" "cv6" "$ns" \
+		    "${ns:0:1}0" "${ns:0:1}1" || return 1
+	done
+
+	ip netns exec client ip addr add fc00::1/96 dev c1 || return 1
+	ip netns exec client ip link set c1 up || return 1
+	ip netns exec server ip addr add fc00::2/96 dev s1 || return 1
+	ip netns exec server ip link set s1 up || return 1
+
+	# Add forwarding flows
+	ovs_add_flow "test_connect_v6" cv6 \
+		"in_port(1),eth(),eth_type(0x86dd),ipv6(src=fc00::1,proto=58),icmpv6()" \
+		"2" || return 1
+	ovs_add_flow "test_connect_v6" cv6 \
+		"in_port(2),eth(),eth_type(0x86dd),ipv6(src=fc00::2,proto=58),icmpv6()" \
+		"1" || return 1
+	ovs_add_flow "test_connect_v6" cv6 \
+		"in_port(1),eth(),eth_type(0x86dd),ipv6(dst=fc00::2)" \
+		"2" || return 1
+	ovs_add_flow "test_connect_v6" cv6 \
+		"in_port(2),eth(),eth_type(0x86dd),ipv6(dst=fc00::1)" \
+		"1" || return 1
+	# The address setup can take a few seconds, so give it settling time
+	sleep 2
+	ovs_sbx "test_connect_v6" \
+		ip netns exec client ping -6 fc00::2 -c 3 || return 1
 
 	info "done..."
 	return 0

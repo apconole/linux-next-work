@@ -59,6 +59,12 @@ OVS_FLOW_CMD_GET = 3
 OVS_FLOW_CMD_SET = 4
 
 
+def none_or_int(x):
+    if x is None:
+        return 0
+    return int(x, 0)
+
+
 def macstr(mac):
     outstr = ":".join(["%02X" % i for i in mac])
     return outstr
@@ -197,6 +203,18 @@ def convert_ipv4(data):
         mask = (0xFFFFFFFF << (32 - int(mask))) & 0xFFFFFFFF
 
     return int(ipaddress.IPv4Address(ip)), int(ipaddress.IPv4Address(mask))
+
+def convert_ipv6(data):
+    ip, _, mask = data.partition('/')
+
+    if not ip:
+        ip = mask = 0
+    elif not mask:
+        mask = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+    elif mask.isdigit():
+        mask = (0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF << (128 - int(mask))) & 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+
+    return ipaddress.IPv6Address(ip).packed, ipaddress.IPv6Address(mask).packed
 
 def convert_int(size):
     def convert_int_sized(data):
@@ -662,9 +680,9 @@ class ovskey(nla):
         )
 
         fields_map = (
-            ("src", "src", "%d", lambda x: int(x) if x else 0,
+            ("src", "src", "%d", none_or_int,
                 convert_int(16)),
-            ("dst", "dst", "%d", lambda x: int(x) if x else 0,
+            ("dst", "dst", "%d", none_or_int,
                 convert_int(16)),
         )
 
@@ -824,13 +842,13 @@ class ovskey(nla):
                 int,
                 convert_ipv4,
             ),
-            ("proto", "proto", "%d", lambda x: int(x) if x else 0,
+            ("proto", "proto", "%d", none_or_int,
                 convert_int(8)),
-            ("tos", "tos", "%d", lambda x: int(x) if x else 0,
+            ("tos", "tos", "%d", none_or_int,
                 convert_int(8)),
-            ("ttl", "ttl", "%d", lambda x: int(x) if x else 0,
+            ("ttl", "ttl", "%d", none_or_int,
                 convert_int(8)),
-            ("frag", "frag", "%d", lambda x: int(x) if x else 0,
+            ("frag", "frag", "%d", none_or_int,
                 convert_int(8)),
         )
 
@@ -869,20 +887,25 @@ class ovskey(nla):
                 "src",
                 lambda x: str(ipaddress.IPv6Address(x)),
                 lambda x: int.from_bytes(x, "big"),
-                lambda x: ipaddress.IPv6Address(x),
+                convert_ipv6,
             ),
             (
                 "dst",
                 "dst",
                 lambda x: str(ipaddress.IPv6Address(x)),
                 lambda x: int.from_bytes(x, "big"),
-                lambda x: ipaddress.IPv6Address(x),
+                convert_ipv6,
             ),
-            ("label", "label", "%d", int),
-            ("proto", "proto", "%d", int),
-            ("tclass", "tclass", "%d", int),
-            ("hlimit", "hlimit", "%d", int),
-            ("frag", "frag", "%d", int),
+            ("label", "label", "%d", none_or_int,
+             convert_int(32)),
+            ("proto", "proto", "%d",  none_or_int,
+             convert_int(8)),
+            ("tclass", "tclass", "%d",  none_or_int,
+             convert_int(8)),
+            ("hlimit", "hlimit", "%d",  none_or_int,
+             convert_int(8)),
+            ("frag", "frag", "%d",  none_or_int,
+             convert_int(8)),
         )
 
         def __init__(
@@ -967,8 +990,10 @@ class ovskey(nla):
         )
 
         fields_map = (
-            ("type", "type", "%d", lambda x: int(x) if x else 0),
-            ("code", "code", "%d", lambda x: int(x) if x else 0),
+            ("type", "type", "%d",  none_or_int,
+             convert_int(8)),
+            ("code", "code", "%d",  none_or_int,
+             convert_int(8)),
         )
 
         def __init__(
@@ -1033,7 +1058,8 @@ class ovskey(nla):
                 int,
                 convert_ipv4,
             ),
-            ("op", "op", "%d", lambda x: int(x) if x else 0),
+            ("op", "op", "%d",  none_or_int,
+             convert_int(16)),
             (
                 "sha",
                 "sha",
@@ -1126,9 +1152,12 @@ class ovskey(nla):
                 lambda x: str(ipaddress.IPv6Address(x)),
                 int,
             ),
-            ("tp_src", "tp_src", "%d", int),
-            ("tp_dst", "tp_dst", "%d", int),
-            ("proto", "proto", "%d", int),
+            ("tp_src", "tp_src", "%d",  none_or_int,
+             convert_int(16)),
+            ("tp_dst", "tp_dst", "%d",  none_or_int,
+             convert_int(16)),
+            ("proto", "proto", "%d",  none_or_int,
+             convert_int(8)),
         )
 
         def __init__(
@@ -1171,9 +1200,12 @@ class ovskey(nla):
                 lambda x: str(ipaddress.IPv6Address(x)),
                 lambda x: int.from_bytes(x, "big"),
             ),
-            ("tp_src", "tp_src", "%d", int),
-            ("tp_dst", "tp_dst", "%d", int),
-            ("proto", "proto", "%d", int),
+            ("tp_src", "tp_src", "%d", none_or_int,
+             convert_int(16)),
+            ("tp_dst", "tp_dst", "%d", none_or_int,
+             convert_int(16)),
+            ("proto", "proto", "%d", none_or_int,
+             convert_int(8)),
         )
 
         def __init__(
@@ -1246,6 +1278,11 @@ class ovskey(nla):
                 "OVS_KEY_ATTR_ICMP",
                 "icmp",
                 ovskey.ovs_key_icmp,
+            ),
+            (
+                "OVS_KEY_ATTR_ICMPV6",
+                "icmpv6",
+                ovskey.ovs_key_icmpv6,
             ),
             (
                 "OVS_KEY_ATTR_TCP_FLAGS",
