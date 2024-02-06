@@ -283,7 +283,7 @@ class ovsactions(nla):
         ("OVS_ACTION_ATTR_UNSPEC", "none"),
         ("OVS_ACTION_ATTR_OUTPUT", "uint32"),
         ("OVS_ACTION_ATTR_USERSPACE", "userspace"),
-        ("OVS_ACTION_ATTR_SET", "none"),
+        ("OVS_ACTION_ATTR_SET", "*ovskey"),
         ("OVS_ACTION_ATTR_PUSH_VLAN", "none"),
         ("OVS_ACTION_ATTR_POP_VLAN", "flag"),
         ("OVS_ACTION_ATTR_SAMPLE", "none"),
@@ -291,7 +291,7 @@ class ovsactions(nla):
         ("OVS_ACTION_ATTR_HASH", "none"),
         ("OVS_ACTION_ATTR_PUSH_MPLS", "none"),
         ("OVS_ACTION_ATTR_POP_MPLS", "flag"),
-        ("OVS_ACTION_ATTR_SET_MASKED", "none"),
+        ("OVS_ACTION_ATTR_SET_MASKED", "ovskey"),
         ("OVS_ACTION_ATTR_CT", "ctact"),
         ("OVS_ACTION_ATTR_TRUNC", "uint32"),
         ("OVS_ACTION_ATTR_PUSH_ETH", "none"),
@@ -438,32 +438,29 @@ class ovsactions(nla):
     def dpstr(self, more=False):
         print_str = ""
 
-        for field in self.nla_map:
-            if field[1] == "none" or self.get_attr(field[0]) is None:
-                continue
+        for field in self["attrs"]:
+
             if print_str != "":
                 print_str += ","
 
-            if field[1] == "uint32":
-                if field[0] == "OVS_ACTION_ATTR_OUTPUT":
-                    print_str += "%d" % int(self.get_attr(field[0]))
-                elif field[0] == "OVS_ACTION_ATTR_RECIRC":
-                    print_str += "recirc(0x%x)" % int(self.get_attr(field[0]))
-                elif field[0] == "OVS_ACTION_ATTR_TRUNC":
-                    print_str += "trunc(%d)" % int(self.get_attr(field[0]))
-                elif field[0] == "OVS_ACTION_ATTR_DROP":
-                    print_str += "drop(%d)" % int(self.get_attr(field[0]))
-            elif field[1] == "flag":
-                if field[0] == "OVS_ACTION_ATTR_CT_CLEAR":
-                    print_str += "ct_clear"
-                elif field[0] == "OVS_ACTION_ATTR_POP_VLAN":
-                    print_str += "pop_vlan"
-                elif field[0] == "OVS_ACTION_ATTR_POP_ETH":
-                    print_str += "pop_eth"
-                elif field[0] == "OVS_ACTION_ATTR_POP_NSH":
-                    print_str += "pop_nsh"
-                elif field[0] == "OVS_ACTION_ATTR_POP_MPLS":
-                    print_str += "pop_mpls"
+            if field[0] == "OVS_ACTION_ATTR_OUTPUT":
+                print_str += "%d" % int(self.get_attr(field[0]))
+            elif field[0] == "OVS_ACTION_ATTR_RECIRC":
+                print_str += "recirc(0x%x)" % int(self.get_attr(field[0]))
+            elif field[0] == "OVS_ACTION_ATTR_TRUNC":
+                print_str += "trunc(%d)" % int(self.get_attr(field[0]))
+            elif field[0] == "OVS_ACTION_ATTR_DROP":
+                print_str += "drop(%d)" % int(self.get_attr(field[0]))
+            elif field[0] == "OVS_ACTION_ATTR_CT_CLEAR":
+                print_str += "ct_clear"
+            elif field[0] == "OVS_ACTION_ATTR_POP_VLAN":
+                print_str += "pop_vlan"
+            elif field[0] == "OVS_ACTION_ATTR_POP_ETH":
+                print_str += "pop_eth"
+            elif field[0] == "OVS_ACTION_ATTR_POP_NSH":
+                print_str += "pop_nsh"
+            elif field[0] == "OVS_ACTION_ATTR_POP_MPLS":
+                print_str += "pop_mpls"
             else:
                 datum = self.get_attr(field[0])
                 if field[0] == "OVS_ACTION_ATTR_CLONE":
@@ -473,8 +470,27 @@ class ovsactions(nla):
                         print(".. recursive instance: %s" % type(d))
 
                     print_str += ")"
+                elif field[0] == "OVS_ACTION_ATTR_SET":
+                    print_str += "set("
+
+                    for d in datum:
+                        print("... tunn info? ...")
+
+                    print_str += ")"
+                elif field[0] == "OVS_ACTION_ATTR_SET_MASKED":
+                    print_str += "set_masked("
+
+                    for kv in datum["attrs"]:
+                        ok = ovskey()
+                        ok["attrs"].append(kv)
+                        print_str += ok.dpstr(None, more) + ","
+
+                    print_str += ")"
                 else:
-                    print_str += datum.dpstr(more)
+                    try:
+                        print_str += datum.dpstr(more)
+                    except:
+                        print_str += "{ATTR: %s, not decoded}" % field[0]
 
         return print_str
 
@@ -548,6 +564,15 @@ class ovsactions(nla):
                 self["attrs"].append(("OVS_ACTION_ATTR_CLONE", subacts))
                 actstr = actstr[parsedLen:]
                 parsed = True
+            elif parse_starts_block(actstr, "set_masked(", False):
+                parencount += 1
+                k = ovskey()
+                m = ovskey()
+                actstr = actstr[len("set_masked("):]
+                actstr = k.parse(actstr, m)
+                self["attrs"].append(("OVS_ACTION_ATTR_SET_MASKED", [k, m]))
+                parsed = True
+
             elif parse_starts_block(actstr, "ct(", False):
                 parencount += 1
                 actstr = actstr[len("ct(") :]
@@ -694,7 +719,7 @@ class ovskey(nla):
         ("OVS_KEY_ATTR_NSH", "none"),
         ("OVS_KEY_ATTR_PACKET_TYPE", "none"),
         ("OVS_KEY_ATTR_ND_EXTENSIONS", "none"),
-        ("OVS_KEY_ATTR_TUNNEL_INFO", "none"),
+        ("OVS_KEY_ATTR_TUNNEL_INFO", "ovs_key_tunnel_info"),
         ("OVS_KEY_ATTR_IPV6_EXTENSIONS", "none"),
     )
 
@@ -769,7 +794,7 @@ class ovskey(nla):
                 if len(flowstr) == 0:
                     return flowstr, k, m
 
-            flowstr = flowstr[strspn(flowstr, "), ") :]
+            flowstr = flowstr[strspn(flowstr, ", ") :]
 
             return flowstr, k, m
 
@@ -1239,6 +1264,29 @@ class ovskey(nla):
                 init=init,
             )
 
+    class ovs_key_tunnel_info(nla):
+        nla_flags = NLA_F_NESTED
+
+        nla_map = (
+            ("OVS_TUNNEL_KEY_ATTR_ID", "uint64"),
+            ("OVS_TUNNEL_KEY_ATTR_IPV4_SRC", "uint32"),
+            ("OVS_TUNNEL_KEY_ATTR_IPV4_DST", "uint32"),
+            ("OVS_TUNNEL_KEY_ATTR_TOS", "uint8"),
+            ("OVS_TUNNEL_KEY_ATTR_TTL", "uint8"),
+            ("OVS_TUNNEL_KEY_ATTR_DONT_FRAGMENT", "flag"),
+            ("OVS_TUNNEL_KEY_ATTR_CSUM", "flag"),
+            ("OVS_TUNNEL_KEY_ATTR_OAM", "flag"),
+            ("OVS_TUNNEL_KEY_ATTR_GENEVE_OPTS", "array(uint32)"),
+            ("OVS_TUNNEL_KEY_ATTR_TP_SRC", "uint16"),
+            ("OVS_TUNNEL_KEY_ATTR_TP_DST", "uint16"),
+            ("OVS_TUNNEL_KEY_ATTR_VXLAN_OPTS", "none"),
+            ("OVS_TUNNEL_KEY_ATTR_IPV6_SRC", "array(uint8)"),
+            ("OVS_TUNNEL_KEY_ATTR_IPV6_DST", "array(uint8)"),
+            ("OVS_TUNNEL_KEY_ATTR_PAD", "none"),
+            ("OVS_TUNNEL_KEY_ATTR_ERSPAN_OPTS", "none"),
+            ("OVS_TUNNEL_KEY_ATTR_IPV4_INFO_BRIDGE", "flag"),
+        )
+
     class ovs_key_mpls(nla):
         fields = (("lse", ">I"),)
 
@@ -1308,12 +1356,18 @@ class ovskey(nla):
             else:
                 flowstr = flowstr[len(fld) :]
                 flowstr, k, m = field[2](flowstr)
+                # hack to check
+                flowstr = ")" + flowstr
 
             if m and mask is not None:
                 mask["attrs"].append([field[0], m])
             self["attrs"].append([field[0], k])
 
-            flowstr = flowstr[strspn(flowstr, "),") :]
+            if flowstr[0] != ")":
+                raise ValueError("Remainder key '%s' with unbalanced parens" % flowstr)
+            flowstr = flowstr[1:]
+
+            flowstr = flowstr[strspn(flowstr, ", ") :]
 
         return flowstr
 
@@ -1885,7 +1939,13 @@ class OvsFlow(GenericNetlinkSocket):
             ):
                 print_str += "drop"
             else:
-                print_str += actsmsg.dpstr(more)
+                if type(actsmsg) == "list":
+                    for act in actsmsg:
+                        print("Act: %s" % act)
+                        print_str += act.dpstr(more)
+                else:
+                    print("ACT: %s" % actsmsg)
+                    print_str += actsmsg.dpstr(more)
 
             return print_str
 
@@ -2258,6 +2318,7 @@ def main(argv):
             return 1
         rep = ovsflow.dump(rep["dpifindex"])
         for flow in rep:
+            print("Flow: %s" % flow)
             print(flow.dpstr(True if args.verbose > 0 else False))
     elif hasattr(args, "flbr"):
         rep = ovsdp.info(args.flbr, 0)
