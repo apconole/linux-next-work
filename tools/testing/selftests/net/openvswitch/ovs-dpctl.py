@@ -283,7 +283,7 @@ class ovsactions(nla):
         ("OVS_ACTION_ATTR_UNSPEC", "none"),
         ("OVS_ACTION_ATTR_OUTPUT", "uint32"),
         ("OVS_ACTION_ATTR_USERSPACE", "userspace"),
-        ("OVS_ACTION_ATTR_SET", "*ovskey"),
+        ("OVS_ACTION_ATTR_SET", "ovskey"),
         ("OVS_ACTION_ATTR_PUSH_VLAN", "none"),
         ("OVS_ACTION_ATTR_POP_VLAN", "flag"),
         ("OVS_ACTION_ATTR_SAMPLE", "none"),
@@ -470,15 +470,9 @@ class ovsactions(nla):
                         print(".. recursive instance: %s" % type(d))
 
                     print_str += ")"
-                elif field[0] == "OVS_ACTION_ATTR_SET":
+                elif field[0] == "OVS_ACTION_ATTR_SET" or \
+                     field[0] == "OVS_ACTION_ATTR_SET_MASKED":
                     print_str += "set("
-
-                    for d in datum:
-                        print("... tunn info? ...")
-
-                    print_str += ")"
-                elif field[0] == "OVS_ACTION_ATTR_SET_MASKED":
-                    print_str += "set_masked("
 
                     for kv in datum["attrs"]:
                         ok = ovskey()
@@ -561,16 +555,18 @@ class ovsactions(nla):
                 actstr = actstr[len("clone("):]
                 parsedLen = subacts.parse(actstr)
                 lst = []
-                self["attrs"].append(("OVS_ACTION_ATTR_CLONE", subacts))
+                self["attrs"].append(["OVS_ACTION_ATTR_CLONE", subacts])
                 actstr = actstr[parsedLen:]
                 parsed = True
-            elif parse_starts_block(actstr, "set_masked(", False):
+            elif parse_starts_block(actstr, "set(", False):
+                # always assume masked for now... SET proper won't handle
+                # anything but a very specific attribute and will reject
+                # otherwise.
                 parencount += 1
                 k = ovskey()
-                m = ovskey()
-                actstr = actstr[len("set_masked("):]
-                actstr = k.parse(actstr, m)
-                self["attrs"].append(("OVS_ACTION_ATTR_SET_MASKED", [k, m]))
+                actstr = actstr[len("set("):]
+                actstr = k.parse(actstr)
+                self["attrs"].append(["OVS_ACTION_ATTR_SET", k])
                 parsed = True
 
             elif parse_starts_block(actstr, "ct(", False):
@@ -704,7 +700,7 @@ class ovskey(nla):
         ("OVS_KEY_ATTR_ARP", "ovs_key_arp"),
         ("OVS_KEY_ATTR_ND", "ovs_key_nd"),
         ("OVS_KEY_ATTR_SKB_MARK", "uint32"),
-        ("OVS_KEY_ATTR_TUNNEL", "none"),
+        ("OVS_KEY_ATTR_TUNNEL", "ovs_key_tunnel_info"),
         ("OVS_KEY_ATTR_SCTP", "ovs_key_sctp"),
         ("OVS_KEY_ATTR_TCP_FLAGS", "be16"),
         ("OVS_KEY_ATTR_DP_HASH", "uint32"),
@@ -719,7 +715,7 @@ class ovskey(nla):
         ("OVS_KEY_ATTR_NSH", "none"),
         ("OVS_KEY_ATTR_PACKET_TYPE", "none"),
         ("OVS_KEY_ATTR_ND_EXTENSIONS", "none"),
-        ("OVS_KEY_ATTR_TUNNEL_INFO", "ovs_key_tunnel_info"),
+        ("OVS_KEY_ATTR_TUNNEL_INFO", "none"),
         ("OVS_KEY_ATTR_IPV6_EXTENSIONS", "none"),
     )
 
@@ -1268,17 +1264,17 @@ class ovskey(nla):
         nla_flags = NLA_F_NESTED
 
         nla_map = (
-            ("OVS_TUNNEL_KEY_ATTR_ID", "uint64"),
-            ("OVS_TUNNEL_KEY_ATTR_IPV4_SRC", "uint32"),
-            ("OVS_TUNNEL_KEY_ATTR_IPV4_DST", "uint32"),
+            ("OVS_TUNNEL_KEY_ATTR_ID", "be64"),
+            ("OVS_TUNNEL_KEY_ATTR_IPV4_SRC", "ipaddr"),
+            ("OVS_TUNNEL_KEY_ATTR_IPV4_DST", "ipaddr"),
             ("OVS_TUNNEL_KEY_ATTR_TOS", "uint8"),
             ("OVS_TUNNEL_KEY_ATTR_TTL", "uint8"),
             ("OVS_TUNNEL_KEY_ATTR_DONT_FRAGMENT", "flag"),
             ("OVS_TUNNEL_KEY_ATTR_CSUM", "flag"),
             ("OVS_TUNNEL_KEY_ATTR_OAM", "flag"),
             ("OVS_TUNNEL_KEY_ATTR_GENEVE_OPTS", "array(uint32)"),
-            ("OVS_TUNNEL_KEY_ATTR_TP_SRC", "uint16"),
-            ("OVS_TUNNEL_KEY_ATTR_TP_DST", "uint16"),
+            ("OVS_TUNNEL_KEY_ATTR_TP_SRC", "be16"),
+            ("OVS_TUNNEL_KEY_ATTR_TP_DST", "be16"),
             ("OVS_TUNNEL_KEY_ATTR_VXLAN_OPTS", "none"),
             ("OVS_TUNNEL_KEY_ATTR_IPV6_SRC", "array(uint8)"),
             ("OVS_TUNNEL_KEY_ATTR_IPV6_DST", "array(uint8)"),
@@ -1286,6 +1282,64 @@ class ovskey(nla):
             ("OVS_TUNNEL_KEY_ATTR_ERSPAN_OPTS", "none"),
             ("OVS_TUNNEL_KEY_ATTR_IPV4_INFO_BRIDGE", "flag"),
         )
+
+        def parse(self, flowstr, mask=None):
+            if not flowstr.startswith("tunnel("):
+                return None, None
+
+            k = ovskey.ovs_key_tunnel_info()
+
+            flowstr = flowstr[len("tunnel("):]
+            flowstr, tunid = parse_extract_field(flowstr, "tun_id=",
+                                                 "(\d+)", int, False)
+            flowstr, src4 = parse_extract_field(flowstr, "src=",
+                                                "([0-9a-fA-F\.]+)", str, False)
+            flowstr, dst4 = parse_extract_field(flowstr, "dst=",
+                                                "([0-9a-fA-F\.]+)", str, False)
+            # we ignore src6/dst6 details but will scan them out
+            flowstr, src6 = parse_extract_field(flowstr, "ipv6_src=",
+                                                "([0-9a-fA-F\:]+)", str, False)
+            flowstr, dst6 = parse_extract_field(flowstr, "ipv6_dst=",
+                                                "([0-9a-fA-F\:]+)", str, False)
+
+            flowstr, tos = parse_extract_field(flowstr, "tos=",
+                                                 "(\d+)", int, False)
+            flowstr, ttl = parse_extract_field(flowstr, "ttl=",
+                                                 "(\d+)", int, False)
+            flowstr, tp_src = parse_extract_field(flowstr, "tp_src=",
+                                                  "(\d+)", int, False)
+            flowstr, tp_dst = parse_extract_field(flowstr, "tp_dst=",
+                                                  "(\d+)", int, False)
+
+            if tunid is None:
+                raise ValueError("Needs a tunid set")
+
+            k["attrs"].append(["OVS_TUNNEL_KEY_ATTR_ID", tunid])
+
+            if src4 is not None:
+                k["attrs"].append(["OVS_TUNNEL_KEY_ATTR_IPV4_SRC", src4])
+                
+            if dst4 is not None:
+                k["attrs"].append(["OVS_TUNNEL_KEY_ATTR_IPV4_DST", dst4])
+
+            if tos is not None:
+                k["attrs"].append(["OVS_TUNNEL_KEY_ATTR_TOS", tos])
+
+            if ttl is not None:
+                k["attrs"].append(["OVS_TUNNEL_KEY_ATTR_TTL", ttl])
+
+            if tp_src is not None:
+                k["attrs"].append(["OVS_TUNNEL_KEY_ATTR_TP_SRC", tp_src])
+
+            if tp_dst is not None:
+                k["attrs"].append(["OVS_TUNNEL_KEY_ATTR_TP_DST", tp_dst])
+
+            flowstr = flowstr[strspn(flowstr, ", ") :]
+
+            return flowstr, k, None
+
+        def dpstr(self, mask=None, more=False):
+            pass
 
     class ovs_key_mpls(nla):
         fields = (("lse", ">I"),)
@@ -1345,6 +1399,11 @@ class ovskey(nla):
                 "tcp_flags",
                 lambda x: parse_flags(x, None),
             ),
+            (
+                "OVS_KEY_ATTR_TUNNEL",
+                "tunnel",
+                ovskey.ovs_key_tunnel_info,
+            ),
         ):
             fld = field[1] + "("
             if not flowstr.startswith(fld):
@@ -1359,7 +1418,7 @@ class ovskey(nla):
                 # hack to check
                 flowstr = ")" + flowstr
 
-            if m and mask is not None:
+            if m is not None and mask is not None:
                 mask["attrs"].append([field[0], m])
             self["attrs"].append([field[0], k])
 
@@ -1863,7 +1922,7 @@ class OvsFlow(GenericNetlinkSocket):
             ("OVS_FLOW_ATTR_USED", "uint64"),
             ("OVS_FLOW_ATTR_CLEAR", "none"),
             ("OVS_FLOW_ATTR_MASK", "ovskey"),
-            ("OVS_FLOW_ATTR_PROBE", "none"),
+            ("OVS_FLOW_ATTR_PROBE", "flag"),
             ("OVS_FLOW_ATTR_UFID", "array(uint32)"),
             ("OVS_FLOW_ATTR_UFID_FLAGS", "uint32"),
         )

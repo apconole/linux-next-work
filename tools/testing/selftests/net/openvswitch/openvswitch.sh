@@ -19,6 +19,7 @@ tests="
 	nat_connect_v4				ip4-nat-xon: Basic ipv4 tcp connection via NAT
 	nat_related_v4				ip4-nat-related: ICMP related matches work with SNAT
 	netlink_checks				ovsnl: validate netlink attrs and settings
+	tunnel_calls				tunnels: test lwt tunneling
 	upcall_interfaces			ovs: test the upcall interfaces
 	drop_reason				drop: test drop reasons are emitted"
 
@@ -81,6 +82,7 @@ ovs_add_dp () {
 
 ovs_add_if () {
 	info "Adding IF to DP: br:$2 if:$3"
+
 	if [ "$4" != "-u" ]; then
 		ovs_sbx "$1" python3 $ovs_base/ovs-dpctl.py add-if "$2" "$3" \
 		    || return 1
@@ -587,6 +589,50 @@ test_netlink_checks () {
 		return 1
 	fi
 	return 0
+}
+
+test_tunnel_calls() {
+	sbx_add "test_tunnel_calls" || return $?
+
+	ovs_add_dp "test_tunnel_calls" tcs || return 1
+
+	info "create namespaces"
+	for ns in client server; do
+		ovs_add_netns_and_veths "test_tunnel_calls" "tcs" "$ns" \
+		    "${ns:0:1}0" "${ns:0:1}1" || return 1
+	done
+
+	info "Adding Tunnel IF"
+
+	ovs_sbx "test_tunnel_calls" python3 $ovs_base/ovs-dpctl.py add-if \
+	    -t geneve tcs gen0 || return 1
+
+        ip addr add 172.31.111.2/24 dev c0
+	ip netns exec client ip addr add 172.31.110.2/24 dev lo
+	ip netns exec client ip link set c1 up
+        HW_CLIENT=`ip netns exec client ip link show dev c1 | grep -E 'link/ether [0-9a-f:]+' | awk '{print $2;}'`
+
+	ip netns exec server ip addr add 172.31.111.24/24 dev s1
+	# local delivery after popping out of the tunnel
+	ip netns exec server ip addr add 172.31.110.1/24 dev lo
+	ip netns exec server ip link set s1 up
+
+	ip netns exec server ip link add gen0 type geneve id 0x11 remote 172.31.110.2
+
+	# Allow ARP
+	ovs_add_flow "test_tunnel_calls" tcs \
+		"in_port(1),eth(),eth_type(0x0806),arp()" "2" || return 1
+	ovs_add_flow "test_tunnel_calls" tcs \
+		"in_port(2),eth(),eth_type(0x0806),arp()" "1" || return 1
+
+	ovs_add_flow "test_tunnel_calls" tcs \
+		"in_port(1),eth(),eth_type(0x0800),ipv4(dst=172.31.110.1,proto=1),icmp()" \
+		"set(tunnel(tun_id=17,dst=172.31.111.1,ttl=63,tp_dst=6081)),3" || \
+		return 1
+
+	ip netns exec client ip route add 172.31.110.1 via 172.31.111.2
+	ip netns exec client ping -c 1 172.31.110.1
+	return 1
 }
 
 test_upcall_interfaces() {
